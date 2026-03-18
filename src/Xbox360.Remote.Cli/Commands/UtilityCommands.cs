@@ -332,50 +332,75 @@ public sealed class RebootCommand : AsyncCommand<RebootCommand.Settings> {
 public sealed class InstallCommand : Command<InstallCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--uninstall")]
-        [Description("Remove the rgh command shim.")]
+        [Description("Remove the current-user shim or, with --machine-path, remove the machine PATH entry.")]
         public bool Uninstall { get; init; }
+
+        [CommandOption("--machine-path")]
+        [Description("Add the rgh.exe directory to the machine PATH (admin required).")]
+        public bool MachinePath { get; init; }
 
         [CommandOption("--path <DIR>")]
         [Description("Override the rgh.exe directory (defaults to the current executable folder).")]
         public string? Path { get; init; }
+
+        [CommandOption("--quiet")]
+        [Description("Suppress non-error install output.")]
+        public bool Quiet { get; init; }
     }
 
     public override int Execute(CommandContext context, Settings settings) {
-        string appsDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Microsoft",
-            "WindowsApps");
-        string shimPath = Path.Combine(appsDir, "rgh.cmd");
-
-        if (settings.Uninstall) {
-            if (File.Exists(shimPath))
-                File.Delete(shimPath);
-            AnsiConsole.MarkupLine("[green]Uninstalled rgh command shim.[/]");
-            return 0;
-        }
-
-        string exeDir = settings.Path ?? AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+        string exeDir = InstallHelpers.NormalizeDirectory(settings.Path ?? AppContext.BaseDirectory);
         string exePath = Path.Combine(exeDir, "rgh.exe");
         if (!File.Exists(exePath)) {
             AnsiConsole.MarkupLine($"[red]rgh.exe not found at[/] {Markup.Escape(exePath)}");
             return 1;
         }
 
-        Directory.CreateDirectory(appsDir);
-        File.WriteAllText(shimPath, $"@echo off{Environment.NewLine}\"{exePath}\" %*{Environment.NewLine}");
-        AnsiConsole.MarkupLine($"[green]Installed rgh command shim:[/] {Markup.Escape(shimPath)}");
-        if (!IsOnPath(appsDir)) {
-            AnsiConsole.MarkupLine($"[yellow]Note:[/] {Markup.Escape(appsDir)} is not on PATH. Add it or use `rgh` from its folder.");
+        if (settings.Uninstall) {
+            if (settings.MachinePath) {
+                if (!InstallHelpers.IsAdministrator()) {
+                    AnsiConsole.MarkupLine("[red]Machine PATH uninstall requires an elevated terminal.[/]");
+                    return 1;
+                }
+
+                if (!InstallHelpers.RemoveMachinePathEntry(exeDir, out string removeMessage)) {
+                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(removeMessage)}[/]");
+                    return 1;
+                }
+
+                if (!settings.Quiet)
+                    AnsiConsole.MarkupLine($"[green]{Markup.Escape(removeMessage)}[/]");
+                return 0;
+            }
+
+            InstallHelpers.UninstallUserShim();
+            if (!settings.Quiet)
+                AnsiConsole.MarkupLine("[green]Uninstalled rgh command shim.[/]");
+            return 0;
         }
 
-        return 0;
-    }
+        if (settings.MachinePath) {
+            if (!InstallHelpers.IsAdministrator()) {
+                AnsiConsole.MarkupLine("[red]Machine PATH install requires an elevated terminal.[/]");
+                return 1;
+            }
 
-    private static bool IsOnPath(string path) {
-        string? env = Environment.GetEnvironmentVariable("PATH");
-        if (string.IsNullOrWhiteSpace(env))
-            return false;
-        string[] parts = env.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return parts.Any(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
+            if (!InstallHelpers.AddMachinePathEntry(exeDir, out string addMessage)) {
+                AnsiConsole.MarkupLine($"[red]{Markup.Escape(addMessage)}[/]");
+                return 1;
+            }
+
+            if (!settings.Quiet)
+                AnsiConsole.MarkupLine($"[green]{Markup.Escape(addMessage)}[/]");
+            return 0;
+        }
+
+        InstallHelpers.InstallUserShim(exeDir);
+        if (!settings.Quiet)
+            AnsiConsole.MarkupLine($"[green]Installed rgh command shim:[/] {Markup.Escape(InstallHelpers.ShimPath)}");
+        if (!InstallHelpers.IsDirectoryOnProcessPath(InstallHelpers.WindowsAppsDir) && !settings.Quiet) {
+            AnsiConsole.MarkupLine($"[yellow]Note:[/] {Markup.Escape(InstallHelpers.WindowsAppsDir)} is not on PATH. Add it or use `rgh` from its folder.");
+        }
+        return 0;
     }
 }

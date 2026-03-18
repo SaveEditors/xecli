@@ -1,10 +1,13 @@
+using System.ComponentModel;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Xbox360.Remote.Cli;
 using Xbox360.Remote.Cli.Commands;
 
 internal static class Program {
     public static async Task<int> Main(string[] args) {
         args = NormalizeArgs(args);
+        await HandleFirstRunPathPromptAsync(args);
         CommandApp app = new CommandApp();
         app.Configure(config => {
             config.SetApplicationName("rgh");
@@ -19,7 +22,7 @@ internal static class Program {
             config.AddCommand<TargetCommand>("target").WithDescription("Show or set the default target.");
             config.AddCommand<PingCommand>("ping").WithDescription("Ping the current console.");
             config.AddCommand<RebootCommand>("reboot").WithAlias("restart").WithDescription("Reboot the console (cold by default).");
-            config.AddCommand<InstallCommand>("install").WithDescription("Install or uninstall the rgh command shim.");
+            config.AddCommand<InstallCommand>("install").WithDescription("Install rgh for the current user or add it to the machine PATH.");
             config.AddCommand<StartCommand>("start").WithAlias("s").WithDescription("Discover consoles and set the default target.");
             config.AddCommand<ConnectCommand>("connect").WithAlias("c").WithDescription("Set or select the default target.");
             config.AddCommand<ScanCommand>("scan").WithAlias("discover").WithDescription("Scan the network for consoles.");
@@ -200,6 +203,65 @@ internal static class Program {
         return await app.RunAsync(args);
     }
 
+    private static Task HandleFirstRunPathPromptAsync(string[] args) {
+        if (!ShouldShowPathPrompt(args))
+            return Task.CompletedTask;
+
+        CliConfig config = CliConfig.Load();
+        if (config.PathPromptHandled)
+            return Task.CompletedTask;
+
+        string exeDir = InstallHelpers.NormalizeDirectory(AppContext.BaseDirectory);
+        if (InstallHelpers.IsCommandAvailable(exeDir)) {
+            config.PathPromptHandled = true;
+            config.Save();
+            return Task.CompletedTask;
+        }
+
+        string currentExe = Environment.ProcessPath ?? Path.Combine(exeDir, "rgh.exe");
+        Panel panel = new Panel(
+            "Add [green]rgh[/] to the machine PATH so it can be used from any terminal.\n[grey]This triggers a UAC prompt and requires administrator approval.[/]")
+            .Header("[bold deepskyblue1]First-Run Setup[/]")
+            .BorderColor(Color.Grey);
+        AnsiConsole.Write(panel);
+
+        string choice = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Install global terminal access now?")
+                .AddChoices("Yes", "Not now", "Never ask again"));
+
+        if (choice == "Yes") {
+            try {
+                int exitCode = InstallHelpers.RunElevatedMachinePathInstall(currentExe, exeDir);
+                if (exitCode == 0) {
+                    config.PathPromptHandled = true;
+                    config.Save();
+                    AnsiConsole.MarkupLine("[green]Global PATH install completed.[/] Open a new terminal to use `rgh` from anywhere.");
+                }
+                else {
+                    AnsiConsole.MarkupLine($"[red]PATH install exited with code {exitCode}.[/]");
+                }
+            }
+            catch (Win32Exception ex) when (ex.NativeErrorCode == 1223) {
+                AnsiConsole.MarkupLine("[yellow]PATH install was cancelled at the UAC prompt.[/]");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        if (choice == "Not now") {
+            config.PathPromptHandled = true;
+            config.Save();
+            AnsiConsole.MarkupLine("[grey]Skipped. You can install later with `rgh install --machine-path`.[/]");
+            return Task.CompletedTask;
+        }
+
+        config.PathPromptHandled = true;
+        config.Save();
+        AnsiConsole.MarkupLine("[grey]Path prompt disabled. You can install later with `rgh install --machine-path`.[/]");
+        return Task.CompletedTask;
+    }
+
     private static string[] NormalizeArgs(string[] args) {
         if (args.Length == 0)
             return args;
@@ -220,5 +282,18 @@ internal static class Program {
     private static bool IsHelpToken(string arg) {
         return arg.Equals("help", StringComparison.OrdinalIgnoreCase) ||
                arg.Equals("?", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ShouldShowPathPrompt(string[] args) {
+        if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
+            return false;
+
+        if (args.Any(IsHelpToken) || args.Any(arg => arg.Equals("--help", StringComparison.OrdinalIgnoreCase) || arg.Equals("-h", StringComparison.OrdinalIgnoreCase)))
+            return false;
+
+        if (args.Length > 0 && args[0].Equals("install", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return true;
     }
 }

@@ -12,6 +12,7 @@ internal sealed class CliConfig {
     public string? GhidraPath { get; set; }
     public string? GhidraJavaPath { get; set; }
     public string? GhidraProjectsPath { get; set; }
+    public bool PathPromptHandled { get; set; }
 
     public static CliConfig Load() {
         string path = CliPaths.ConfigPath;

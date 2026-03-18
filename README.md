@@ -86,7 +86,10 @@ Standalone build:
 ```bash
 rgh.exe --help
 rgh install
+rgh install --machine-path
 ```
+
+On first interactive launch from the packaged executable, XeCLI offers a one-time prompt to add its directory to the machine PATH with administrator approval.
 
 ## Quick Start
 Discover consoles and choose a default target:

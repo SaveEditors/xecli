@@ -1,0 +1,37 @@
+# Build output
+bin/
+obj/
+
+# User and IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Local publish and packaging output
+publish/
+dist/
+release/
+*.zip
+
+# Local captures, dumps, and generated analysis artifacts
+*.bmp
+*.raw
+*.bin
+*.xex
+*.c
+*.i64
+*.idb
+*.id0
+*.id1
+*.id2
+*.nam
+*.til
+decomp/
+dumps/
+screen*_variants/
+
+# Runtime config and cache created outside the repo should stay outside source control,
+# but these names are included here to protect against accidental local copies.
+config.json
+titleids.local.csv

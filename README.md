@@ -14,6 +14,15 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 
 Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 
+<p align="center">
+  <strong>Support our work? Buy us a coffee!</strong>
+</p>
+<p align="center">
+  <a href="https://ko-fi.com/saveeditors">
+    <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" alt="Support XeCLI on Ko-fi" width="180">
+  </a>
+</p>
+
 ## Documentation
 - [Wiki Home](wiki/Home.md)
 - [Commands Reference](wiki/Commands.md)

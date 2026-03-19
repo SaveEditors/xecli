@@ -1,6 +1,6 @@
 # XeCLI Wiki
 
-XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live-console operations, reverse engineering, file workflows, XEX analysis, and automation. This wiki is the primary operator and developer reference for the `rgh` command surface.
+XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
@@ -12,6 +12,7 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 | [Beginner Guide](Beginner-Guide.md) | Safe first-run workflow: discovery, connect, status, and basic operations |
 | [Commands Reference](Commands.md) | Full command-by-command reference with examples |
 | [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
+| [XNotify](XNotify.md) | Notification usage, icon IDs, and direct integration notes |
 | [Troubleshooting](Troubleshooting.md) | Failure cases, common console/plugin issues, and recovery paths |
 
 ### Developer Reference
@@ -34,8 +35,9 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 ### New operator path
 1. [Beginner Guide](Beginner-Guide.md)
 2. [Commands Reference](Commands.md)
-3. [CLI Help Output](CLI-Help.md)
-4. [Troubleshooting](Troubleshooting.md)
+3. [XNotify](XNotify.md)
+4. [CLI Help Output](CLI-Help.md)
+5. [Troubleshooting](Troubleshooting.md)
 
 ### Reverse-engineering path
 1. [Advanced Guide](Advanced-Guide.md)

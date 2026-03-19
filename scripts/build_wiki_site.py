@@ -21,6 +21,7 @@ SITE_GROUPS = [
             ("Beginner Guide", "Beginner-Guide.md"),
             ("Commands Reference", "Commands.md"),
             ("CLI Help Output", "CLI-Help.md"),
+            ("XNotify", "XNotify.md"),
             ("Troubleshooting", "Troubleshooting.md"),
         ],
     },
@@ -127,7 +128,7 @@ def build_page(md_name: str) -> None:
         <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
         <span>XeCLI Wiki</span>
       </a>
-      <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
       <p class="wiki-sidebar__credit">Created by <a href="{author_link}">Pew7s</a></p>
       <label class="wiki-search">
         <span>Filter Pages</span>

@@ -728,6 +728,8 @@ rgh notify-icons add --name success --logo 0x24
 rgh notify-icons remove --name success
 ```
 
+For the full XNotify explanation, icon IDs, direct numeric usage, and integration notes, see [XNotify.md](XNotify.md).
+
 Example output:
 
 ```text

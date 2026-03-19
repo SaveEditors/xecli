@@ -100,6 +100,17 @@ pre {
   line-height: 1.55;
 }
 
+.wiki-sidebar__credit {
+  margin: -6px 0 18px;
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+.wiki-sidebar__credit a {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
 .wiki-search {
   display: block;
   margin-bottom: 18px;

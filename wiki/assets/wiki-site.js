@@ -67,7 +67,7 @@
     const toc = document.getElementById("wiki-toc");
     if (!content || !toc) return;
 
-    const headings = [...content.querySelectorAll("h2, h3")];
+    const headings = [...content.querySelectorAll("h2")];
     if (headings.length === 0) {
       toc.innerHTML = "<span>No section headings on this page.</span>";
       return;
@@ -81,7 +81,6 @@
       const link = document.createElement("a");
       link.href = `#${heading.id}`;
       link.textContent = heading.textContent || "";
-      link.dataset.level = heading.tagName.replace("H", "");
       toc.appendChild(link);
     });
   }

@@ -107,8 +107,9 @@ def build_page(md_name: str) -> None:
     body = markdown_to_html(markdown_text)
     page_title = meta["title"]
     sidebar_html = build_sidebar(md_name)
-    source_link = f"https://github.com/SaveEditors/xecli/blob/main/wiki/{md_name}"
-    edit_link = source_link
+    repo_link = "https://github.com/SaveEditors/xecli"
+    releases_link = "https://github.com/SaveEditors/xecli/releases/latest"
+    author_link = "https://www.se7ensins.com/members/pepe-le-pew.527865/"
 
     output = f"""<!DOCTYPE html>
 <html lang="en">
@@ -127,6 +128,7 @@ def build_page(md_name: str) -> None:
         <span>XeCLI Wiki</span>
       </a>
       <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <p class="wiki-sidebar__credit">Created by <a href="{author_link}">Pew7s</a></p>
       <label class="wiki-search">
         <span>Filter Pages</span>
         <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
@@ -148,8 +150,8 @@ def build_page(md_name: str) -> None:
           <h1>{html.escape(page_title)}</h1>
         </div>
         <div class="wiki-actions">
-          <a href="{html.escape(source_link)}">Source</a>
-          <a href="{html.escape(edit_link)}">Open on GitHub</a>
+          <a href="{repo_link}">Repo</a>
+          <a href="{releases_link}">Releases</a>
         </div>
       </header>
 

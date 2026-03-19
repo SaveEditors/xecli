@@ -4,6 +4,12 @@ XNotify is the Xbox 360 on-screen notification system used for sign-in prompts, 
 
 XeCLI exposes XNotify through the `rgh notify`, `rgh notify-icons`, and `rgh jrpc2 notify` commands so you can send operator messages directly to the console without opening a separate tool.
 
+At the practical level, every XNotify workflow comes down to three inputs:
+
+- message text
+- icon/logo identifier
+- a healthy notification-capable JRPC/XDRPC path on the console
+
 ## What XeCLI Supports
 
 XeCLI supports:
@@ -40,6 +46,20 @@ In real RGH/JTAG workflows, XNotify is useful for:
 - validating that JRPC2 is alive and responding
 - confirming trainer, module, save, or plugin operations without manually checking files first
 - building custom tooling that gives visible operator feedback during scripted workflows
+
+## What XNotify Actually Is
+
+XNotify is the shell popup system built into the Xbox 360 dashboard environment.
+
+It is the same notification family used for:
+
+- sign-in and sign-out messages
+- achievement and avatar award toasts
+- storage and controller warnings
+- party/chat prompts
+- download and update notices
+
+That is why the icon list contains shell-event names instead of generic app icons. XeCLI is not inventing a new notification framework. It is exposing the console’s existing one in a terminal-friendly way.
 
 ## Command Surface
 
@@ -127,6 +147,24 @@ That means:
 - logo/icon id = `14`
 
 This is the fastest operator form when you already know the ID you want.
+
+## Direct RPC Usage Notes
+
+If you are building tooling outside XeCLI, the lower-level shape is still:
+
+- message text
+- icon/logo ID
+- dispatch through the console notification RPC path
+
+XeCLI already normalizes the useful operator forms:
+
+```powershell
+rgh notify "XeCLI connected" 14
+rgh jrpc2 notify "XeCLI connected" 14
+rgh notify --message "XeCLI connected" --logo 14
+```
+
+That keeps users away from raw command framing while still matching the way other JRPC/XDRPC-capable tools think about XNotify.
 
 ## Built-In Icon Reference
 

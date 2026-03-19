@@ -28,6 +28,8 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - [Commands Reference](wiki/Commands.md)
 - [CLI Help Output](wiki/CLI-Help.md)
 - [Beginner Guide](wiki/Beginner-Guide.md)
+- [Hardware and System Controls](wiki/Hardware-and-System.md)
+- [XNotify](wiki/XNotify.md)
 - [Advanced Guide](wiki/Advanced-Guide.md)
 - [Published Docs Site](https://saveeditors.github.io/xecli/wiki/Home.html)
 
@@ -73,7 +75,7 @@ At publish time, these assets are copied into the release output so the package 
 XeCLI does not replace console-side plugins or services. The target console must already provide the pieces you want to use:
 
 - XBDM for console control, module enumeration, memory access, threads, breakpoints, screenshots, and file-system commands.
-- JRPC2 for CPU key, temperatures, Title ID, dashboard version, motherboard type, notifications, and generic RPC.
+- JRPC2 for CPU key, temperatures, Title ID, dashboard version, motherboard type, notifications, sign-in helpers, LED control, and generic RPC.
 - FTP service for FTP-backed file browsing, save management, content management, and DashLaunch plugin edits.
 
 XeCLI is shipped as a self-contained local toolchain and now includes common console-side `.xex` dependency files in `ConsoleDependencies/` for packaging convenience, but those services still have to be installed and enabled on the target console.
@@ -83,6 +85,9 @@ Core console workflows:
 
 - Console discovery and saved default targeting.
 - Fast `status`, `ping`, `profiles`, and `title` queries.
+- Sign-in state inspection with gamertag and XUID output.
+- Ring-of-light LED control with cached state display.
+- Manual fan command dispatch and optional SMC version probing.
 - Launch and reboot control with optional on-console success notifications.
 
 Live inspection and debugging:

@@ -18,6 +18,8 @@ Good examples:
 
 - launchers that need title and module metadata
 - dashboards that need status snapshots
+- overlays that need sign-in/session state
+- operator panels that need LED or notification actions
 - save tools that need extraction and injection
 - reverse-engineering helpers that need XEX pulls or Ghidra automation
 
@@ -26,6 +28,7 @@ Typical calls:
 ```powershell
 rgh status --json
 rgh title --json
+rgh signin state --json
 rgh modules list --json
 rgh content list --json
 ```
@@ -44,7 +47,17 @@ Common commands with useful JSON output:
 - `mem regions`
 - `mem strings`
 - `content list`
+- `signin state`
 - `ghidra verify`
+
+Example:
+
+```powershell
+rgh status --json > status.json
+rgh title --json > title.json
+rgh signin state --json > signin.json
+rgh modules list --json > modules.json
+```
 
 ## Reuse the Title ID Database
 Bundled files:
@@ -72,6 +85,8 @@ rgh save extract --titleid 415608C3 --out .\saves
 
 This works well when your application wants the files that XeCLI can pull rather than embedding transport logic itself.
 
+This is also a good fit when you want XeCLI’s live progress handling and operator-facing error messages without rewriting FTP/XBDM transport code yourself.
+
 ## Ghidra Integration Pattern
 If your tool needs decompile output but you do not want to own a Ghidra automation layer:
 
@@ -81,6 +96,26 @@ rgh ghidra verify --dir .\decomp --json
 ```
 
 This keeps import, decompile, and verification logic in one place.
+
+## Notification Integration Pattern
+If your app needs visible console-side feedback, use XeCLI as the notification layer rather than hardcoding icon IDs in multiple places.
+
+Examples:
+
+```powershell
+rgh notify "Build finished" 14
+rgh notify "Patch applied" 16
+rgh notify "Download complete" 55
+rgh led set --preset quadrant1
+```
+
+For custom frontends, a practical pattern is:
+
+1. keep your own message text in the host app
+2. call XeCLI with a known icon ID or preset
+3. show the same event in your host UI and on the console
+
+Read [XNotify.md](XNotify.md) for the icon reference and direct usage guidance.
 
 ## Config and Override Files
 Runtime config:
@@ -92,6 +127,12 @@ Optional user metadata override:
 - `%APPDATA%\XeCLI\titleids.local.csv`
 
 If you build another tool around XeCLI, do not hardcode machine-specific paths. Resolve config and asset paths relative to the XeCLI executable or the documented per-user config locations.
+
+If you ship XeCLI beside another tool, prefer resolving:
+
+- executable folder for `ConsoleDependencies/`, `Assets/`, and `ghidra_scripts/`
+- per-user config for runtime overrides
+- `titleids.local.csv` for user-specific metadata extensions
 
 ## When to Reuse XeCLI Instead of Rewriting It
 Use XeCLI directly when:
@@ -106,3 +147,17 @@ Reimplement only if:
 - you need a library API instead of a process boundary
 - you must own every transport and retry detail internally
 - your application cannot tolerate CLI process orchestration
+
+## Recommended External-Tool Entry Points
+
+| Need | Recommended XeCLI entry point |
+| --- | --- |
+| Live status card | `rgh status --json` |
+| Active title badge | `rgh title --json` |
+| Signed-in user badge | `rgh signin state --json` |
+| Notification banner on console | `rgh notify` |
+| Session/hardware indicator | `rgh led set` |
+| File pull/push | `rgh ftp ...` or `rgh fs ...` |
+| Running-XEX acquisition | `rgh xex dump` |
+| Decompile pipeline | `rgh ghidra decompile` + `rgh ghidra verify --json` |
+| Save backup/import | `rgh save extract` / `rgh save inject` |

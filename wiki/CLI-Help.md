@@ -2,6 +2,14 @@
 
 This page captures the current built-in help screens from the shipped `rgh` binary and explains how the shortcut groups map to the canonical command tree.
 
+Use this page when you need:
+
+- the exact built-in help wording from the shipped binary
+- the shortcut and alias map
+- a quick reminder of what each top-level branch exposes
+
+Use [Commands.md](Commands.md) when you need task-oriented examples and expected outputs. Use [XNotify.md](XNotify.md) when you need icon IDs, notification usage, and integration notes.
+
 ## How to Read the Help Tree
 Use the help system in this order:
 
@@ -31,6 +39,10 @@ EXAMPLES:
     rgh title
     rgh modules list
     rgh mem hexdump --addr 0x30000000 --size 0x40
+    rgh notify XeCLI connected 14
+    rgh smc version
+    rgh fan set --speed 55 --channel both
+    rgh led set --preset quadrant1
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -58,8 +70,14 @@ COMMANDS:
     threads         Shortcut for `rgh xbdm threads`
     debug           Shortcut for `rgh xbdm debug`
     jrpc2           JRPC2 (XDRPC-style) commands
-    notify          Send an on-screen notification
-    notify-icons    Manage notify icon presets
+    notify          Send an on-screen notification with a raw icon id, built-in
+                    icon name, or preset alias
+    notify-icons    Browse the built-in XNotify icon catalog and manage preset
+                    aliases
+    smc             System Management Controller helpers
+    fan             Fan speed helpers
+    led             Ring-of-light LED helpers
+    signin          Signed-in user helpers
     ftp             FTP commands (alternate access)
     save            Profile and save-data helpers over FTP
     content         Installed content management over FTP
@@ -148,6 +166,20 @@ SUCCESS Save extract complete
 rgh notify "XeCLI connected" 14
 SUCCESS Notification sent
 message="XeCLI connected" logo=14 (Flashing happy face)
+
+rgh signin state
+Signed In   Yes
+State       Signed in locally
+Gamertag    Diamond KSG
+XUID        0x5D83300C00000900
+
+rgh led set --preset quadrant1
+SUCCESS Ring light updated
+TL=green, TR=off, BL=off, BR=off
+
+rgh fan set --speed 50 --channel both
+SUCCESS Fan command sent
+50% requested for both
 
 rgh ghidra decompile --running --out .\decomp
 SUCCESS Ghidra decompile complete
@@ -602,7 +634,7 @@ COMMANDS:
 ### `rgh notify help`
 ```text
 DESCRIPTION:
-Send an on-screen notification
+Send an on-screen notification with a raw icon id, built-in icon name, or preset alias
 
 USAGE:
     rgh notify [message] [OPTIONS]
@@ -625,7 +657,7 @@ OPTIONS:
 ### `rgh notify-icons help`
 ```text
 DESCRIPTION:
-Manage notify icon presets
+Browse the built-in XNotify icon catalog and manage preset aliases
 
 USAGE:
     rgh notify-icons [OPTIONS] <COMMAND>
@@ -634,9 +666,86 @@ OPTIONS:
     -h, --help    Prints help information
 
 COMMANDS:
-    list      List icon presets
+    list      List built-in XNotify icons and preset aliases
+    show      Resolve an icon id, built-in name, or preset alias
     add       Add an icon preset
     remove    Remove an icon preset
+```
+
+### `rgh smc help`
+```text
+DESCRIPTION:
+System Management Controller helpers
+
+USAGE:
+    rgh smc [OPTIONS] <COMMAND>
+
+EXAMPLES:
+    rgh smc version
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    version    Read the console SMC version
+```
+
+### `rgh fan help`
+```text
+DESCRIPTION:
+Fan speed helpers
+
+USAGE:
+    rgh fan [OPTIONS] <COMMAND>
+
+EXAMPLES:
+    rgh fan set --speed 55 --channel both
+    rgh fan show
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    set     Apply a manual fan speed
+    show    Show the last XeCLI-applied manual fan setting
+```
+
+### `rgh led help`
+```text
+DESCRIPTION:
+Ring-of-light LED helpers
+
+USAGE:
+    rgh led [OPTIONS] <COMMAND>
+
+EXAMPLES:
+    rgh led set --preset quadrant1
+    rgh led set --tl green --tr off --bl off --br off
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    set      Set the ring-of-light LEDs
+    state    Show the last XeCLI-applied ring-light state
+```
+
+### `rgh signin help`
+```text
+DESCRIPTION:
+Signed-in user helpers
+
+USAGE:
+    rgh signin [OPTIONS] <COMMAND>
+
+EXAMPLES:
+    rgh signin state
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    state    Read the active sign-in state, gamertag, and XUID
 ```
 
 ### `rgh ftp help`

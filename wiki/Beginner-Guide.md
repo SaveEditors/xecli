@@ -123,10 +123,26 @@ rgh launch Hdd1:\Aurora\Aurora.xex --titleid FFFE07D1
 Send a notification:
 
 ```powershell
-rgh notify "XeCLI connected"
+rgh notify "XeCLI connected" 14
 ```
 
-## 9. Avoid the Common Mistakes
+## 9. Check Session and Hardware State
+Signed-in user:
+
+```powershell
+rgh signin state
+```
+
+Ring light:
+
+```powershell
+rgh led set --preset quadrant1
+rgh led state
+```
+
+If you want the hardware/session details explained in depth, read [Hardware-and-System.md](Hardware-and-System.md).
+
+## 10. Avoid the Common Mistakes
 Do not start with dangerous commands until the basic path is stable.
 
 Start with:
@@ -136,6 +152,8 @@ Start with:
 - `modules list`
 - `ftp list`
 - `screenshot`
+- `signin state`
+- `led set --preset quadrant1`
 
 Delay these until you know the target is stable:
 
@@ -143,9 +161,12 @@ Delay these until you know the target is stable:
 - `mem search --freeze`
 - `modules unload --force`
 - `modules load --system`
+- `fan set`
 - deletion commands
 
-## 10. Know Where to Go Next
+## 11. Know Where to Go Next
 - [Commands Reference](Commands.md) for full command coverage
+- [Hardware and System Controls](Hardware-and-System.md) for sign-in, LED, fan, and SMC behavior
+- [XNotify](XNotify.md) for icon IDs and notification usage
 - [Advanced Guide](Advanced-Guide.md) for reverse-engineering and automation workflows
 - [Troubleshooting](Troubleshooting.md) when the console or plugin stack does not behave as expected

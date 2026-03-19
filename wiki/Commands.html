@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -70,6 +70,70 @@
           <h1 id="commands-reference">Commands Reference</h1>
 <p>This page documents the XeCLI command surface by workflow area. Command examples use the installed terminal command <code>rgh</code>.</p>
 <p>The <code>Example output</code> blocks on this page are representative operator-facing results from the shipped CLI. Exact spacing, colors, and secondary detail lines can vary by flags, console state, and whether JSON mode is enabled.</p>
+<h2 id="find-by-workflow">Find by Workflow</h2>
+<p>Use this table when you know the job you need done but not the exact command namespace yet.</p>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Start here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Check if the console is up</td>
+<td><code>rgh ping</code>, <code>rgh status</code>, <code>rgh title</code></td>
+</tr>
+<tr>
+<td>Find and connect to a console</td>
+<td><code>rgh start</code>, <code>rgh scan</code>, <code>rgh connect</code>, <code>rgh target</code></td>
+</tr>
+<tr>
+<td>Read or dump live memory</td>
+<td><code>rgh mem dump</code>, <code>rgh mem hexdump</code>, <code>rgh mem peek</code></td>
+</tr>
+<tr>
+<td>Change live memory</td>
+<td><code>rgh mem poke</code>, <code>rgh mem search --freeze</code></td>
+</tr>
+<tr>
+<td>Work with loaded modules</td>
+<td><code>rgh modules list</code>, <code>rgh modules info</code>, <code>rgh modules dump</code>, <code>rgh modules load</code>, <code>rgh modules unload</code></td>
+</tr>
+<tr>
+<td>Inspect threads or break execution</td>
+<td><code>rgh threads ...</code>, <code>rgh debug ...</code></td>
+</tr>
+<tr>
+<td>Pull files from the console</td>
+<td><code>rgh fs get</code>, <code>rgh ftp get</code>, <code>rgh xex dump</code>, <code>rgh screenshot</code></td>
+</tr>
+<tr>
+<td>Push files to the console</td>
+<td><code>rgh fs put</code>, <code>rgh ftp put</code>, <code>rgh save inject</code>, <code>rgh plugin enable</code></td>
+</tr>
+<tr>
+<td>Manage saves</td>
+<td><code>rgh save list</code>, <code>rgh save extract</code>, <code>rgh save inject</code></td>
+</tr>
+<tr>
+<td>Manage title content or DashLaunch plugins</td>
+<td><code>rgh content ...</code>, <code>rgh plugin ...</code></td>
+</tr>
+<tr>
+<td>Send visible console messages</td>
+<td><code>rgh notify</code>, <code>rgh notify-icons</code>, <code>rgh jrpc2 notify</code></td>
+</tr>
+<tr>
+<td>Analyze XEX files</td>
+<td><code>rgh xex strings</code>, <code>rgh xex decompile</code>, <code>rgh ghidra ...</code></td>
+</tr>
+<tr>
+<td>Convert retail ISOs</td>
+<td><code>rgh god info</code>, <code>rgh god build</code>, <code>rgh god watch</code></td>
+</tr>
+</tbody>
+</table>
 <h2 id="command-model">Command Model</h2>
 <p>XeCLI is organized into a few major namespaces:</p>
 <ul>
@@ -638,8 +702,10 @@ Motherboard Trinity
 </code></pre>
 <h2 id="notification-commands">Notification Commands</h2>
 <pre><code class="language-powershell">rgh notify &quot;Success :)&quot;
+rgh notify &quot;XeCLI connected&quot; 14
 rgh notify --message &quot;XeCLI connected&quot; --icon info
 rgh notify-icons list
+rgh notify-icons show 14
 rgh notify-icons add --name success --logo 0x24
 rgh notify-icons remove --name success
 </code></pre>
@@ -648,6 +714,77 @@ rgh notify-icons remove --name success
 <pre><code class="language-text">SUCCESS Notification sent
 message=&quot;XeCLI connected&quot; logo=14 (Flashing happy face)
 </code></pre>
+<h3 id="rgh-notify-icons-show"><code>rgh notify-icons show</code></h3>
+<pre><code class="language-powershell">rgh notify-icons show 14
+rgh notify-icons show success
+rgh notify-icons show achievement
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Input     14
+Logo ID   14
+Label     Flashing happy face
+Notes     Common success/smiley icon
+</code></pre>
+<h2 id="hardware-and-session-commands">Hardware and Session Commands</h2>
+<h3 id="rgh-signin-state"><code>rgh signin state</code></h3>
+<pre><code class="language-powershell">rgh signin state
+rgh signin state --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Signed In   Yes
+State       Signed in locally
+Gamertag    Diamond KSG
+XUID        0x5D83300C00000900
+Slot        0
+</code></pre>
+<h3 id="rgh-led-set"><code>rgh led set</code></h3>
+<pre><code class="language-powershell">rgh led set --preset quadrant1
+rgh led set --preset all-green --notify
+rgh led set --tl green --tr off --bl off --br off
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Ring light updated
+TL=green, TR=off, BL=off, BR=off
+</code></pre>
+<h3 id="rgh-led-state"><code>rgh led state</code></h3>
+<pre><code class="language-powershell">rgh led state
+rgh led state --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Source        Last XeCLI-applied ring-light state
+Preset        quadrant1
+Top Left      green
+Top Right     off
+Bottom Left   off
+Bottom Right  off
+</code></pre>
+<h3 id="rgh-fan-set"><code>rgh fan set</code></h3>
+<pre><code class="language-powershell">rgh fan set --speed 55 --channel both
+rgh fan set --speed 45 --channel primary
+rgh fan set --speed 60 --channel secondary --notify
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Fan command sent
+50% requested for both
+</code></pre>
+<h3 id="rgh-fan-show"><code>rgh fan show</code></h3>
+<pre><code class="language-powershell">rgh fan show
+rgh fan show --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Source   Last XeCLI-applied manual setting
+Speed    50%
+Channel  both
+</code></pre>
+<h3 id="rgh-smc-version"><code>rgh smc version</code></h3>
+<pre><code class="language-powershell">rgh smc version
+rgh smc version --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS SMC version
+2.3
+</code></pre>
+<p>Read <a href="Hardware-and-System.html">Hardware-and-System.md</a> for the deeper operational notes around sign-in state, LED presets, fan command behavior, and SMC version availability.</p>
 <h2 id="save-commands">Save Commands</h2>
 <h3 id="rgh-save-list"><code>rgh save list</code></h3>
 <pre><code class="language-powershell">rgh save list --titleid FFFE07D1 --device Hdd1

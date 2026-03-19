@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hardware and System Controls | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Hardware-and-System.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
+      <p class="wiki-sidebar__credit">Created by <a href="https://www.se7ensins.com/members/pepe-le-pew.527865/">Pew7s</a></p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link is-current" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" >
+              <summary>Developer Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>Hardware and System Controls</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli">Repo</a>
+          <a href="https://github.com/SaveEditors/xecli/releases/latest">Releases</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="hardware-and-system-controls">Hardware and System Controls</h1>
+<p>XeCLI exposes a small set of operator-facing hardware and session controls that are useful during daily RGH/JTAG work:</p>
+<ul>
+<li>sign-in state inspection</li>
+<li>ring-of-light LED control</li>
+<li>manual fan command dispatch</li>
+<li>SMC version probing</li>
+</ul>
+<p>This page explains what those commands do, how they are intended to be used, and what their current practical limits are.</p>
+<h2 id="command-overview">Command Overview</h2>
+<pre><code class="language-powershell">rgh signin state
+rgh led set --preset quadrant1
+rgh led state
+rgh fan set --speed 55 --channel both
+rgh fan show
+rgh smc version
+</code></pre>
+<h2 id="signed-in-session-state">Signed-In Session State</h2>
+<h3 id="rgh-signin-state"><code>rgh signin state</code></h3>
+<p>Reads the active XAM sign-in slot and resolves:</p>
+<ul>
+<li>whether a user is signed in</li>
+<li>the sign-in state</li>
+<li>the current gamertag</li>
+<li>the current XUID</li>
+<li>the user slot</li>
+</ul>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh signin state
+rgh signin state --json
+</code></pre>
+<p>Representative output:</p>
+<pre><code class="language-text">Signed In   Yes
+State       Signed in locally
+Gamertag    Diamond KSG
+XUID        0x5D83300C00000900
+Slot        0
+</code></pre>
+<p>Sign-in state meanings:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>Not signed in</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>Signed in locally</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>Signed in to Xbox Live</td>
+</tr>
+</tbody>
+</table>
+<p>This command is the cleanest way to answer the operator questions:</p>
+<ul>
+<li>is anyone signed in right now?</li>
+<li>which profile is active?</li>
+<li>what XUID is attached to the current session?</li>
+</ul>
+<h2 id="ring-of-light-led-control">Ring-of-Light LED Control</h2>
+<h3 id="rgh-led-set"><code>rgh led set</code></h3>
+<p>Sets the four ring-of-light quadrants through the console’s RPC path.</p>
+<p>You can use:</p>
+<ul>
+<li>a preset</li>
+<li>explicit per-quadrant colors</li>
+<li>optional success notification flags</li>
+</ul>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh led set --preset quadrant1
+rgh led set --preset all-green
+rgh led set --tl green --tr off --bl off --br off
+rgh led set --preset all-orange --notify
+</code></pre>
+<p>Supported colors:</p>
+<ul>
+<li><code>off</code></li>
+<li><code>green</code></li>
+<li><code>red</code></li>
+<li><code>orange</code></li>
+</ul>
+<p>Built-in presets:</p>
+<ul>
+<li><code>all-green</code></li>
+<li><code>all-red</code></li>
+<li><code>all-orange</code></li>
+<li><code>all-off</code></li>
+<li><code>quadrant1</code></li>
+<li><code>quadrant2</code></li>
+<li><code>quadrant3</code></li>
+<li><code>quadrant4</code></li>
+<li><code>player1</code></li>
+<li><code>player2</code></li>
+<li><code>player3</code></li>
+<li><code>player4</code></li>
+</ul>
+<p>Representative output:</p>
+<pre><code class="language-text">SUCCESS Ring light updated
+TL=green, TR=off, BL=off, BR=off
+</code></pre>
+<h3 id="rgh-led-state"><code>rgh led state</code></h3>
+<p>Shows the last ring-light state requested through XeCLI.</p>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh led state
+rgh led state --json
+</code></pre>
+<p>Representative output:</p>
+<pre><code class="language-text">Source        Last XeCLI-applied ring-light state
+Preset        quadrant1
+Top Left      green
+Top Right     off
+Bottom Left   off
+Bottom Right  off
+Updated       08:45:30
+</code></pre>
+<p>Important note:</p>
+<ul>
+<li><code>led state</code> is an operator cache of the last XeCLI-applied state</li>
+<li>it is not a hardware readback from the SMC</li>
+</ul>
+<p>That distinction matters after a reboot or if another tool changes the LEDs.</p>
+<h2 id="manual-fan-control">Manual Fan Control</h2>
+<h3 id="rgh-fan-set"><code>rgh fan set</code></h3>
+<p>Dispatches a manual fan-speed command through the console’s SMC RPC path.</p>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh fan set --speed 55 --channel both
+rgh fan set --speed 45 --channel primary
+rgh fan set --speed 60 --channel secondary --notify
+</code></pre>
+<p>Channel values:</p>
+<ul>
+<li><code>primary</code></li>
+<li><code>secondary</code></li>
+<li><code>both</code></li>
+</ul>
+<p>Representative output:</p>
+<pre><code class="language-text">SUCCESS Fan command sent
+50% requested for both
+</code></pre>
+<p>Practical notes:</p>
+<ul>
+<li>XeCLI clamps the requested value to <code>10-100</code></li>
+<li>current fan control is a command-dispatch workflow, not a tachometer readback workflow</li>
+<li><code>fan show</code> reports the last XeCLI-requested manual setting, not a live measured RPM</li>
+</ul>
+<h3 id="rgh-fan-show"><code>rgh fan show</code></h3>
+<p>Shows the last manual fan setting requested through XeCLI.</p>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh fan show
+rgh fan show --json
+</code></pre>
+<p>Representative output:</p>
+<pre><code class="language-text">Source   Last XeCLI-applied manual setting
+Speed    50%
+Channel  both
+Updated  09:12:04
+</code></pre>
+<h2 id="smc-version">SMC Version</h2>
+<h3 id="rgh-smc-version"><code>rgh smc version</code></h3>
+<p>Attempts to query the console’s SMC version.</p>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh smc version
+rgh smc version --json
+</code></pre>
+<p>When the installed console-side plugin stack exposes the required SMC path cleanly, the command returns a simple version string.</p>
+<p>Representative success output:</p>
+<pre><code class="language-text">SUCCESS SMC version
+2.3
+</code></pre>
+<p>Operational reality:</p>
+<ul>
+<li>SMC version probing is more plugin-stack-sensitive than normal JRPC title/temperature calls</li>
+<li>if the installed JRPC/XBDM stack does not expose a usable SMC reply path, XeCLI reports the failure instead of fabricating a value</li>
+<li><code>rgh status</code> treats SMC version as optional and does not let an SMC failure poison the rest of the status output</li>
+</ul>
+<h2 id="status-integration">Status Integration</h2>
+<p><code>rgh status</code> and <code>rgh status --json</code> surface the session fields directly:</p>
+<ul>
+<li><code>Signed In</code></li>
+<li><code>Sign-In State</code></li>
+<li><code>Gamertag</code></li>
+<li><code>Signed In XUID</code></li>
+<li><code>SMC Version</code> when available</li>
+</ul>
+<p>That means you can use <code>status</code> for the dashboard-level snapshot and <code>signin state</code> when you want the session details isolated.</p>
+<h2 id="recommended-operator-usage">Recommended Operator Usage</h2>
+<p>Use the commands in this order:</p>
+<pre><code class="language-powershell">rgh ping
+rgh status --quick
+rgh signin state
+rgh led set --preset quadrant1
+rgh notify &quot;XeCLI connected&quot; 14
+</code></pre>
+<p>Then move to the less routine controls:</p>
+<pre><code class="language-powershell">rgh fan set --speed 55 --channel both
+rgh smc version
+</code></pre>
+<p>That sequencing keeps the basic transport validation separate from the hardware/session controls.</p>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+      <section class="wiki-panel wiki-support">
+        <h2>Support XeCLI</h2>
+        <div class="kofi-card">
+          <div class="kofi-card__halo"></div>
+          <div class="kofi-card__brand">
+            <img src="assets/xecli-brand.jpg" alt="XeCLI support">
+            <div>
+              <strong>SaveEditors on Ko-fi</strong>
+              <span>Support releases, docs, and tooling.</span>
+            </div>
+          </div>
+          <p>Help fund ongoing XeCLI work: command improvements, bundled metadata, release builds, reverse-engineering workflows, and documentation upkeep.</p>
+          <div class="kofi-card__actions">
+            <a class="kofi-card__button" href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">Support on Ko-fi</a>
+            <a class="kofi-card__link" href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">ko-fi.com/saveeditors</a>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

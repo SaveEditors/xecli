@@ -12,6 +12,7 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 | [Beginner Guide](Beginner-Guide.md) | Safe first-run workflow: discovery, connect, status, and basic operations |
 | [Commands Reference](Commands.md) | Full command-by-command reference with examples |
 | [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
+| [Hardware and System Controls](Hardware-and-System.md) | Sign-in state, ring-light LEDs, fan commands, and SMC version notes |
 | [XNotify](XNotify.md) | Notification usage, icon IDs, and direct integration notes |
 | [Troubleshooting](Troubleshooting.md) | Failure cases, common console/plugin issues, and recovery paths |
 
@@ -35,9 +36,10 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 ### New operator path
 1. [Beginner Guide](Beginner-Guide.md)
 2. [Commands Reference](Commands.md)
-3. [XNotify](XNotify.md)
-4. [CLI Help Output](CLI-Help.md)
-5. [Troubleshooting](Troubleshooting.md)
+3. [Hardware and System Controls](Hardware-and-System.md)
+4. [XNotify](XNotify.md)
+5. [CLI Help Output](CLI-Help.md)
+6. [Troubleshooting](Troubleshooting.md)
 
 ### Reverse-engineering path
 1. [Advanced Guide](Advanced-Guide.md)
@@ -56,6 +58,7 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 ### Console operations
 - Discovery, target persistence, and quick connection workflows
 - Status, title resolution, and profile visibility
+- Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing
 - Launch, reboot, and console notification workflows
 
 ### Live inspection and debugging

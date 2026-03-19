@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -69,6 +69,13 @@
         <article id="wiki-content" class="markdown-body">
           <h1 id="cli-help-output">CLI Help Output</h1>
 <p>This page captures the current built-in help screens from the shipped <code>rgh</code> binary and explains how the shortcut groups map to the canonical command tree.</p>
+<p>Use this page when you need:</p>
+<ul>
+<li>the exact built-in help wording from the shipped binary</li>
+<li>the shortcut and alias map</li>
+<li>a quick reminder of what each top-level branch exposes</li>
+</ul>
+<p>Use <a href="Commands.html">Commands.md</a> when you need task-oriented examples and expected outputs. Use <a href="XNotify.html">XNotify.md</a> when you need icon IDs, notification usage, and integration notes.</p>
 <h2 id="how-to-read-the-help-tree">How to Read the Help Tree</h2>
 <p>Use the help system in this order:</p>
 <ol>
@@ -93,6 +100,10 @@ EXAMPLES:
     rgh title
     rgh modules list
     rgh mem hexdump --addr 0x30000000 --size 0x40
+    rgh notify XeCLI connected 14
+    rgh smc version
+    rgh fan set --speed 55 --channel both
+    rgh led set --preset quadrant1
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -120,8 +131,14 @@ COMMANDS:
     threads         Shortcut for `rgh xbdm threads`
     debug           Shortcut for `rgh xbdm debug`
     jrpc2           JRPC2 (XDRPC-style) commands
-    notify          Send an on-screen notification
-    notify-icons    Manage notify icon presets
+    notify          Send an on-screen notification with a raw icon id, built-in
+                    icon name, or preset alias
+    notify-icons    Browse the built-in XNotify icon catalog and manage preset
+                    aliases
+    smc             System Management Controller helpers
+    fan             Fan speed helpers
+    led             Ring-of-light LED helpers
+    signin          Signed-in user helpers
     ftp             FTP commands (alternate access)
     save            Profile and save-data helpers over FTP
     content         Installed content management over FTP
@@ -315,6 +332,20 @@ SUCCESS Save extract complete
 <pre><code class="language-text">rgh notify &quot;XeCLI connected&quot; 14
 SUCCESS Notification sent
 message=&quot;XeCLI connected&quot; logo=14 (Flashing happy face)
+
+rgh signin state
+Signed In   Yes
+State       Signed in locally
+Gamertag    Diamond KSG
+XUID        0x5D83300C00000900
+
+rgh led set --preset quadrant1
+SUCCESS Ring light updated
+TL=green, TR=off, BL=off, BR=off
+
+rgh fan set --speed 50 --channel both
+SUCCESS Fan command sent
+50% requested for both
 
 rgh ghidra decompile --running --out .\decomp
 SUCCESS Ghidra decompile complete
@@ -726,7 +757,7 @@ COMMANDS:
 </code></pre>
 <h3 id="rgh-notify-help"><code>rgh notify help</code></h3>
 <pre><code class="language-text">DESCRIPTION:
-Send an on-screen notification
+Send an on-screen notification with a raw icon id, built-in icon name, or preset alias
 
 USAGE:
     rgh notify [message] [OPTIONS]
@@ -747,7 +778,7 @@ OPTIONS:
 </code></pre>
 <h3 id="rgh-notify-icons-help"><code>rgh notify-icons help</code></h3>
 <pre><code class="language-text">DESCRIPTION:
-Manage notify icon presets
+Browse the built-in XNotify icon catalog and manage preset aliases
 
 USAGE:
     rgh notify-icons [OPTIONS] &lt;COMMAND&gt;
@@ -756,9 +787,78 @@ OPTIONS:
     -h, --help    Prints help information
 
 COMMANDS:
-    list      List icon presets
+    list      List built-in XNotify icons and preset aliases
+    show      Resolve an icon id, built-in name, or preset alias
     add       Add an icon preset
     remove    Remove an icon preset
+</code></pre>
+<h3 id="rgh-smc-help"><code>rgh smc help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+System Management Controller helpers
+
+USAGE:
+    rgh smc [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh smc version
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    version    Read the console SMC version
+</code></pre>
+<h3 id="rgh-fan-help"><code>rgh fan help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Fan speed helpers
+
+USAGE:
+    rgh fan [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh fan set --speed 55 --channel both
+    rgh fan show
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    set     Apply a manual fan speed
+    show    Show the last XeCLI-applied manual fan setting
+</code></pre>
+<h3 id="rgh-led-help"><code>rgh led help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Ring-of-light LED helpers
+
+USAGE:
+    rgh led [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh led set --preset quadrant1
+    rgh led set --tl green --tr off --bl off --br off
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    set      Set the ring-of-light LEDs
+    state    Show the last XeCLI-applied ring-light state
+</code></pre>
+<h3 id="rgh-signin-help"><code>rgh signin help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Signed-in user helpers
+
+USAGE:
+    rgh signin [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh signin state
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    state    Read the active sign-in state, gamertag, and XUID
 </code></pre>
 <h3 id="rgh-ftp-help"><code>rgh ftp help</code></h3>
 <pre><code class="language-text">DESCRIPTION:

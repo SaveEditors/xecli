@@ -74,6 +74,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
             uint? titleId = null;
             uint? dashVersion = null;
             string? motherboard = null;
+            string? smcVersion = null;
             string? cpuKey = null;
             uint? cpuTemp = null;
             uint? gpuTemp = null;
@@ -98,6 +99,15 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                 }
                 catch {
                     jrpcAvailable = false;
+                }
+
+                if (jrpcAvailable == true) {
+                    try {
+                        smcVersion = await HardwareHelpers.GetSmcVersionAsync(client, CancellationToken.None);
+                    }
+                    catch {
+                        // ignored
+                    }
                 }
             }
 
@@ -145,6 +155,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                 ?? users?.FirstOrDefault(u => !string.IsNullOrWhiteSpace(u.Gamertag));
             string? signedInUser = signedInUserInfo?.Gamertag;
             string? signedInXuid = signedInUserInfo?.Xuid.HasValue == true ? $"0x{signedInUserInfo.Xuid.Value:X16}" : null;
+            uint? signInStateValue = signedInUserInfo?.SignInState;
 
             if (string.IsNullOrWhiteSpace(signedInUser) && !skipUsers) {
                 try {
@@ -164,6 +175,12 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                 signedInUser = xamUser.Gamertag;
                 signedInXuid ??= xamUser.Xuid;
             }
+            signInStateValue ??= xamUser?.SignInState;
+
+            bool isSignedIn = !string.IsNullOrWhiteSpace(signedInUser) || (signInStateValue.HasValue && signInStateValue.Value > 0);
+            string signInStateText = signInStateValue.HasValue
+                ? HardwareHelpers.DescribeSignInState(signInStateValue.Value)
+                : (isSignedIn ? "Signed in" : "Not signed in");
 
             string? titleName = null;
             if (titleId.HasValue && TitleIdDatabase.Instance.TryResolve(titleId.Value, null, out TitleIdEntry? entry)) {
@@ -214,12 +231,15 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                     TitleName = titleName,
                     Dashboard = dashVersion,
                     Motherboard = motherboard,
+                    SmcVersion = smcVersion,
                     CpuKey = cpuKey,
                     Temps = new { cpuTemp, gpuTemp, edramTemp, mbTemp },
                     JrpcAvailable = jrpcAvailable,
                     Drives = drives,
                     Users = users,
-                    SignedIn = signedInUser,
+                    SignedIn = isSignedIn,
+                    SignInState = signInStateText,
+                    Gamertag = signedInUser,
                     SignedInXuid = signedInXuid,
                     PendingModuleOperation = pendingModuleText
                 });
@@ -258,8 +278,11 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
             table.AddRow($"{FieldColor}JRPC2{FieldEnd}", jrpcStatus);
             table.AddRow($"{FieldColor}Dashboard{FieldEnd}", dashVersion.HasValue ? $"[gold1]{dashVersion.Value}[/]" : FormatSkipped(skipJrpc));
             table.AddRow($"{FieldColor}Motherboard{FieldEnd}", FormatValue(motherboard, "deepskyblue1", FormatSkipped(skipJrpc)));
+            table.AddRow($"{FieldColor}SMC Version{FieldEnd}", FormatValue(smcVersion, "deepskyblue1", FormatSkipped(skipJrpc)));
             table.AddRow($"{FieldColor}CPU Key{FieldEnd}", FormatValue(cpuKey, "gold1", FormatSkipped(skipJrpc)));
-            table.AddRow($"{FieldColor}Signed In{FieldEnd}", FormatValue(signedInUser, "springgreen3_1", skipUsers ? FormatSkipped(true) : "[grey70]none[/]"));
+            table.AddRow($"{FieldColor}Signed In{FieldEnd}", skipUsers ? FormatSkipped(true) : (isSignedIn ? "[springgreen3_1]Yes[/]" : "[red1]No[/]"));
+            table.AddRow($"{FieldColor}Sign-In State{FieldEnd}", skipUsers ? FormatSkipped(true) : $"[gold1]{Markup.Escape(signInStateText)}[/]");
+            table.AddRow($"{FieldColor}Gamertag{FieldEnd}", FormatValue(signedInUser, "springgreen3_1", skipUsers ? FormatSkipped(true) : "[grey70]none[/]"));
             table.AddRow($"{FieldColor}Signed In XUID{FieldEnd}", FormatValue(signedInXuid, "gold1", skipUsers ? FormatSkipped(true) : "[grey70]none[/]"));
             if (!string.IsNullOrWhiteSpace(pendingModuleText))
                 table.AddRow($"{FieldColor}Pending Module{FieldEnd}", FormatValue(pendingModuleText, "gold1"));

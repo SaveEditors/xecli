@@ -57,6 +57,9 @@ internal static class Program {
             config.AddExample(new[] { "modules", "list" });
             config.AddExample(new[] { "mem", "hexdump", "--addr", "0x30000000", "--size", "0x40" });
             config.AddExample(new[] { "notify", "XeCLI connected", "14" });
+            config.AddExample(new[] { "smc", "version" });
+            config.AddExample(new[] { "fan", "set", "--speed", "55", "--channel", "both" });
+            config.AddExample(new[] { "led", "set", "--preset", "quadrant1" });
             config.AddExample(new[] { "ghidra", "decompile", "--running", "--out", ".\\decomp" });
 
             config.AddCommand<StatusCommand>("status").WithDescription("Show a compact console status snapshot.");
@@ -259,6 +262,34 @@ internal static class Program {
                 icons.AddCommand<NotifyIconsShowCommand>("show").WithAlias("resolve").WithDescription("Resolve an icon id, built-in name, or preset alias.");
                 icons.AddCommand<NotifyIconsAddCommand>("add").WithDescription("Add an icon preset.");
                 icons.AddCommand<NotifyIconsRemoveCommand>("remove").WithAlias("del").WithDescription("Remove an icon preset.");
+            });
+
+            config.AddBranch("smc", smc => {
+                smc.SetDescription("System Management Controller helpers.");
+                smc.AddExample(new[] { "smc", "version" });
+                smc.AddCommand<SmcVersionCommand>("version").WithAlias("ver").WithDescription("Probe the console SMC version.");
+            });
+
+            config.AddBranch("fan", fan => {
+                fan.SetDescription("Fan speed helpers.");
+                fan.AddExample(new[] { "fan", "set", "--speed", "55", "--channel", "both" });
+                fan.AddExample(new[] { "fan", "show" });
+                fan.AddCommand<FanSetCommand>("set").WithAlias("speed").WithDescription("Send a manual fan speed command.");
+                fan.AddCommand<FanShowCommand>("show").WithAlias("state").WithDescription("Show the last XeCLI-applied manual fan setting.");
+            });
+
+            config.AddBranch("led", led => {
+                led.SetDescription("Ring-of-light LED helpers.");
+                led.AddExample(new[] { "led", "set", "--preset", "quadrant1" });
+                led.AddExample(new[] { "led", "set", "--tl", "green", "--tr", "off", "--bl", "off", "--br", "off" });
+                led.AddCommand<LedSetCommand>("set").WithAlias("apply").WithDescription("Set the ring-of-light LEDs.");
+                led.AddCommand<LedStateCommand>("state").WithAlias("show").WithDescription("Show the last XeCLI-applied ring-light state.");
+            });
+
+            config.AddBranch("signin", signin => {
+                signin.SetDescription("Signed-in user helpers.");
+                signin.AddExample(new[] { "signin", "state" });
+                signin.AddCommand<SignInStateCommand>("state").WithAlias("status").WithDescription("Read the active sign-in state, gamertag, and XUID.");
             });
 
             config.AddBranch("ftp", ftp => {

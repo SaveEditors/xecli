@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" >
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -74,15 +74,56 @@
 <li>Repository and product name: <code>XeCLI</code></li>
 <li>Installed command: <code>rgh</code></li>
 </ul>
+<h2 id="does-the-release-require-net-to-be-installed-separately">Does the release require .NET to be installed separately</h2>
+<p>No, not for the published <code>win-x64</code> release zip.</p>
+<p>The release package is self-contained. Source builds still require the .NET 10 SDK/runtime.</p>
 <h2 id="does-xecli-fetch-title-id-metadata-from-the-internet">Does XeCLI fetch Title ID metadata from the internet</h2>
 <p>No. The bundled Title ID database ships with the repository and with the published release.</p>
 <h2 id="can-i-use-the-title-id-database-in-my-own-tools">Can I use the Title ID database in my own tools</h2>
 <p>Yes. That is a supported use case. Read the bundled CSV/TXT files directly or use <code>rgh title --json</code>.</p>
+<h2 id="where-should-i-start-if-i-am-new-to-xecli">Where should I start if I am new to XeCLI</h2>
+<p>Use these pages in order:</p>
+<ol>
+<li><code>Beginner Guide</code></li>
+<li><code>Commands Reference</code></li>
+<li><code>XNotify</code></li>
+<li><code>CLI Help Output</code></li>
+<li><code>Troubleshooting</code></li>
+</ol>
 <h2 id="does-xecli-include-console-side-plugins">Does XeCLI include console-side plugins</h2>
 <p>Partially. The source tree and release package now ship common console-side <code>.xex</code> dependency files in <code>ConsoleDependencies/</code>, including <code>xbdm.xex</code>, <code>XDRPC.xex</code>, and <code>JRPC2.xex</code>.</p>
 <p>That does not mean XeCLI installs or enables them automatically. Console-side services such as XBDM, JRPC2, and FTP still need to be installed and configured on the target console.</p>
 <h2 id="why-does-rgh-title-work-with-no-arguments">Why does <code>rgh title</code> work with no arguments</h2>
 <p>Because the command is designed to resolve the active title by default when no Title ID is supplied.</p>
+<h2 id="how-do-i-send-a-notification-with-a-specific-icon">How do I send a notification with a specific icon</h2>
+<p>Use a numeric logo ID or a saved preset.</p>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh notify &quot;XeCLI connected&quot; 14
+rgh notify --message &quot;Patch applied&quot; --logo 16
+rgh notify-icons add --name success --logo 14
+rgh notify --message &quot;Transfer complete&quot; --icon success
+</code></pre>
+<p>For the full icon list and usage notes, read <code>XNotify</code>.</p>
+<h2 id="how-do-i-check-who-is-signed-in">How do I check who is signed in</h2>
+<p>Use:</p>
+<pre><code class="language-powershell">rgh signin state
+</code></pre>
+<p>That command isolates the active session state, gamertag, XUID, and slot without forcing you to scan the full <code>status</code> output.</p>
+<h2 id="can-xecli-control-the-ring-light">Can XeCLI control the ring light</h2>
+<p>Yes.</p>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh led set --preset quadrant1
+rgh led set --preset all-green
+rgh led state
+</code></pre>
+<p><code>led state</code> shows the last XeCLI-applied ring-light state.</p>
+<h2 id="can-xecli-control-fan-speed">Can XeCLI control fan speed</h2>
+<p>XeCLI exposes manual fan command dispatch and a cached <code>fan show</code> view.</p>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh fan set --speed 55 --channel both
+rgh fan show
+</code></pre>
+<p>Read <code>Hardware and System Controls</code> for the operational details.</p>
 <h2 id="why-does-status-quick-show-skipped-fields">Why does <code>status --quick</code> show skipped fields</h2>
 <p>Because those fields were intentionally skipped. The current release distinguishes skipped from unknown so the operator can tell the difference between a deliberate fast path and a failed probe.</p>
 <h2 id="can-module-load-require-a-reboot">Can module load require a reboot</h2>
@@ -91,6 +132,16 @@
 <p>Not universally. That is why <code>modules unload</code> requires <code>--force</code>.</p>
 <h2 id="does-xecli-support-scripting">Does XeCLI support scripting</h2>
 <p>Yes. Prefer commands with <code>--json</code> when building scripts or companion tools.</p>
+<h2 id="which-commands-are-best-for-external-dashboards-or-companion-apps">Which commands are best for external dashboards or companion apps</h2>
+<p>Start with:</p>
+<ul>
+<li><code>rgh status --json</code></li>
+<li><code>rgh title --json</code></li>
+<li><code>rgh modules list --json</code></li>
+<li><code>rgh profiles --json</code></li>
+<li><code>rgh scan --json</code></li>
+<li><code>rgh ghidra verify --json</code></li>
+</ul>
 <h2 id="can-i-extend-the-metadata-set">Can I extend the metadata set</h2>
 <p>Yes. Add entries to:</p>
 <ul>
@@ -100,6 +151,11 @@
 <p>No. Ghidra is only required for the <code>ghidra</code> and <code>xex decompile</code> workflows.</p>
 <h2 id="does-xecli-replace-aurora-neighborhood-or-xexmenu-completely">Does XeCLI replace Aurora, Neighborhood, or XeXMenu completely</h2>
 <p>No single tool replaces every scene workflow perfectly. The goal of XeCLI is to cover the high-value terminal-first workflows cleanly enough that you do not need to bounce between small one-off utilities for status, dumps, memory work, saves, content, notifications, screenshots, and scripted automation.</p>
+<h2 id="how-can-i-support-the-project">How can I support the project</h2>
+<p>Use the Ko-fi link in the README or the support card in the published wiki:</p>
+<ul>
+<li><a href="https://ko-fi.com/saveeditors">ko-fi.com/saveeditors</a></li>
+</ul>
         </article>
       </section>
     </main>

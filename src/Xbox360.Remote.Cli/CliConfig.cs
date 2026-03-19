@@ -11,6 +11,21 @@ internal sealed class CliConfig {
         public DateTimeOffset CreatedUtc { get; set; }
     }
 
+    public sealed class LedStateInfo {
+        public string? Preset { get; set; }
+        public string? TopLeft { get; set; }
+        public string? TopRight { get; set; }
+        public string? BottomLeft { get; set; }
+        public string? BottomRight { get; set; }
+        public DateTimeOffset UpdatedUtc { get; set; }
+    }
+
+    public sealed class FanStateInfo {
+        public int SpeedPercent { get; set; }
+        public string? Channel { get; set; }
+        public DateTimeOffset UpdatedUtc { get; set; }
+    }
+
     public string? DefaultIp { get; set; }
     public int? DefaultPort { get; set; }
     public int? DefaultFtpPort { get; set; }
@@ -23,6 +38,8 @@ internal sealed class CliConfig {
     public string? GhidraProjectsPath { get; set; }
     public bool PathPromptHandled { get; set; }
     public PendingModuleOperationInfo? PendingModuleOperation { get; set; }
+    public LedStateInfo? LastLedState { get; set; }
+    public FanStateInfo? LastFanState { get; set; }
 
     public static CliConfig Load() {
         string path = CliPaths.ConfigPath;

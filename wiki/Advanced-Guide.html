@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" >
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -83,6 +83,21 @@
 rgh title --json
 </code></pre>
 <p>It resolves the active Title ID from the console and can layer a path-based fallback name over the bundled database entry when the live XEX is a dashboard replacement or homebrew shell.</p>
+<h2 id="session-and-hardware-controls">Session and Hardware Controls</h2>
+<p>XeCLI also exposes a lightweight hardware/session layer that is useful in tooling and operator workflows:</p>
+<pre><code class="language-powershell">rgh signin state
+rgh led set --preset quadrant1
+rgh fan set --speed 55 --channel both
+rgh smc version
+</code></pre>
+<p>Use cases:</p>
+<ul>
+<li>prove that the correct profile is signed in before save or content work</li>
+<li>surface visible LED state changes during scripted workflows</li>
+<li>dispatch fan changes from automation without opening a GUI tool</li>
+<li>probe SMC details when the installed plugin stack supports it</li>
+</ul>
+<p>Read <a href="Hardware-and-System.html">Hardware-and-System.md</a> for the operator-level details and caveats.</p>
 <h2 id="memory-work">Memory Work</h2>
 <h3 id="read-and-verify-before-you-write">Read and verify before you write</h3>
 <p>Typical sequence:</p>

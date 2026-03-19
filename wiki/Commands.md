@@ -4,6 +4,25 @@ This page documents the XeCLI command surface by workflow area. Command examples
 
 The `Example output` blocks on this page are representative operator-facing results from the shipped CLI. Exact spacing, colors, and secondary detail lines can vary by flags, console state, and whether JSON mode is enabled.
 
+## Find by Workflow
+Use this table when you know the job you need done but not the exact command namespace yet.
+
+| Workflow | Start here |
+| --- | --- |
+| Check if the console is up | `rgh ping`, `rgh status`, `rgh title` |
+| Find and connect to a console | `rgh start`, `rgh scan`, `rgh connect`, `rgh target` |
+| Read or dump live memory | `rgh mem dump`, `rgh mem hexdump`, `rgh mem peek` |
+| Change live memory | `rgh mem poke`, `rgh mem search --freeze` |
+| Work with loaded modules | `rgh modules list`, `rgh modules info`, `rgh modules dump`, `rgh modules load`, `rgh modules unload` |
+| Inspect threads or break execution | `rgh threads ...`, `rgh debug ...` |
+| Pull files from the console | `rgh fs get`, `rgh ftp get`, `rgh xex dump`, `rgh screenshot` |
+| Push files to the console | `rgh fs put`, `rgh ftp put`, `rgh save inject`, `rgh plugin enable` |
+| Manage saves | `rgh save list`, `rgh save extract`, `rgh save inject` |
+| Manage title content or DashLaunch plugins | `rgh content ...`, `rgh plugin ...` |
+| Send visible console messages | `rgh notify`, `rgh notify-icons`, `rgh jrpc2 notify` |
+| Analyze XEX files | `rgh xex strings`, `rgh xex decompile`, `rgh ghidra ...` |
+| Convert retail ISOs | `rgh god info`, `rgh god build`, `rgh god watch` |
+
 ## Command Model
 XeCLI is organized into a few major namespaces:
 
@@ -722,8 +741,10 @@ Motherboard Trinity
 ## Notification Commands
 ```powershell
 rgh notify "Success :)"
+rgh notify "XeCLI connected" 14
 rgh notify --message "XeCLI connected" --icon info
 rgh notify-icons list
+rgh notify-icons show 14
 rgh notify-icons add --name success --logo 0x24
 rgh notify-icons remove --name success
 ```
@@ -736,6 +757,113 @@ Example output:
 SUCCESS Notification sent
 message="XeCLI connected" logo=14 (Flashing happy face)
 ```
+
+### `rgh notify-icons show`
+```powershell
+rgh notify-icons show 14
+rgh notify-icons show success
+rgh notify-icons show achievement
+```
+
+Example output:
+
+```text
+Input     14
+Logo ID   14
+Label     Flashing happy face
+Notes     Common success/smiley icon
+```
+
+## Hardware and Session Commands
+### `rgh signin state`
+```powershell
+rgh signin state
+rgh signin state --json
+```
+
+Example output:
+
+```text
+Signed In   Yes
+State       Signed in locally
+Gamertag    Diamond KSG
+XUID        0x5D83300C00000900
+Slot        0
+```
+
+### `rgh led set`
+```powershell
+rgh led set --preset quadrant1
+rgh led set --preset all-green --notify
+rgh led set --tl green --tr off --bl off --br off
+```
+
+Example output:
+
+```text
+SUCCESS Ring light updated
+TL=green, TR=off, BL=off, BR=off
+```
+
+### `rgh led state`
+```powershell
+rgh led state
+rgh led state --json
+```
+
+Example output:
+
+```text
+Source        Last XeCLI-applied ring-light state
+Preset        quadrant1
+Top Left      green
+Top Right     off
+Bottom Left   off
+Bottom Right  off
+```
+
+### `rgh fan set`
+```powershell
+rgh fan set --speed 55 --channel both
+rgh fan set --speed 45 --channel primary
+rgh fan set --speed 60 --channel secondary --notify
+```
+
+Example output:
+
+```text
+SUCCESS Fan command sent
+50% requested for both
+```
+
+### `rgh fan show`
+```powershell
+rgh fan show
+rgh fan show --json
+```
+
+Example output:
+
+```text
+Source   Last XeCLI-applied manual setting
+Speed    50%
+Channel  both
+```
+
+### `rgh smc version`
+```powershell
+rgh smc version
+rgh smc version --json
+```
+
+Example output:
+
+```text
+SUCCESS SMC version
+2.3
+```
+
+Read [Hardware-and-System.md](Hardware-and-System.md) for the deeper operational notes around sign-in state, LED presets, fan command behavior, and SMC version availability.
 
 ## Save Commands
 ### `rgh save list`

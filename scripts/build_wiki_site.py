@@ -21,6 +21,7 @@ SITE_GROUPS = [
             ("Beginner Guide", "Beginner-Guide.md"),
             ("Commands Reference", "Commands.md"),
             ("CLI Help Output", "CLI-Help.md"),
+            ("Hardware and System Controls", "Hardware-and-System.md"),
             ("XNotify", "XNotify.md"),
             ("Troubleshooting", "Troubleshooting.md"),
         ],

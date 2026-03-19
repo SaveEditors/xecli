@@ -21,6 +21,25 @@ rgh title --json
 
 It resolves the active Title ID from the console and can layer a path-based fallback name over the bundled database entry when the live XEX is a dashboard replacement or homebrew shell.
 
+## Session and Hardware Controls
+XeCLI also exposes a lightweight hardware/session layer that is useful in tooling and operator workflows:
+
+```powershell
+rgh signin state
+rgh led set --preset quadrant1
+rgh fan set --speed 55 --channel both
+rgh smc version
+```
+
+Use cases:
+
+- prove that the correct profile is signed in before save or content work
+- surface visible LED state changes during scripted workflows
+- dispatch fan changes from automation without opening a GUI tool
+- probe SMC details when the installed plugin stack supports it
+
+Read [Hardware-and-System.md](Hardware-and-System.md) for the operator-level details and caveats.
+
 ## Memory Work
 ### Read and verify before you write
 Typical sequence:

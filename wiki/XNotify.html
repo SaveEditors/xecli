@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link is-current" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link is-current" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -70,6 +70,12 @@
           <h1 id="xnotify">XNotify</h1>
 <p>XNotify is the Xbox 360 on-screen notification system used for sign-in prompts, achievements, storage warnings, party/chat events, and other shell-level status messages.</p>
 <p>XeCLI exposes XNotify through the <code>rgh notify</code>, <code>rgh notify-icons</code>, and <code>rgh jrpc2 notify</code> commands so you can send operator messages directly to the console without opening a separate tool.</p>
+<p>At the practical level, every XNotify workflow comes down to three inputs:</p>
+<ul>
+<li>message text</li>
+<li>icon/logo identifier</li>
+<li>a healthy notification-capable JRPC/XDRPC path on the console</li>
+</ul>
 <h2 id="what-xecli-supports">What XeCLI Supports</h2>
 <p>XeCLI supports:</p>
 <ul>
@@ -99,6 +105,17 @@ message=&quot;XeCLI connected&quot; logo=14 (Flashing happy face)
 <li>confirming trainer, module, save, or plugin operations without manually checking files first</li>
 <li>building custom tooling that gives visible operator feedback during scripted workflows</li>
 </ul>
+<h2 id="what-xnotify-actually-is">What XNotify Actually Is</h2>
+<p>XNotify is the shell popup system built into the Xbox 360 dashboard environment.</p>
+<p>It is the same notification family used for:</p>
+<ul>
+<li>sign-in and sign-out messages</li>
+<li>achievement and avatar award toasts</li>
+<li>storage and controller warnings</li>
+<li>party/chat prompts</li>
+<li>download and update notices</li>
+</ul>
+<p>That is why the icon list contains shell-event names instead of generic app icons. XeCLI is not inventing a new notification framework. It is exposing the console’s existing one in a terminal-friendly way.</p>
 <h2 id="command-surface">Command Surface</h2>
 <h3 id="rgh-notify"><code>rgh notify</code></h3>
 <p>Operator-facing notification command.</p>
@@ -156,6 +173,19 @@ rgh jrpc2 notify &quot;XeCLI connected&quot; 14
 <li>logo/icon id = <code>14</code></li>
 </ul>
 <p>This is the fastest operator form when you already know the ID you want.</p>
+<h2 id="direct-rpc-usage-notes">Direct RPC Usage Notes</h2>
+<p>If you are building tooling outside XeCLI, the lower-level shape is still:</p>
+<ul>
+<li>message text</li>
+<li>icon/logo ID</li>
+<li>dispatch through the console notification RPC path</li>
+</ul>
+<p>XeCLI already normalizes the useful operator forms:</p>
+<pre><code class="language-powershell">rgh notify &quot;XeCLI connected&quot; 14
+rgh jrpc2 notify &quot;XeCLI connected&quot; 14
+rgh notify --message &quot;XeCLI connected&quot; --logo 14
+</code></pre>
+<p>That keeps users away from raw command framing while still matching the way other JRPC/XDRPC-capable tools think about XNotify.</p>
 <h2 id="built-in-icon-reference">Built-In Icon Reference</h2>
 <p>Common operator-friendly icons:</p>
 <table>

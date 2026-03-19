@@ -93,6 +93,17 @@ public sealed class Jrpc2Client {
         throw new IOException("JRPC2 did not respond correctly.");
     }
 
+    public async Task SetLedsAsync(int topLeft, int topRight, int bottomLeft, int bottomRight, CancellationToken cancellationToken) {
+        string command = $"consolefeatures ver=2 type=14 params=\"A\\0\\A\\4\\" +
+                         $"{(uint) RpcDataType.Int}\\{topLeft}\\" +
+                         $"{(uint) RpcDataType.Int}\\{topRight}\\" +
+                         $"{(uint) RpcDataType.Int}\\{bottomLeft}\\" +
+                         $"{(uint) RpcDataType.Int}\\{bottomRight}\\\"";
+        XbdmResponse response = await xbdm.SendCommandAsync(command, cancellationToken);
+        if (response.StatusCode != 200)
+            throw new IOException($"JRPC2 did not respond correctly: {response.RawMessage}");
+    }
+
     public Task ShowNotificationAsync(int logo, string? message, CancellationToken cancellationToken) {
         string msgHex = message != null ? ConvertStringToHex(message) : "";
         string command = $"consolefeatures ver=2 type=12 params=\"A\\0\\A\\2\\2/{message?.Length ?? 0}\\{msgHex}\\{(uint) RpcDataType.Int}\\{logo}\\\"";
@@ -115,7 +126,21 @@ public sealed class Jrpc2Client {
         return address;
     }
 
-    public async Task<string> CallAsync(RpcDataType returnType, uint? address, string? module, int? ordinal, bool systemThread, bool vm, IReadOnlyList<RpcArgument> args, CancellationToken cancellationToken) {
+    public Task<string> CallAsync(RpcDataType returnType, uint? address, string? module, int? ordinal, bool systemThread, bool vm, IReadOnlyList<RpcArgument> args, CancellationToken cancellationToken) {
+        return CallAsync(returnType, address, module, ordinal, systemThread, vm, args, maxLoopCount: 10, loopDelayMs: 0, cancellationToken);
+    }
+
+    public async Task<string> CallAsync(
+        RpcDataType returnType,
+        uint? address,
+        string? module,
+        int? ordinal,
+        bool systemThread,
+        bool vm,
+        IReadOnlyList<RpcArgument> args,
+        int maxLoopCount,
+        int loopDelayMs,
+        CancellationToken cancellationToken) {
         uint argc = 0;
         string paramsText = CreateParams(vm, args, ref argc);
         string cmd = $"consolefeatures ver=2 type={(uint) returnType}" +
@@ -124,14 +149,14 @@ public sealed class Jrpc2Client {
                      $"{(vm ? " VM" : "")} " +
                      $"as=0 params=\"A\\{(address ?? 0):X}\\A\\{argc}\\{paramsText}\"";
 
-        string response = (await SendConsoleFeaturesLoopAsync(cmd, cancellationToken)).Trim();
+        string response = (await SendConsoleFeaturesLoopAsync(cmd, maxLoopCount, loopDelayMs, cancellationToken)).Trim();
         int split = response.IndexOf(' ');
         if (split <= 0)
             return response;
         return response.Substring(split + 1).Trim();
     }
 
-    private async Task<string> SendConsoleFeaturesLoopAsync(string command, CancellationToken cancellationToken) {
+    private async Task<string> SendConsoleFeaturesLoopAsync(string command, int maxLoopCount, int loopDelayMs, CancellationToken cancellationToken) {
         XbdmResponse response = await xbdm.SendCommandAsync(command, cancellationToken);
         if (response.StatusCode != 200)
             throw new IOException($"JRPC2 call failed: {response.RawMessage}");
@@ -139,6 +164,8 @@ public sealed class Jrpc2Client {
         string text = response.Message;
         const string findText = "buf_addr=";
         for (int i = 0; text.Contains(findText, StringComparison.OrdinalIgnoreCase); i++) {
+            if (loopDelayMs > 0)
+                await Task.Delay(loopDelayMs, cancellationToken);
             int idx = text.IndexOf(findText, StringComparison.OrdinalIgnoreCase);
             if (!uint.TryParse(text.AsSpan(idx + findText.Length), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint addr))
                 break;
@@ -146,11 +173,33 @@ public sealed class Jrpc2Client {
             if (loop.StatusCode != 200)
                 throw new IOException($"JRPC2 loop failed: {loop.RawMessage}");
             text = loop.Message;
-            if (i > 10)
+            if (i >= maxLoopCount)
                 throw new IOException("JRPC2 error: potential infinite loop.");
         }
 
         return text;
+    }
+
+    public async Task DispatchAsync(
+        RpcDataType returnType,
+        uint? address,
+        string? module,
+        int? ordinal,
+        bool systemThread,
+        bool vm,
+        IReadOnlyList<RpcArgument> args,
+        CancellationToken cancellationToken) {
+        uint argc = 0;
+        string paramsText = CreateParams(vm, args, ref argc);
+        string cmd = $"consolefeatures ver=2 type={(uint) returnType}" +
+                     $"{(systemThread ? " system" : "")}" +
+                     $"{(module != null ? $" module=\"{module}\" ord={ordinal}" : "")}" +
+                     $"{(vm ? " VM" : "")} " +
+                     $"as=0 params=\"A\\{(address ?? 0):X}\\A\\{argc}\\{paramsText}\"";
+
+        XbdmResponse response = await xbdm.SendCommandAsync(cmd, cancellationToken);
+        if (response.StatusCode != 200)
+            throw new IOException($"JRPC2 dispatch failed: {response.RawMessage}");
     }
 
     private static string CreateParams(bool vm, IReadOnlyList<RpcArgument> arguments, ref uint argc) {

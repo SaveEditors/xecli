@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" >
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -83,12 +83,15 @@
 <ul>
 <li>launchers that need title and module metadata</li>
 <li>dashboards that need status snapshots</li>
+<li>overlays that need sign-in/session state</li>
+<li>operator panels that need LED or notification actions</li>
 <li>save tools that need extraction and injection</li>
 <li>reverse-engineering helpers that need XEX pulls or Ghidra automation</li>
 </ul>
 <p>Typical calls:</p>
 <pre><code class="language-powershell">rgh status --json
 rgh title --json
+rgh signin state --json
 rgh modules list --json
 rgh content list --json
 </code></pre>
@@ -105,8 +108,15 @@ rgh content list --json
 <li><code>mem regions</code></li>
 <li><code>mem strings</code></li>
 <li><code>content list</code></li>
+<li><code>signin state</code></li>
 <li><code>ghidra verify</code></li>
 </ul>
+<p>Example:</p>
+<pre><code class="language-powershell">rgh status --json &gt; status.json
+rgh title --json &gt; title.json
+rgh signin state --json &gt; signin.json
+rgh modules list --json &gt; modules.json
+</code></pre>
 <h2 id="reuse-the-title-id-database">Reuse the Title ID Database</h2>
 <p>Bundled files:</p>
 <ul>
@@ -128,12 +138,28 @@ rgh screenshot --out .\screen.bmp
 rgh save extract --titleid 415608C3 --out .\saves
 </code></pre>
 <p>This works well when your application wants the files that XeCLI can pull rather than embedding transport logic itself.</p>
+<p>This is also a good fit when you want XeCLI’s live progress handling and operator-facing error messages without rewriting FTP/XBDM transport code yourself.</p>
 <h2 id="ghidra-integration-pattern">Ghidra Integration Pattern</h2>
 <p>If your tool needs decompile output but you do not want to own a Ghidra automation layer:</p>
 <pre><code class="language-powershell">rgh ghidra decompile --in .\title.xex --out .\decomp
 rgh ghidra verify --dir .\decomp --json
 </code></pre>
 <p>This keeps import, decompile, and verification logic in one place.</p>
+<h2 id="notification-integration-pattern">Notification Integration Pattern</h2>
+<p>If your app needs visible console-side feedback, use XeCLI as the notification layer rather than hardcoding icon IDs in multiple places.</p>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh notify &quot;Build finished&quot; 14
+rgh notify &quot;Patch applied&quot; 16
+rgh notify &quot;Download complete&quot; 55
+rgh led set --preset quadrant1
+</code></pre>
+<p>For custom frontends, a practical pattern is:</p>
+<ol>
+<li>keep your own message text in the host app</li>
+<li>call XeCLI with a known icon ID or preset</li>
+<li>show the same event in your host UI and on the console</li>
+</ol>
+<p>Read <a href="XNotify.html">XNotify.md</a> for the icon reference and direct usage guidance.</p>
 <h2 id="config-and-override-files">Config and Override Files</h2>
 <p>Runtime config:</p>
 <ul>
@@ -144,6 +170,12 @@ rgh ghidra verify --dir .\decomp --json
 <li><code>%APPDATA%\XeCLI\titleids.local.csv</code></li>
 </ul>
 <p>If you build another tool around XeCLI, do not hardcode machine-specific paths. Resolve config and asset paths relative to the XeCLI executable or the documented per-user config locations.</p>
+<p>If you ship XeCLI beside another tool, prefer resolving:</p>
+<ul>
+<li>executable folder for <code>ConsoleDependencies/</code>, <code>Assets/</code>, and <code>ghidra_scripts/</code></li>
+<li>per-user config for runtime overrides</li>
+<li><code>titleids.local.csv</code> for user-specific metadata extensions</li>
+</ul>
 <h2 id="when-to-reuse-xecli-instead-of-rewriting-it">When to Reuse XeCLI Instead of Rewriting It</h2>
 <p>Use XeCLI directly when:</p>
 <ul>
@@ -158,6 +190,53 @@ rgh ghidra verify --dir .\decomp --json
 <li>you must own every transport and retry detail internally</li>
 <li>your application cannot tolerate CLI process orchestration</li>
 </ul>
+<h2 id="recommended-external-tool-entry-points">Recommended External-Tool Entry Points</h2>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Recommended XeCLI entry point</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Live status card</td>
+<td><code>rgh status --json</code></td>
+</tr>
+<tr>
+<td>Active title badge</td>
+<td><code>rgh title --json</code></td>
+</tr>
+<tr>
+<td>Signed-in user badge</td>
+<td><code>rgh signin state --json</code></td>
+</tr>
+<tr>
+<td>Notification banner on console</td>
+<td><code>rgh notify</code></td>
+</tr>
+<tr>
+<td>Session/hardware indicator</td>
+<td><code>rgh led set</code></td>
+</tr>
+<tr>
+<td>File pull/push</td>
+<td><code>rgh ftp ...</code> or <code>rgh fs ...</code></td>
+</tr>
+<tr>
+<td>Running-XEX acquisition</td>
+<td><code>rgh xex dump</code></td>
+</tr>
+<tr>
+<td>Decompile pipeline</td>
+<td><code>rgh ghidra decompile</code> + <code>rgh ghidra verify --json</code></td>
+</tr>
+<tr>
+<td>Save backup/import</td>
+<td><code>rgh save extract</code> / <code>rgh save inject</code></td>
+</tr>
+</tbody>
+</table>
         </article>
       </section>
     </main>

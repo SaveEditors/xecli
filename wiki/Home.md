@@ -1,88 +1,102 @@
 # XeCLI Wiki
 
-This wiki is the operator and developer reference for XeCLI. It is organized so a new user can get productive quickly without hiding the deeper features that make the project useful for live RGH/JTAG work.
+XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live-console operations, reverse engineering, file workflows, XEX analysis, and automation. This wiki is the primary operator and developer reference for the `rgh` command surface.
 
-The repository and product name are `XeCLI`. The terminal command is `rgh`.
+The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
-## Read This First
-If you are new to the tool:
+## Documentation Index
 
+### Getting Started
+| Page | Purpose |
+| --- | --- |
+| [Beginner Guide](Beginner-Guide.md) | Safe first-run workflow: discovery, connect, status, and basic operations |
+| [Commands Reference](Commands.md) | Full command-by-command reference with examples |
+| [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
+| [Troubleshooting](Troubleshooting.md) | Failure cases, common console/plugin issues, and recovery paths |
+
+### Developer Reference
+| Page | Purpose |
+| --- | --- |
+| [Advanced Guide](Advanced-Guide.md) | Reverse engineering, memory workflows, Ghidra flows, and automation usage |
+| [Frameworks and Internals](Frameworks.md) | Command architecture, transport layers, and internal design decisions |
+| [Documentation Standards](Standards.md) | Structure, conventions, and maintenance rules for this wiki |
+| [Contributing](Contributing.md) | Contribution expectations for code, docs, validation, and release prep |
+
+### Data and Integrations
+| Page | Purpose |
+| --- | --- |
+| [Integrations](Integrations.md) | Reusing XeCLI from scripts and external tools |
+| [Title ID Database](Title-ID-Database.md) | Bundled metadata files and how other tools can consume them |
+| [FAQ](FAQ.md) | Short answers to repeated operator and developer questions |
+
+## Recommended Reading Paths
+
+### New operator path
 1. [Beginner Guide](Beginner-Guide.md)
 2. [Commands Reference](Commands.md)
 3. [CLI Help Output](CLI-Help.md)
 4. [Troubleshooting](Troubleshooting.md)
 
-If you are using XeCLI for reverse engineering or tool development:
-
+### Reverse-engineering path
 1. [Advanced Guide](Advanced-Guide.md)
 2. [Frameworks and Internals](Frameworks.md)
-3. [Integrations](Integrations.md)
+3. [Commands Reference](Commands.md)
 4. [Title ID Database](Title-ID-Database.md)
 
-## What XeCLI Covers Well
-Daily console operations:
+### Contributor path
+1. [Contributing](Contributing.md)
+2. [Documentation Standards](Standards.md)
+3. [Frameworks and Internals](Frameworks.md)
+4. [CLI Help Output](CLI-Help.md)
 
-- Discovery and target selection
-- Fast status and health checks
-- Title lookup and active-title resolution
-- Launch, reboot, and notification workflows
+## Capability Map
 
-Live debugging and inspection:
+### Console operations
+- Discovery, target persistence, and quick connection workflows
+- Status, title resolution, and profile visibility
+- Launch, reboot, and console notification workflows
 
-- Module list, info, dump, load, unload, and post-reboot verification
-- Memory dump, hexdump, peek, poke, watch, string extraction, and pattern search
-- Thread enumeration, register context, suspend, and resume
-- Breakpoints, data breakpoints, and live debug-event watch
+### Live inspection and debugging
+- Module list, info, dump, load, unload, and pending verification
+- Memory dump, hexdump, peek, poke, watch, strings, and search
+- Thread list, context, suspend, and resume
+- Debug stop/go, breakpoints, databreaks, and event watch
 
-File and content workflows:
-
-- XBDM file-system commands
-- FTP-backed browsing, transfer, and search
+### Storage and content
+- XBDM file-system operations
+- FTP-based browsing, transfer, and content discovery
 - Save extraction and injection
-- Installed-content inventory
 - DashLaunch plugin slot management
 
-Analysis workflows:
-
-- XEX dump and string extraction
+### Analysis and packaging
+- Running XEX dump and string extraction
 - Ghidra headless analysis and decompile export
-- Decompile verification
-- Bundled Title ID data for metadata enrichment
+- ISO to Games on Demand conversion with watchdog mode
+- Bundled Title ID metadata for richer output and external tool reuse
 
-Packaging workflows:
+## Scope Boundaries
+XeCLI is strong in live-console workflows. It does not currently claim to be:
 
-- ISO to Games on Demand conversion
-- Folder watchdog for unattended conversions
+- a NAND flasher
+- a XeBuild replacement
+- a glitch-chip programmer
+- a full trace debugger
 
-## What XeCLI Does Not Try to Pretend It Covers
-XeCLI is strong in live-console workflows. It is not currently a NAND flasher, XeBuild replacement, or glitch-chip programming suite.
-
-Not covered in the current release:
+Current out-of-scope areas:
 
 - NAND read/write
-- Image building or dashboard patching
-- Glitch timing programming
-- Full stepping and trace-based debugging
-
-## Release-Ready Expectations
-The project is intended to be publishable as a clean GitHub repository:
-
-- Source under `src/`
-- Docs under `README.md` and `wiki/`
-- Bundled assets stored in the repo
-- No runtime dumps, screenshots, or machine-specific paths committed
-
-The release archive should contain the CLI executable plus its bundled assets, not a source-tree publish dump.
+- image building or dashboard patching
+- glitch timing programming
+- trace/step debugging
 
 ## Important Paths
-Bundled metadata and scripts:
 
+### Bundled assets
 - `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
 - `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
 - `src/Xbox360.Remote.Cli/ghidra_scripts/DecompileAllToC.java`
 
-Runtime config:
-
+### Runtime state
 - `%APPDATA%\XeCLI\config.json`
 - `%LOCALAPPDATA%\XeCLI\cache`
 - `%APPDATA%\XeCLI\titleids.local.csv`
@@ -98,15 +112,7 @@ rgh mem hexdump --addr 0x30000000 --size 0x40
 rgh screenshot --out .\screen.bmp
 ```
 
-For the exact built-in help screens users will see in terminal, including the current `rgh help` output and every top-level help page, use [CLI Help Output](CLI-Help.md).
-
-## Related Pages
-- [Beginner Guide](Beginner-Guide.md)
-- [Commands Reference](Commands.md)
-- [CLI Help Output](CLI-Help.md)
-- [Advanced Guide](Advanced-Guide.md)
-- [Frameworks and Internals](Frameworks.md)
-- [Title ID Database](Title-ID-Database.md)
-- [Integrations](Integrations.md)
-- [Troubleshooting](Troubleshooting.md)
-- [FAQ](FAQ.md)
+## Release and Docs Entry Points
+- [Repository](https://github.com/SaveEditors/xecli)
+- [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
+- [Docs Landing Page](https://saveeditors.github.io/xecli/)

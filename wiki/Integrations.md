@@ -1,105 +1,108 @@
 # Integrations
 
-This page is for developers who want to build other tools around XeCLI or reuse its bundled assets.
+This page is for developers who want to build other tools around XeCLI or reuse its shipped assets.
 
 ## Integration Modes
-There are three practical ways to integrate with XeCLI:
-- Shell out to rgh commands and consume text output
-- Shell out to rgh commands with `--json`
-- Read the bundled asset files directly, especially the Title ID database
+There are three useful ways to integrate with XeCLI:
 
-## Recommended Approach
-For most external tooling, the best approach is:
-1. Use XeCLI for live console interactions
-2. Use `--json` for structured responses
-3. Use the bundled Title ID CSV directly for metadata resolution
+1. Call the CLI directly.
+2. Parse its JSON output.
+3. Read the bundled metadata files directly.
 
-This keeps the live-console logic in one place while letting your own tool stay focused on its domain.
+Use the smallest integration surface that solves the problem.
 
-## Good Candidate Integrations
-- Save editors
-- Trainers
-- Dashboards
-- Launchers
-- Capture and archival tools
-- Reverse engineering workflow scripts
-- Metadata reporting tools
+## Use the CLI Directly
+XeCLI is useful as an orchestration backend when your tool needs live console interaction but you do not want to duplicate transport code.
 
-## JSON-Friendly Commands
-Useful commands for structured output:
-```bash
+Good examples:
+
+- launchers that need title and module metadata
+- dashboards that need status snapshots
+- save tools that need extraction and injection
+- reverse-engineering helpers that need XEX pulls or Ghidra automation
+
+Typical calls:
+
+```powershell
 rgh status --json
-rgh profiles --json
-rgh title 4D5307E6 --json
+rgh title --json
 rgh modules list --json
-rgh mem regions --json
-rgh mem strings --addr 0x82000000 --size 0x20000 --json
-rgh ftp find --path "/Hdd1/" --name "*.xex" --json
-rgh ghidra verify --dir .\\decomp --json
+rgh content list --json
 ```
 
-## When to Use XeCLI Instead of Reimplementing
-Use XeCLI directly when you need:
-- XBDM reconnect behavior
-- XBDM or JRPC2 command handling
-- XEX pull and decompile workflows
-- Reusable JSON snapshots
+## Parse JSON Output
+Prefer `--json` when you need stable machine-readable output instead of screen scraping terminal tables.
 
-Read bundled files directly when you need:
-- Title metadata without opening a live console session
-- Lightweight game-name lookup inside another app
-- Consistent naming or labeling in reports
+Common commands with useful JSON output:
 
-## Using the Bundled Title ID Files
-Repo locations:
+- `status`
+- `profiles`
+- `title`
+- `scan`
+- `modules list`
+- `modules info`
+- `mem regions`
+- `mem strings`
+- `content list`
+- `ghidra verify`
+
+## Reuse the Title ID Database
+Bundled files:
+
 - `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
 - `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
 
-Published locations:
-- `Assets/xbox360_gamelist.csv`
-- `Assets/xbox360_titleids.txt`
+External tools can consume these files directly to:
 
-Recommended pattern for another tool:
-- Resolve the asset folder relative to your executable or the XeCLI executable
-- Load the CSV as the primary source
-- Fall back to the TXT list for simple lookups
+- resolve Title IDs
+- annotate content inventory
+- label saves and dumps
+- enrich UI views with media and region data
 
-## Script Integration Examples
+That database is shipped with the repo and the release output. There is no runtime fetch requirement.
 
-### Status snapshot for a dashboard
-```bash
-rgh status --json
+## Use XeCLI as a Console Worker
+Example pattern:
+
+```powershell
+rgh xex dump --out .\title.xex
+rgh screenshot --out .\screen.bmp
+rgh save extract --titleid 415608C3 --out .\saves
 ```
 
-### Resolve a title before applying a game-specific workflow
-```bash
-rgh jrpc2 title-id
-rgh title <title-id> --json
+This works well when your application wants the files that XeCLI can pull rather than embedding transport logic itself.
+
+## Ghidra Integration Pattern
+If your tool needs decompile output but you do not want to own a Ghidra automation layer:
+
+```powershell
+rgh ghidra decompile --in .\title.xex --out .\decomp
+rgh ghidra verify --dir .\decomp --json
 ```
 
-### Build a module inventory report
-```bash
-rgh modules list --json
-```
+This keeps import, decompile, and verification logic in one place.
 
-### Use XeCLI as a XEX fetch helper
-```bash
-rgh xex dump --out .\\current.xex
-```
+## Config and Override Files
+Runtime config:
 
-## Release-Ready Integration Guidance
-- Do not rely on machine-specific paths.
-- Do not assume a specific local IP.
-- Do not assume the user has a local override file.
-- Prefer published asset-relative paths when packaging your integration.
-- Treat XeCLI JSON as the stable automation surface where available.
+- `%APPDATA%\XeCLI\config.json`
 
-## Questions to Ask Before Integrating
-- Do you need live console access or only metadata
-- Do you need XBDM, JRPC2, or both
-- Do you need a real XEX file or only a module dump
-- Do you need human-readable title names or raw Title IDs
+Optional user metadata override:
 
-Answering those questions usually tells you whether to call XeCLI, read the database directly, or do both.
+- `%APPDATA%\XeCLI\titleids.local.csv`
 
+If you build another tool around XeCLI, do not hardcode machine-specific paths. Resolve config and asset paths relative to the XeCLI executable or the documented per-user config locations.
 
+## When to Reuse XeCLI Instead of Rewriting It
+Use XeCLI directly when:
+
+- you want stable operator-facing commands
+- you need live XBDM/JRPC2/FTP coordination
+- you want the shipped metadata and Ghidra flow
+- you need a tool that can still be used manually in terminal
+
+Reimplement only if:
+
+- you need a library API instead of a process boundary
+- you must own every transport and retry detail internally
+- your application cannot tolerate CLI process orchestration

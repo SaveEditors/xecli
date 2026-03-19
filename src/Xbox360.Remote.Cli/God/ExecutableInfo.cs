@@ -123,7 +123,6 @@ internal sealed class XexHeader {
         _ = Endian.ReadUInt32BE(stream);
         _ = Endian.ReadUInt32BE(stream);
         _ = Endian.ReadUInt32BE(stream);
-        _ = Endian.ReadUInt32BE(stream);
 
         uint fieldCount = Endian.ReadUInt32BE(stream);
         TitleExecutionInfo? executionInfo = null;

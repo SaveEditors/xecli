@@ -42,10 +42,36 @@ internal static class NotifyHelpers {
         logo = 0;
         return true;
     }
+
+    public static async Task TrySendOperationNotificationAsync(
+        XbdmClient client,
+        bool enabled,
+        string? iconName,
+        string? logoValue,
+        string message,
+        CancellationToken cancellationToken) {
+        if (!enabled)
+            return;
+
+        if (!TryResolveLogo(iconName, logoValue, out int logo, out _))
+            logo = 0;
+
+        try {
+            Jrpc2Client jrpc = new Jrpc2Client(client);
+            await jrpc.ShowNotificationAsync(logo, message, cancellationToken);
+        }
+        catch {
+            // ignored
+        }
+    }
 }
 
 public sealed class NotifySendCommand : AsyncCommand<NotifySendCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
+        [CommandArgument(0, "[message]")]
+        [Description("Notification text.")]
+        public string? MessageArgument { get; init; }
+
         [CommandOption("--message <TEXT>")]
         [Description("Notification text.")]
         public string? Message { get; init; }
@@ -60,7 +86,8 @@ public sealed class NotifySendCommand : AsyncCommand<NotifySendCommand.Settings>
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
-        if (string.IsNullOrWhiteSpace(settings.Message)) {
+        string? message = !string.IsNullOrWhiteSpace(settings.Message) ? settings.Message : settings.MessageArgument;
+        if (string.IsNullOrWhiteSpace(message)) {
             AnsiConsole.MarkupLine("[red]--message is required.[/]");
             return 1;
         }
@@ -72,7 +99,7 @@ public sealed class NotifySendCommand : AsyncCommand<NotifySendCommand.Settings>
 
         return await CliHelpers.WithClientAsync(settings, async client => {
             Jrpc2Client jrpc = new Jrpc2Client(client);
-            await jrpc.ShowNotificationAsync(logo, settings.Message, CancellationToken.None);
+            await jrpc.ShowNotificationAsync(logo, message, CancellationToken.None);
             AnsiConsole.MarkupLine("[green]Notification sent.[/]");
             return 0;
         }, CancellationToken.None);

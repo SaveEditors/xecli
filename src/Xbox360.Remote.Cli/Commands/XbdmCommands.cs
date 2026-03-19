@@ -145,7 +145,7 @@ public sealed class XbdmModulesListCommand : AsyncCommand<XbdmModulesListCommand
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
-        return await CliHelpers.WithClientAsync(settings, async client => {
+        return await CliHelpers.WithClientOnceAsync(settings, async client => {
             IReadOnlyList<XbdmModuleInfo> modules = await client.GetModulesAsync(settings.Sections, CancellationToken.None);
 
             if (settings.Json) {
@@ -299,7 +299,7 @@ public sealed class XbdmXexDumpCommand : AsyncCommand<XbdmXexDumpCommand.Setting
             return 1;
         }
 
-        return await CliHelpers.WithClientAsync(settings, async client => {
+        return await CliHelpers.WithClientOnceAsync(settings, async client => {
             string? path = settings.Path ?? await client.GetRunningXexPathAsync(null, CancellationToken.None);
             if (string.IsNullOrWhiteSpace(path)) {
                 AnsiConsole.MarkupLine("[red]Unable to resolve running XEX. Use --path.[/]");
@@ -369,9 +369,8 @@ public sealed class XbdmMemHexDumpCommand : AsyncCommand<XbdmMemHexDumpCommand.S
         }
 
         return await CliHelpers.WithClientAsync(settings, async client => {
-            using MemoryStream ms = new MemoryStream((int) size);
-            await client.ReadMemoryAsync(address, size, ms, null, CancellationToken.None);
-            CliOutput.RenderHexDump(address, ms.ToArray());
+            byte[] data = await client.ReadMemoryBytesReliableAsync(address, checked((int) size), CancellationToken.None);
+            CliOutput.RenderHexDump(address, data);
             return 0;
         }, CancellationToken.None);
     }

@@ -48,6 +48,11 @@ internal static class CliHelpers {
         return await WithClientAsync((ip, port, timeout), settings, action, cancellationToken);
     }
 
+    public static async Task<int> WithClientOnceAsync(ConnectionSettings settings, Func<XbdmClient, Task<int>> action, CancellationToken cancellationToken) {
+        (string ip, int port, int timeout) = await ResolveTargetAsync(settings, cancellationToken);
+        return await WithClientOnceAsync((ip, port, timeout), settings, action, cancellationToken);
+    }
+
     public static async Task<int> WithClientAsync((string Ip, int Port, int TimeoutMs) target, ConnectionSettings settings, Func<XbdmClient, Task<int>> action, CancellationToken cancellationToken) {
         Exception? lastError = null;
 
@@ -75,6 +80,17 @@ internal static class CliHelpers {
         }
 
         throw lastError ?? new IOException("Unable to connect to console.");
+    }
+
+    public static async Task<int> WithClientOnceAsync((string Ip, int Port, int TimeoutMs) target, ConnectionSettings settings, Func<XbdmClient, Task<int>> action, CancellationToken cancellationToken) {
+        using XbdmClient client = await XbdmClient.ConnectAsync(new XbdmConnectionOptions {
+            Host = target.Ip,
+            Port = target.Port,
+            TimeoutMs = target.TimeoutMs
+        }, cancellationToken);
+
+        EnsureDefaultTarget(settings, target.Ip, target.Port);
+        return await action(client);
     }
 
     private static void EnsureDefaultTarget(ConnectionSettings settings, string ip, int port) {

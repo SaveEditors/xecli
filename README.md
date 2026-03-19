@@ -4,148 +4,278 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-blueviolet)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/Platform-Xbox%20360%20RGH%2FJTAG-orange)](https://github.com/SaveEditors/xecli)
 
-> A terminal-first Xbox 360 RGH/JTAG toolkit for discovery, XBDM control, RPC, file access, XEX workflows, memory inspection, and automation.
+XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit built for live console work. It combines XBDM, JRPC2, FTP, XEX tooling, memory inspection, module control, screenshot capture, Ghidra headless automation, and Games on Demand conversion in one CLI and one release package.
 
-## Overview
-XeCLI is built for operators, reverse engineers, and tool developers who want repeatable Xbox 360 workflows without relying on GUI-only tools. It combines XBDM, JRPC2, FTP, Ghidra headless integration, and a bundled Title ID database into one source tree and one release artifact.
+The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
-The project ships with its own local metadata and helper assets. Nothing in the Title ID workflow depends on fetching remote data at runtime.
-The repository and product name are `XeCLI`; the installed terminal command remains `rgh`.
+## Interface Preview
+Top-level help:
 
-## Features
-- Console discovery, target persistence, and reconnect handling
-- XBDM status, memory, modules, threads, breakpoints, screenshots, and file system access
-- JRPC2 helpers for CPU key, temperatures, Title ID, motherboard, dashboard version, notifications, and RPC calls
-- FTP access for alternate file operations and XEX retrieval
-- XEX dump, string extraction, and Ghidra-driven decompile flows
-- ISO to Games on Demand conversion and watchdog mode
-- Bundled Title ID database for game-name resolution, region/media metadata, and downstream tool integration
-- Structured JSON output for scripts, launchers, dashboards, and companion tools
+![XeCLI help](assets/readme/rgh-help.png)
 
-## Bundled Assets
-XeCLI includes the following repo-local assets:
+Live status:
+
+![XeCLI status](assets/readme/rgh-status.png)
+
+## Why XeCLI
+XeCLI is designed for three kinds of work:
+
+- Daily operator workflows: discovery, connection management, status, FTP, plugin control, and title launching.
+- Reverse engineering workflows: module listing, memory reads and writes, thread context, breakpoints, XEX dumping, strings, and Ghidra export.
+- Tool integration workflows: JSON output, bundled metadata, and stable command-based orchestration from scripts or companion apps.
+
+It is intended to replace scattered one-off console utilities with a consistent command surface that can be used interactively or scripted.
+
+## What Ships
+The repository and release package include:
+
+- The CLI source and managed project dependencies.
+- A bundled Title ID database.
+- Ghidra helper scripts.
+- Wiki documentation and release-facing README content.
+
+Bundled assets:
+
 - `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
 - `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
 - `src/Xbox360.Remote.Cli/ghidra_scripts/DecompileAllToC.java`
 
-At build and publish time, the asset files are copied into the CLI output so the release remains self-contained.
+At publish time, these assets are copied into the release output so the package remains self-contained.
 
-## What Ships vs What the Console Must Provide
-What ships with XeCLI:
-- Source code
-- Managed runtime dependencies restored by the project
-- Bundled metadata assets
-- Ghidra helper script
-- Release documentation
+## What the Console Must Provide
+XeCLI does not replace console-side plugins or services. The target console must already provide the pieces you want to use:
 
-What must already exist on the target console:
-- XBDM for live console control
-- JRPC2 if you want RPC, notifications, CPU key, temperatures, and related helpers
-- FTP service if you want FTP-backed file access
+- XBDM for console control, module enumeration, memory access, threads, breakpoints, screenshots, and file-system commands.
+- JRPC2 for CPU key, temperatures, Title ID, dashboard version, motherboard type, notifications, and generic RPC.
+- FTP service for FTP-backed file browsing, save management, content management, and DashLaunch plugin edits.
 
-XeCLI is release-ready as a local toolchain, but it does not replace console-side plugins. Those remain console prerequisites.
+XeCLI is shipped as a self-contained local toolchain. Console-side services remain prerequisites.
 
-## Title ID Database
-The Title ID database is part of the repository and part of the release output.
+## Feature Summary
+Core console workflows:
 
-Primary files:
-- `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
-- `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
+- Console discovery and saved default targeting.
+- Fast `status`, `ping`, `profiles`, and `title` queries.
+- Launch and reboot control with optional on-console success notifications.
 
-What it contains:
-- Title ID
-- Media ID when available
-- Game name
-- Serial
-- Content type
-- Region
-- XEX CRC when available
-- Wave metadata when available
+Live inspection and debugging:
 
-What it is useful for:
-- Turning raw Title IDs into human-readable names in status views
-- Matching disc variants by media ID
-- Powering dashboards, trainers, save editors, and profile tools
-- Resolving game metadata in external scripts and companion applications
+- Module list, info, dump, load, unload, and pending verification.
+- Memory dump, hexdump, peek, poke, watch, strings, and pattern search with optional freeze writes.
+- Thread list, context, suspend, and resume.
+- Debug stop/go, code breakpoints, data breakpoints, and live debug-event watch.
 
-Local overrides are optional and live at:
-- `%APPDATA%\XeCLI\titleids.local.csv`
+File and content workflows:
 
-Bundled files are always loaded first. The local override file is additive and intended for custom or private entries.
+- XBDM file-system access and FTP access.
+- Save listing, extraction, and injection.
+- Installed-content inventory and deletion.
+- DashLaunch plugin listing and slot management.
+
+XEX and analysis workflows:
+
+- Dump the active XEX.
+- Extract XEX strings from local files, FTP, or the running title.
+- Run Ghidra headless analysis and decompile exports.
+- Verify decompile output for bad-instruction placeholders.
+
+Packaging and automation:
+
+- ISO to Games on Demand conversion.
+- Folder watchdog for unattended ISO processing.
+- JSON output on automation-friendly commands.
+- A bundled Title ID database that other tools can consume directly.
 
 ## Installation
-From source:
-```bash
+### Release package
+Download the release archive, extract it, and run `rgh.exe`.
+
+Release contents:
+
+- `rgh.exe`
+- `Assets/`
+- `ghidra_scripts/`
+
+On first interactive launch from a packaged build, XeCLI offers a one-time prompt to add its directory to the machine PATH. That operation requires administrator approval and makes `rgh` available in new terminals.
+
+Manual install commands:
+
+```powershell
+rgh install
+rgh install --machine-path
+```
+
+### From source
+```powershell
 git clone https://github.com/SaveEditors/xecli
 cd XeCLI
 dotnet build -c Release
 dotnet run --project src/Xbox360.Remote.Cli -- --help
 ```
 
-Standalone build:
-```bash
-rgh.exe --help
-rgh install
-rgh install --machine-path
-```
-
-On first interactive launch from the packaged executable, XeCLI offers a one-time prompt to add its directory to the machine PATH with administrator approval.
-
 ## Quick Start
-Discover consoles and choose a default target:
-```bash
+Discover and select a console:
+
+```powershell
 rgh start
 ```
 
-Connect directly if you already know the IP:
-```bash
+If you already know the target:
+
+```powershell
 rgh target --set <console-ip>
 rgh ftp target --set <console-ip> --user <ftp-user> --pass <ftp-pass>
 ```
 
 Check the console:
-```bash
+
+```powershell
 rgh ping
 rgh status
 rgh status --quick
+rgh title
 ```
 
-Inspect modules and memory:
-```bash
+Inspect live state:
+
+```powershell
 rgh modules list
-rgh mem hexdump --addr 0x82000000 --size 0x200
-rgh mem dump --addr 0x82000000 --size 0x20000 --out .\\mem.bin
+rgh modules info --name Aurora.xex
+rgh mem hexdump --addr 0x30000000 --size 0x40
+rgh screenshot --out .\screen.bmp
 ```
 
-Work with XEX files:
-```bash
-rgh xex dump --out .\\title.xex
-rgh xex strings --running --min 6 --unicode
-rgh xex decompile --running --out .\\decomp
+Work with saves, content, and plugins:
+
+```powershell
+rgh save list --titleid FFFE07D1 --device Hdd1
+rgh content list --device Hdd1 --show-types
+rgh plugin list
 ```
 
-## Documentation
-The release-ready documentation set is intentionally limited to:
-- `README.md`
-- `wiki/`
+Run analysis workflows:
 
-Start with:
-- `wiki/Home.md`
-- `wiki/Commands.md`
-- `wiki/Title-ID-Database.md`
-- `wiki/Integrations.md`
+```powershell
+rgh xex dump --out .\title.xex
+rgh xex strings --running --unicode --min 6
+rgh ghidra decompile --running --out .\decomp
+```
+
+## Active Title Resolution
+`rgh title` with no arguments resolves the currently active title from the connected console.
+
+Examples:
+
+```powershell
+rgh title
+rgh title --json
+rgh title 415608C3
+rgh title 415608C3 2B7302D6
+```
+
+When the running XEX is a dashboard replacement or homebrew shell, XeCLI can prefer a path-based fallback name such as `Aurora` while still showing the bundled database entry separately.
+
+## Module Load and Unload
+Live module unload is supported and verified against the live module list. Module load is more nuanced: some plugin stacks and modules do not hot-load safely on every console.
+
+Supported commands:
+
+```powershell
+rgh modules load --path Hdd:\HvP2.xex
+rgh modules unload --name HvP2.xex --force
+rgh modules pending
+```
+
+For modules that trigger a reboot or disconnect as part of load, use:
+
+```powershell
+rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+```
+
+Then, after the console returns:
+
+```powershell
+rgh modules pending
+```
+
+That flow persists pending verification in the XeCLI config and confirms the final module state after reboot.
+
+## Bundled Title ID Database
+XeCLI includes its Title ID data in the repository and in the published release. It does not fetch title metadata from the internet at runtime.
+
+Primary files:
+
+- `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
+- `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
+
+Optional local extension file:
+
+- `%APPDATA%\XeCLI\titleids.local.csv`
+
+The bundled data is useful beyond the CLI itself. Other tools can reuse it to:
+
+- Resolve Title IDs into readable names.
+- Match media-specific variants.
+- Label saves, dumps, screenshots, and reports.
+- Enrich launchers, dashboards, trainers, and save editors.
 
 ## Configuration
 Primary config file:
+
 - `%APPDATA%\XeCLI\config.json`
 
 Cache directory:
+
 - `%LOCALAPPDATA%\XeCLI\cache`
 
-## Release Notes
-The repository is structured so that the CLI, bundled assets, and wiki can be released together without relying on machine-specific paths or external documentation files.
+The config stores items such as:
+
+- Default XBDM target.
+- Default FTP target and credentials.
+- Notification icon presets.
+- Ghidra path configuration.
+- Pending module operations that need post-reboot verification.
+
+## Release Layout
+The source repository is intended to stay clean:
+
+- Source under `src/`
+- Docs under `README.md` and `wiki/`
+- No runtime dumps or captures checked into the repo
+- No machine-specific paths in release documentation
+
+Release artifacts should be built outside the repository root so publish output, dumps, screenshots, and smoke-test files do not pollute the source tree.
+
+## Documentation Map
+Start here:
+
+- `wiki/Home.md`
+- `wiki/Beginner-Guide.md`
+- `wiki/Commands.md`
+
+Deep reference:
+
+- `wiki/Advanced-Guide.md`
+- `wiki/Frameworks.md`
+- `wiki/Title-ID-Database.md`
+- `wiki/Integrations.md`
+- `wiki/Troubleshooting.md`
+- `wiki/FAQ.md`
+
+## Safety Notes
+XeCLI includes both safe operational commands and commands that can destabilize the running title or console session.
+
+Treat these areas with care:
+
+- `mem poke`
+- `mem search --freeze`
+- `debug break` and `debug databreak`
+- `modules unload --force`
+- `modules load --system`
+- `reboot`
+- content and save deletion commands
+
+If a command is expected to trigger a reboot or disconnect, XeCLI should say so explicitly. Use the pending-verification flow where appropriate instead of assuming the operation completed cleanly.
 
 ## License
 GPLv3
-
-

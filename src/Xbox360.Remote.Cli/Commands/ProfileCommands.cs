@@ -21,6 +21,27 @@ public sealed class ProfilesCommand : AsyncCommand<ProfilesCommand.Settings> {
         (string ip, int port, int timeout) = await CliHelpers.ResolveTargetAsync(settings, CancellationToken.None);
         return await CliHelpers.WithClientAsync((ip, port, timeout), settings, async client => {
             IReadOnlyList<XbdmUserInfo> users = await client.GetUserListAsync(CancellationToken.None);
+            ProfileHelpers.XamUserInfo? xamUser = null;
+            if (users.Count == 0) {
+                try {
+                    xamUser = await ProfileHelpers.TryGetSignedInXamUserAsync(ip, port, timeout, CancellationToken.None);
+                    if (xamUser != null) {
+                        users = new[] {
+                            new XbdmUserInfo {
+                                Gamertag = xamUser.Gamertag,
+                                Xuid = xamUser.Xuid != null && ulong.TryParse(xamUser.Xuid.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong parsedXuid)
+                                    ? parsedXuid
+                                    : null,
+                                SignInState = xamUser.SignInState,
+                                RawLine = $"xam slot={xamUser.Slot}"
+                            }
+                        };
+                    }
+                }
+                catch {
+                    // ignored
+                }
+            }
 
             List<string>? ftpProfiles = null;
             if (!settings.NoFtp) {
@@ -52,6 +73,10 @@ public sealed class ProfilesCommand : AsyncCommand<ProfilesCommand.Settings> {
             if (string.IsNullOrWhiteSpace(signedInUser) && f3SignedIn != null) {
                 signedInUser = f3SignedIn.Gamertag;
                 signedInXuid ??= f3SignedIn.Xuid;
+            }
+            if (string.IsNullOrWhiteSpace(signedInUser) && xamUser != null) {
+                signedInUser = xamUser.Gamertag;
+                signedInXuid ??= xamUser.Xuid;
             }
 
             Dictionary<string, List<string>> ftpGrouped = ftpProfiles != null

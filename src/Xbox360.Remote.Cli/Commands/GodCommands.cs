@@ -409,8 +409,9 @@ public sealed class GodWatchCommand : AsyncCommand<GodWatchCommand.Settings> {
             info.Refresh();
             long size = info.Length;
             DateTime write = info.LastWriteTimeUtc;
+            bool available = IsReadyForRead(path);
 
-            if (lastSize.HasValue && lastSize == size && lastWrite == write) {
+            if (available && size > 0 && lastSize.HasValue && lastSize == size && lastWrite == write) {
                 if ((DateTime.UtcNow - stableSince).TotalSeconds >= settleSeconds)
                     return;
             }
@@ -421,6 +422,19 @@ public sealed class GodWatchCommand : AsyncCommand<GodWatchCommand.Settings> {
             }
 
             await Task.Delay(pollMs, cancellationToken);
+        }
+    }
+
+    private static bool IsReadyForRead(string path) {
+        try {
+            using FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None);
+            return stream.Length > 0;
+        }
+        catch (IOException) {
+            return false;
+        }
+        catch (UnauthorizedAccessException) {
+            return false;
         }
     }
 

@@ -8,88 +8,38 @@ using Xbox360.Remote;
 
 namespace Xbox360.Remote.Cli.Commands;
 
-public sealed class XbdmMemRegionsCommand : AsyncCommand<ConnectionSettings> {
-    public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings) {
-        return await CliHelpers.WithClientAsync(settings, async client => {
-            using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
-            IReadOnlyList<XbdmMemoryRegion> regions = await client.GetMemoryRegionsAsync(cts.Token);
-            if (settings.Json) {
-                CliOutput.EmitJson(regions);
-                return 0;
-            }
-
-            AnsiConsole.Write(new Rule("[bold deepskyblue1]Memory Regions[/]").RuleStyle("grey"));
-            Table table = CliOutput.CreateTable();
-            table.AddColumn(new TableColumn("[cyan]Base[/]"));
-            table.AddColumn(new TableColumn("[cyan]Size[/]"));
-            table.AddColumn(new TableColumn("[grey]Protect[/]"));
-            table.AddColumn(new TableColumn("[grey]Phys[/]"));
-            foreach (XbdmMemoryRegion region in regions) {
-                table.AddRow(
-                    $"[cyan]0x{region.BaseAddress:X8}[/]",
-                    $"[cyan]0x{region.Size:X8}[/]",
-                    $"[grey]0x{region.Protect:X8}[/]",
-                    $"[grey]0x{region.Phys:X8}[/]");
-            }
-            AnsiConsole.Write(table);
-            return 0;
-        }, CancellationToken.None);
-    }
-}
-
-public sealed class XbdmMemPeekCommand : AsyncCommand<XbdmMemPeekCommand.Settings> {
-    public sealed class Settings : ConnectionSettings {
-        [CommandOption("--addr <ADDR>")]
-        public string? Address { get; init; }
-
-        [CommandOption("--type <TYPE>")]
-        [Description("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii")]
-        public string? Type { get; init; }
-
-        [CommandOption("--len <N>")]
-        [Description("Length for ascii reads (default 32).")]
-        public int? Length { get; init; }
-
-        [CommandOption("--le")]
-        [Description("Interpret as little-endian (default is big-endian).")]
-        public bool LittleEndian { get; init; }
+internal static class MemoryValueCodec {
+    public static string NormalizeType(string? type) {
+        return type?.Trim().ToLowerInvariant() switch {
+            "byte" => "u8",
+            "short" => "s16",
+            "ushort" => "u16",
+            "int" => "s32",
+            "uint" => "u32",
+            "long" => "s64",
+            "ulong" => "u64",
+            "float" => "f32",
+            "double" => "f64",
+            "string" => "ascii",
+            "bytes" => "hex",
+            not null => type.Trim().ToLowerInvariant(),
+            _ => string.Empty
+        };
     }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
-        if (!CliHelpers.TryParseUInt32(settings.Address, out uint address) || string.IsNullOrWhiteSpace(settings.Type)) {
-            AnsiConsole.MarkupLine("[red]Usage:[/] --addr <hex|dec> --type <type>");
-            return 1;
-        }
-
-        return await CliHelpers.WithClientAsync(settings, async client => {
-            string type = settings.Type.ToLowerInvariant();
-            int length = type == "ascii" ? Math.Max(1, settings.Length ?? 32) : GetSize(type);
-            if (length <= 0) {
-                AnsiConsole.MarkupLine("[red]Unknown type.[/]");
-                return 1;
-            }
-
-            using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
-            byte[] bytes = await client.ReadMemoryBytesAsync(address, length, cts.Token);
-            object value = ParseValue(type, bytes, settings.LittleEndian);
-            AnsiConsole.WriteLine(value.ToString() ?? "unknown");
-            return 0;
-        }, CancellationToken.None);
-    }
-
-    private static int GetSize(string type) {
-        return type switch {
+    public static int GetSize(string type) {
+        return NormalizeType(type) switch {
             "u8" or "s8" => 1,
             "u16" or "s16" => 2,
             "u32" or "s32" or "f32" => 4,
             "u64" or "s64" or "f64" => 8,
-            "ascii" => 0,
+            "ascii" or "hex" => 0,
             _ => -1
         };
     }
 
-    private static object ParseValue(string type, ReadOnlySpan<byte> bytes, bool littleEndian) {
-        return type switch {
+    public static object ParseValue(string type, ReadOnlySpan<byte> bytes, bool littleEndian) {
+        return NormalizeType(type) switch {
             "u8" => bytes[0],
             "s8" => (sbyte) bytes[0],
             "u16" => littleEndian ? BinaryPrimitives.ReadUInt16LittleEndian(bytes) : BinaryPrimitives.ReadUInt16BigEndian(bytes),
@@ -101,55 +51,20 @@ public sealed class XbdmMemPeekCommand : AsyncCommand<XbdmMemPeekCommand.Setting
             "f32" => BitConverter.Int32BitsToSingle(littleEndian ? BinaryPrimitives.ReadInt32LittleEndian(bytes) : BinaryPrimitives.ReadInt32BigEndian(bytes)),
             "f64" => BitConverter.Int64BitsToDouble(littleEndian ? BinaryPrimitives.ReadInt64LittleEndian(bytes) : BinaryPrimitives.ReadInt64BigEndian(bytes)),
             "ascii" => Encoding.ASCII.GetString(bytes).TrimEnd('\0'),
+            "hex" => ConvertToHex(bytes),
             _ => "unknown"
         };
     }
-}
 
-public sealed class XbdmMemPokeCommand : AsyncCommand<XbdmMemPokeCommand.Settings> {
-    public sealed class Settings : ConnectionSettings {
-        [CommandOption("--addr <ADDR>")]
-        public string? Address { get; init; }
-
-        [CommandOption("--type <TYPE>")]
-        [Description("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii|hex")]
-        public string? Type { get; init; }
-
-        [CommandOption("--value <VALUE>")]
-        public string? Value { get; init; }
-
-        [CommandOption("--le")]
-        [Description("Write little-endian (default is big-endian).")]
-        public bool LittleEndian { get; init; }
-    }
-
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
-        if (!CliHelpers.TryParseUInt32(settings.Address, out uint address) ||
-            string.IsNullOrWhiteSpace(settings.Type) ||
-            string.IsNullOrWhiteSpace(settings.Value)) {
-            AnsiConsole.MarkupLine("[red]Usage:[/] --addr <hex|dec> --type <type> --value <value>");
-            return 1;
-        }
-
-        return await CliHelpers.WithClientAsync(settings, async client => {
-            byte[] bytes = BuildBytes(settings.Type.ToLowerInvariant(), settings.Value, settings.LittleEndian);
-            await client.WriteMemoryAsync(address, bytes, CancellationToken.None);
-            AnsiConsole.MarkupLine("[green]Wrote memory.[/]");
-            return 0;
-        }, CancellationToken.None);
-    }
-
-    private static byte[] BuildBytes(string type, string value, bool littleEndian) {
-        switch (type) {
+    public static byte[] BuildBytes(string type, string value, bool littleEndian) {
+        switch (NormalizeType(type)) {
             case "u8":
                 return new[] { byte.Parse(value, CultureInfo.InvariantCulture) };
             case "s8":
                 return new[] { (byte) sbyte.Parse(value, CultureInfo.InvariantCulture) };
             case "u16": {
                 Span<byte> buffer = stackalloc byte[2];
-                ushort val = ushort.Parse(value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? value.AsSpan(2) : value.AsSpan(), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                if (!value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-                    val = ushort.Parse(value, CultureInfo.InvariantCulture);
+                ushort val = ParseUInt16(value);
                 if (littleEndian)
                     BinaryPrimitives.WriteUInt16LittleEndian(buffer, val);
                 else
@@ -167,7 +82,7 @@ public sealed class XbdmMemPokeCommand : AsyncCommand<XbdmMemPokeCommand.Setting
             }
             case "u32": {
                 Span<byte> buffer = stackalloc byte[4];
-                uint val = ParseUInt(value);
+                uint val = ParseUInt32(value);
                 if (littleEndian)
                     BinaryPrimitives.WriteUInt32LittleEndian(buffer, val);
                 else
@@ -230,7 +145,27 @@ public sealed class XbdmMemPokeCommand : AsyncCommand<XbdmMemPokeCommand.Setting
         }
     }
 
-    private static uint ParseUInt(string value) {
+    public static byte[] ParseHexPattern(string text) {
+        string cleaned = text.Replace("0x", "", StringComparison.OrdinalIgnoreCase)
+            .Replace(" ", "")
+            .Replace("-", "")
+            .Replace("_", "");
+        if (cleaned.Length % 2 != 0)
+            throw new InvalidOperationException("Hex pattern must have even length.");
+        byte[] bytes = new byte[cleaned.Length / 2];
+        for (int i = 0; i < bytes.Length; i++) {
+            bytes[i] = Convert.ToByte(cleaned.Substring(i * 2, 2), 16);
+        }
+        return bytes;
+    }
+
+    private static ushort ParseUInt16(string value) {
+        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            return ushort.Parse(value.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        return ushort.Parse(value, CultureInfo.InvariantCulture);
+    }
+
+    private static uint ParseUInt32(string value) {
         if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             return uint.Parse(value.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
         return uint.Parse(value, CultureInfo.InvariantCulture);
@@ -245,6 +180,7 @@ public sealed class XbdmMemPokeCommand : AsyncCommand<XbdmMemPokeCommand.Setting
     private static byte[] ParseHex(string hex) {
         if (hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             hex = hex.Substring(2);
+        hex = hex.Replace(" ", "").Replace("-", "").Replace("_", "");
         if (hex.Length % 2 != 0)
             throw new InvalidOperationException("Hex string must have even length.");
         byte[] bytes = new byte[hex.Length / 2];
@@ -252,6 +188,125 @@ public sealed class XbdmMemPokeCommand : AsyncCommand<XbdmMemPokeCommand.Setting
             bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
         }
         return bytes;
+    }
+
+    private static string ConvertToHex(ReadOnlySpan<byte> data) {
+        char[] chars = new char[data.Length * 2];
+        for (int i = 0; i < data.Length; i++) {
+            byte b = data[i];
+            chars[i * 2] = GetHex((byte) (b >> 4));
+            chars[i * 2 + 1] = GetHex((byte) (b & 0x0F));
+        }
+
+        return new string(chars);
+    }
+
+    private static char GetHex(byte value) {
+        return (char) (value < 10 ? '0' + value : 'A' + (value - 10));
+    }
+}
+
+public sealed class XbdmMemRegionsCommand : AsyncCommand<ConnectionSettings> {
+    public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings) {
+        return await CliHelpers.WithClientAsync(settings, async client => {
+            using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
+            IReadOnlyList<XbdmMemoryRegion> regions = await client.GetMemoryRegionsAsync(cts.Token);
+            if (settings.Json) {
+                CliOutput.EmitJson(regions);
+                return 0;
+            }
+
+            AnsiConsole.Write(new Rule("[bold deepskyblue1]Memory Regions[/]").RuleStyle("grey"));
+            Table table = CliOutput.CreateTable();
+            table.AddColumn(new TableColumn("[cyan]Base[/]"));
+            table.AddColumn(new TableColumn("[cyan]Size[/]"));
+            table.AddColumn(new TableColumn("[grey]Protect[/]"));
+            table.AddColumn(new TableColumn("[grey]Phys[/]"));
+            foreach (XbdmMemoryRegion region in regions) {
+                table.AddRow(
+                    $"[cyan]0x{region.BaseAddress:X8}[/]",
+                    $"[cyan]0x{region.Size:X8}[/]",
+                    $"[grey]0x{region.Protect:X8}[/]",
+                    $"[grey]0x{region.Phys:X8}[/]");
+            }
+            AnsiConsole.Write(table);
+            return 0;
+        }, CancellationToken.None);
+    }
+}
+
+public sealed class XbdmMemPeekCommand : AsyncCommand<XbdmMemPeekCommand.Settings> {
+    public sealed class Settings : ConnectionSettings {
+        [CommandOption("--addr <ADDR>")]
+        public string? Address { get; init; }
+
+        [CommandOption("--type <TYPE>")]
+        [Description("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii plus byte/int/float/string aliases")]
+        public string? Type { get; init; }
+
+        [CommandOption("--len <N>")]
+        [Description("Length for ascii reads (default 32).")]
+        public int? Length { get; init; }
+
+        [CommandOption("--le")]
+        [Description("Interpret as little-endian (default is big-endian).")]
+        public bool LittleEndian { get; init; }
+    }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
+        if (!CliHelpers.TryParseUInt32(settings.Address, out uint address) || string.IsNullOrWhiteSpace(settings.Type)) {
+            AnsiConsole.MarkupLine("[red]Usage:[/] --addr <hex|dec> --type <type>");
+            return 1;
+        }
+
+        return await CliHelpers.WithClientAsync(settings, async client => {
+            string type = MemoryValueCodec.NormalizeType(settings.Type);
+            int length = type == "ascii" ? Math.Max(1, settings.Length ?? 32) : MemoryValueCodec.GetSize(type);
+            if (length <= 0) {
+                AnsiConsole.MarkupLine("[red]Unknown type.[/]");
+                return 1;
+            }
+
+            using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
+            byte[] bytes = await client.ReadMemoryBytesAsync(address, length, cts.Token);
+            object value = MemoryValueCodec.ParseValue(type, bytes, settings.LittleEndian);
+            AnsiConsole.WriteLine(value.ToString() ?? "unknown");
+            return 0;
+        }, CancellationToken.None);
+    }
+}
+
+public sealed class XbdmMemPokeCommand : AsyncCommand<XbdmMemPokeCommand.Settings> {
+    public sealed class Settings : ConnectionSettings {
+        [CommandOption("--addr <ADDR>")]
+        public string? Address { get; init; }
+
+        [CommandOption("--type <TYPE>")]
+        [Description("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii|hex plus byte/int/float/string/bytes aliases")]
+        public string? Type { get; init; }
+
+        [CommandOption("--value <VALUE>")]
+        public string? Value { get; init; }
+
+        [CommandOption("--le")]
+        [Description("Write little-endian (default is big-endian).")]
+        public bool LittleEndian { get; init; }
+    }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
+        if (!CliHelpers.TryParseUInt32(settings.Address, out uint address) ||
+            string.IsNullOrWhiteSpace(settings.Type) ||
+            string.IsNullOrWhiteSpace(settings.Value)) {
+            AnsiConsole.MarkupLine("[red]Usage:[/] --addr <hex|dec> --type <type> --value <value>");
+            return 1;
+        }
+
+        return await CliHelpers.WithClientAsync(settings, async client => {
+            byte[] bytes = MemoryValueCodec.BuildBytes(settings.Type, settings.Value, settings.LittleEndian);
+            await client.WriteMemoryAsync(address, bytes, CancellationToken.None);
+            AnsiConsole.MarkupLine("[green]Wrote memory.[/]");
+            return 0;
+        }, CancellationToken.None);
     }
 }
 
@@ -293,9 +348,8 @@ public sealed class XbdmMemWatchCommand : AsyncCommand<XbdmMemWatchCommand.Setti
                 if (settings.Clear)
                     AnsiConsole.Clear();
                 AnsiConsole.MarkupLine($"[grey]{DateTime.Now:HH:mm:ss}[/] 0x{address:X8} ({size} bytes)");
-                using MemoryStream ms = new MemoryStream((int) size);
-                await client.ReadMemoryAsync(address, size, ms, null, CancellationToken.None);
-                CliOutput.RenderHexDump(address, ms.ToArray());
+                byte[] data = await client.ReadMemoryBytesReliableAsync(address, checked((int) size), CancellationToken.None);
+                CliOutput.RenderHexDump(address, data);
                 return 0;
             }, CancellationToken.None);
             await Task.Delay(interval);
@@ -439,6 +493,38 @@ public sealed class XbdmMemFindCommand : AsyncCommand<XbdmMemFindCommand.Setting
         [CommandOption("--max <N>")]
         [Description("Maximum matches to return (default 20).")]
         public int? MaxCount { get; init; }
+
+        [CommandOption("--out <FILE>")]
+        [Description("Write the hit list to a file (.json for JSON, otherwise text).")]
+        public string? Output { get; init; }
+
+        [CommandOption("--freeze")]
+        [Description("Continuously rewrite a value to the selected hit(s). Requires --freeze-type and --freeze-value.")]
+        public bool Freeze { get; init; }
+
+        [CommandOption("--freeze-type <TYPE>")]
+        [Description("Value type for freeze writes: int|uint|float|string|bytes|u32|f32|ascii|hex, etc.")]
+        public string? FreezeType { get; init; }
+
+        [CommandOption("--freeze-value <VALUE>")]
+        [Description("Value to freeze to the selected hit(s).")]
+        public string? FreezeValue { get; init; }
+
+        [CommandOption("--freeze-interval <MS>")]
+        [Description("Freeze write interval in milliseconds (default 250).")]
+        public int? FreezeIntervalMs { get; init; }
+
+        [CommandOption("--freeze-count <N>")]
+        [Description("Number of freeze write passes (default 0 = until Ctrl+C).")]
+        public int? FreezeCount { get; init; }
+
+        [CommandOption("--freeze-all")]
+        [Description("Freeze all hits instead of just one selected hit.")]
+        public bool FreezeAll { get; init; }
+
+        [CommandOption("--hit <N>")]
+        [Description("1-based hit index to freeze when --freeze-all is not used (default 1).")]
+        public int? HitIndex { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
@@ -453,9 +539,14 @@ public sealed class XbdmMemFindCommand : AsyncCommand<XbdmMemFindCommand.Setting
             return 1;
         }
 
-        byte[] pattern = settings.Pattern != null ? ParseHexPattern(settings.Pattern) : Encoding.ASCII.GetBytes(settings.Ascii!);
+        byte[] pattern = settings.Pattern != null ? MemoryValueCodec.ParseHexPattern(settings.Pattern) : Encoding.ASCII.GetBytes(settings.Ascii!);
         if (pattern.Length == 0) {
             AnsiConsole.MarkupLine("[red]Pattern cannot be empty.[/]");
+            return 1;
+        }
+
+        if (settings.Freeze && (string.IsNullOrWhiteSpace(settings.FreezeType) || string.IsNullOrWhiteSpace(settings.FreezeValue))) {
+            AnsiConsole.MarkupLine("[red]--freeze requires --freeze-type and --freeze-value.[/]");
             return 1;
         }
 
@@ -527,35 +618,92 @@ public sealed class XbdmMemFindCommand : AsyncCommand<XbdmMemFindCommand.Setting
                 }
             }
 
+            List<string> formattedMatches = matches.Select(addr => $"0x{addr:X8}").ToList();
+            if (!string.IsNullOrWhiteSpace(settings.Output)) {
+                string outputPath = settings.Output;
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath))!);
+                if (outputPath.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) {
+                    string json = System.Text.Json.JsonSerializer.Serialize(formattedMatches, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                    await File.WriteAllTextAsync(outputPath, json, CancellationToken.None);
+                }
+                else {
+                    await File.WriteAllLinesAsync(outputPath, formattedMatches, CancellationToken.None);
+                }
+            }
+
             if (settings.Json) {
-                CliOutput.EmitJson(matches.Select(addr => $"0x{addr:X8}").ToList());
+                CliOutput.EmitJson(formattedMatches);
+            }
+            else {
+                AnsiConsole.Write(new Rule("[bold deepskyblue1]Matches[/]").RuleStyle("grey"));
+                foreach (uint addrFound in matches) {
+                    AnsiConsole.MarkupLine($"[green]0x{addrFound:X8}[/]");
+                }
+
+                if (matches.Count == 0) {
+                    AnsiConsole.MarkupLine("[yellow]No matches found.[/]");
+                }
+                else if (!string.IsNullOrWhiteSpace(settings.Output)) {
+                    AnsiConsole.MarkupLine($"[green]Saved hit list[/] {Markup.Escape(settings.Output)}");
+                }
+            }
+
+            if (!settings.Freeze || matches.Count == 0)
                 return 0;
-            }
 
-            AnsiConsole.Write(new Rule("[bold deepskyblue1]Matches[/]").RuleStyle("grey"));
-            foreach (uint addrFound in matches) {
-                AnsiConsole.MarkupLine($"[green]0x{addrFound:X8}[/]");
-            }
+            byte[] freezeBytes = MemoryValueCodec.BuildBytes(settings.FreezeType!, settings.FreezeValue!, littleEndian: false);
+            List<uint> targets = settings.FreezeAll
+                ? matches
+                : SelectFreezeTarget(matches, settings.HitIndex ?? 1);
 
-            if (matches.Count == 0) {
-                AnsiConsole.MarkupLine("[yellow]No matches found.[/]");
-            }
+            (string freezeIp, int freezePort, int freezeTimeout) = await CliHelpers.ResolveTargetAsync(settings, CancellationToken.None);
+            return await CliHelpers.WithClientAsync((freezeIp, freezePort, freezeTimeout), settings, async freezeClient => {
+                int interval = Math.Max(25, settings.FreezeIntervalMs ?? 250);
+                int count = Math.Max(0, settings.FreezeCount ?? 0);
+                using CancellationTokenSource freezeCts = new CancellationTokenSource();
+                ConsoleCancelEventHandler? handler = null;
+                if (!Console.IsInputRedirected) {
+                    handler = (_, e) => {
+                        e.Cancel = true;
+                        freezeCts.Cancel();
+                    };
+                    Console.CancelKeyPress += handler;
+                }
 
-            return 0;
+                try {
+                    AnsiConsole.MarkupLine($"[yellow]Freezing[/] {targets.Count} hit(s) every {interval} ms. Press Ctrl+C to stop.");
+                    int pass = 0;
+                    while (count == 0 || pass < count) {
+                        freezeCts.Token.ThrowIfCancellationRequested();
+                        foreach (uint target in targets) {
+                            await freezeClient.WriteMemoryAsync(target, freezeBytes, freezeCts.Token);
+                        }
+                        pass++;
+                        if (count > 0 && pass >= count)
+                            break;
+                        await Task.Delay(interval, freezeCts.Token);
+                    }
+
+                    AnsiConsole.MarkupLine("[green]Freeze loop completed.[/]");
+                    return 0;
+                }
+                catch (OperationCanceledException) {
+                    AnsiConsole.MarkupLine("[yellow]Freeze loop stopped.[/]");
+                    return 0;
+                }
+                finally {
+                    if (handler != null)
+                        Console.CancelKeyPress -= handler;
+                }
+            }, CancellationToken.None);
         }, CancellationToken.None);
     }
 
-    private static byte[] ParseHexPattern(string text) {
-        string cleaned = text.Replace("0x", "", StringComparison.OrdinalIgnoreCase)
-            .Replace(" ", "")
-            .Replace("-", "")
-            .Replace("_", "");
-        if (cleaned.Length % 2 != 0)
-            throw new InvalidOperationException("Hex pattern must have even length.");
-        byte[] bytes = new byte[cleaned.Length / 2];
-        for (int i = 0; i < bytes.Length; i++) {
-            bytes[i] = Convert.ToByte(cleaned.Substring(i * 2, 2), 16);
-        }
-        return bytes;
+    private static List<uint> SelectFreezeTarget(List<uint> matches, int hitIndex) {
+        if (hitIndex <= 0)
+            throw new InvalidOperationException("--hit must be 1 or greater.");
+        if (hitIndex > matches.Count)
+            throw new InvalidOperationException($"Requested hit #{hitIndex}, but only {matches.Count} match(es) were found.");
+        return new List<uint> { matches[hitIndex - 1] };
     }
 }

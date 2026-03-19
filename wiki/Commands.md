@@ -1,485 +1,544 @@
 # Commands Reference
 
-This page documents the command surface of XeCLI and explains when to use each command group.
+This page documents the XeCLI command surface by workflow area. Command examples use the installed terminal command `rgh`.
 
 ## Command Model
-XeCLI is organized by operational area:
-- Core console status and targeting
-- XBDM-backed inspection and control
-- JRPC2-backed RPC helpers
-- FTP-backed file access
-- Ghidra-assisted XEX analysis
-- ISO to Games on Demand conversion
+XeCLI is organized into a few major namespaces:
+
+- Core commands: status, title, targeting, launch, reboot
+- XBDM-backed commands: modules, memory, threads, debug, screenshot, file system
+- JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC
+- FTP-backed commands: file access, saves, content, and plugin management
+- Analysis commands: XEX, Ghidra, metadata
+- Packaging commands: Games on Demand conversion and watchdog mode
+
+Shortcut equivalence:
+
+- `rgh modules` = `rgh xbdm modules`
+- `rgh module` = alias of `rgh modules`
+- `rgh mem` = `rgh xbdm mem`
+- `rgh xex` = `rgh xbdm xex`
+- `rgh fs` = `rgh xbdm fs`
+- `rgh threads` = `rgh xbdm threads`
+- `rgh debug` = `rgh xbdm debug`
+
+High-traffic aliases:
+
+- `rgh s` = `rgh start`
+- `rgh c` = `rgh connect`
+- `rgh discover` = `rgh scan`
+- `rgh shot` = `rgh screenshot`
+- `rgh run` = `rgh launch`
+- `rgh xnotify` = `rgh notify`
+- `rgh mem search` = `rgh mem find`
+- `rgh mem read` = `rgh mem peek`
+- `rgh mem write` = `rgh mem poke`
+- `rgh module remove` = `rgh modules unload`
+- `rgh module verify` = `rgh modules pending`
+
+For the exact top-level help screen and the exact help output of every top-level command group, see [CLI-Help.md](CLI-Help.md).
 
 ## Common Options
-
 ### XBDM-backed commands
 | Option | Description |
 | --- | --- |
-| `--ip <IP>` | Console IP. Uses the saved default target if omitted. |
-| `--port <PORT>` | XBDM port. Default: `730`. |
-| `--timeout <MS>` | Socket timeout in milliseconds. Default: `5000`. |
+| `--ip <IP>` | Console IP. Uses the saved target if omitted. |
+| `--port <PORT>` | XBDM TCP port. Default: `730`. |
+| `--timeout <MS>` | Socket timeout in milliseconds. |
+| `--json` | Emit JSON output when supported. |
+
+### FTP-backed commands
+| Option | Description |
+| --- | --- |
+| `--ip <IP>` | Console IP. Uses the saved target if omitted. |
+| `--port <PORT>` | FTP port. Default: `21`. |
+| `--user <USER>` | FTP username. Default: `xboxftp`. |
+| `--pass <PASS>` | FTP password. Default: `xboxftp`. |
+| `--timeout <MS>` | FTP timeout in milliseconds. |
 | `--json` | Emit JSON output when supported. |
 
 ### Discovery commands
 | Option | Description |
 | --- | --- |
-| `--ports <PORTS>` | Comma-separated ports to probe. Default: `730,731`. |
-| `--timeout <MS>` | TCP discovery timeout in milliseconds. Default: `400`. |
+| `--ports <PORTS>` | Comma-separated TCP ports to probe. Default: `730,731`. |
+| `--timeout <MS>` | Discovery timeout. Default: `400`. |
 | `--no-nap` | Disable NAP broadcast discovery. |
-| `--no-tcp` | Disable TCP scanning. |
-| `--json` | Emit JSON output. |
-
-### FTP commands
-| Option | Description |
-| --- | --- |
-| `--ip <IP>` | Console IP. Falls back to the saved target. |
-| `--port <PORT>` | FTP port. Default: `21`. |
-| `--user <USER>` | FTP username. Default: `xboxftp`. |
-| `--pass <PASS>` | FTP password. Default: `xboxftp`. |
-| `--timeout <MS>` | FTP timeout in milliseconds. Default: `5000`. |
-| `--json` | Emit JSON output when supported. |
+| `--no-tcp` | Disable TCP scan discovery. |
+| `--json` | Emit discovery results as JSON. |
 
 ## Core Commands
+### `rgh status`
+Console summary view with XBDM identity, running XEX, JRPC-backed fields, drive layout, and sign-in information.
 
-### status
-Purpose:
-Returns a console snapshot with connection, title, temperature, platform, and sign-in information.
-
-Syntax:
-```bash
-rgh status [--quick] [--no-jrpc] [--no-drives] [--no-users] [--json]
+```powershell
+rgh status
+rgh status --quick
+rgh status --json
+rgh status --no-drives --no-users
 ```
 
-Use it when:
-- You want to confirm the active title
-- You want to confirm JRPC2 is available
-- You want a fast health check before debugging
+Notes:
 
-### profiles
-Purpose:
-Shows signed-in users and profile information gathered from XBDM, FTP, and F3 where available.
+- `--quick` skips slower JRPC, drive, and sign-in probes.
+- Skipped fields are rendered as skipped instead of unknown.
+- When a pending module load or unload is being tracked across a reboot, `status` can surface that state.
 
-Syntax:
-```bash
-rgh profiles [--no-ftp] [--no-f3] [--json]
+### `rgh profiles`
+Enumerates sign-in and profile information gathered from XBDM, JRPC/XAM, FTP, and F3 when available.
+
+```powershell
+rgh profiles
+rgh profiles --json
+rgh profiles --no-ftp
+rgh profiles --no-f3
 ```
 
-### title
-Purpose:
-Looks up a Title ID in the bundled Title ID database.
+### `rgh title`
+Resolve the active title or look up a specific Title ID from the bundled database.
 
-Syntax:
-```bash
-rgh title <TITLEID> [MEDIAID] [--json]
+```powershell
+rgh title
+rgh title --json
+rgh title 415608C3
+rgh title 415608C3 2B7302D6
+rgh title active
 ```
 
-### target
-Purpose:
-Shows or updates the saved default target.
+### `rgh target`
+Show, set, or clear the saved default XBDM target.
 
-Syntax:
-```bash
-rgh target [--set <IP>] [--port <PORT>] [--clear]
+```powershell
+rgh target
+rgh target --set <console-ip>
+rgh target --set <console-ip> --port 730
+rgh target --clear
 ```
 
-### ping
-Purpose:
-Verifies that XBDM is responsive.
+### `rgh ping`
+Fast XBDM connectivity check.
 
-Syntax:
-```bash
+```powershell
 rgh ping
 ```
 
-### reboot
-Purpose:
-Requests a cold reboot or title reboot.
+### `rgh reboot`
+Cold reboot or title reboot.
 
-Syntax:
-```bash
-rgh reboot [--title]
+```powershell
+rgh reboot
+rgh reboot --title
+rgh reboot --notify
 ```
 
-### install
-Purpose:
-Installs or removes the command shim.
+### `rgh launch`
+Launch a XEX with optional directory, arguments, title hint, and notification.
 
-Syntax:
-```bash
-rgh install [--uninstall] [--path <DIR>]
+```powershell
+rgh launch Hdd1:\Aurora\Aurora.xex
+rgh launch Hdd1:\Aurora\Aurora.xex --titleid FFFE07D1
+rgh launch --xex Hdd1:\Aurora\Aurora.xex --args "debug=1"
+rgh launch --xex Hdd1:\Aurora\Aurora.xex --dry-run
+```
+
+### `rgh install`
+Install or remove the command shim, or add/remove the machine PATH entry.
+
+```powershell
+rgh install
+rgh install --machine-path
+rgh install --uninstall
 ```
 
 ## Discovery Commands
-
-### start
-Purpose:
-Discovers consoles and interactively sets the default target.
-
-Syntax:
-```bash
-rgh start [--ports <PORTS>] [--timeout <MS>] [--no-nap] [--no-tcp] [--json]
+### `rgh start`
+```powershell
+rgh start
+rgh start --json
 ```
 
-### connect
-Purpose:
-Sets the default target by discovery index or IP.
-
-Syntax:
-```bash
-rgh connect [target] [--ports <PORTS>] [--timeout <MS>] [--no-nap] [--no-tcp]
+### `rgh connect`
+```powershell
+rgh connect 1
+rgh connect <console-ip>
 ```
 
-### scan
-Purpose:
-Performs discovery without changing the saved default target.
-
-Syntax:
-```bash
-rgh scan [--ports <PORTS>] [--timeout <MS>] [--no-nap] [--no-tcp] [--json]
+### `rgh scan`
+```powershell
+rgh scan
+rgh scan --json
 ```
 
-## XBDM Console Access
-
-### xbdm info
-```bash
-rgh xbdm info [--json]
+## Screenshot Commands
+### `rgh screenshot`
+```powershell
+rgh screenshot --out .\screen.bmp
+rgh screenshot --out .\screen.bmp --force
 ```
 
-### xbdm raw
-```bash
-rgh xbdm raw --cmd "<command>"
+The command emits decoded frame-buffer metadata after a successful capture.
+
+## XBDM Root Commands
+### `rgh xbdm info`
+```powershell
+rgh xbdm info
+rgh xbdm info --json
 ```
 
-### screenshot
-```bash
-rgh screenshot --out <FILE> [--format <bmp|raw>] [--force]
+### `rgh xbdm raw`
+```powershell
+rgh xbdm raw --cmd "modules"
+rgh xbdm raw --cmd "dirlist name=Hdd:\\"
 ```
 
-### xbdm screenshot
-```bash
-rgh xbdm screenshot --out <FILE> [--format <bmp|raw>] [--force]
+### `rgh xbdm screenshot`
+```powershell
+rgh xbdm screenshot --out .\screen.bmp
 ```
 
-## Modules
-
-### modules list
-```bash
-rgh modules list [--sections] [--json]
+## Module Commands
+### `rgh modules list`
+```powershell
+rgh modules list
+rgh modules list --json
+rgh modules list --sections
 ```
 
-### modules info
-```bash
-rgh modules info --name <MODULE> [--sections] [--json]
+### `rgh modules info`
+```powershell
+rgh modules info --name Aurora.xex
+rgh modules info --name xam.xex --sections
 ```
 
-### modules dump
-```bash
-rgh modules dump --name <MODULE> --out <FILE>
-rgh modules dump --all --dir <DIR>
+### `rgh modules dump`
+```powershell
+rgh modules dump --name xam.xex --out .\xam.bin
+rgh modules dump --all --dir .\modules
 ```
 
-Use modules commands when:
-- You need the live module base and size
-- You are validating a patch target
-- You want a memory-resident copy of a loaded image
+### `rgh modules load`
+```powershell
+rgh modules load --path Hdd:\HvP2.xex
+rgh modules load --path Hdd:\HvP2.xex --system
+rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+rgh modules load --path Hdd:\HvP2.xex --dry-run
+```
+
+Important options:
+
+- `--flags <N>` kernel load flags, default `8`
+- `--system` runs the load on a system thread instead of the default title thread
+- `--reboot-expected` persists pending verification if the console disconnects as part of the load
+- `--notify` sends the default console success notification
+
+### `rgh modules unload`
+```powershell
+rgh modules unload --name HvP2.xex --force
+rgh modules unload --handle 0x91340000 --force
+rgh modules unload --name HvP2.xex --force --notify
+```
+
+Important options:
+
+- `--force` is required
+- `--skip-mark` disables the sysdll unload marker write at `handle+0x40`
+- `--dry-run` resolves the target without modifying memory
+
+### `rgh modules pending`
+```powershell
+rgh modules pending
+```
+
+Use this after:
+
+```powershell
+rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+```
 
 ## Memory Commands
-
-### mem dump
-```bash
-rgh mem dump --addr <HEX|DEC> --size <HEX|DEC> --out <FILE>
+### `rgh mem dump`
+```powershell
+rgh mem dump --addr 0x82000000 --size 0x20000 --out .\mem.bin
 ```
 
-### mem hexdump
-```bash
-rgh mem hexdump --addr <HEX|DEC> --size <HEX|DEC>
+### `rgh mem hexdump`
+```powershell
+rgh mem hexdump --addr 0x30000000 --size 0x40
 ```
 
-### mem regions
-```bash
-rgh mem regions [--json]
+### `rgh mem regions`
+```powershell
+rgh mem regions
+rgh mem regions --json
 ```
 
-### mem peek
-```bash
-rgh mem peek --addr <ADDR> --type <TYPE> [--len <N>] [--le]
+### `rgh mem peek`
+```powershell
+rgh mem peek --addr 0x82000000 --type u32
+rgh mem peek --addr 0x82000000 --type ascii --len 32
 ```
 
-Supported types:
-`u8`, `u16`, `u32`, `u64`, `s8`, `s16`, `s32`, `s64`, `f32`, `f64`, `ascii`
-
-### mem poke
-```bash
-rgh mem poke --addr <ADDR> --type <TYPE> --value <VALUE> [--le]
+### `rgh mem poke`
+```powershell
+rgh mem poke --addr 0x82000000 --type u32 --value 0x12345678
+rgh mem poke --addr 0x82000000 --type float --value 1337
+rgh mem poke --addr 0x82000000 --type string --value "XeCLI"
 ```
 
-Supported types:
-`u8`, `u16`, `u32`, `u64`, `s8`, `s16`, `s32`, `s64`, `f32`, `f64`, `ascii`, `hex`
+Type aliases include:
 
-### mem watch
-```bash
-rgh mem watch --addr <ADDR> --size <SIZE> [--interval <MS>] [--count <N>] [--clear]
+- `u8`, `u16`, `u32`, `u64`
+- `s8`, `s16`, `s32`, `s64`
+- `f32`, `f64`
+- `byte`, `int`, `uint`, `float`
+- `ascii`, `string`, `hex`, `bytes`
+
+### `rgh mem watch`
+```powershell
+rgh mem watch --addr 0x82000000 --size 0x40
+rgh mem watch --addr 0x82000000 --size 0x40 --interval 100 --count 10
 ```
 
-### mem strings
-```bash
-rgh mem strings --addr <ADDR> --size <SIZE> [--min <N>] [--max <N>] [--json]
+### `rgh mem strings`
+```powershell
+rgh mem strings --addr 0x82000000 --size 0x20000 --min 6
+rgh mem strings --addr 0x82000000 --size 0x20000 --json
 ```
 
-### mem find
-```bash
-rgh mem find --addr <ADDR> --size <SIZE> --pattern <HEX> | --ascii <TEXT> [--chunk <SIZE>] [--max <N>] [--json]
+### `rgh mem search`
+Alias of `rgh mem find`.
+
+```powershell
+rgh mem search --addr 0x30000000 --size 0x1000 --pattern DEADBEEF
+rgh mem search --addr 0x82000000 --size 0x20000 --ascii "xam.xex"
+rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --out .\hits.json
 ```
 
-Use memory commands when:
-- You already know the address range
-- You are validating offsets or patches
-- You want to extract structures or string blocks from live memory
+Freeze options:
+
+```powershell
+rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --freeze --freeze-type u32 --freeze-value 305419896
+rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --freeze --freeze-all --freeze-count 5
+```
 
 ## XEX Commands
-
-### xex dump
-```bash
-rgh xex dump --out <FILE> [--path <XEX>]
+### `rgh xex dump`
+```powershell
+rgh xex dump --out .\title.xex
+rgh xex dump --path Hdd1:\Aurora\Aurora.xex --out .\aurora.xex
 ```
 
-### xex strings
-```bash
-rgh xex strings --in <FILE> | --ftp-path <PATH> | --running [--min <N>] [--max <N>] [--unicode] [--out <FILE>] [--json]
+### `rgh xex strings`
+```powershell
+rgh xex strings --running --unicode --min 6
+rgh xex strings --ftp-path /Hdd1/Aurora/Aurora.xex --out .\strings.txt
+rgh xex strings --in .\title.xex --json
 ```
 
-### xex decompile
-```bash
-rgh xex decompile --in <FILE> --out <DIR> [--max <N>] [--func-timeout <SEC>] [--timeout <SEC>] [--project <NAME>] [--projects <DIR>] [--path <DIR>] [--java <DIR>] [--loader <NAME>] [--delete-project] [--overwrite] [--script-path <DIR>]
+### `rgh xex decompile`
+```powershell
+rgh xex decompile --in .\title.xex --out .\decomp
+rgh xex decompile --running --out .\decomp --max 200
 ```
 
-Use XEX commands when:
-- You want a real executable image
-- You are preparing a sample for Ghidra
-- You need string extraction without opening a GUI
+## File-System Commands
+### XBDM-backed
+```powershell
+rgh fs list --path Hdd:\
+rgh fs get --path Hdd:\launch.ini --out .\launch.ini
+rgh fs put --path Hdd:\launch.ini --in .\launch.ini
+rgh fs cat --path Hdd:\launch.ini
+rgh fs rm --path Hdd:\temp\old.txt
+rgh fs mkdir --path Hdd:\temp\newdir
+rgh fs mv --from Hdd:\old.txt --to Hdd:\new.txt
+```
+
+### FTP-backed
+Target management:
+
+```powershell
+rgh ftp target
+rgh ftp target --set <console-ip> --user <ftp-user> --pass <ftp-pass>
+rgh ftp target --clear
+```
+
+```powershell
+rgh ftp list --path /Hdd1/
+rgh ftp find --path /Hdd1/ --name *.xex
+rgh ftp get --path /Hdd1/launch.ini --out .\launch.ini
+rgh ftp put --path /Hdd1/launch.ini --in .\launch.ini
+rgh ftp cat --path /Hdd1/launch.ini
+rgh ftp rm --path /Hdd1/temp/old.txt
+rgh ftp mkdir --path /Hdd1/newdir
+rgh ftp mv --from /Hdd1/old.txt --to /Hdd1/new.txt
+```
 
 ## Thread and Debug Commands
-
-### threads list
-```bash
-rgh threads list [--no-names] [--json]
+### Threads
+```powershell
+rgh threads list
+rgh threads context --id 0xFB000008
+rgh threads suspend --id 0xFB000008
+rgh threads resume --id 0xFB000008
 ```
 
-### threads context
-```bash
-rgh threads context --id <THREAD>
-```
-
-### threads suspend
-```bash
-rgh threads suspend --id <THREAD>
-```
-
-### threads resume
-```bash
-rgh threads resume --id <THREAD>
-```
-
-### debug stop
-```bash
+### Debug control
+```powershell
 rgh debug stop
-```
-
-### debug go
-```bash
 rgh debug go
+rgh debug watch
 ```
 
-### debug break add/remove
-```bash
-rgh debug break add --addr <ADDR>
-rgh debug break remove --addr <ADDR>
+### Breakpoints
+```powershell
+rgh debug break add --addr 0x82001000
+rgh debug break remove --addr 0x82001000
+rgh debug break clearall
 ```
 
-### debug databreak add/remove
-```bash
-rgh debug databreak add --addr <ADDR> [--size <BYTES>] [--type <write|read|exec|rw>]
-rgh debug databreak remove --addr <ADDR> [--size <BYTES>] [--type <write|read|exec|rw>]
-```
-
-## File System Commands
-
-### fs list
-```bash
-rgh fs list --path <DIR> [--json]
-```
-
-### fs get
-```bash
-rgh fs get --path <FILE> --out <FILE>
-```
-
-### fs put
-```bash
-rgh fs put --path <FILE> --in <FILE>
-```
-
-### fs cat
-```bash
-rgh fs cat --path <FILE> [--max <BYTES>] [--hex] [--encoding <utf8|ascii>]
-```
-
-### fs rm
-```bash
-rgh fs rm --path <PATH>
-```
-
-### fs mkdir
-```bash
-rgh fs mkdir --path <DIR>
-```
-
-### fs mv
-```bash
-rgh fs mv --from <PATH> --to <PATH>
+### Data breakpoints
+```powershell
+rgh debug databreak add --addr 0x82100000 --size 4 --type write
+rgh debug databreak remove --addr 0x82100000 --size 4 --type write
 ```
 
 ## JRPC2 Commands
-
-### jrpc2 cpu-key
-```bash
+```powershell
 rgh jrpc2 cpu-key
-```
-
-### jrpc2 temps
-```bash
-rgh jrpc2 temps [--sensor <cpu|gpu|edram|motherboard>]
-```
-
-### jrpc2 title-id
-```bash
+rgh jrpc2 temps
+rgh jrpc2 temps --sensor gpu
 rgh jrpc2 title-id
-```
-
-### jrpc2 dashboard
-```bash
 rgh jrpc2 dashboard
-```
-
-### jrpc2 motherboard
-```bash
 rgh jrpc2 motherboard
+rgh jrpc2 resolve --module xam.xex --ordinal 526
+rgh jrpc2 notify --message "XeCLI"
+rgh jrpc2 call --module xam.xex --ordinal 526 --ret int --arg int:0
 ```
-
-### jrpc2 resolve
-```bash
-rgh jrpc2 resolve --module <NAME> --ordinal <N>
-```
-
-### jrpc2 notify
-```bash
-rgh jrpc2 notify --message <TEXT> [--logo <ID>] [--icon <NAME>]
-```
-
-### jrpc2 call
-```bash
-rgh jrpc2 call --ret <TYPE> [--addr <ADDR> | --module <NAME> --ordinal <N>] [--arg <TYPE:VALUE> ...] [--system] [--vm]
-```
-
-Return types:
-`int`, `uint`, `float`, `string`, `byte`, `u64`, `void`
-
-Argument forms:
-`int:123`, `u32:0xDEADBEEF`, `float:1.5`, `string:hello`, `bytes:DEADBEEF`
 
 ## Notification Commands
-
-### notify
-```bash
-rgh notify --message <TEXT> [--logo <ID>] [--icon <NAME>]
-```
-
-### notify-icons
-```bash
+```powershell
+rgh notify "Success :)"
+rgh notify --message "XeCLI connected" --icon info
 rgh notify-icons list
-rgh notify-icons add --name <NAME> --logo <ID>
-rgh notify-icons remove --name <NAME>
+rgh notify-icons add --name success --logo 0x24
+rgh notify-icons remove --name success
 ```
 
-## FTP Commands
-
-### ftp target
-```bash
-rgh ftp target [--set <IP>] [--port <PORT>] [--user <USER>] [--pass <PASS>] [--clear]
+## Save Commands
+### `rgh save list`
+```powershell
+rgh save list --titleid FFFE07D1 --device Hdd1
+rgh save list --titleid 415608C3 --profile E00012AA8D7879B4
 ```
 
-### ftp list
-```bash
-rgh ftp list --path <DIR>
+### `rgh save extract`
+```powershell
+rgh save extract --titleid 415608C3 --out .\saves
+rgh save extract --titleid 415608C3 --profile E00012AA8D7879B4 --device Hdd1 --overwrite
 ```
 
-### ftp find
-```bash
-rgh ftp find --path <DIR> --name <PATTERN> [--depth <N>] [--max <N>] [--regex]
+### `rgh save inject`
+```powershell
+rgh save inject --titleid 415608C3 --in .\saves --device Hdd1
+rgh save inject --titleid 415608C3 --profile E00012AA8D7879B4 --in .\save.bin --overwrite
 ```
 
-### ftp get
-```bash
-rgh ftp get --path <REMOTE> --out <FILE>
+## Content Commands
+### `rgh content list`
+```powershell
+rgh content list
+rgh content list --device Hdd1 --show-types
+rgh content list --titleid 415608C3
 ```
 
-### ftp put
-```bash
-rgh ftp put --path <REMOTE> --in <FILE>
+### `rgh content delete`
+```powershell
+rgh content delete --titleid 415608C3 --type "Title Update"
 ```
 
-### ftp cat
-```bash
-rgh ftp cat --path <REMOTE> [--max <BYTES>] [--encoding <utf8|ascii>]
+Treat delete operations as destructive.
+
+## Plugin Commands
+### `rgh plugin list`
+```powershell
+rgh plugin list
 ```
 
-### ftp rm, mkdir, mv
-```bash
-rgh ftp rm --path <PATH>
-rgh ftp mkdir --path <DIR>
-rgh ftp mv --from <PATH> --to <PATH>
+### `rgh plugin enable`
+```powershell
+rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex
+rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex --backup
 ```
+
+### `rgh plugin disable`
+```powershell
+rgh plugin disable --slot 5
+```
+
+These commands edit `launch.ini` over FTP. Back up first when changing a live configuration.
 
 ## GOD Commands
-
-### god info
-```bash
-rgh god info <ISO> [--json]
+### `rgh god info`
+```powershell
+rgh god info .\game.iso
 ```
 
-### god build
-```bash
-rgh god build <ISO> <DEST> [--trim <end|none>] [--threads <N>] [--title <NAME>]
+### `rgh god build`
+```powershell
+rgh god build .\game.iso .\god
+rgh god build .\game.iso .\god --trim end --threads 2
 ```
 
-### god watch
-```bash
-rgh god watch <WATCH> --dest <DIR> [--recursive] [--settle <SEC>] [--poll <MS>] [--timeout <SEC>] [--retries <N>] [--delete-source] [--move-done <DIR>] [--move-failed <DIR>] [--once]
+### `rgh god watch`
+```powershell
+rgh god watch .\incoming --dest .\god
+rgh god watch .\incoming --dest .\god --recursive --move-done .\done --move-failed .\failed
+rgh god watch .\incoming --dest .\god --once
 ```
+
+The watchdog waits for file stability before starting conversion and can process a directory once and exit for automation use.
 
 ## Ghidra Commands
-
-### ghidra config
-```bash
-rgh ghidra config [--path <DIR>] [--java <DIR>] [--projects <DIR>] [--clear]
+### `rgh ghidra config`
+```powershell
+rgh ghidra config --path "C:\Tools\ghidra" --java "C:\Java"
 ```
 
-### ghidra analyze
-```bash
-rgh ghidra analyze --in <FILE> [--project <NAME>] [--projects <DIR>] [--path <DIR>] [--java <DIR>] [--loader <NAME>] [--timeout <SEC>] [--delete-project] [--overwrite]
-rgh ghidra analyze --ftp-path <PATH> | --running [--timeout <SEC>]
+### `rgh ghidra analyze`
+```powershell
+rgh ghidra analyze --in .\title.xex
+rgh ghidra analyze --running
+rgh ghidra analyze --ftp-path /Hdd1/Aurora/Aurora.xex
 ```
 
-### ghidra decompile
-```bash
-rgh ghidra decompile --in <FILE> --out <DIR> [--max <N>] [--func-timeout <SEC>] [--project <NAME>] [--projects <DIR>] [--path <DIR>] [--java <DIR>] [--timeout <SEC>] [--delete-project] [--overwrite] [--script-path <DIR>]
-rgh ghidra decompile --ftp-path <PATH> | --running --out <DIR> [--max <N>] [--func-timeout <SEC>] [--timeout <SEC>]
+### `rgh ghidra decompile`
+```powershell
+rgh ghidra decompile --in .\title.xex --out .\decomp
+rgh ghidra decompile --running --out .\decomp --max 200
 ```
 
-### ghidra verify
-```bash
-rgh ghidra verify --dir <DIR> [--pattern <REGEX>] [--ext <EXT>] [--max <N>] [--json]
+### `rgh ghidra verify`
+```powershell
+rgh ghidra verify --dir .\decomp
+rgh ghidra verify --dir .\decomp --json
 ```
 
+## Practical Workflows
+### Fast console health check
+```powershell
+rgh ping
+rgh status --quick
+rgh title
+```
 
+### Pull a running title for analysis
+```powershell
+rgh xex dump --out .\title.xex
+rgh xex strings --in .\title.xex --unicode --min 6
+rgh ghidra decompile --in .\title.xex --out .\decomp
+```
+
+### Verify a reboot-expected module load
+```powershell
+rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+rgh modules pending
+```

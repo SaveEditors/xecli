@@ -1,124 +1,125 @@
 # Troubleshooting
 
-This page covers the failure cases most users hit during setup, live debugging, file access, and XEX analysis.
+This page covers the failures most likely to matter during real RGH/JTAG use.
 
-## Discovery Finds Nothing
-Possible causes:
-- The console is not on the same LAN
-- XBDM is not running
-- Discovery traffic is blocked
+## `rgh ping` or `rgh status` hangs too long
+Expected behavior in the current release is fast failure, not long silent hangs.
 
-What to do:
-```bash
-rgh scan
-rgh target --set <console-ip>
+Checks:
+
+- confirm the console IP is still reachable
+- confirm XBDM is listening on the expected port
+- run `rgh target` to verify the saved IP and port
+
+Useful commands:
+
+```powershell
+rgh target
 rgh ping
-```
-
-If direct targeting works but discovery does not, the problem is usually broadcast visibility rather than XeCLI itself.
-
-## XBDM Connect Fails
-What to check:
-- Correct IP
-- Correct port
-- XBDM enabled
-- No local firewall rule blocking outbound traffic
-
-Useful command:
-```bash
-rgh ping
-```
-
-## Status Is Slow
-`rgh status` can be slower when it gathers drive, user, FTP, and JRPC2 data.
-
-Use:
-```bash
 rgh status --quick
 ```
 
-Or selectively skip sources:
-```bash
-rgh status --no-jrpc --no-users --no-drives
+If `status --quick` works and full `status` is slow, the problem is usually in optional JRPC or user/drive probes rather than XBDM itself.
+
+## `rgh title` shows a generic system title
+That can be correct at the Title ID level while still being unhelpful to an operator.
+
+XeCLI tries to improve that by using the running XEX path as a fallback display name. If you still need a custom name, add an entry to:
+
+- `%APPDATA%\XeCLI\titleids.local.csv`
+
+## JRPC-backed fields show unavailable or skipped
+Possible reasons:
+
+- you used `status --quick`
+- JRPC2 is not installed
+- JRPC2 is installed but not healthy
+
+Useful checks:
+
+```powershell
+rgh jrpc2 title-id
+rgh jrpc2 dashboard
+rgh jrpc2 temps
 ```
 
-## JRPC2 Commands Fail
-If `jrpc2` commands fail while XBDM commands work, the issue is usually plugin availability rather than network transport.
-
-What to do:
-- Confirm JRPC2 is installed and active on the console
-- Re-run `rgh status` and check the JRPC2 field
-
-## FTP Lists the Wrong Directory
-Some FTP implementations on Xbox 360 setups return unexpected root listings.
-
-Try:
-```bash
-rgh ftp list --path "/Hdd1/"
-```
-
-If needed, use full normalized paths consistently.
-
-## `xex dump` Works but Ghidra Results Are Poor
-Possible causes:
-- Wrong loader setup in Ghidra
-- Reused stale project state
-- You imported the wrong file
-
-What to do:
-```bash
-rgh ghidra config --path "<ghidra-dir>" --java "<java-home>"
-rgh ghidra decompile --in .\\title.xex --out .\\decomp --delete-project
-rgh ghidra verify --dir .\\decomp
-```
-
-## Decompiled Output Contains Placeholder Functions
-If decompiled files contain placeholder output such as bad-instruction stubs, verify:
-- You are analyzing a real XEX, not a memory dump
-- Ghidra has the loader support you expect
-- The import was clean
+## `modules load` disconnects the console
+This is the main reason the pending-verification flow exists.
 
 Use:
-```bash
-rgh ghidra verify --dir .\\decomp
+
+```powershell
+rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
 ```
 
-## Screenshots Look Corrupted
-Try:
-```bash
-rgh screenshot --out .\\screen.bmp --format bmp
+Then after reboot:
+
+```powershell
+rgh modules pending
 ```
 
-If corruption remains:
-- Capture from a stable screen, not a transition
-- Retry after returning to a simpler UI screen
+Do not treat a disconnect as proof of success unless the post-reboot state confirms it.
 
-## `mem find` Is Unreliable on Large Ranges
-Large live searches can stress XBDM responses.
+## `modules unload` is rejected
+XeCLI requires `--force` because unload can destabilize the target.
 
-Better workflow:
-```bash
-rgh mem dump --addr 0x82000000 --size 0x400000 --out .\\range.bin
+Use:
+
+```powershell
+rgh modules unload --name HvP2.xex --force
 ```
 
-Then search offline with your preferred tooling.
+If the module handle cannot be resolved:
 
-## Title Does Not Resolve to a Name
-Possible causes:
-- The title is custom or homebrew
-- The bundled database lacks that entry
-- Media-specific matching is needed
+- confirm the module is actually loaded with `rgh modules list`
+- try unloading by explicit handle if you already know it
 
-What to do:
-- Run `rgh title <title-id>`
-- Add an override entry to `%APPDATA%\XeCLI\titleids.local.csv`
-- Check the bundled CSV for matching media IDs
+## Screenshot output is wrong or empty
+Check:
 
-## Release Packaging Questions
-If you are preparing a public release:
-- Keep documentation limited to `README.md` and `wiki/`
-- Keep bundled assets in `src/Xbox360.Remote.Cli/Assets`
-- Avoid machine-specific IPs and local drive paths in docs or examples
-- Prefer placeholders like `<console-ip>`, `<ftp-user>`, and `<output-dir>`
+- the console is running a visible title or shell
+- the frame buffer format is being decoded into the selected output format
+- the output file size is reasonable
 
+A healthy BMP capture should produce a non-trivial file with dimensions matching the decoded frame-buffer metadata emitted by the command.
 
+## Save or content commands return too much data
+Use more specific filters:
+
+```powershell
+rgh save list --titleid 415608C3 --profile E00012AA8D7879B4
+rgh content list --titleid 415608C3
+```
+
+Dashboard content trees can be very large if you query them broadly.
+
+## Ghidra decompile output contains placeholder stubs
+Run:
+
+```powershell
+rgh ghidra verify --dir .\decomp
+```
+
+If the output contains widespread bad-instruction placeholders, the problem is usually with import/loader quality rather than a terminal formatting issue.
+
+## FTP-backed commands behave differently from XBDM-backed ones
+That is expected. They hit different console services.
+
+If FTP commands fail while XBDM commands succeed:
+
+- verify the FTP service is enabled
+- verify username, password, and port
+- verify the path format you are using
+
+## First-run PATH prompt never appeared
+The PATH prompt is only shown for interactive packaged runs. It is intentionally skipped when:
+
+- output is redirected
+- help is being shown
+- `install` is already the active command
+
+Manual fallback:
+
+```powershell
+rgh install --machine-path
+```

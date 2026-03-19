@@ -31,10 +31,19 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
         TcpClient client = new TcpClient();
         client.ReceiveTimeout = options.TimeoutMs;
         client.SendTimeout = options.TimeoutMs;
-        await client.ConnectAsync(options.Host, options.Port, cancellationToken);
+        using CancellationTokenSource connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        connectCts.CancelAfter(options.TimeoutMs);
+        Task connectTask = client.ConnectAsync(options.Host, options.Port, connectCts.Token).AsTask();
+        try {
+            await connectTask;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) {
+            client.Dispose();
+            throw new TimeoutException($"XBDM connect timed out after {options.TimeoutMs} ms.");
+        }
 
         NetworkStream stream = client.GetStream();
-        XbdmLineReader reader = new XbdmLineReader(stream);
+        XbdmLineReader reader = new XbdmLineReader(stream, 8192, options.TimeoutMs);
         string line = await reader.ReadLineAsync(cancellationToken);
         XbdmResponse response = XbdmResponseParser.Parse(line);
 
@@ -402,6 +411,37 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
         return ms.ToArray();
     }
 
+    public async Task<byte[]> ReadMemoryBytesReliableAsync(uint address, int length, CancellationToken cancellationToken) {
+        if (length <= 0)
+            return Array.Empty<byte>();
+
+        if (length <= 0x4000) {
+            try {
+                byte[] legacy = await ReadMemoryLegacyBytesAsync(address, length, cancellationToken);
+                if (legacy.Length == length)
+                    return legacy;
+            }
+            catch {
+                // Fall back to getmemex for targets that do not support legacy getmem reliably.
+            }
+        }
+
+        byte[] data = await ReadMemoryBytesAsync(address, length, cancellationToken);
+        if (length > 0x4000 || data.Length != length || data.Any(static b => b != 0))
+            return data;
+
+        try {
+            byte[] legacy = await ReadMemoryLegacyBytesAsync(address, length, cancellationToken);
+            if (legacy.Length == length)
+                return legacy;
+        }
+        catch {
+            // ignored
+        }
+
+        return data;
+    }
+
     public async Task<XbdmScreenshot> CaptureScreenshotAsync(CancellationToken cancellationToken) {
         await ioLock.WaitAsync(cancellationToken);
         try {
@@ -588,6 +628,32 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
         finally {
             ioLock.Release();
         }
+    }
+
+    private async Task<byte[]> ReadMemoryLegacyBytesAsync(uint address, int length, CancellationToken cancellationToken) {
+        if (length <= 0)
+            return Array.Empty<byte>();
+
+        (XbdmResponse response, IReadOnlyList<string>? lines) = await SendRawAsync(
+            $"getmem addr=0x{address:X8} length={length}",
+            cancellationToken);
+
+        if (response.StatusCode != 202 || lines == null || lines.Count == 0)
+            throw new IOException($"getmem failed: {response.RawMessage}");
+
+        string hex = string.Concat(lines);
+        char[] filtered = hex.Where(Uri.IsHexDigit).ToArray();
+        if (filtered.Length == 0)
+            return Array.Empty<byte>();
+
+        string normalized = new string(filtered);
+        int maxChars = Math.Min(normalized.Length, length * 2);
+        if ((maxChars & 1) != 0)
+            maxChars--;
+        if (maxChars <= 0)
+            return Array.Empty<byte>();
+
+        return Convert.FromHexString(normalized.Substring(0, maxChars));
     }
 
     private async Task WriteLineAsync(string command, CancellationToken cancellationToken) {

@@ -46,25 +46,25 @@ internal static class CliOutput {
             return;
         }
 
-        AnsiConsole.Write(new Rule("[bold deepskyblue1]Detected Consoles[/]").RuleStyle("grey"));
+        AnsiConsole.Write(new Rule("[bold deepskyblue1]Detected Consoles[/]").RuleStyle("silver"));
         Table table = CreateTable();
-        table.AddColumn(new TableColumn("[grey]#[/]").Centered());
-        table.AddColumn(new TableColumn("[cyan]IP[/]"));
-        table.AddColumn(new TableColumn("[cyan]Port[/]"));
-        table.AddColumn(new TableColumn("[green]Name[/]"));
+        table.AddColumn(new TableColumn("[white]#[/]").Centered());
+        table.AddColumn(new TableColumn("[cyan1]IP[/]"));
+        table.AddColumn(new TableColumn("[deepskyblue1]Port[/]"));
+        table.AddColumn(new TableColumn("[springgreen3_1]Name[/]"));
         table.AddColumn(new TableColumn("[gold1]Console ID/Serial[/]"));
-        table.AddColumn(new TableColumn("[grey]Source[/]"));
+        table.AddColumn(new TableColumn("[white]Source[/]"));
         int index = 1;
         foreach (DiscoveredConsole console in consoles) {
             string name = console.DebugName != null ? Markup.Escape(console.DebugName) : "unknown";
             string consoleId = console.ConsoleId != null ? Markup.Escape(console.ConsoleId) : "unknown";
             table.AddRow(
-                $"[grey]{index}[/]",
-                $"[cyan]{console.Ip}[/]",
-                $"[cyan]{console.Port}[/]",
-                console.DebugName != null ? $"[green]{name}[/]" : "[grey]unknown[/]",
-                console.ConsoleId != null ? $"[gold1]{consoleId}[/]" : "[grey]unknown[/]",
-                $"[grey]{console.Source}[/]");
+                $"[white]{index}[/]",
+                $"[cyan1]{console.Ip}[/]",
+                $"[deepskyblue1]{console.Port}[/]",
+                console.DebugName != null ? $"[springgreen3_1]{name}[/]" : "[grey70]unknown[/]",
+                console.ConsoleId != null ? $"[gold1]{consoleId}[/]" : "[grey70]unknown[/]",
+                $"[silver]{console.Source}[/]");
             index++;
         }
 
@@ -107,14 +107,14 @@ internal static class CliOutput {
             }
 
             string asciiText = Markup.Escape(new string(asciiBuffer, 0, lineCount));
-            AnsiConsole.MarkupLine($"[grey]0x{baseAddress + (uint) offset:X8}[/] [deepskyblue1]{bytesHex}[/] [yellow]{asciiText}[/]");
+            AnsiConsole.MarkupLine($"[white]0x{baseAddress + (uint) offset:X8}[/] [deepskyblue1]{bytesHex}[/] [springgreen3_1]{asciiText}[/]");
         }
     }
 
     public static Table CreateTable() {
         return new Table()
             .Border(TableBorder.Rounded)
-            .BorderColor(Color.Grey)
+            .BorderColor(Color.Silver)
             .Expand();
     }
 

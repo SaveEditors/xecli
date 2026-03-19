@@ -1,111 +1,144 @@
 # Beginner Guide
 
-This guide is for users who want to get from a clean setup to a working XeCLI session with minimal guesswork.
+This guide covers the safe, practical path from a fresh install to a working live-console session.
 
-## What XeCLI Is For
-XeCLI is designed to replace scattered one-off tools with a consistent command-line workflow for:
-- Finding consoles on your LAN
-- Saving a default target
-- Checking live console state
-- Browsing files
-- Pulling XEX files and modules
-- Reading memory
-- Sending notifications
+## 1. Know the Minimum Requirements
+On the PC side:
 
-## Requirements
-- An Xbox 360 RGH or JTAG console
-- XBDM enabled on the console
-- LAN access between your PC and the console
-- Optional: JRPC2 for extended RPC features
-- Optional: FTP credentials if you want FTP-backed file access
+- Windows
+- .NET 10 runtime if you are not using the bundled release executable
+- Network access to the console
 
-## First Run
-Build or run the CLI, then discover consoles:
-```bash
+On the console side:
+
+- XBDM enabled
+- JRPC2 if you want RPC, temps, CPU key, notifications, or Title ID reads
+- FTP service if you want FTP-backed save, content, or file workflows
+
+## 2. Start the CLI
+If you are using a release build:
+
+```powershell
+rgh
+```
+
+On first interactive launch, XeCLI can offer to add itself to the machine PATH. Accept that if you want `rgh` available everywhere.
+
+## 3. Discover or Set a Target
+Interactive discovery:
+
+```powershell
 rgh start
 ```
 
-If discovery is not needed, set the console directly:
-```bash
+Direct targeting:
+
+```powershell
 rgh target --set <console-ip>
 ```
 
-Confirm connectivity:
-```bash
-rgh ping
-rgh status
+If you use FTP features, set that target too:
+
+```powershell
+rgh ftp target --set <console-ip> --user <ftp-user> --pass <ftp-pass>
 ```
 
-## Understanding the Main Command Groups
-- `status`, `profiles`, `title`: operational visibility and metadata
-- `modules`, `mem`, `threads`, `debug`: live analysis and debugging
-- `xex`, `ghidra`: static analysis workflows
-- `fs`, `ftp`: file access
-- `jrpc2`, `notify`: RPC-backed helpers
-- `god`: ISO to Games on Demand conversion
-
-## Common Early Tasks
-
-### Check the Console State
-```bash
+## 4. Confirm the Console Is Reachable
+```powershell
+rgh ping
 rgh status
 rgh status --quick
 ```
 
-Use `--quick` when you only need a fast snapshot and do not want slower profile or JRPC2 checks.
+Use `status --quick` when you want a fast response and do not need JRPC-backed fields.
 
-### List Files
-XBDM path example:
-```bash
-rgh fs list --path "HDD:\\"
+## 5. Resolve the Active Title
+```powershell
+rgh title
+rgh title --json
 ```
 
-FTP path example:
-```bash
-rgh ftp list --path "/Hdd1/"
+`rgh title` with no arguments resolves the active title from the connected console. If the bundled database only knows the base system Title ID, XeCLI can still show a better path-based title name such as `Aurora`.
+
+## 6. Inspect Live State
+Modules:
+
+```powershell
+rgh modules list
+rgh modules info --name Aurora.xex
 ```
 
-### Download the Running XEX
-```bash
-rgh xex dump --out .\\running-title.xex
+Memory:
+
+```powershell
+rgh mem hexdump --addr 0x30000000 --size 0x40
+rgh mem peek --addr 0x30000000 --type u32
 ```
 
-### Send a Notification
-```bash
-rgh notify --message "XeCLI connected"
+Screenshot:
+
+```powershell
+rgh screenshot --out .\screen.bmp
 ```
 
-## Target Persistence
-XeCLI stores your default target in `%APPDATA%\XeCLI\config.json`. Once the target is set, most commands can omit `--ip`.
+## 7. Use FTP-Backed Workflows
+Browse files:
 
-If you want to clear the saved target:
-```bash
-rgh target --clear
+```powershell
+rgh ftp list --path /Hdd1/
 ```
 
-## FTP Setup
-FTP settings are stored separately so users can work with different FTP credentials without hardcoding them in scripts.
+List saves for a title:
 
-Example:
-```bash
-rgh ftp target --set <console-ip> --port 21 --user <ftp-user> --pass <ftp-pass>
+```powershell
+rgh save list --titleid FFFE07D1 --device Hdd1
 ```
 
-## Title ID Lookup
-XeCLI ships with a bundled Title ID database. You do not need to download metadata to resolve common game names.
+List installed content:
 
-Lookup a title manually:
-```bash
-rgh title 4D5307E6
+```powershell
+rgh content list --device Hdd1 --show-types
 ```
 
-Read more:
-- [Title ID Database](Title-ID-Database.md)
+List DashLaunch plugins:
 
-## Safe Next Steps
-After you are comfortable with the basics, move to:
-- [Commands Reference](Commands.md)
-- [Advanced Guide](Advanced-Guide.md)
-- [Troubleshooting](Troubleshooting.md)
+```powershell
+rgh plugin list
+```
 
+## 8. Launch and Notify
+Launch a XEX:
 
+```powershell
+rgh launch Hdd1:\Aurora\Aurora.xex --titleid FFFE07D1
+```
+
+Send a notification:
+
+```powershell
+rgh notify "XeCLI connected"
+```
+
+## 9. Avoid the Common Mistakes
+Do not start with dangerous commands until the basic path is stable.
+
+Start with:
+
+- `status`
+- `title`
+- `modules list`
+- `ftp list`
+- `screenshot`
+
+Delay these until you know the target is stable:
+
+- `mem poke`
+- `mem search --freeze`
+- `modules unload --force`
+- `modules load --system`
+- deletion commands
+
+## 10. Know Where to Go Next
+- [Commands Reference](Commands.md) for full command coverage
+- [Advanced Guide](Advanced-Guide.md) for reverse-engineering and automation workflows
+- [Troubleshooting](Troubleshooting.md) when the console or plugin stack does not behave as expected

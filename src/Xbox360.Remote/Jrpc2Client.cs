@@ -120,15 +120,15 @@ public sealed class Jrpc2Client {
         string paramsText = CreateParams(vm, args, ref argc);
         string cmd = $"consolefeatures ver=2 type={(uint) returnType}" +
                      $"{(systemThread ? " system" : "")}" +
-                     $"{(module != null ? $" module=\\\"{module}\\\" ord={ordinal}" : "")}" +
+                     $"{(module != null ? $" module=\"{module}\" ord={ordinal}" : "")}" +
                      $"{(vm ? " VM" : "")} " +
-                     $"as=0 params=\\\"A\\{(address ?? 0):X}\\A\\{argc}\\{paramsText}";
+                     $"as=0 params=\"A\\{(address ?? 0):X}\\A\\{argc}\\{paramsText}\"";
 
-        string response = await SendConsoleFeaturesLoopAsync(cmd, cancellationToken);
+        string response = (await SendConsoleFeaturesLoopAsync(cmd, cancellationToken)).Trim();
         int split = response.IndexOf(' ');
         if (split <= 0)
             return response;
-        return response.Substring(split + 1);
+        return response.Substring(split + 1).Trim();
     }
 
     private async Task<string> SendConsoleFeaturesLoopAsync(string command, CancellationToken cancellationToken) {
@@ -142,7 +142,7 @@ public sealed class Jrpc2Client {
             int idx = text.IndexOf(findText, StringComparison.OrdinalIgnoreCase);
             if (!uint.TryParse(text.AsSpan(idx + findText.Length), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint addr))
                 break;
-            XbdmResponse loop = await xbdm.SendCommandAsync("consolefeatures " + findText + "0x" + addr.ToString("X"), cancellationToken);
+            XbdmResponse loop = await xbdm.SendCommandAsync("consolefeatures ver=2 " + findText + "0x" + addr.ToString("X"), cancellationToken);
             if (loop.StatusCode != 200)
                 throw new IOException($"JRPC2 loop failed: {loop.RawMessage}");
             text = loop.Message;

@@ -28,8 +28,16 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
-        (string ip, int port, int timeout) = await CliHelpers.ResolveTargetAsync(settings, CancellationToken.None);
-        return await CliHelpers.WithClientAsync((ip, port, timeout), settings, async client => {
+        (string ip, int port, int _) = await CliHelpers.ResolveTargetAsync(settings, CancellationToken.None);
+        int timeout = settings.TimeoutMs ?? 2000;
+        using CancellationTokenSource connectCts = new CancellationTokenSource(timeout);
+        await using XbdmClient client = await XbdmClient.ConnectAsync(new XbdmConnectionOptions {
+            Host = ip,
+            Port = port,
+            TimeoutMs = timeout
+        }, connectCts.Token);
+
+        {
             bool skipJrpc = settings.Quick || settings.NoJrpc;
             bool skipDrives = settings.Quick || settings.NoDrives;
             bool skipUsers = settings.Quick || settings.NoUsers;
@@ -39,6 +47,16 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
             string? dmVersion = null;
             try {
                 dmVersion = await client.GetDmVersionAsync(CancellationToken.None);
+                dmVersion = dmVersion?.Trim();
+            }
+            catch {
+                // ignored
+            }
+
+            string? xbdmFlavor = null;
+            try {
+                XbdmResponse flavorResponse = await client.SendCommandAsync("whomadethis", CancellationToken.None);
+                xbdmFlavor = flavorResponse.Message.Trim();
             }
             catch {
                 // ignored
@@ -100,6 +118,27 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                     // ignored
                 }
             }
+            ProfileHelpers.XamUserInfo? xamUser = null;
+            if (!skipUsers && (users == null || users.Count == 0)) {
+                try {
+                    xamUser = await ProfileHelpers.TryGetSignedInXamUserAsync(ip, port, timeout, CancellationToken.None);
+                    if (xamUser != null) {
+                        users = new[] {
+                            new XbdmUserInfo {
+                                Gamertag = xamUser.Gamertag,
+                                Xuid = xamUser.Xuid != null && ulong.TryParse(xamUser.Xuid.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong parsedXuid)
+                                    ? parsedXuid
+                                    : null,
+                                SignInState = xamUser.SignInState,
+                                RawLine = $"xam slot={xamUser.Slot}"
+                            }
+                        };
+                    }
+                }
+                catch {
+                    // ignored
+                }
+            }
 
             XbdmUserInfo? signedInUserInfo = users?.FirstOrDefault(u =>
                     u.SignInState.HasValue && u.SignInState.Value > 0 && !string.IsNullOrWhiteSpace(u.Gamertag))
@@ -121,10 +160,47 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                 signedInUser = signedInF3Profile.Gamertag;
                 signedInXuid ??= signedInF3Profile.Xuid;
             }
+            if (string.IsNullOrWhiteSpace(signedInUser) && xamUser != null) {
+                signedInUser = xamUser.Gamertag;
+                signedInXuid ??= xamUser.Xuid;
+            }
 
             string? titleName = null;
             if (titleId.HasValue && TitleIdDatabase.Instance.TryResolve(titleId.Value, null, out TitleIdEntry? entry)) {
                 titleName = entry?.Name;
+            }
+            titleName = ProfileHelpers.TryGetTitleFallbackName(titleId, runningXex, titleName);
+
+            CliConfig cfg = CliConfig.Load();
+            string? pendingModuleText = null;
+            if (cfg.PendingModuleOperation != null &&
+                !string.IsNullOrWhiteSpace(cfg.PendingModuleOperation.Action) &&
+                !string.IsNullOrWhiteSpace(cfg.PendingModuleOperation.ModuleName)) {
+                string action = cfg.PendingModuleOperation.Action!;
+                string moduleName = cfg.PendingModuleOperation.ModuleName!;
+                pendingModuleText = $"{action} {moduleName}";
+                bool? satisfied = null;
+                try {
+                    IReadOnlyList<XbdmModuleInfo> pendingModules = await client.GetModulesAsync(false, CancellationToken.None);
+                    bool present = pendingModules.Any(m => string.Equals(m.Name, moduleName, StringComparison.OrdinalIgnoreCase));
+                    satisfied = string.Equals(action, "load", StringComparison.OrdinalIgnoreCase) ? present : !present;
+                    if (satisfied.Value) {
+                        cfg.PendingModuleOperation = null;
+                        cfg.Save();
+                        pendingModuleText = null;
+                    }
+                }
+                catch {
+                    // ignored
+                }
+
+                if (pendingModuleText != null) {
+                    pendingModuleText = satisfied switch {
+                        true => $"{action} {moduleName} (verified)",
+                        false => $"{action} {moduleName} (pending)",
+                        _ => $"{action} {moduleName}"
+                    };
+                }
             }
 
             if (settings.Json) {
@@ -132,6 +208,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                     Target = new { ip, port },
                     Info = info,
                     DmVersion = dmVersion,
+                    XbdmFlavor = xbdmFlavor,
                     RunningXex = runningXex,
                     TitleId = titleId.HasValue ? $"0x{titleId.Value:X8}" : null,
                     TitleName = titleName,
@@ -143,72 +220,85 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                     Drives = drives,
                     Users = users,
                     SignedIn = signedInUser,
-                    SignedInXuid = signedInXuid
+                    SignedInXuid = signedInXuid,
+                    PendingModuleOperation = pendingModuleText
                 });
                 return 0;
             }
 
             string jrpcStatus = jrpcAvailable.HasValue
-                ? (jrpcAvailable.Value ? "[green]ok[/]" : "[red]unavailable[/]")
-                : "[grey]skipped[/]";
+                ? (jrpcAvailable.Value ? "[springgreen3_1]online[/]" : "[red1]unavailable[/]")
+                : "[grey70]skipped[/]";
 
-            const string Unknown = "[grey]unknown[/]";
+            const string Unknown = "[grey70]unknown[/]";
+            const string FieldColor = "[white]";
+            const string FieldEnd = "[/]";
             static string FormatValue(string? value, string color, string? fallback = null) {
                 if (string.IsNullOrWhiteSpace(value))
                     return fallback ?? Unknown;
                 return $"[{color}]{Markup.Escape(value)}[/]";
             }
 
-            AnsiConsole.Write(new Rule("[bold deepskyblue1]Status[/]").RuleStyle("grey"));
+            AnsiConsole.Write(new Rule("[bold deepskyblue1]Status[/]").RuleStyle("silver"));
             Table table = CliOutput.CreateTable();
-            table.AddColumn(new TableColumn("[grey]Field[/]"));
-            table.AddColumn(new TableColumn("[white]Value[/]"));
-            table.AddRow("[grey]IP[/]", $"[cyan]{ip}[/]");
-            table.AddRow("[grey]Port[/]", port.ToString());
-            table.AddRow("[grey]Console ID[/]", FormatValue(info.ConsoleId, "gold1"));
-            table.AddRow("[grey]Debug Name[/]", FormatValue(info.DebugName, "green"));
-            table.AddRow("[grey]Execution State[/]", FormatValue(info.ExecutionState, "cyan"));
-            table.AddRow("[grey]Title IP[/]", FormatValue(info.TitleIp, "cyan"));
-            table.AddRow("[grey]Process ID[/]", info.ProcessId.HasValue ? $"0x{info.ProcessId.Value:X8}" : Unknown);
-            table.AddRow("[grey]Title ID[/]", titleId.HasValue ? $"0x{titleId.Value:X8}" : Unknown);
-            table.AddRow("[grey]Title Name[/]", FormatValue(titleName, "green"));
-            table.AddRow("[grey]Running XEX[/]", FormatValue(runningXex, "green"));
-            table.AddRow("[grey]DM Version[/]", FormatValue(dmVersion, "cyan"));
-            table.AddRow("[grey]JRPC2[/]", jrpcStatus);
-            table.AddRow("[grey]Dashboard[/]", dashVersion.HasValue ? dashVersion.Value.ToString() : Unknown);
-            table.AddRow("[grey]Motherboard[/]", FormatValue(motherboard, "cyan"));
-            table.AddRow("[grey]CPU Key[/]", FormatValue(cpuKey, "gold1"));
-            table.AddRow("[grey]Signed In[/]", FormatValue(signedInUser, "green", "[grey]none[/]"));
-            table.AddRow("[grey]Signed In XUID[/]", FormatValue(signedInXuid, "gold1", "[grey]none[/]"));
+            table.AddColumn(new TableColumn("[bold white]Field[/]"));
+            table.AddColumn(new TableColumn("[bold white]Value[/]"));
+            table.AddRow($"{FieldColor}IP{FieldEnd}", $"[cyan1]{ip}[/]");
+            table.AddRow($"{FieldColor}Port{FieldEnd}", $"[deepskyblue1]{port}[/]");
+            table.AddRow($"{FieldColor}Console ID{FieldEnd}", FormatValue(info.ConsoleId, "gold1"));
+            table.AddRow($"{FieldColor}Debug Name{FieldEnd}", FormatValue(info.DebugName, "springgreen3_1"));
+            table.AddRow($"{FieldColor}Execution State{FieldEnd}", FormatExecutionState(info.ExecutionState));
+            table.AddRow($"{FieldColor}Title IP{FieldEnd}", FormatValue(info.TitleIp, "cyan1"));
+            table.AddRow($"{FieldColor}Process ID{FieldEnd}", info.ProcessId.HasValue ? $"[mediumpurple3]0x{info.ProcessId.Value:X8}[/]" : Unknown);
+            table.AddRow($"{FieldColor}Title ID{FieldEnd}", titleId.HasValue ? $"[deepskyblue1]0x{titleId.Value:X8}[/]" : FormatSkipped(skipJrpc));
+            table.AddRow($"{FieldColor}Title Name{FieldEnd}", FormatValue(titleName, "springgreen3_1", FormatSkipped(skipJrpc)));
+            table.AddRow($"{FieldColor}Running XEX{FieldEnd}", FormatValue(runningXex, "springgreen3_1"));
+            table.AddRow($"{FieldColor}DM Version{FieldEnd}", FormatValue(dmVersion, "cyan1"));
+            table.AddRow($"{FieldColor}XBDM Flavor{FieldEnd}", FormatValue(xbdmFlavor, "mediumpurple3"));
+            table.AddRow($"{FieldColor}JRPC2{FieldEnd}", jrpcStatus);
+            table.AddRow($"{FieldColor}Dashboard{FieldEnd}", dashVersion.HasValue ? $"[gold1]{dashVersion.Value}[/]" : FormatSkipped(skipJrpc));
+            table.AddRow($"{FieldColor}Motherboard{FieldEnd}", FormatValue(motherboard, "deepskyblue1", FormatSkipped(skipJrpc)));
+            table.AddRow($"{FieldColor}CPU Key{FieldEnd}", FormatValue(cpuKey, "gold1", FormatSkipped(skipJrpc)));
+            table.AddRow($"{FieldColor}Signed In{FieldEnd}", FormatValue(signedInUser, "springgreen3_1", skipUsers ? FormatSkipped(true) : "[grey70]none[/]"));
+            table.AddRow($"{FieldColor}Signed In XUID{FieldEnd}", FormatValue(signedInXuid, "gold1", skipUsers ? FormatSkipped(true) : "[grey70]none[/]"));
+            if (!string.IsNullOrWhiteSpace(pendingModuleText))
+                table.AddRow($"{FieldColor}Pending Module{FieldEnd}", FormatValue(pendingModuleText, "gold1"));
             AnsiConsole.Write(table);
 
             if (cpuTemp.HasValue || gpuTemp.HasValue || edramTemp.HasValue || mbTemp.HasValue) {
-                AnsiConsole.Write(new Rule("[bold deepskyblue1]Temps (C)[/]").RuleStyle("grey"));
+                AnsiConsole.Write(new Rule("[bold deepskyblue1]Temps (C)[/]").RuleStyle("silver"));
                 Table tempTable = CliOutput.CreateTable();
-                tempTable.AddColumn(new TableColumn("[cyan]CPU[/]"));
-                tempTable.AddColumn(new TableColumn("[cyan]GPU[/]"));
-                tempTable.AddColumn(new TableColumn("[cyan]EDRAM[/]"));
-                tempTable.AddColumn(new TableColumn("[cyan]Board[/]"));
+                tempTable.AddColumn(new TableColumn("[bold deepskyblue1]CPU[/]"));
+                tempTable.AddColumn(new TableColumn("[bold deepskyblue1]GPU[/]"));
+                tempTable.AddColumn(new TableColumn("[bold deepskyblue1]EDRAM[/]"));
+                tempTable.AddColumn(new TableColumn("[bold deepskyblue1]Board[/]"));
                 tempTable.AddRow(
-                    cpuTemp?.ToString() ?? "unknown",
-                    gpuTemp?.ToString() ?? "unknown",
-                    edramTemp?.ToString() ?? "unknown",
-                    mbTemp?.ToString() ?? "unknown");
+                    FormatTemperature(cpuTemp),
+                    FormatTemperature(gpuTemp),
+                    FormatTemperature(edramTemp),
+                    FormatTemperature(mbTemp));
                 AnsiConsole.Write(tempTable);
             }
 
             if (drives != null && drives.Count > 0) {
-                AnsiConsole.Write(new Rule("[bold deepskyblue1]Drives[/]").RuleStyle("grey"));
+                AnsiConsole.Write(new Rule("[bold deepskyblue1]Drives[/]").RuleStyle("silver"));
                 Table driveTable = CliOutput.CreateTable();
-                driveTable.AddColumn(new TableColumn("[green]Name[/]"));
-                driveTable.AddColumn(new TableColumn("[cyan]Total[/]"));
-                driveTable.AddColumn(new TableColumn("[cyan]Free[/]"));
-                foreach (XbdmDriveEntry drive in drives) {
-                    string name = Markup.Escape(drive.Name);
+                driveTable.AddColumn(new TableColumn("[bold springgreen3_1]Name[/]"));
+                driveTable.AddColumn(new TableColumn("[bold white]Aliases[/]"));
+                driveTable.AddColumn(new TableColumn("[bold deepskyblue1]Total[/]"));
+                driveTable.AddColumn(new TableColumn("[bold cyan1]Free[/]"));
+                driveTable.AddColumn(new TableColumn("[bold gold1]Used[/]"));
+                foreach (DriveGroup drive in GroupDrives(drives)) {
+                    string name = Markup.Escape(drive.DisplayName);
+                    string aliases = drive.Aliases.Count > 0
+                        ? $"[silver]{Markup.Escape(string.Join(", ", drive.Aliases))}[/]"
+                        : "[grey70]-[/]";
                     driveTable.AddRow(
-                        $"[green]{name}[/]",
-                        $"[cyan]{FormatBytes(drive.TotalBytes)}[/]",
-                        $"[cyan]{FormatBytes(drive.FreeBytes)}[/]");
+                        FormatDriveName(drive),
+                        aliases,
+                        $"[deepskyblue1]{FormatBytes(drive.TotalBytes)}[/]",
+                        $"[cyan1]{FormatBytes(drive.FreeBytes)}[/]",
+                        FormatDriveUsage(drive.TotalBytes, drive.FreeBytes));
                 }
                 AnsiConsole.Write(driveTable);
 
@@ -216,24 +306,25 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                     .Where(d => d.Name.StartsWith("Usb", StringComparison.OrdinalIgnoreCase))
                     .ToList();
                 if (usb.Count > 0) {
-                    AnsiConsole.Write(new Rule("[bold deepskyblue1]Connected USB[/]").RuleStyle("grey"));
+                    AnsiConsole.Write(new Rule("[bold deepskyblue1]Connected USB[/]").RuleStyle("silver"));
                     Table usbTable = CliOutput.CreateTable();
-                    usbTable.AddColumn(new TableColumn("[green]Name[/]"));
-                    usbTable.AddColumn(new TableColumn("[cyan]Total[/]"));
-                    usbTable.AddColumn(new TableColumn("[cyan]Free[/]"));
+                    usbTable.AddColumn(new TableColumn("[bold springgreen3_1]Name[/]"));
+                    usbTable.AddColumn(new TableColumn("[bold deepskyblue1]Total[/]"));
+                    usbTable.AddColumn(new TableColumn("[bold cyan1]Free[/]"));
+                    usbTable.AddColumn(new TableColumn("[bold gold1]Used[/]"));
                     foreach (XbdmDriveEntry drive in usb) {
-                        string name = Markup.Escape(drive.Name);
                         usbTable.AddRow(
-                            $"[green]{name}[/]",
-                            $"[cyan]{FormatBytes(drive.TotalBytes)}[/]",
-                            $"[cyan]{FormatBytes(drive.FreeBytes)}[/]");
+                            "[deepskyblue1]" + Markup.Escape(drive.Name) + "[/]",
+                            $"[deepskyblue1]{FormatBytes(drive.TotalBytes)}[/]",
+                            $"[cyan1]{FormatBytes(drive.FreeBytes)}[/]",
+                            FormatDriveUsage(drive.TotalBytes, drive.FreeBytes));
                     }
                     AnsiConsole.Write(usbTable);
                 }
             }
 
             return 0;
-        }, CancellationToken.None);
+        }
     }
 
     private static string FormatBytes(ulong? value) {
@@ -248,6 +339,135 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
         }
 
         return $"{size:0.##} {units[unit]}";
+    }
+
+    private static string FormatSkipped(bool skipped) {
+        return skipped ? "[grey70]skipped[/]" : "[grey70]unknown[/]";
+    }
+
+    private static string FormatExecutionState(string? value) {
+        if (string.IsNullOrWhiteSpace(value))
+            return "[grey70]unknown[/]";
+
+        return value.Trim().ToLowerInvariant() switch {
+            "start" or "running" => $"[springgreen3_1]{Markup.Escape(value)}[/]",
+            "stop" or "stopped" or "break" => $"[gold1]{Markup.Escape(value)}[/]",
+            "reboot_title" or "reboot" => $"[mediumpurple3]{Markup.Escape(value)}[/]",
+            _ => $"[cyan]{Markup.Escape(value)}[/]"
+        };
+    }
+
+    private static string FormatTemperature(uint? value) {
+        if (!value.HasValue)
+            return "[grey70]unknown[/]";
+
+        string color = value.Value switch {
+            < 45 => "springgreen3_1",
+            < 60 => "yellow1",
+            < 70 => "darkorange",
+            _ => "red1"
+        };
+
+        return $"[{color}]{value.Value}[/]";
+    }
+
+    private static string FormatDriveName(DriveGroup drive) {
+        string escaped = Markup.Escape(drive.DisplayName);
+        return drive.Family switch {
+            "internal" => $"[springgreen3_1]{escaped}[/]",
+            "usb" => $"[deepskyblue1]{escaped}[/]",
+            "systemext" => $"[gold1]{escaped}[/]",
+            "system" => $"[mediumpurple3]{escaped}[/]",
+            _ => $"[cyan]{escaped}[/]"
+        };
+    }
+
+    private static string FormatDriveUsage(ulong? totalBytes, ulong? freeBytes) {
+        if (!totalBytes.HasValue || !freeBytes.HasValue || totalBytes.Value == 0 || freeBytes.Value > totalBytes.Value)
+            return "[grey70]unknown[/]";
+
+        double usedPercent = ((double) (totalBytes.Value - freeBytes.Value) / totalBytes.Value) * 100d;
+        string color = usedPercent switch {
+            < 60 => "springgreen3_1",
+            < 85 => "gold1",
+            _ => "red1"
+        };
+
+        return $"[{color}]{usedPercent:0.#}%[/]";
+    }
+
+    private static IReadOnlyList<DriveGroup> GroupDrives(IReadOnlyList<XbdmDriveEntry> drives) {
+        List<DriveGroup> groups = new List<DriveGroup>();
+        foreach (XbdmDriveEntry drive in drives.OrderBy(GetDriveSortKey).ThenBy(d => d.Name, StringComparer.OrdinalIgnoreCase)) {
+            string family = GetDriveFamily(drive.Name);
+            DriveGroup? existing = groups.FirstOrDefault(g =>
+                g.Family == family &&
+                g.TotalBytes == drive.TotalBytes &&
+                g.FreeBytes == drive.FreeBytes);
+
+            if (existing is null) {
+                groups.Add(new DriveGroup(family, GetDriveDisplayName(drive.Name), drive.Name, drive.TotalBytes, drive.FreeBytes));
+                continue;
+            }
+
+            existing.Aliases.Add(drive.Name);
+            existing.Aliases.Sort(StringComparer.OrdinalIgnoreCase);
+        }
+
+        foreach (DriveGroup group in groups) {
+            group.Aliases.RemoveAll(alias => string.Equals(alias, group.DisplayName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return groups;
+    }
+
+    private static string GetDriveSortKey(XbdmDriveEntry drive) {
+        return GetDriveFamily(drive.Name) switch {
+            "internal" => "0",
+            "usb" => "1",
+            "systemext" => "2",
+            "system" => "3",
+            _ => "9"
+        };
+    }
+
+    private static string GetDriveFamily(string name) {
+        return NormalizeDriveName(name) switch {
+            "hdd" or "hdd1" or "game" or "devkit" or "d" => "internal",
+            "sysext" => "systemext",
+            "system" => "system",
+            _ when name.StartsWith("Usb", StringComparison.OrdinalIgnoreCase) => "usb",
+            _ => NormalizeDriveName(name)
+        };
+    }
+
+    private static string GetDriveDisplayName(string name) {
+        return GetDriveFamily(name) switch {
+            "internal" => "Internal",
+            "systemext" => "SysExt:",
+            "system" => "System:",
+            _ => name
+        };
+    }
+
+    private static string NormalizeDriveName(string name) {
+        return name.Trim().TrimEnd(':').ToLowerInvariant();
+    }
+
+    private sealed class DriveGroup {
+        public DriveGroup(string family, string displayName, string primaryAlias, ulong? totalBytes, ulong? freeBytes) {
+            Family = family;
+            DisplayName = displayName;
+            TotalBytes = totalBytes;
+            FreeBytes = freeBytes;
+            Aliases = new List<string> { primaryAlias };
+        }
+
+        public string Family { get; }
+        public string DisplayName { get; }
+        public ulong? TotalBytes { get; }
+        public ulong? FreeBytes { get; }
+        public List<string> Aliases { get; }
     }
 }
 
@@ -300,7 +520,14 @@ public sealed class TargetCommand : Command<TargetCommand.Settings> {
 
 public sealed class PingCommand : AsyncCommand<ConnectionSettings> {
     public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings) {
-        return await CliHelpers.WithClientAsync(settings, async client => {
+        ConnectionSettings effective = new ConnectionSettings {
+            Ip = settings.Ip,
+            Port = settings.Port,
+            TimeoutMs = settings.TimeoutMs ?? 2000,
+            Json = settings.Json
+        };
+
+        return await CliHelpers.WithClientOnceAsync(effective, async client => {
             Stopwatch sw = Stopwatch.StartNew();
             _ = await client.GetConsoleInfoAsync(CancellationToken.None);
             sw.Stop();
@@ -315,15 +542,34 @@ public sealed class RebootCommand : AsyncCommand<RebootCommand.Settings> {
         [CommandOption("--title")]
         [Description("Restart the current title instead of a cold reboot.")]
         public bool Title { get; init; }
+
+        [CommandOption("--notify")]
+        [Description("Send a default success notification to the console.")]
+        public bool Notify { get; init; }
+
+        [CommandOption("--notify-icon <NAME>")]
+        [Description("Notification icon preset name.")]
+        public string? NotifyIcon { get; init; }
+
+        [CommandOption("--notify-logo <ID>")]
+        [Description("Notification logo id (decimal or 0x hex).")]
+        public string? NotifyLogo { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
         string mode = settings.Title ? "title" : "cold";
-        return await CliHelpers.WithClientAsync(settings, async client => {
+        return await CliHelpers.WithClientOnceAsync(settings, async client => {
             await client.SendCommandAsync($"magicboot {mode}", CancellationToken.None);
-            AnsiConsole.MarkupLine(settings.Title
-                ? "[green]Title reboot requested.[/]"
-                : "[green]Cold reboot requested.[/]");
+            OperationFeedback.WriteSuccess(
+                settings.Title ? "Title reboot requested" : "Cold reboot requested",
+                settings.Title ? "[cyan]Current title restart requested.[/]" : "[cyan]Full console reboot requested.[/]");
+            await NotifyHelpers.TrySendOperationNotificationAsync(
+                client,
+                settings.Notify,
+                settings.NotifyIcon,
+                settings.NotifyLogo,
+                "Success :)",
+                CancellationToken.None);
             return 0;
         }, CancellationToken.None);
     }
@@ -349,6 +595,11 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
     }
 
     public override int Execute(CommandContext context, Settings settings) {
+        if (!OperatingSystem.IsWindows()) {
+            AnsiConsole.MarkupLine("[red]The install command is only supported on Windows.[/]");
+            return 1;
+        }
+
         string exeDir = InstallHelpers.NormalizeDirectory(settings.Path ?? AppContext.BaseDirectory);
         string exePath = Path.Combine(exeDir, "rgh.exe");
         if (!File.Exists(exePath)) {
@@ -370,12 +621,16 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
 
                 if (!settings.Quiet)
                     AnsiConsole.MarkupLine($"[green]{Markup.Escape(removeMessage)}[/]");
+                if (!settings.Quiet)
+                    AnsiConsole.MarkupLine("[mediumpurple3]Created by Pew - Se7ensins[/]");
                 return 0;
             }
 
             InstallHelpers.UninstallUserShim();
             if (!settings.Quiet)
                 AnsiConsole.MarkupLine("[green]Uninstalled rgh command shim.[/]");
+            if (!settings.Quiet)
+                AnsiConsole.MarkupLine("[mediumpurple3]Created by Pew - Se7ensins[/]");
             return 0;
         }
 
@@ -392,6 +647,8 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
 
             if (!settings.Quiet)
                 AnsiConsole.MarkupLine($"[green]{Markup.Escape(addMessage)}[/]");
+            if (!settings.Quiet)
+                AnsiConsole.MarkupLine("[mediumpurple3]Created by Pew - Se7ensins[/]");
             return 0;
         }
 
@@ -401,6 +658,8 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
         if (!InstallHelpers.IsDirectoryOnProcessPath(InstallHelpers.WindowsAppsDir) && !settings.Quiet) {
             AnsiConsole.MarkupLine($"[yellow]Note:[/] {Markup.Escape(InstallHelpers.WindowsAppsDir)} is not on PATH. Add it or use `rgh` from its folder.");
         }
+        if (!settings.Quiet)
+            AnsiConsole.MarkupLine("[mediumpurple3]Created by Pew - Se7ensins[/]");
         return 0;
     }
 }

@@ -1,11 +1,13 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using Microsoft.Win32;
 
 namespace Xbox360.Remote.Cli;
 
+[SupportedOSPlatform("windows")]
 internal static class InstallHelpers {
     private const string EnvironmentKeyPath = @"SYSTEM\CurrentControlSet\Control\Session Manager\Environment";
     private const uint HwndBroadcast = 0xffff;

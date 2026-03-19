@@ -1,131 +1,106 @@
 # Title ID Database
 
-This page documents the bundled Title ID database that ships with XeCLI and explains how other tools can consume it.
+This page documents the bundled Title ID metadata that ships with XeCLI and explains how it can be reused by other tooling.
 
-## Purpose
-The Title ID database exists to translate low-level Xbox 360 title metadata into something useful for humans and downstream tools.
+## Files
+Bundled database files:
 
-It is used by XeCLI to:
-- Resolve Title IDs to game names
-- Improve status output
-- Return readable results in `rgh title`
-- Support automation and external integrations
-
-It can also be used independently of XeCLI by other tooling.
-
-## What Ships in the Repo
-The database is included directly in the repository:
 - `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
 - `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
 
-It is also copied into the built CLI output:
-- `Assets/xbox360_gamelist.csv`
-- `Assets/xbox360_titleids.txt`
+Optional local extension file:
 
-This is important for release readiness. The database is provided with the project. XeCLI does not need to fetch it from the internet at runtime.
+- `%APPDATA%\XeCLI\titleids.local.csv`
 
-## File Roles
+The bundled files are part of the repository and part of the published release. XeCLI does not fetch them from the internet at runtime.
 
-### xbox360_gamelist.csv
-This is the richer metadata source.
+## What the Database Is Used For
+XeCLI uses the Title ID database to:
 
-Typical fields:
-- Game name
+- resolve raw Title IDs into readable names
+- enrich content listings
+- label active-title output
+- attach region/media metadata to lookups
+
+Other tools can use the same files to:
+
+- enrich dashboards
+- label save editors
+- annotate dump folders
+- match media-specific variants
+
+## Current Behavior
+`rgh title` combines live title resolution with the bundled database:
+
+```powershell
+rgh title
+rgh title 415608C3
+rgh title 415608C3 2B7302D6
+```
+
+If the live Title ID maps to a generic system entry but the running XEX path clearly indicates a dashboard replacement or homebrew shell, XeCLI can surface a better display name while still showing the database entry separately.
+
+## Data Shape
+The CSV contains fields such as:
+
 - Title ID
+- Media ID
+- Name
 - Serial
 - Type
 - Region
-- XEX CRC
-- Media ID
-- Wave
+- XEX CRC when available
+- Wave metadata when available
 
-This file is the best choice if you want structured metadata in another tool.
+The TXT file is used as an additional bundled source for matching entries not present in the CSV set.
 
-### xbox360_titleids.txt
-This is a simpler fallback list using a compact format:
-`TITLEID~Name`
+## Load Order
+XeCLI loads Title ID metadata in this order:
 
-This is useful when:
-- You only need Title ID to name resolution
-- You want a lightweight fallback source
-- You are building a quick parser
-
-## Load Order in XeCLI
-XeCLI loads data in this order:
-1. `Assets/xbox360_gamelist.csv`
-2. `Assets/xbox360_titleids.txt`
+1. `xbox360_gamelist.csv`
+2. `xbox360_titleids.txt`
 3. `%APPDATA%\XeCLI\titleids.local.csv`
 
-The local file is optional and intended for:
-- Private homebrew entries
-- Internal test builds
-- Corrections or additions without modifying the bundled files
-
-## What External Tools Can Do With It
-The database is useful for far more than just `rgh title`.
-
-Examples:
-- Save editors can label saves by Title ID
-- Trainers can resolve active titles before enabling offsets
-- Dashboards can show clean game names in logs and history
-- Reporting tools can annotate dump folders automatically
-- XEX managers can group titles by region or media ID
-- Screenshot or capture tools can name outputs using resolved titles
-
-## Recommended Consumption Pattern
-If you are building another tool, use this approach:
-1. Read the CSV first.
-2. Match on Title ID.
-3. If you also have Media ID, prefer the row with the matching Media ID.
-4. Fall back to the TXT list only if the CSV has no match.
-5. Optionally merge a local override file for private entries.
-
-## CSV Integration Example
-Suggested fields to preserve in downstream tools:
-- `Name`
-- `TitleId`
-- `MediaId`
-- `Serial`
-- `Type`
-- `Region`
-- `XexCrc`
-- `Wave`
-
-Suggested uses:
-- UI labels
-- Folder naming
-- Report enrichment
-- Per-title configuration routing
+That means local overrides can extend the bundled data without replacing it.
 
 ## Local Overrides
-Optional override file:
-- `%APPDATA%\XeCLI\titleids.local.csv`
+Use the local override file when you want to add:
 
-Use it for:
-- Custom homebrew Title IDs
-- Unreleased builds
-- Project-local corrections
+- private homebrew entries
+- internal builds
+- scene tools not present in the bundled set
+- corrected names or media-specific annotations
 
-The local override file follows the same CSV layout that XeCLI already understands.
+The local override file should follow the same CSV layout XeCLI already understands.
 
-## Best Practices
-- Treat the bundled CSV as the canonical shipped dataset.
-- Preserve Media ID when available; it helps distinguish variants.
-- Keep your own tool logic tolerant of missing optional fields.
-- Do not hardcode machine-specific paths in integrations; discover the repo or published `Assets` folder relative to the executable when possible.
+## Using the Database Outside XeCLI
+External tools can read the database directly. A few common use cases:
 
-## FAQ
+- display Title ID names in a launcher
+- annotate `content list` results with richer metadata
+- attach names to save extraction folders
+- feed game names into reporting or automation pipelines
 
-### Is the database downloaded at runtime
-No. The core database ships with the repo and with the publish output.
+If you are building another tool, prefer reading the shipped asset files from the release or repository rather than inventing another metadata source.
 
-### Can I use the database without using XeCLI
-Yes. The CSV and TXT files are plain local assets and are intended to be reusable.
+## Practical Examples
+Resolve a live title through XeCLI:
 
-### Can I add my own titles
-Yes. Use `%APPDATA%\XeCLI\titleids.local.csv`.
+```powershell
+rgh title --json
+```
 
-### Should I parse the TXT or the CSV
-Use the CSV whenever possible. It carries more metadata.
+Use the CSV directly in another tool:
 
+- load `xbox360_gamelist.csv`
+- normalize the Title ID to 8-digit hex
+- join by Media ID when available
 
+## What This Database Is Not
+It is not:
+
+- a runtime online service
+- a replacement for your own private overrides
+- a perfect universal source for every homebrew build ever made
+
+That is why XeCLI supports local additive overrides instead of pretending the bundled set is the end of the story.

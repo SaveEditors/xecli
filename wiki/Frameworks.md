@@ -1,111 +1,133 @@
 # Frameworks and Internals
 
-This page explains how XeCLI is structured internally and how the major subsystems relate to each other.
+This page explains how XeCLI is structured internally and how the major subsystems fit together.
 
-## High-Level Architecture
-XeCLI is a command-line orchestration layer over several Xbox 360 access patterns:
-- XBDM for live console inspection and control
-- JRPC2 for high-level RPC and extra telemetry
-- FTP for alternate file access
-- Ghidra headless for static XEX analysis
-- Local metadata assets for Title ID resolution
+## Command Layer
+The CLI surface is implemented in `src/Xbox360.Remote.Cli/`. Commands are grouped by operational area and exposed through the `rgh` command.
 
-The important design choice is that the CLI is self-contained. Runtime metadata comes from bundled files or user-provided local overrides, not from remote fetch steps.
+Important command groups:
 
-## XBDM Layer
-XBDM is the primary transport. XeCLI uses it for:
-- Console info and status
+- Core console workflows
+- XBDM-backed live operations
+- JRPC2-backed RPC helpers
+- FTP-backed file and content workflows
+- Ghidra headless orchestration
+- Games on Demand conversion
+
+## XBDM Transport
+XBDM is the primary transport and the backbone of the live-console feature set.
+
+XeCLI uses XBDM for:
+
+- Console identity and status
 - Running XEX path resolution
-- Module enumeration and dumping
+- Module list, info, and dumps
 - Memory reads and writes
-- Thread listing and context reads
-- Breakpoints and execution control
-- File system operations
-- Screenshot capture
+- Thread control
+- Breakpoints and debug events
+- Screenshots
+- XBDM-backed file operations
 
-Operational characteristics:
-- Default port: `730`
-- Automatic reconnect attempts: `3`
-- Reconnect delay/countdown: `10` seconds
-- Cancellation during reconnect: type `stop`
+Recent hardening in this area focuses on:
+
+- fail-fast connect/read timeouts
+- one-shot fast connection paths for commands that should never hang for a minute
+- clear handling for disconnect-prone operations such as module load
 
 ## JRPC2 Layer
-JRPC2 is optional. If present, XeCLI exposes:
-- CPU key retrieval
-- Sensor reads
-- Title ID lookup
-- Dashboard version lookup
-- Motherboard identification
-- Notifications
-- Function resolution and RPC calls
+JRPC2 is optional but important. When present, XeCLI uses it for:
 
-If JRPC2 is missing, XeCLI still remains useful for XBDM and FTP workflows.
+- Title ID
+- dashboard version
+- motherboard type
+- CPU key
+- temperatures
+- notifications
+- generic ordinal/address RPC calls
+
+The CLI is designed so a missing JRPC2 plugin degrades functionality instead of making the entire tool unusable.
 
 ## FTP Layer
-FTP is used for:
-- Alternative file listings and transfers
-- Pulling XEX files from storage paths
-- Recursive searches when XBDM is not the best fit
+FTP is used where the storage tree matters more than live debugger state:
 
-The FTP subsystem stores:
-- Default IP
-- Default port
-- Default username
-- Default password
+- browsing files
+- transferring saves
+- listing installed content
+- editing `launch.ini`
+- pulling large files without XBDM-specific limitations
 
-This separation allows a user to keep XBDM targeting and FTP credentials aligned without hardcoding them into scripts.
-
-## Ghidra Integration
-XeCLI uses Ghidra headless to automate XEX analysis and decompile export.
-
-What is included:
-- A bundled post-script: `ghidra_scripts/DecompileAllToC.java`
-- Config storage for Ghidra install path, Java path, and project path
-- Validation via `ghidra verify`
-
-Expected workflow:
-1. Obtain a real XEX using `xex dump` or FTP.
-2. Run `ghidra analyze` or `ghidra decompile`.
-3. Validate outputs with `ghidra verify`.
+FTP-backed commands are separate on purpose. That keeps it clear which operations depend on console-side FTP service versus XBDM.
 
 ## Title ID Database
-Title metadata is provided by bundled files in the repository:
-- `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
-- `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
+The bundled database is loaded from local assets, not fetched remotely.
 
-Load order:
-1. Bundled CSV
-2. Bundled TXT
-3. Optional user override: `%APPDATA%\XeCLI\titleids.local.csv`
+Load sources:
 
-This means the release always has a working metadata baseline even on a machine with no prior configuration.
+1. `Assets/xbox360_gamelist.csv`
+2. `Assets/xbox360_titleids.txt`
+3. `%APPDATA%\XeCLI\titleids.local.csv`
 
-## Why the Title ID Database Matters
-The database is more than a convenience label table. It provides reusable metadata for:
-- Title name resolution in CLI output
-- Media ID matching
-- Region-aware labeling
-- Disc and content metadata for external tools
+This gives XeCLI a stable metadata base while still allowing private overrides.
 
-It is suitable for reuse by:
-- Trainers
-- Launchers
-- Dashboards
-- Save editors
-- Asset managers
-- Reporting scripts
+## Active Title Naming
+The active-title pipeline does more than a raw database lookup:
 
-## Configuration Files
-Main config:
-- `%APPDATA%\XeCLI\config.json`
+1. Resolve Title ID from the live console when possible.
+2. Resolve the running XEX path from XBDM.
+3. Look up the Title ID in the bundled database.
+4. If the database entry is too generic, prefer a path-based fallback name for the displayed title.
 
-Cache:
-- `%LOCALAPPDATA%\XeCLI\cache`
+This is why `rgh title` can show `Aurora` while still exposing the underlying `Xbox 360 Dashboard` database entry.
 
-Optional local metadata extension:
-- `%APPDATA%\XeCLI\titleids.local.csv`
+## Pending Module Verification
+Module load and unload do not always behave like a clean request-response API on a live RGH console. XeCLI tracks pending module operations in `%APPDATA%\XeCLI\config.json` when a reboot or disconnect is part of the expected flow.
 
-## Build-Time Asset Inclusion
-The CLI project file explicitly copies the bundled asset files into the output and publish directories. That keeps the release self-contained and avoids runtime metadata fetches.
+Tracked fields include:
 
+- action
+- module name
+- module path
+- thread mode
+- creation time
 
+`rgh modules pending` and `rgh status` can then verify the post-reboot state instead of guessing.
+
+## Ghidra Integration
+XeCLI uses Ghidra headless as an external analysis backend.
+
+What XeCLI adds:
+
+- consistent command-line entry points
+- running-title and FTP-backed source acquisition
+- decompile export orchestration
+- verification of output quality
+
+What XeCLI does not do:
+
+- replace Ghidra
+- provide its own decompiler
+- ship Ghidra itself
+
+## Release Layout
+A clean release should contain:
+
+- `rgh.exe`
+- `Assets/`
+- `ghidra_scripts/`
+
+The source repo should not contain:
+
+- captured screenshots
+- memory dumps
+- publish output
+- smoke-test artifacts
+
+## Design Goals
+The project is optimized for:
+
+- direct operator workflows
+- automation-safe command surfaces
+- explicit handling of dangerous operations
+- reuse by other tools
+
+That is why the project keeps the command line advanced but organizes it by namespaces instead of flattening everything into one giant help screen.

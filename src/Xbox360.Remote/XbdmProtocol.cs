@@ -18,12 +18,14 @@ public readonly record struct XbdmResponse(int StatusCode, XbdmResponseType Resp
 internal sealed class XbdmLineReader {
     private readonly Stream stream;
     private readonly byte[] buffer;
+    private readonly int readTimeoutMs;
     private int bufferStart;
     private int bufferEnd;
 
-    public XbdmLineReader(Stream stream, int bufferSize = 8192) {
+    public XbdmLineReader(Stream stream, int bufferSize = 8192, int readTimeoutMs = 5000) {
         this.stream = stream;
         this.buffer = new byte[Math.Max(1024, bufferSize)];
+        this.readTimeoutMs = Math.Max(250, readTimeoutMs);
     }
 
     public async Task<string> ReadLineAsync(CancellationToken cancellationToken) {
@@ -49,7 +51,7 @@ internal sealed class XbdmLineReader {
                 }
             }
 
-            int read = await stream.ReadAsync(buffer.AsMemory(bufferEnd, buffer.Length - bufferEnd), cancellationToken);
+            int read = await ReadAsync(buffer.AsMemory(bufferEnd, buffer.Length - bufferEnd), cancellationToken);
             if (read == 0)
                 throw new IOException("XBDM connection closed.");
             bufferEnd += read;
@@ -66,7 +68,7 @@ internal sealed class XbdmLineReader {
         }
 
         while (readTotal < count) {
-            int read = await stream.ReadAsync(destination.AsMemory(offset + readTotal, count - readTotal), cancellationToken);
+            int read = await ReadAsync(destination.AsMemory(offset + readTotal, count - readTotal), cancellationToken);
             if (read == 0)
                 throw new IOException("XBDM connection closed while reading binary data.");
             readTotal += read;
@@ -78,7 +80,7 @@ internal sealed class XbdmLineReader {
             return buffer[bufferStart++];
         }
 
-        int read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
+        int read = await ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
         if (read == 0)
             throw new IOException("XBDM connection closed while reading binary data.");
         bufferStart = 0;
@@ -126,6 +128,17 @@ internal sealed class XbdmLineReader {
         }
 
         return -1;
+    }
+
+    private async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken) {
+        using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(readTimeoutMs);
+        try {
+            return await stream.ReadAsync(buffer, cts.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) {
+            throw new TimeoutException($"XBDM read timed out after {readTimeoutMs} ms.");
+        }
     }
 }
 

@@ -1,54 +1,42 @@
 # FAQ
 
-## Is the Title ID database bundled or downloaded
-It is bundled. XeCLI ships with local Title ID files in the repo and in the publish output.
+## Is the project name `XeCLI` or `rgh`
+Both, by design.
 
-## Does XeCLI ship console-side plugins
-No. XeCLI ships the local CLI, bundled assets, and release documentation. Console-side components such as XBDM, JRPC2, and FTP services are still prerequisites on the target console.
+- Repository and product name: `XeCLI`
+- Installed command: `rgh`
 
-## Where are the bundled Title ID files
-In source:
-- `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
-- `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
+## Does XeCLI fetch Title ID metadata from the internet
+No. The bundled Title ID database ships with the repository and with the published release.
 
-In published output:
-- `Assets/xbox360_gamelist.csv`
-- `Assets/xbox360_titleids.txt`
+## Can I use the Title ID database in my own tools
+Yes. That is a supported use case. Read the bundled CSV/TXT files directly or use `rgh title --json`.
 
-## Can I use the Title ID database in another project
-Yes. That is an intended use case. The CSV is the preferred source for external tools.
+## Does XeCLI include console-side plugins
+No. Console-side services such as XBDM, JRPC2, and FTP must already exist on the target console.
 
-## Does XeCLI need internet access for metadata
-No. Normal Title ID resolution is local.
+## Why does `rgh title` work with no arguments
+Because the command is designed to resolve the active title by default when no Title ID is supplied.
 
-## What is the difference between `modules dump` and `xex dump`
-`modules dump` pulls the live memory image of a loaded module. `xex dump` retrieves a real XEX file suitable for static analysis workflows.
+## Why does `status --quick` show skipped fields
+Because those fields were intentionally skipped. The current release distinguishes skipped from unknown so the operator can tell the difference between a deliberate fast path and a failed probe.
 
-## Which command should I use first on a new console session
-Use `rgh status` or `rgh status --quick`.
+## Can module load require a reboot
+Yes. Some live module loads do not complete as a clean hot-load on every console or plugin stack. Use `--reboot-expected` and verify with `rgh modules pending`.
 
-## When should I use FTP instead of XBDM
-Use FTP when you want:
-- Storage-oriented file access
-- Recursive searches
-- Alternate retrieval of XEX files from disk paths
-
-Use XBDM when you want:
-- Live state
-- Memory access
-- Threads and debug controls
-- Module information
-
-## What happens if the console disconnects
-XeCLI retries automatically. It attempts reconnection three times and gives the operator a chance to cancel.
+## Is module unload safe
+Not universally. That is why `modules unload` requires `--force`.
 
 ## Does XeCLI support scripting
-Yes. Many commands support `--json` specifically for script and tool integration.
+Yes. Prefer commands with `--json` when building scripts or companion tools.
 
-## Can I add my own Title IDs
-Yes. Use `%APPDATA%\XeCLI\titleids.local.csv`.
+## Can I extend the metadata set
+Yes. Add entries to:
 
-## Is XeCLI only for terminal users
-No. It is terminal-first, but its JSON outputs and bundled assets are designed so GUI tools and companion apps can reuse it cleanly.
+- `%APPDATA%\XeCLI\titleids.local.csv`
 
+## Does XeCLI require Ghidra
+No. Ghidra is only required for the `ghidra` and `xex decompile` workflows.
 
+## Does XeCLI replace Aurora, Neighborhood, or XeXMenu completely
+No single tool replaces every scene workflow perfectly. The goal of XeCLI is to cover the high-value terminal-first workflows cleanly enough that you do not need to bounce between small one-off utilities for status, dumps, memory work, saves, content, notifications, screenshots, and scripted automation.

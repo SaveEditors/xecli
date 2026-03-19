@@ -1,167 +1,169 @@
 # Advanced Guide
 
-This guide focuses on the workflows XeCLI is strongest at: live inspection, reverse engineering support, repeatable dumps, and tool integration.
+This page focuses on the workflows where XeCLI is strongest: live inspection, module work, memory editing, debugger control, XEX extraction, and automation.
 
-## Choosing the Right Workflow
+## Pick the Right Data Source
+Use the transport that matches the task:
 
-### Use `status` when you need context
-Start with:
-```bash
-rgh status
+- XBDM for live control, memory, threads, screenshots, and module metadata
+- JRPC2 for Title ID, CPU key, temperatures, notifications, and generic RPC
+- FTP for bulk file transfer, content trees, save files, and DashLaunch config edits
+
+Trying to force one transport into every job is where most fragile automation starts.
+
+## Active Title and Metadata
+`rgh title` is now useful as an operator tool, not just a raw lookup helper:
+
+```powershell
+rgh title
+rgh title --json
 ```
 
-This gives you the target state before you start reading memory, dumping modules, or sending RPC calls.
-
-### Use `modules` when you want the live memory image of a loaded module
-```bash
-rgh modules list
-rgh modules info --name xam.xex --sections
-rgh modules dump --name xam.xex --out .\\xam.bin
-```
-
-This is useful for:
-- Mapping what is actually loaded right now
-- Inspecting base addresses and sizes
-- Pulling a module image from memory for low-level comparison work
-
-### Use `xex dump` when you need a real XEX file
-```bash
-rgh xex dump --out .\\title.xex
-```
-
-This is the correct starting point for:
-- Ghidra import
-- Static string extraction
-- Repeated archival of dashboard or title executables
-
-Do not confuse raw module memory dumps with full XEX files. They serve different purposes.
+It resolves the active Title ID from the console and can layer a path-based fallback name over the bundled database entry when the live XEX is a dashboard replacement or homebrew shell.
 
 ## Memory Work
+### Read and verify before you write
+Typical sequence:
 
-### Reading Known Addresses
-```bash
-rgh mem peek --addr 0x82000000 --type u32
-rgh mem hexdump --addr 0x82000000 --size 0x100
+```powershell
+rgh mem hexdump --addr 0x30000000 --size 0x40
+rgh mem peek --addr 0x30000000 --type u32
+rgh mem search --addr 0x30000000 --size 0x1000 --pattern DEADBEEF
 ```
 
-### Writing Values
-```bash
+### Write with type discipline
+```powershell
 rgh mem poke --addr 0x82000000 --type u32 --value 0x12345678
+rgh mem poke --addr 0x82000000 --type float --value 1337
+rgh mem poke --addr 0x82000000 --type string --value "XeCLI"
 ```
 
-Use `mem poke` carefully. It is appropriate for controlled experiments, trainer development, and patch validation, but a bad write can crash the title or destabilize the session.
+Do not treat `poke` as a blind trainer primitive. Read the target first, confirm endianness, then write.
 
-### Watching Live Changes
-```bash
-rgh mem watch --addr 0x82000000 --size 0x40 --interval 250
+### Freeze writes
+```powershell
+rgh mem search --addr 0x82000000 --size 0x4000 --pattern 00000000 --freeze --freeze-type u32 --freeze-value 1 --freeze-count 10
 ```
 
-This is useful for:
-- Watching state changes in a small region
-- Verifying a patch lands where expected
-- Tracking counters, flags, and title state
+Use this for controlled short tests. Infinite freeze loops are available, but that is not a good default during early analysis.
 
-### Searching Memory
-For short ranges:
-```bash
-rgh mem find --addr 0x82000000 --size 0x20000 --ascii "XAM"
+## Module Work
+### Safe module queries
+```powershell
+rgh modules list
+rgh modules info --name Aurora.xex
+rgh modules dump --name xam.xex --out .\xam.bin
 ```
 
-For larger investigations, dump first and search offline:
-```bash
-rgh mem dump --addr 0x82000000 --size 0x400000 --out .\\range.bin
+### Unload workflow
+```powershell
+rgh modules unload --name HvP2.xex --force
 ```
 
-That workflow is usually more reliable than trying to brute-force very large live searches over XBDM.
+Unload is intentionally gated because live module unload can wedge the console if the target rejects it.
+
+### Reboot-expected load workflow
+Some modules or plugin stacks do not complete as a clean hot-load. XeCLI supports a tracked reboot-expected flow:
+
+```powershell
+rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+```
+
+Then, after the console comes back:
+
+```powershell
+rgh modules pending
+```
+
+This is better than pretending a disconnect was success.
 
 ## Thread and Debug Work
-
-List threads:
-```bash
+### Thread control
+```powershell
 rgh threads list
+rgh threads context --id 0xFB000008
+rgh threads suspend --id 0xFB000008
+rgh threads resume --id 0xFB000008
 ```
 
-Inspect context:
-```bash
-rgh threads context --id <thread-id>
-```
-
-Control execution:
-```bash
+### Execution control and events
+```powershell
 rgh debug stop
 rgh debug go
+rgh debug watch
 ```
 
-Breakpoints:
-```bash
+`debug watch` is the quickest way to confirm that the console is actually emitting debug lifecycle events instead of silently stalling.
+
+### Breakpoints
+```powershell
 rgh debug break add --addr 0x82001000
-rgh debug break remove --addr 0x82001000
-```
-
-Data breakpoints:
-```bash
 rgh debug databreak add --addr 0x82100000 --size 4 --type write
 ```
 
-Use this set when you are validating a patch site, watching a hot structure, or trying to understand where a value is modified.
+Use code breakpoints to catch known execution sites and data breakpoints to identify writers to hot structures.
 
-## XEX and Ghidra
+## XEX and Ghidra Work
+### Dump the actual executable
+Use `xex dump` for a real XEX image, not a raw module dump:
 
-### Dump, Then Analyze
-```bash
-rgh xex dump --out .\\title.xex
-rgh ghidra config --path "<ghidra-dir>" --java "<java-home>"
-rgh ghidra analyze --in .\\title.xex
-rgh ghidra decompile --in .\\title.xex --out .\\decomp
+```powershell
+rgh xex dump --out .\title.xex
 ```
 
-### Validate Decompiled Output
-```bash
-rgh ghidra verify --dir .\\decomp
+### String triage
+```powershell
+rgh xex strings --running --unicode --min 6
 ```
 
-This helps catch placeholder output caused by bad imports, wrong loader behavior, or unsupported instructions.
-
-### Extract Strings Quickly
-```bash
-rgh xex strings --in .\\title.xex --unicode --min 6
+### Full headless pipeline
+```powershell
+rgh ghidra config --path "C:\Tools\ghidra" --java "C:\Java"
+rgh ghidra analyze --in .\title.xex
+rgh ghidra decompile --in .\title.xex --out .\decomp
+rgh ghidra verify --dir .\decomp
 ```
 
-This is often the fastest first pass when you are trying to identify subsystems, paths, feature names, or hardcoded messages.
+`ghidra verify` exists because a decompile folder full of placeholder stubs is worse than no result at all if you do not catch it.
 
-## Using the Bundled Title ID Database
-The bundled database is useful beyond the `title` command. It can be used to:
-- Resolve the current Title ID in status output
-- Annotate dumps and reports
-- Label captured screenshots or artifacts
-- Feed metadata into launchers, save editors, dashboards, or trainers
+## Save, Content, and Plugin Operations
+Use FTP-backed commands when the job is about the storage layout instead of the live memory image:
 
-See:
-- [Title ID Database](Title-ID-Database.md)
-- [Integrations](Integrations.md)
-
-## Automation Patterns
-
-### Human-readable status logs
-```bash
-rgh status --json
+```powershell
+rgh save extract --titleid 415608C3 --out .\saves
+rgh content list --device Hdd1 --show-types
+rgh plugin list
+rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex --backup
 ```
 
-### Module inventory
-```bash
-rgh modules list --json
+Treat content deletion and plugin edits as operational changes, not exploratory commands.
+
+## Automation Guidance
+### Good automation targets
+- `status --json`
+- `title --json`
+- `modules list --json`
+- `content list --json`
+- `ghidra verify --json`
+
+### Bad automation targets
+- interactive selection flows
+- destructive commands without explicit targeting
+- reboot-expected module loads without follow-up verification
+
+### Example pattern
+```powershell
+rgh status --json > status.json
+rgh title --json > title.json
+rgh modules list --json > modules.json
 ```
 
-### Title metadata lookup in scripts
-```bash
-rgh title 4D5307E6 --json
-```
+## When to Stop and Reassess
+Stop and reassess instead of brute-forcing the console when:
 
-### FTP indexing
-```bash
-rgh ftp find --path "/Hdd1/" --name "*.xex" --max 500 --json
-```
+- a module load repeatedly knocks the box off LAN
+- XBDM stays up but JRPC2 calls become ambiguous
+- a memory write target does not retain values across reads
+- decompile output collapses into placeholder stubs
 
-These outputs are designed to be consumed by other tools, not just read in a terminal.
-
-
+XeCLI is most effective when it makes unstable workflows explicit instead of hiding them.

@@ -1,19 +1,19 @@
 :root {
-  --bg: #0a0f16;
-  --panel: #0f1722;
-  --panel-alt: #131d2b;
-  --panel-soft: #0d1420;
-  --border: #223044;
-  --border-strong: #2d3f59;
-  --text: #e8edf5;
-  --text-soft: #afbccf;
-  --text-dim: #7e8ea5;
-  --accent: #17c964;
-  --accent-2: #10b7ff;
-  --accent-3: #9d7bff;
-  --warning: #f5c542;
-  --danger: #ff5d73;
-  --shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
+  --bg: #020a04;
+  --panel: #0d1a09;
+  --panel-alt: #12300e;
+  --panel-soft: #0b1808;
+  --border: #4b8f17;
+  --border-strong: #8ecb2f;
+  --text: #edf6ea;
+  --text-soft: #d4e6c7;
+  --text-dim: #95b07f;
+  --accent: #9cff2f;
+  --accent-2: #d4ff4d;
+  --accent-3: #f0ff8f;
+  --warning: #f0ea6a;
+  --danger: #ff6f7d;
+  --shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
   --radius: 18px;
   --mono: "Cascadia Code", "Consolas", "SFMono-Regular", monospace;
   --sans: "Segoe UI Variable Display", "Segoe UI", Inter, system-ui, sans-serif;
@@ -28,13 +28,42 @@ html {
 }
 
 body {
+  position: relative;
   margin: 0;
   font-family: var(--sans);
   color: var(--text);
   background:
-    radial-gradient(circle at top right, rgba(23, 201, 100, 0.10), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(16, 183, 255, 0.10), transparent 24%),
-    linear-gradient(180deg, #0a0f16 0%, #0b1119 100%);
+    radial-gradient(circle at center, rgba(8, 42, 12, 0.22) 0%, rgba(0, 0, 0, 0.08) 38%, rgba(0, 0, 0, 0.62) 76%),
+    radial-gradient(ellipse at left center, rgba(58, 255, 64, 0.14) 0%, transparent 44%),
+    radial-gradient(ellipse at right center, rgba(88, 255, 70, 0.12) 0%, transparent 42%),
+    linear-gradient(180deg, #010a03 0%, #021107 42%, #020d05 100%);
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  opacity: 0.34;
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 0 28%, rgba(111, 255, 76, 0.10) 29%, transparent 37%),
+    radial-gradient(ellipse at 50% 50%, transparent 0 36%, rgba(111, 255, 76, 0.06) 37%, transparent 46%),
+    radial-gradient(ellipse at 16% 50%, rgba(94, 255, 72, 0.10) 0%, transparent 32%),
+    radial-gradient(ellipse at 84% 50%, rgba(94, 255, 72, 0.10) 0%, transparent 32%);
+  mix-blend-mode: screen;
+}
+
+body::after {
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(88, 255, 66, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(88, 255, 66, 0.22) 1px, transparent 1px);
+  background-size: 92px 92px, 92px 92px;
+  mask-image: radial-gradient(circle at center, transparent 0 24%, rgba(0, 0, 0, 0.9) 56%, rgba(0, 0, 0, 1) 100%);
 }
 
 a {
@@ -43,7 +72,7 @@ a {
 }
 
 a:hover {
-  color: #61cdff;
+  color: #d9ffb1;
 }
 
 code,
@@ -63,10 +92,13 @@ pre {
 .wiki-sidebar,
 .wiki-content-card,
 .wiki-panel {
-  background: linear-gradient(180deg, rgba(19, 29, 43, 0.92), rgba(13, 20, 32, 0.96));
+  background:
+    linear-gradient(180deg, rgba(19, 45, 12, 0.92), rgba(8, 18, 7, 0.97)),
+    radial-gradient(circle at top, rgba(230, 255, 70, 0.10), transparent 42%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
 }
 
 .wiki-sidebar {
@@ -131,14 +163,14 @@ pre {
   padding: 11px 14px;
   border-radius: 12px;
   border: 1px solid var(--border-strong);
-  background: rgba(6, 11, 19, 0.9);
+  background: rgba(8, 18, 7, 0.94);
   color: var(--text);
   outline: none;
 }
 
 .wiki-search input:focus {
   border-color: var(--accent-2);
-  box-shadow: 0 0 0 4px rgba(16, 183, 255, 0.12);
+  box-shadow: 0 0 0 4px rgba(126, 255, 88, 0.14);
 }
 
 .wiki-nav {
@@ -149,9 +181,9 @@ pre {
 
 .wiki-nav__group {
   margin-bottom: 12px;
-  border: 1px solid rgba(45, 63, 89, 0.65);
+  border: 1px solid rgba(142, 203, 47, 0.34);
   border-radius: 14px;
-  background: rgba(10, 15, 22, 0.58);
+  background: linear-gradient(180deg, rgba(14, 34, 10, 0.74), rgba(7, 15, 6, 0.78));
 }
 
 .wiki-nav__group summary {
@@ -194,22 +226,23 @@ pre {
 }
 
 .wiki-nav__link:hover {
-  background: rgba(16, 183, 255, 0.08);
+  background: linear-gradient(90deg, rgba(156, 255, 47, 0.14), rgba(212, 255, 77, 0.08));
   color: var(--text);
   transform: translateX(2px);
 }
 
 .wiki-nav__link.is-current {
-  background: linear-gradient(90deg, rgba(23, 201, 100, 0.18), rgba(16, 183, 255, 0.08));
-  color: var(--text);
-  border: 1px solid rgba(23, 201, 100, 0.24);
+  background: linear-gradient(90deg, rgba(164, 255, 48, 0.42), rgba(215, 255, 86, 0.24));
+  color: #122105;
+  border: 1px solid rgba(232, 255, 117, 0.30);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 180, 0.18);
 }
 
 .wiki-sidebar__meta {
   display: grid;
   gap: 8px;
   padding-top: 16px;
-  border-top: 1px solid rgba(45, 63, 89, 0.65);
+  border-top: 1px solid rgba(142, 203, 47, 0.28);
 }
 
 .wiki-sidebar__meta a {
@@ -254,13 +287,14 @@ pre {
   padding: 10px 14px;
   border-radius: 999px;
   border: 1px solid var(--border-strong);
-  color: var(--text-soft);
-  background: rgba(7, 12, 20, 0.72);
+  color: #132105;
+  background: linear-gradient(180deg, rgba(154, 255, 57, 0.92), rgba(112, 194, 32, 0.88));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .wiki-actions a:hover {
-  border-color: var(--accent-2);
-  color: var(--text);
+  border-color: #e7ff93;
+  color: #091403;
 }
 
 .wiki-content-card {
@@ -282,7 +316,7 @@ pre {
 .wiki-panel h2 {
   margin: 0 0 14px;
   font-size: 0.92rem;
-  color: var(--text);
+  color: var(--accent-3);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -334,8 +368,9 @@ pre {
 .markdown-body h2 {
   margin-top: 2.4rem;
   padding-bottom: 0.6rem;
-  border-bottom: 1px solid rgba(45, 63, 89, 0.65);
+  border-bottom: 1px solid rgba(142, 203, 47, 0.42);
   font-size: 1.45rem;
+  color: var(--accent-3);
 }
 
 .markdown-body h3 {
@@ -368,47 +403,47 @@ pre {
   border-collapse: collapse;
   overflow: hidden;
   border-radius: 14px;
-  border: 1px solid rgba(45, 63, 89, 0.7);
+  border: 1px solid rgba(142, 203, 47, 0.38);
 }
 
 .markdown-body th,
 .markdown-body td {
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(45, 63, 89, 0.52);
+  border-bottom: 1px solid rgba(142, 203, 47, 0.22);
   text-align: left;
   vertical-align: top;
 }
 
 .markdown-body th {
-  background: rgba(11, 18, 29, 0.9);
-  color: #ffffff;
+  background: linear-gradient(180deg, rgba(78, 132, 22, 0.88), rgba(41, 87, 15, 0.88));
+  color: #f7ffe4;
 }
 
 .markdown-body tr:nth-child(even) td {
-  background: rgba(8, 14, 23, 0.45);
+  background: rgba(15, 34, 11, 0.42);
 }
 
 .markdown-body code {
   padding: 0.16rem 0.4rem;
   border-radius: 8px;
-  background: rgba(6, 11, 19, 0.85);
-  color: #7fe6ff;
-  border: 1px solid rgba(45, 63, 89, 0.6);
+  background: rgba(13, 33, 9, 0.92);
+  color: #e3ff93;
+  border: 1px solid rgba(142, 203, 47, 0.34);
 }
 
 .markdown-body pre {
   overflow: auto;
   padding: 18px;
   border-radius: 14px;
-  background: #061019;
-  border: 1px solid rgba(45, 63, 89, 0.7);
+  background: #020a04;
+  border: 1px solid rgba(142, 203, 47, 0.34);
 }
 
 .markdown-body pre code {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #dbe7f7;
+  color: #e4f3df;
 }
 
 .markdown-body blockquote {
@@ -416,14 +451,14 @@ pre {
   padding: 14px 18px;
   border-left: 4px solid var(--accent);
   border-radius: 12px;
-  background: rgba(23, 201, 100, 0.08);
+  background: rgba(176, 255, 63, 0.09);
   color: var(--text-soft);
 }
 
 .markdown-body img {
   max-width: 100%;
   border-radius: 14px;
-  border: 1px solid rgba(45, 63, 89, 0.65);
+  border: 1px solid rgba(142, 203, 47, 0.32);
 }
 
 @media (max-width: 1480px) {

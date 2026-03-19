@@ -83,8 +83,3 @@ That means:
 - operator path and developer path
 - subsystem explanation
 - standards for future documentation updates
-
-## Current Constraints
-At the time of writing, the source-tree wiki content exists and Pages is live, but GitHub’s separate Wiki backend may still require first-page initialization on GitHub itself before `.wiki.git` is writable.
-
-Treat that as an infrastructure constraint, not a reason to lower the quality of the wiki content.

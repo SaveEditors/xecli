@@ -95,7 +95,6 @@ Examples:
 
 - console-side plugin missing
 - XBDM service unavailable
-- GitHub Wiki backend not provisioned
 - Ghidra not installed
 
 ## Release Readiness Checklist

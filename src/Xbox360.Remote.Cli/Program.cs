@@ -56,6 +56,7 @@ internal static class Program {
             config.AddExample(new[] { "title" });
             config.AddExample(new[] { "modules", "list" });
             config.AddExample(new[] { "mem", "hexdump", "--addr", "0x30000000", "--size", "0x40" });
+            config.AddExample(new[] { "notify", "XeCLI connected", "14" });
             config.AddExample(new[] { "ghidra", "decompile", "--running", "--out", ".\\decomp" });
 
             config.AddCommand<StatusCommand>("status").WithDescription("Show a compact console status snapshot.");
@@ -237,7 +238,7 @@ internal static class Program {
             config.AddBranch("jrpc2", rpc => {
                 rpc.SetDescription("JRPC2 (XDRPC-style) commands.");
                 rpc.AddExample(new[] { "jrpc2", "temps" });
-                rpc.AddExample(new[] { "jrpc2", "notify", "--message", "XeCLI" });
+                rpc.AddExample(new[] { "jrpc2", "notify", "XeCLI connected", "14" });
                 rpc.AddCommand<Jrpc2CpuKeyCommand>("cpu-key").WithDescription("Read the CPU key.");
                 rpc.AddCommand<Jrpc2TempsCommand>("temps").WithDescription("Read temperature sensors.");
                 rpc.AddCommand<Jrpc2TitleIdCommand>("title-id").WithDescription("Read the current Title ID.");
@@ -248,10 +249,14 @@ internal static class Program {
                 rpc.AddCommand<Jrpc2CallCommand>("call").WithDescription("Call a function with RPC.");
             });
 
-            config.AddCommand<NotifySendCommand>("notify").WithAlias("xnotify").WithDescription("Send an on-screen notification.");
+            config.AddCommand<NotifySendCommand>("notify").WithAlias("xnotify").WithDescription("Send an on-screen notification with a raw icon id, built-in icon name, or preset alias.");
             config.AddBranch("notify-icons", icons => {
-                icons.SetDescription("Manage notify icon presets.");
-                icons.AddCommand<NotifyIconsListCommand>("list").WithDescription("List icon presets.");
+                icons.SetDescription("Browse the built-in XNotify icon catalog and manage preset aliases.");
+                icons.AddExample(new[] { "notify-icons", "list" });
+                icons.AddExample(new[] { "notify-icons", "show", "14" });
+                icons.AddExample(new[] { "notify-icons", "add", "--name", "success", "--logo", "14" });
+                icons.AddCommand<NotifyIconsListCommand>("list").WithDescription("List built-in XNotify icons and preset aliases.");
+                icons.AddCommand<NotifyIconsShowCommand>("show").WithAlias("resolve").WithDescription("Resolve an icon id, built-in name, or preset alias.");
                 icons.AddCommand<NotifyIconsAddCommand>("add").WithDescription("Add an icon preset.");
                 icons.AddCommand<NotifyIconsRemoveCommand>("remove").WithAlias("del").WithDescription("Remove an icon preset.");
             });

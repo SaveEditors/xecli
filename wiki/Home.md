@@ -116,3 +116,15 @@ rgh screenshot --out .\screen.bmp
 - [Repository](https://github.com/SaveEditors/xecli)
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
 - [Docs Landing Page](https://saveeditors.github.io/xecli/)
+- [Published Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)
+
+## Release Packaging
+The published Windows release is a self-contained `win-x64` package.
+
+That means:
+
+- `rgh.exe` runs without a separate .NET install
+- runtime files ship beside the executable in the release folder
+- `ConsoleDependencies/`, `Assets/`, and `ghidra_scripts/` ship in the same release package
+
+Only source builds require a local .NET 10 SDK/runtime.

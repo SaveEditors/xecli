@@ -559,11 +559,20 @@ internal static class GhidraInputHelpers {
         string localPath = Path.Combine(cacheDir, fileName);
 
         await FtpHelpers.WithClientAsync(new FtpConnectionSettings(), async client => {
-            await client.DownloadFile(localPath, normalized, FluentFTP.FtpLocalExists.Overwrite, FluentFTP.FtpVerify.None);
+            long size = await FtpHelpers.TryGetFileSizeAsync(client, normalized) ?? 0;
+            await CliOutput.RunWithProgressAsync($"FTP fetch {Markup.Escape(normalized)}", size > 0 ? size : null, async progress => {
+                Progress<FluentFTP.FtpProgress> ftpProgress = new Progress<FluentFTP.FtpProgress>(p => {
+                    if (p.TransferredBytes >= 0)
+                        progress.Report(new CliOutput.TransferProgressUpdate(p.TransferredBytes, "receiving"));
+                });
+                await client.DownloadFile(localPath, normalized, FluentFTP.FtpLocalExists.Overwrite, FluentFTP.FtpVerify.None, ftpProgress);
+            });
             return 0;
         }, CancellationToken.None);
 
-        AnsiConsole.MarkupLine($"[green]Fetched via FTP:[/] {Markup.Escape(normalized)} -> {Markup.Escape(localPath)}");
+        OperationFeedback.WriteSuccess(
+            "FTP fetch complete",
+            $"[cyan]{Markup.Escape(normalized)}[/] -> [white]{Markup.Escape(localPath)}[/]");
         return localPath;
     }
 

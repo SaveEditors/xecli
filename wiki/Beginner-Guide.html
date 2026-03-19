@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Beginner Guide | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Beginner-Guide.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-logo.svg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link is-current" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" >
+              <summary>Developer Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>Beginner Guide</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Beginner-Guide.md">Source</a>
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Beginner-Guide.md">Open on GitHub</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="beginner-guide">Beginner Guide</h1>
+<p>This guide covers the safe, practical path from a fresh install to a working live-console session.</p>
+<h2 id="1-know-the-minimum-requirements">1. Know the Minimum Requirements</h2>
+<p>On the PC side:</p>
+<ul>
+<li>Windows</li>
+<li>no extra runtime if you are using the published <code>win-x64</code> release package</li>
+<li>.NET 10 only if you are building or running XeCLI from source</li>
+<li>Network access to the console</li>
+</ul>
+<p>On the console side:</p>
+<ul>
+<li>XBDM enabled</li>
+<li>JRPC2 if you want RPC, temps, CPU key, notifications, or Title ID reads</li>
+<li>FTP service if you want FTP-backed save, content, or file workflows</li>
+</ul>
+<h2 id="2-start-the-cli">2. Start the CLI</h2>
+<p>If you are using a release build:</p>
+<pre><code class="language-powershell">rgh
+</code></pre>
+<p>The published release is self-contained. Extract it, run <code>rgh.exe</code>, and XeCLI can install the PATH entry for you. You do not need to install .NET separately for that path.</p>
+<p>On first interactive launch, XeCLI can offer to add itself to the machine PATH. Accept that if you want <code>rgh</code> available everywhere.</p>
+<h2 id="3-discover-or-set-a-target">3. Discover or Set a Target</h2>
+<p>Interactive discovery:</p>
+<pre><code class="language-powershell">rgh start
+</code></pre>
+<p>Direct targeting:</p>
+<pre><code class="language-powershell">rgh target --set &lt;console-ip&gt;
+</code></pre>
+<p>If you use FTP features, set that target too:</p>
+<pre><code class="language-powershell">rgh ftp target --set &lt;console-ip&gt; --user &lt;ftp-user&gt; --pass &lt;ftp-pass&gt;
+</code></pre>
+<h2 id="4-confirm-the-console-is-reachable">4. Confirm the Console Is Reachable</h2>
+<pre><code class="language-powershell">rgh ping
+rgh status
+rgh status --quick
+</code></pre>
+<p>Use <code>status --quick</code> when you want a fast response and do not need JRPC-backed fields.</p>
+<h2 id="5-resolve-the-active-title">5. Resolve the Active Title</h2>
+<pre><code class="language-powershell">rgh title
+rgh title --json
+</code></pre>
+<p><code>rgh title</code> with no arguments resolves the active title from the connected console. If the bundled database only knows the base system Title ID, XeCLI can still show a better path-based title name such as <code>Aurora</code>.</p>
+<h2 id="6-inspect-live-state">6. Inspect Live State</h2>
+<p>Modules:</p>
+<pre><code class="language-powershell">rgh modules list
+rgh modules info --name Aurora.xex
+</code></pre>
+<p>Memory:</p>
+<pre><code class="language-powershell">rgh mem hexdump --addr 0x30000000 --size 0x40
+rgh mem peek --addr 0x30000000 --type u32
+</code></pre>
+<p>Screenshot:</p>
+<pre><code class="language-powershell">rgh screenshot --out .\screen.bmp
+</code></pre>
+<h2 id="7-use-ftp-backed-workflows">7. Use FTP-Backed Workflows</h2>
+<p>Browse files:</p>
+<pre><code class="language-powershell">rgh ftp list --path /Hdd1/
+</code></pre>
+<p>List saves for a title:</p>
+<pre><code class="language-powershell">rgh save list --titleid FFFE07D1 --device Hdd1
+</code></pre>
+<p>List installed content:</p>
+<pre><code class="language-powershell">rgh content list --device Hdd1 --show-types
+</code></pre>
+<p>List DashLaunch plugins:</p>
+<pre><code class="language-powershell">rgh plugin list
+</code></pre>
+<h2 id="8-launch-and-notify">8. Launch and Notify</h2>
+<p>Launch a XEX:</p>
+<pre><code class="language-powershell">rgh launch Hdd1:\Aurora\Aurora.xex --titleid FFFE07D1
+</code></pre>
+<p>Send a notification:</p>
+<pre><code class="language-powershell">rgh notify &quot;XeCLI connected&quot;
+</code></pre>
+<h2 id="9-avoid-the-common-mistakes">9. Avoid the Common Mistakes</h2>
+<p>Do not start with dangerous commands until the basic path is stable.</p>
+<p>Start with:</p>
+<ul>
+<li><code>status</code></li>
+<li><code>title</code></li>
+<li><code>modules list</code></li>
+<li><code>ftp list</code></li>
+<li><code>screenshot</code></li>
+</ul>
+<p>Delay these until you know the target is stable:</p>
+<ul>
+<li><code>mem poke</code></li>
+<li><code>mem search --freeze</code></li>
+<li><code>modules unload --force</code></li>
+<li><code>modules load --system</code></li>
+<li>deletion commands</li>
+</ul>
+<h2 id="10-know-where-to-go-next">10. Know Where to Go Next</h2>
+<ul>
+<li><a href="Commands.html">Commands Reference</a> for full command coverage</li>
+<li><a href="Advanced-Guide.html">Advanced Guide</a> for reverse-engineering and automation workflows</li>
+<li><a href="Troubleshooting.html">Troubleshooting</a> when the console or plugin stack does not behave as expected</li>
+</ul>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

@@ -148,6 +148,44 @@ internal static class FtpHelpers {
         return (items, rootListing);
     }
 
+    public static async Task<long?> TryGetFileSizeAsync(AsyncFtpClient client, string path) {
+        try {
+            long size = await client.GetFileSize(path);
+            if (size >= 0)
+                return size;
+        }
+        catch {
+            // fall through
+        }
+
+        try {
+            FtpListItem? info = await client.GetObjectInfo(path);
+            if (info != null && info.Type == FtpObjectType.File && info.Size >= 0)
+                return info.Size;
+        }
+        catch {
+            // fall through
+        }
+
+        try {
+            string normalized = NormalizePath(path).TrimEnd('/');
+            int slash = normalized.LastIndexOf('/');
+            if (slash >= 0) {
+                string parent = slash == 0 ? "/" : normalized.Substring(0, slash);
+                string name = normalized.Substring(slash + 1);
+                (FtpListItem[] items, bool _) = await GetListingWithFallbackAsync(client, parent);
+                FtpListItem? match = items.FirstOrDefault(item => item.Type == FtpObjectType.File && string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase));
+                if (match != null && match.Size >= 0)
+                    return match.Size;
+            }
+        }
+        catch {
+            // ignored
+        }
+
+        return null;
+    }
+
     public static string FormatBytes(long bytes) {
         double size = bytes;
         string[] units = { "B", "KB", "MB", "GB", "TB" };
@@ -430,20 +468,19 @@ public sealed class FtpGetCommand : AsyncCommand<FtpGetCommand.Settings> {
         return await FtpHelpers.WithClientAsync(settings, async client => {
             string remote = FtpHelpers.NormalizePath(settings.Path);
             string local = settings.Output!;
-            long size = 0;
-            if (await client.FileExists(remote)) {
-                size = await client.GetFileSize(remote);
-            }
+            long size = await FtpHelpers.TryGetFileSizeAsync(client, remote) ?? 0;
 
             await CliOutput.RunWithProgressAsync($"FTP download {Markup.Escape(remote)}", size > 0 ? (uint) size : null, async progress => {
                 Progress<FtpProgress> ftpProgress = new Progress<FtpProgress>(p => {
                     if (p.TransferredBytes > 0)
-                        progress.Report(p.TransferredBytes);
+                        progress.Report(new CliOutput.TransferProgressUpdate(p.TransferredBytes, "receiving"));
                 });
                 await client.DownloadFile(local, remote, FtpLocalExists.Overwrite, FtpVerify.None, ftpProgress);
             });
 
-            AnsiConsole.MarkupLine($"[green]Downloaded[/] {Markup.Escape(remote)} -> {Markup.Escape(local)}");
+            OperationFeedback.WriteSuccess(
+                "FTP download complete",
+                $"[cyan]{Markup.Escape(remote)}[/] -> [white]{Markup.Escape(local)}[/] [silver]({FtpHelpers.FormatBytes(size)})[/]");
             return 0;
         }, CancellationToken.None);
     }
@@ -476,12 +513,14 @@ public sealed class FtpPutCommand : AsyncCommand<FtpPutCommand.Settings> {
             await CliOutput.RunWithProgressAsync($"FTP upload {Markup.Escape(remote)}", size > 0 ? (uint) size : null, async progress => {
                 Progress<FtpProgress> ftpProgress = new Progress<FtpProgress>(p => {
                     if (p.TransferredBytes > 0)
-                        progress.Report(p.TransferredBytes);
+                        progress.Report(new CliOutput.TransferProgressUpdate(p.TransferredBytes, "sending"));
                 });
                 await client.UploadFile(local, remote, FtpRemoteExists.Overwrite, true, FtpVerify.None, ftpProgress);
             });
 
-            AnsiConsole.MarkupLine($"[green]Uploaded[/] {Markup.Escape(local)} -> {Markup.Escape(remote)}");
+            OperationFeedback.WriteSuccess(
+                "FTP upload complete",
+                $"[white]{Markup.Escape(local)}[/] -> [cyan]{Markup.Escape(remote)}[/] [silver]({FtpHelpers.FormatBytes(size)})[/]");
             return 0;
         }, CancellationToken.None);
     }

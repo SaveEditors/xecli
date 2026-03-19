@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Troubleshooting | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Troubleshooting.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-logo.svg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link is-current" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" >
+              <summary>Developer Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>Troubleshooting</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Troubleshooting.md">Source</a>
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Troubleshooting.md">Open on GitHub</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="troubleshooting">Troubleshooting</h1>
+<p>This page covers the failures most likely to matter during real RGH/JTAG use.</p>
+<h2 id="rgh-ping-or-rgh-status-hangs-too-long"><code>rgh ping</code> or <code>rgh status</code> hangs too long</h2>
+<p>Expected behavior in the current release is fast failure, not long silent hangs.</p>
+<p>Checks:</p>
+<ul>
+<li>confirm the console IP is still reachable</li>
+<li>confirm XBDM is listening on the expected port</li>
+<li>run <code>rgh target</code> to verify the saved IP and port</li>
+</ul>
+<p>Useful commands:</p>
+<pre><code class="language-powershell">rgh target
+rgh ping
+rgh status --quick
+</code></pre>
+<p>If <code>status --quick</code> works and full <code>status</code> is slow, the problem is usually in optional JRPC or user/drive probes rather than XBDM itself.</p>
+<h2 id="rgh-title-shows-a-generic-system-title"><code>rgh title</code> shows a generic system title</h2>
+<p>That can be correct at the Title ID level while still being unhelpful to an operator.</p>
+<p>XeCLI tries to improve that by using the running XEX path as a fallback display name. If you still need a custom name, add an entry to:</p>
+<ul>
+<li><code>%APPDATA%\XeCLI\titleids.local.csv</code></li>
+</ul>
+<h2 id="jrpc-backed-fields-show-unavailable-or-skipped">JRPC-backed fields show unavailable or skipped</h2>
+<p>Possible reasons:</p>
+<ul>
+<li>you used <code>status --quick</code></li>
+<li>JRPC2 is not installed</li>
+<li>JRPC2 is installed but not healthy</li>
+</ul>
+<p>Useful checks:</p>
+<pre><code class="language-powershell">rgh jrpc2 title-id
+rgh jrpc2 dashboard
+rgh jrpc2 temps
+</code></pre>
+<h2 id="modules-load-disconnects-the-console"><code>modules load</code> disconnects the console</h2>
+<p>This is the main reason the pending-verification flow exists.</p>
+<p>Use:</p>
+<pre><code class="language-powershell">rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+</code></pre>
+<p>Then after reboot:</p>
+<pre><code class="language-powershell">rgh modules pending
+</code></pre>
+<p>Do not treat a disconnect as proof of success unless the post-reboot state confirms it.</p>
+<h2 id="modules-unload-is-rejected"><code>modules unload</code> is rejected</h2>
+<p>XeCLI requires <code>--force</code> because unload can destabilize the target.</p>
+<p>Use:</p>
+<pre><code class="language-powershell">rgh modules unload --name HvP2.xex --force
+</code></pre>
+<p>If the module handle cannot be resolved:</p>
+<ul>
+<li>confirm the module is actually loaded with <code>rgh modules list</code></li>
+<li>try unloading by explicit handle if you already know it</li>
+</ul>
+<h2 id="screenshot-output-is-wrong-or-empty">Screenshot output is wrong or empty</h2>
+<p>Check:</p>
+<ul>
+<li>the console is running a visible title or shell</li>
+<li>the frame buffer format is being decoded into the selected output format</li>
+<li>the output file size is reasonable</li>
+</ul>
+<p>A healthy BMP capture should produce a non-trivial file with dimensions matching the decoded frame-buffer metadata emitted by the command.</p>
+<h2 id="save-or-content-commands-return-too-much-data">Save or content commands return too much data</h2>
+<p>Use more specific filters:</p>
+<pre><code class="language-powershell">rgh save list --titleid 415608C3 --profile E00012AA8D7879B4
+rgh content list --titleid 415608C3
+</code></pre>
+<p>Dashboard content trees can be very large if you query them broadly.</p>
+<h2 id="ghidra-decompile-output-contains-placeholder-stubs">Ghidra decompile output contains placeholder stubs</h2>
+<p>Run:</p>
+<pre><code class="language-powershell">rgh ghidra verify --dir .\decomp
+</code></pre>
+<p>If the output contains widespread bad-instruction placeholders, the problem is usually with import/loader quality rather than a terminal formatting issue.</p>
+<h2 id="ftp-backed-commands-behave-differently-from-xbdm-backed-ones">FTP-backed commands behave differently from XBDM-backed ones</h2>
+<p>That is expected. They hit different console services.</p>
+<p>If FTP commands fail while XBDM commands succeed:</p>
+<ul>
+<li>verify the FTP service is enabled</li>
+<li>verify username, password, and port</li>
+<li>verify the path format you are using</li>
+</ul>
+<h2 id="first-run-path-prompt-never-appeared">First-run PATH prompt never appeared</h2>
+<p>The PATH prompt is only shown for interactive packaged runs. It is intentionally skipped when:</p>
+<ul>
+<li>output is redirected</li>
+<li>help is being shown</li>
+<li><code>install</code> is already the active command</li>
+</ul>
+<p>Manual fallback:</p>
+<pre><code class="language-powershell">rgh install --machine-path
+</code></pre>
+<h2 id="rghexe-says-net-is-missing"><code>rgh.exe</code> says .NET is missing</h2>
+<p>The published <code>win-x64</code> release should not require a separate .NET install. If you see a runtime-missing error:</p>
+<ul>
+<li>you are probably using an older framework-dependent build</li>
+<li>or you are running a source build instead of the packaged release</li>
+</ul>
+<p>Use the latest release archive from GitHub Releases. The release folder should contain:</p>
+<ul>
+<li><code>rgh.exe</code></li>
+<li>bundled runtime files beside it</li>
+<li><code>ConsoleDependencies/</code></li>
+<li><code>Assets/</code></li>
+<li><code>ghidra_scripts/</code></li>
+</ul>
+<p>If you are intentionally running from source, install the .NET 10 SDK/runtime and use:</p>
+<pre><code class="language-powershell">dotnet run --project src/Xbox360.Remote.Cli -- --help
+</code></pre>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

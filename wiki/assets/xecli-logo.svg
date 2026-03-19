@@ -1,0 +1,16 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="xecli-green" x1="28" y1="28" x2="184" y2="184" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#19D66B"/>
+      <stop offset="1" stop-color="#0FB8FF"/>
+    </linearGradient>
+    <linearGradient id="xecli-dark" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0C121A"/>
+      <stop offset="1" stop-color="#111B27"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="42" fill="url(#xecli-dark)"/>
+  <path d="M37 52H82L112 102L142 52H187L134 128L190 204H145L112 155L79 204H34L90 128L37 52Z" fill="url(#xecli-green)"/>
+  <path d="M163 86H217V106H183V119H213V139H183V150H217V170H163V86Z" fill="#F6FAFF"/>
+  <path d="M154 182H225V200H154V182Z" fill="#F6FAFF"/>
+</svg>

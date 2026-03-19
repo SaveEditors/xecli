@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FAQ | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="FAQ.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-logo.svg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" >
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" >
+              <summary>Developer Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" open>
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link is-current" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Data and Integrations</div>
+          <h1>FAQ</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/FAQ.md">Source</a>
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/FAQ.md">Open on GitHub</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="faq">FAQ</h1>
+<h2 id="is-the-project-name-xecli-or-rgh">Is the project name <code>XeCLI</code> or <code>rgh</code></h2>
+<p>Both, by design.</p>
+<ul>
+<li>Repository and product name: <code>XeCLI</code></li>
+<li>Installed command: <code>rgh</code></li>
+</ul>
+<h2 id="does-xecli-fetch-title-id-metadata-from-the-internet">Does XeCLI fetch Title ID metadata from the internet</h2>
+<p>No. The bundled Title ID database ships with the repository and with the published release.</p>
+<h2 id="can-i-use-the-title-id-database-in-my-own-tools">Can I use the Title ID database in my own tools</h2>
+<p>Yes. That is a supported use case. Read the bundled CSV/TXT files directly or use <code>rgh title --json</code>.</p>
+<h2 id="does-xecli-include-console-side-plugins">Does XeCLI include console-side plugins</h2>
+<p>Partially. The source tree and release package now ship common console-side <code>.xex</code> dependency files in <code>ConsoleDependencies/</code>, including <code>xbdm.xex</code>, <code>XDRPC.xex</code>, and <code>JRPC2.xex</code>.</p>
+<p>That does not mean XeCLI installs or enables them automatically. Console-side services such as XBDM, JRPC2, and FTP still need to be installed and configured on the target console.</p>
+<h2 id="why-does-rgh-title-work-with-no-arguments">Why does <code>rgh title</code> work with no arguments</h2>
+<p>Because the command is designed to resolve the active title by default when no Title ID is supplied.</p>
+<h2 id="why-does-status-quick-show-skipped-fields">Why does <code>status --quick</code> show skipped fields</h2>
+<p>Because those fields were intentionally skipped. The current release distinguishes skipped from unknown so the operator can tell the difference between a deliberate fast path and a failed probe.</p>
+<h2 id="can-module-load-require-a-reboot">Can module load require a reboot</h2>
+<p>Yes. Some live module loads do not complete as a clean hot-load on every console or plugin stack. Use <code>--reboot-expected</code> and verify with <code>rgh modules pending</code>.</p>
+<h2 id="is-module-unload-safe">Is module unload safe</h2>
+<p>Not universally. That is why <code>modules unload</code> requires <code>--force</code>.</p>
+<h2 id="does-xecli-support-scripting">Does XeCLI support scripting</h2>
+<p>Yes. Prefer commands with <code>--json</code> when building scripts or companion tools.</p>
+<h2 id="can-i-extend-the-metadata-set">Can I extend the metadata set</h2>
+<p>Yes. Add entries to:</p>
+<ul>
+<li><code>%APPDATA%\XeCLI\titleids.local.csv</code></li>
+</ul>
+<h2 id="does-xecli-require-ghidra">Does XeCLI require Ghidra</h2>
+<p>No. Ghidra is only required for the <code>ghidra</code> and <code>xex decompile</code> workflows.</p>
+<h2 id="does-xecli-replace-aurora-neighborhood-or-xexmenu-completely">Does XeCLI replace Aurora, Neighborhood, or XeXMenu completely</h2>
+<p>No single tool replaces every scene workflow perfectly. The goal of XeCLI is to cover the high-value terminal-first workflows cleanly enough that you do not need to bounce between small one-off utilities for status, dumps, memory work, saves, content, notifications, screenshots, and scripted automation.</p>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

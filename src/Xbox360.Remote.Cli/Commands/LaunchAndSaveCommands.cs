@@ -227,21 +227,44 @@ public sealed class SaveExtractCommand : AsyncCommand<SaveExtractCommand.Setting
         string outputRoot = Path.Combine(settings.OutputDirectory!, titleFolder);
         Directory.CreateDirectory(outputRoot);
 
-        int downloaded = 0;
+        List<(SaveHelpers.SaveFileRecord File, string LocalPath)> plan = new List<(SaveHelpers.SaveFileRecord, string)>();
+        int skipped = 0;
         foreach (SaveHelpers.SaveFileRecord file in files) {
             string localPath = Path.Combine(outputRoot, file.Device, file.ProfileId, file.RelativePath.Replace('/', Path.DirectorySeparatorChar));
             string? localDir = Path.GetDirectoryName(localPath);
             if (!string.IsNullOrWhiteSpace(localDir))
                 Directory.CreateDirectory(localDir);
 
-            if (!settings.Overwrite && File.Exists(localPath))
+            if (!settings.Overwrite && File.Exists(localPath)) {
+                skipped++;
                 continue;
+            }
 
-            await SaveHelpers.DownloadFileAsync(ip, port, user, pass, timeout, file.RemotePath, localPath);
-            downloaded++;
+            plan.Add((file, localPath));
         }
 
-        AnsiConsole.MarkupLine($"[green]Extracted[/] {downloaded} save file(s) to {Markup.Escape(outputRoot)}");
+        if (plan.Count == 0) {
+            OperationFeedback.WriteWarning("Save extract skipped", $"all matching files already exist in [grey]{Markup.Escape(outputRoot)}[/]");
+            return 0;
+        }
+
+        await CliOutput.RunBatchProgressAsync(
+            $"Save extract {SaveHelpers.FormatTitleLabel(titleId)}",
+            plan.Select(item => new CliOutput.TransferBatchItem(item.File.RemotePath, item.File.Size)).ToList(),
+            async batch => {
+                foreach ((SaveHelpers.SaveFileRecord file, string localPath) in plan) {
+                    batch.StartFile(file.RemotePath, file.Size);
+                    Progress<long> perFile = new Progress<long>(value => batch.ReportFileProgress(value));
+                    await SaveHelpers.DownloadFileAsync(ip, port, user, pass, timeout, file.RemotePath, localPath, perFile);
+                    batch.CompleteFile();
+                }
+            });
+
+        OperationFeedback.WriteSuccess(
+            "Save extract complete",
+            $"[green]{plan.Count}[/] file(s)  [silver]{FtpHelpers.FormatBytes(plan.Sum(item => item.File.Size))}[/] -> [white]{Markup.Escape(outputRoot)}[/]");
+        if (skipped > 0)
+            OperationFeedback.WriteWarning("Save extract skipped existing files", skipped.ToString(CultureInfo.InvariantCulture));
         return 0;
     }
 }
@@ -340,19 +363,42 @@ public sealed class SaveInjectCommand : AsyncCommand<SaveInjectCommand.Settings>
         }
 
         (string ip, int port, string user, string pass, int timeout) = await FtpHelpers.ResolveAsync(settings, CancellationToken.None);
-        int uploaded = 0;
+        List<SaveHelpers.SaveUploadRecord> plan = new List<SaveHelpers.SaveUploadRecord>();
+        int skipped = 0;
         foreach (SaveHelpers.SaveUploadRecord upload in uploads) {
             if (!settings.Overwrite) {
                 bool exists = await SaveHelpers.RemoteFileExistsAsync(ip, port, user, pass, timeout, upload.RemotePath);
-                if (exists)
+                if (exists) {
+                    skipped++;
                     continue;
+                }
             }
 
-            await SaveHelpers.UploadFileAsync(ip, port, user, pass, timeout, upload.LocalPath, upload.RemotePath);
-            uploaded++;
+            plan.Add(upload);
         }
 
-        AnsiConsole.MarkupLine($"[green]Uploaded[/] {uploaded} save file(s) to {Markup.Escape(titleRoot)}");
+        if (plan.Count == 0) {
+            OperationFeedback.WriteWarning("Save inject skipped", $"all target files already exist in [grey]{Markup.Escape(titleRoot)}[/]");
+            return 0;
+        }
+
+        await CliOutput.RunBatchProgressAsync(
+            $"Save inject {SaveHelpers.FormatTitleLabel(titleId)}",
+            plan.Select(item => new CliOutput.TransferBatchItem(item.RemotePath, item.Size)).ToList(),
+            async batch => {
+                foreach (SaveHelpers.SaveUploadRecord upload in plan) {
+                    batch.StartFile(upload.RemotePath, upload.Size);
+                    Progress<long> perFile = new Progress<long>(value => batch.ReportFileProgress(value));
+                    await SaveHelpers.UploadFileAsync(ip, port, user, pass, timeout, upload.LocalPath, upload.RemotePath, perFile);
+                    batch.CompleteFile();
+                }
+            });
+
+        OperationFeedback.WriteSuccess(
+            "Save inject complete",
+            $"[green]{plan.Count}[/] file(s)  [silver]{FtpHelpers.FormatBytes(plan.Sum(item => item.Size))}[/] -> [white]{Markup.Escape(titleRoot)}[/]");
+        if (skipped > 0)
+            OperationFeedback.WriteWarning("Save inject skipped existing files", skipped.ToString(CultureInfo.InvariantCulture));
         return 0;
     }
 }
@@ -419,18 +465,30 @@ internal static class SaveHelpers {
         return files;
     }
 
-    public static async Task DownloadFileAsync(string ip, int port, string user, string pass, int timeoutMs, string remotePath, string localPath) {
+    public static async Task DownloadFileAsync(string ip, int port, string user, string pass, int timeoutMs, string remotePath, string localPath, IProgress<long>? progress = null) {
         await WithFreshClientAsync(ip, port, user, pass, timeoutMs, async client => {
-            await client.DownloadFile(localPath, remotePath, FtpLocalExists.Overwrite, FtpVerify.None);
+            Progress<FtpProgress>? ftpProgress = progress == null
+                ? null
+                : new Progress<FtpProgress>(p => {
+                    if (p.TransferredBytes >= 0)
+                        progress.Report(p.TransferredBytes);
+                });
+            await client.DownloadFile(localPath, remotePath, FtpLocalExists.Overwrite, FtpVerify.None, ftpProgress);
         });
     }
 
-    public static async Task UploadFileAsync(string ip, int port, string user, string pass, int timeoutMs, string localPath, string remotePath) {
+    public static async Task UploadFileAsync(string ip, int port, string user, string pass, int timeoutMs, string localPath, string remotePath, IProgress<long>? progress = null) {
         await WithFreshClientAsync(ip, port, user, pass, timeoutMs, async client => {
             string? parent = Path.GetDirectoryName(remotePath.Replace('/', Path.DirectorySeparatorChar));
             if (!string.IsNullOrWhiteSpace(parent))
                 await EnsureRemoteDirectoryAsync(client, parent);
-            await client.UploadFile(localPath, remotePath, FtpRemoteExists.Overwrite, true, FtpVerify.None);
+            Progress<FtpProgress>? ftpProgress = progress == null
+                ? null
+                : new Progress<FtpProgress>(p => {
+                    if (p.TransferredBytes >= 0)
+                        progress.Report(p.TransferredBytes);
+                });
+            await client.UploadFile(localPath, remotePath, FtpRemoteExists.Overwrite, true, FtpVerify.None, ftpProgress);
         });
     }
 

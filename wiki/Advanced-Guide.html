@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Advanced Guide | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Advanced-Guide.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-logo.svg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" >
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" open>
+              <summary>Developer Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link is-current" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Developer Reference</div>
+          <h1>Advanced Guide</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Advanced-Guide.md">Source</a>
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Advanced-Guide.md">Open on GitHub</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="advanced-guide">Advanced Guide</h1>
+<p>This page focuses on the workflows where XeCLI is strongest: live inspection, module work, memory editing, debugger control, XEX extraction, and automation.</p>
+<h2 id="pick-the-right-data-source">Pick the Right Data Source</h2>
+<p>Use the transport that matches the task:</p>
+<ul>
+<li>XBDM for live control, memory, threads, screenshots, and module metadata</li>
+<li>JRPC2 for Title ID, CPU key, temperatures, notifications, and generic RPC</li>
+<li>FTP for bulk file transfer, content trees, save files, and DashLaunch config edits</li>
+</ul>
+<p>Trying to force one transport into every job is where most fragile automation starts.</p>
+<h2 id="active-title-and-metadata">Active Title and Metadata</h2>
+<p><code>rgh title</code> is now useful as an operator tool, not just a raw lookup helper:</p>
+<pre><code class="language-powershell">rgh title
+rgh title --json
+</code></pre>
+<p>It resolves the active Title ID from the console and can layer a path-based fallback name over the bundled database entry when the live XEX is a dashboard replacement or homebrew shell.</p>
+<h2 id="memory-work">Memory Work</h2>
+<h3 id="read-and-verify-before-you-write">Read and verify before you write</h3>
+<p>Typical sequence:</p>
+<pre><code class="language-powershell">rgh mem hexdump --addr 0x30000000 --size 0x40
+rgh mem peek --addr 0x30000000 --type u32
+rgh mem search --addr 0x30000000 --size 0x1000 --pattern DEADBEEF
+</code></pre>
+<h3 id="write-with-type-discipline">Write with type discipline</h3>
+<pre><code class="language-powershell">rgh mem poke --addr 0x82000000 --type u32 --value 0x12345678
+rgh mem poke --addr 0x82000000 --type float --value 1337
+rgh mem poke --addr 0x82000000 --type string --value &quot;XeCLI&quot;
+</code></pre>
+<p>Do not treat <code>poke</code> as a blind trainer primitive. Read the target first, confirm endianness, then write.</p>
+<h3 id="freeze-writes">Freeze writes</h3>
+<pre><code class="language-powershell">rgh mem search --addr 0x82000000 --size 0x4000 --pattern 00000000 --freeze --freeze-type u32 --freeze-value 1 --freeze-count 10
+</code></pre>
+<p>Use this for controlled short tests. Infinite freeze loops are available, but that is not a good default during early analysis.</p>
+<h2 id="module-work">Module Work</h2>
+<h3 id="safe-module-queries">Safe module queries</h3>
+<pre><code class="language-powershell">rgh modules list
+rgh modules info --name Aurora.xex
+rgh modules dump --name xam.xex --out .\xam.bin
+</code></pre>
+<h3 id="unload-workflow">Unload workflow</h3>
+<pre><code class="language-powershell">rgh modules unload --name HvP2.xex --force
+</code></pre>
+<p>Unload is intentionally gated because live module unload can wedge the console if the target rejects it.</p>
+<h3 id="reboot-expected-load-workflow">Reboot-expected load workflow</h3>
+<p>Some modules or plugin stacks do not complete as a clean hot-load. XeCLI supports a tracked reboot-expected flow:</p>
+<pre><code class="language-powershell">rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+</code></pre>
+<p>Then, after the console comes back:</p>
+<pre><code class="language-powershell">rgh modules pending
+</code></pre>
+<p>This is better than pretending a disconnect was success.</p>
+<h2 id="thread-and-debug-work">Thread and Debug Work</h2>
+<h3 id="thread-control">Thread control</h3>
+<pre><code class="language-powershell">rgh threads list
+rgh threads context --id 0xFB000008
+rgh threads suspend --id 0xFB000008
+rgh threads resume --id 0xFB000008
+</code></pre>
+<h3 id="execution-control-and-events">Execution control and events</h3>
+<pre><code class="language-powershell">rgh debug stop
+rgh debug go
+rgh debug watch
+</code></pre>
+<p><code>debug watch</code> is the quickest way to confirm that the console is actually emitting debug lifecycle events instead of silently stalling.</p>
+<h3 id="breakpoints">Breakpoints</h3>
+<pre><code class="language-powershell">rgh debug break add --addr 0x82001000
+rgh debug databreak add --addr 0x82100000 --size 4 --type write
+</code></pre>
+<p>Use code breakpoints to catch known execution sites and data breakpoints to identify writers to hot structures.</p>
+<h2 id="xex-and-ghidra-work">XEX and Ghidra Work</h2>
+<h3 id="dump-the-actual-executable">Dump the actual executable</h3>
+<p>Use <code>xex dump</code> for a real XEX image, not a raw module dump:</p>
+<pre><code class="language-powershell">rgh xex dump --out .\title.xex
+</code></pre>
+<h3 id="string-triage">String triage</h3>
+<pre><code class="language-powershell">rgh xex strings --running --unicode --min 6
+</code></pre>
+<h3 id="full-headless-pipeline">Full headless pipeline</h3>
+<pre><code class="language-powershell">rgh ghidra config --path &quot;C:\Tools\ghidra&quot; --java &quot;C:\Java&quot;
+rgh ghidra analyze --in .\title.xex
+rgh ghidra decompile --in .\title.xex --out .\decomp
+rgh ghidra verify --dir .\decomp
+</code></pre>
+<p><code>ghidra verify</code> exists because a decompile folder full of placeholder stubs is worse than no result at all if you do not catch it.</p>
+<h2 id="save-content-and-plugin-operations">Save, Content, and Plugin Operations</h2>
+<p>Use FTP-backed commands when the job is about the storage layout instead of the live memory image:</p>
+<pre><code class="language-powershell">rgh save extract --titleid 415608C3 --out .\saves
+rgh content list --device Hdd1 --show-types
+rgh plugin list
+rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex --backup
+</code></pre>
+<p>Treat content deletion and plugin edits as operational changes, not exploratory commands.</p>
+<h2 id="automation-guidance">Automation Guidance</h2>
+<h3 id="good-automation-targets">Good automation targets</h3>
+<ul>
+<li><code>status --json</code></li>
+<li><code>title --json</code></li>
+<li><code>modules list --json</code></li>
+<li><code>content list --json</code></li>
+<li><code>ghidra verify --json</code></li>
+</ul>
+<h3 id="bad-automation-targets">Bad automation targets</h3>
+<ul>
+<li>interactive selection flows</li>
+<li>destructive commands without explicit targeting</li>
+<li>reboot-expected module loads without follow-up verification</li>
+</ul>
+<h3 id="example-pattern">Example pattern</h3>
+<pre><code class="language-powershell">rgh status --json &gt; status.json
+rgh title --json &gt; title.json
+rgh modules list --json &gt; modules.json
+</code></pre>
+<h2 id="when-to-stop-and-reassess">When to Stop and Reassess</h2>
+<p>Stop and reassess instead of brute-forcing the console when:</p>
+<ul>
+<li>a module load repeatedly knocks the box off LAN</li>
+<li>XBDM stays up but JRPC2 calls become ambiguous</li>
+<li>a memory write target does not retain values across reads</li>
+<li>decompile output collapses into placeholder stubs</li>
+</ul>
+<p>XeCLI is most effective when it makes unstable workflows explicit instead of hiding them.</p>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

@@ -14,6 +14,7 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 - [CLI Help Output](wiki/CLI-Help.md)
 - [Beginner Guide](wiki/Beginner-Guide.md)
 - [Advanced Guide](wiki/Advanced-Guide.md)
+- [Published Docs Site](https://saveeditors.github.io/xecli/wiki/Home.html)
 
 ## Interface Preview
 Top-level help:
@@ -104,9 +105,12 @@ Download the release archive, extract it, and run `rgh.exe`.
 Release contents:
 
 - `rgh.exe`
+- native .NET runtime files bundled beside `rgh.exe`
 - `ConsoleDependencies/`
 - `Assets/`
 - `ghidra_scripts/`
+
+The release package is self-contained for `win-x64`. It does not require a separate .NET runtime install on the target PC.
 
 On first interactive launch from a packaged build, XeCLI offers a one-time prompt to add its directory to the machine PATH. That operation requires administrator approval and makes `rgh` available in new terminals.
 
@@ -124,6 +128,8 @@ cd XeCLI
 dotnet build -c Release
 dotnet run --project src/Xbox360.Remote.Cli -- --help
 ```
+
+Source builds require the .NET 10 SDK/runtime. That requirement does not apply to the published `win-x64` release archive.
 
 ## Quick Start
 Discover and select a console:

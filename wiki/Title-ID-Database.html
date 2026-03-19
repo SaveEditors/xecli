@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Title ID Database | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Title-ID-Database.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-logo.svg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" >
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" >
+              <summary>Developer Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" open>
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link is-current" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Data and Integrations</div>
+          <h1>Title ID Database</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Title-ID-Database.md">Source</a>
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Title-ID-Database.md">Open on GitHub</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="title-id-database">Title ID Database</h1>
+<p>This page documents the bundled Title ID metadata that ships with XeCLI and explains how it can be reused by other tooling.</p>
+<h2 id="files">Files</h2>
+<p>Bundled database files:</p>
+<ul>
+<li><code>src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv</code></li>
+<li><code>src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt</code></li>
+</ul>
+<p>Optional local extension file:</p>
+<ul>
+<li><code>%APPDATA%\XeCLI\titleids.local.csv</code></li>
+</ul>
+<p>The bundled files are part of the repository and part of the published release. XeCLI does not fetch them from the internet at runtime.</p>
+<h2 id="what-the-database-is-used-for">What the Database Is Used For</h2>
+<p>XeCLI uses the Title ID database to:</p>
+<ul>
+<li>resolve raw Title IDs into readable names</li>
+<li>enrich content listings</li>
+<li>label active-title output</li>
+<li>attach region/media metadata to lookups</li>
+</ul>
+<p>Other tools can use the same files to:</p>
+<ul>
+<li>enrich dashboards</li>
+<li>label save editors</li>
+<li>annotate dump folders</li>
+<li>match media-specific variants</li>
+</ul>
+<h2 id="current-behavior">Current Behavior</h2>
+<p><code>rgh title</code> combines live title resolution with the bundled database:</p>
+<pre><code class="language-powershell">rgh title
+rgh title 415608C3
+rgh title 415608C3 2B7302D6
+</code></pre>
+<p>If the live Title ID maps to a generic system entry but the running XEX path clearly indicates a dashboard replacement or homebrew shell, XeCLI can surface a better display name while still showing the database entry separately.</p>
+<h2 id="data-shape">Data Shape</h2>
+<p>The CSV contains fields such as:</p>
+<ul>
+<li>Title ID</li>
+<li>Media ID</li>
+<li>Name</li>
+<li>Serial</li>
+<li>Type</li>
+<li>Region</li>
+<li>XEX CRC when available</li>
+<li>Wave metadata when available</li>
+</ul>
+<p>The TXT file is used as an additional bundled source for matching entries not present in the CSV set.</p>
+<h2 id="load-order">Load Order</h2>
+<p>XeCLI loads Title ID metadata in this order:</p>
+<ol>
+<li><code>xbox360_gamelist.csv</code></li>
+<li><code>xbox360_titleids.txt</code></li>
+<li><code>%APPDATA%\XeCLI\titleids.local.csv</code></li>
+</ol>
+<p>That means local overrides can extend the bundled data without replacing it.</p>
+<h2 id="local-overrides">Local Overrides</h2>
+<p>Use the local override file when you want to add:</p>
+<ul>
+<li>private homebrew entries</li>
+<li>internal builds</li>
+<li>scene tools not present in the bundled set</li>
+<li>corrected names or media-specific annotations</li>
+</ul>
+<p>The local override file should follow the same CSV layout XeCLI already understands.</p>
+<h2 id="using-the-database-outside-xecli">Using the Database Outside XeCLI</h2>
+<p>External tools can read the database directly. A few common use cases:</p>
+<ul>
+<li>display Title ID names in a launcher</li>
+<li>annotate <code>content list</code> results with richer metadata</li>
+<li>attach names to save extraction folders</li>
+<li>feed game names into reporting or automation pipelines</li>
+</ul>
+<p>If you are building another tool, prefer reading the shipped asset files from the release or repository rather than inventing another metadata source.</p>
+<h2 id="practical-examples">Practical Examples</h2>
+<p>Resolve a live title through XeCLI:</p>
+<pre><code class="language-powershell">rgh title --json
+</code></pre>
+<p>Use the CSV directly in another tool:</p>
+<ul>
+<li>load <code>xbox360_gamelist.csv</code></li>
+<li>normalize the Title ID to 8-digit hex</li>
+<li>join by Media ID when available</li>
+</ul>
+<h2 id="what-this-database-is-not">What This Database Is Not</h2>
+<p>It is not:</p>
+<ul>
+<li>a runtime online service</li>
+<li>a replacement for your own private overrides</li>
+<li>a perfect universal source for every homebrew build ever made</li>
+</ul>
+<p>That is why XeCLI supports local additive overrides instead of pretending the bundled set is the end of the story.</p>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

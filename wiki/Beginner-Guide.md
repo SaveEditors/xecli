@@ -6,7 +6,8 @@ This guide covers the safe, practical path from a fresh install to a working liv
 On the PC side:
 
 - Windows
-- .NET 10 runtime if you are not using the bundled release executable
+- no extra runtime if you are using the published `win-x64` release package
+- .NET 10 only if you are building or running XeCLI from source
 - Network access to the console
 
 On the console side:
@@ -21,6 +22,8 @@ If you are using a release build:
 ```powershell
 rgh
 ```
+
+The published release is self-contained. Extract it, run `rgh.exe`, and XeCLI can install the PATH entry for you. You do not need to install .NET separately for that path.
 
 On first interactive launch, XeCLI can offer to add itself to the machine PATH. Accept that if you want `rgh` available everywhere.
 

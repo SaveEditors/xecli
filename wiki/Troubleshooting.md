@@ -123,3 +123,23 @@ Manual fallback:
 ```powershell
 rgh install --machine-path
 ```
+
+## `rgh.exe` says .NET is missing
+The published `win-x64` release should not require a separate .NET install. If you see a runtime-missing error:
+
+- you are probably using an older framework-dependent build
+- or you are running a source build instead of the packaged release
+
+Use the latest release archive from GitHub Releases. The release folder should contain:
+
+- `rgh.exe`
+- bundled runtime files beside it
+- `ConsoleDependencies/`
+- `Assets/`
+- `ghidra_scripts/`
+
+If you are intentionally running from source, install the .NET 10 SDK/runtime and use:
+
+```powershell
+dotnet run --project src/Xbox360.Remote.Cli -- --help
+```

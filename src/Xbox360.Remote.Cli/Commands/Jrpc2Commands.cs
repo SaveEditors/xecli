@@ -126,12 +126,20 @@ public sealed class Jrpc2CallCommand : AsyncCommand<Jrpc2CallCommand.Settings> {
 
 public sealed class Jrpc2NotifyCommand : AsyncCommand<Jrpc2NotifyCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
+        [CommandArgument(0, "[message]")]
+        [Description("Notification text.")]
+        public string? MessageArgument { get; init; }
+
+        [CommandArgument(1, "[logo]")]
+        [Description("Optional icon id or built-in icon name.")]
+        public string? LogoArgument { get; init; }
+
         [CommandOption("--logo <ID>")]
-        [Description("Notification logo id (default 0).")]
+        [Description("Notification logo id or built-in icon name.")]
         public string? Logo { get; init; }
 
         [CommandOption("--icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [Description("Notification icon preset name from config.")]
         public string? Icon { get; init; }
 
         [CommandOption("--message <TEXT>")]
@@ -140,20 +148,22 @@ public sealed class Jrpc2NotifyCommand : AsyncCommand<Jrpc2NotifyCommand.Setting
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
-        if (string.IsNullOrWhiteSpace(settings.Message)) {
-            AnsiConsole.MarkupLine("[red]--message is required.[/]");
+        string? message = !string.IsNullOrWhiteSpace(settings.Message) ? settings.Message : settings.MessageArgument;
+        if (string.IsNullOrWhiteSpace(message)) {
+            AnsiConsole.MarkupLine("[red]Notification text is required. Use `rgh jrpc2 notify \"text\" 14` or `--message`.[/]");
             return 1;
         }
 
-        if (!NotifyHelpers.TryResolveLogo(settings.Icon, settings.Logo, out int logo, out string? error)) {
+        string? logoValue = !string.IsNullOrWhiteSpace(settings.Logo) ? settings.Logo : settings.LogoArgument;
+        if (!NotifyHelpers.TryResolveLogo(settings.Icon, logoValue, out int logo, out string? error)) {
             AnsiConsole.MarkupLine($"[red]{Markup.Escape(error ?? "Invalid notify options.")}[/]");
             return 1;
         }
 
         return await CliHelpers.WithClientAsync(settings, async client => {
             Jrpc2Client jrpc = new Jrpc2Client(client);
-            await jrpc.ShowNotificationAsync(logo, settings.Message, CancellationToken.None);
-            AnsiConsole.MarkupLine("[green]Notification sent.[/]");
+            await jrpc.ShowNotificationAsync(logo, message, CancellationToken.None);
+            AnsiConsole.MarkupLine($"[green]Notification sent.[/] [grey]Icon:[/] [aqua]{Markup.Escape(NotifyHelpers.DescribeLogo(logo))}[/]");
             return 0;
         }, CancellationToken.None);
     }

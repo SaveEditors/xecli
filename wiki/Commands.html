@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Commands Reference | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Commands.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-logo.svg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" >
+              <summary>Developer Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>Commands Reference</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Commands.md">Source</a>
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Commands.md">Open on GitHub</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="commands-reference">Commands Reference</h1>
+<p>This page documents the XeCLI command surface by workflow area. Command examples use the installed terminal command <code>rgh</code>.</p>
+<h2 id="command-model">Command Model</h2>
+<p>XeCLI is organized into a few major namespaces:</p>
+<ul>
+<li>Core commands: status, title, targeting, launch, reboot</li>
+<li>XBDM-backed commands: modules, memory, threads, debug, screenshot, file system</li>
+<li>JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC</li>
+<li>FTP-backed commands: file access, saves, content, and plugin management</li>
+<li>Analysis commands: XEX, Ghidra, metadata</li>
+<li>Packaging commands: Games on Demand conversion and watchdog mode</li>
+</ul>
+<p>Shortcut equivalence:</p>
+<ul>
+<li><code>rgh modules</code> = <code>rgh xbdm modules</code></li>
+<li><code>rgh module</code> = alias of <code>rgh modules</code></li>
+<li><code>rgh mem</code> = <code>rgh xbdm mem</code></li>
+<li><code>rgh xex</code> = <code>rgh xbdm xex</code></li>
+<li><code>rgh fs</code> = <code>rgh xbdm fs</code></li>
+<li><code>rgh threads</code> = <code>rgh xbdm threads</code></li>
+<li><code>rgh debug</code> = <code>rgh xbdm debug</code></li>
+</ul>
+<p>High-traffic aliases:</p>
+<ul>
+<li><code>rgh s</code> = <code>rgh start</code></li>
+<li><code>rgh c</code> = <code>rgh connect</code></li>
+<li><code>rgh discover</code> = <code>rgh scan</code></li>
+<li><code>rgh shot</code> = <code>rgh screenshot</code></li>
+<li><code>rgh run</code> = <code>rgh launch</code></li>
+<li><code>rgh xnotify</code> = <code>rgh notify</code></li>
+<li><code>rgh mem search</code> = <code>rgh mem find</code></li>
+<li><code>rgh mem read</code> = <code>rgh mem peek</code></li>
+<li><code>rgh mem write</code> = <code>rgh mem poke</code></li>
+<li><code>rgh module remove</code> = <code>rgh modules unload</code></li>
+<li><code>rgh module verify</code> = <code>rgh modules pending</code></li>
+</ul>
+<p>For the exact top-level help screen and the exact help output of every top-level command group, see <a href="CLI-Help.html">CLI-Help.md</a>.</p>
+<h2 id="common-options">Common Options</h2>
+<h3 id="xbdm-backed-commands">XBDM-backed commands</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ip &lt;IP&gt;</code></td>
+<td>Console IP. Uses the saved target if omitted.</td>
+</tr>
+<tr>
+<td><code>--port &lt;PORT&gt;</code></td>
+<td>XBDM TCP port. Default: <code>730</code>.</td>
+</tr>
+<tr>
+<td><code>--timeout &lt;MS&gt;</code></td>
+<td>Socket timeout in milliseconds.</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit JSON output when supported.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ftp-backed-commands">FTP-backed commands</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ip &lt;IP&gt;</code></td>
+<td>Console IP. Uses the saved target if omitted.</td>
+</tr>
+<tr>
+<td><code>--port &lt;PORT&gt;</code></td>
+<td>FTP port. Default: <code>21</code>.</td>
+</tr>
+<tr>
+<td><code>--user &lt;USER&gt;</code></td>
+<td>FTP username. Default: <code>xboxftp</code>.</td>
+</tr>
+<tr>
+<td><code>--pass &lt;PASS&gt;</code></td>
+<td>FTP password. Default: <code>xboxftp</code>.</td>
+</tr>
+<tr>
+<td><code>--timeout &lt;MS&gt;</code></td>
+<td>FTP timeout in milliseconds.</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit JSON output when supported.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="discovery-commands">Discovery commands</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ports &lt;PORTS&gt;</code></td>
+<td>Comma-separated TCP ports to probe. Default: <code>730,731</code>.</td>
+</tr>
+<tr>
+<td><code>--timeout &lt;MS&gt;</code></td>
+<td>Discovery timeout. Default: <code>400</code>.</td>
+</tr>
+<tr>
+<td><code>--no-nap</code></td>
+<td>Disable NAP broadcast discovery.</td>
+</tr>
+<tr>
+<td><code>--no-tcp</code></td>
+<td>Disable TCP scan discovery.</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit discovery results as JSON.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="core-commands">Core Commands</h2>
+<h3 id="rgh-status"><code>rgh status</code></h3>
+<p>Console summary view with XBDM identity, running XEX, JRPC-backed fields, drive layout, and sign-in information.</p>
+<pre><code class="language-powershell">rgh status
+rgh status --quick
+rgh status --json
+rgh status --no-drives --no-users
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li><code>--quick</code> skips slower JRPC, drive, and sign-in probes.</li>
+<li>Skipped fields are rendered as skipped instead of unknown.</li>
+<li>When a pending module load or unload is being tracked across a reboot, <code>status</code> can surface that state.</li>
+</ul>
+<h3 id="rgh-profiles"><code>rgh profiles</code></h3>
+<p>Enumerates sign-in and profile information gathered from XBDM, JRPC/XAM, FTP, and F3 when available.</p>
+<pre><code class="language-powershell">rgh profiles
+rgh profiles --json
+rgh profiles --no-ftp
+rgh profiles --no-f3
+</code></pre>
+<h3 id="rgh-title"><code>rgh title</code></h3>
+<p>Resolve the active title or look up a specific Title ID from the bundled database.</p>
+<pre><code class="language-powershell">rgh title
+rgh title --json
+rgh title 415608C3
+rgh title 415608C3 2B7302D6
+rgh title active
+</code></pre>
+<h3 id="rgh-target"><code>rgh target</code></h3>
+<p>Show, set, or clear the saved default XBDM target.</p>
+<pre><code class="language-powershell">rgh target
+rgh target --set &lt;console-ip&gt;
+rgh target --set &lt;console-ip&gt; --port 730
+rgh target --clear
+</code></pre>
+<h3 id="rgh-ping"><code>rgh ping</code></h3>
+<p>Fast XBDM connectivity check.</p>
+<pre><code class="language-powershell">rgh ping
+</code></pre>
+<h3 id="rgh-reboot"><code>rgh reboot</code></h3>
+<p>Cold reboot or title reboot.</p>
+<pre><code class="language-powershell">rgh reboot
+rgh reboot --title
+rgh reboot --notify
+</code></pre>
+<h3 id="rgh-launch"><code>rgh launch</code></h3>
+<p>Launch a XEX with optional directory, arguments, title hint, and notification.</p>
+<pre><code class="language-powershell">rgh launch Hdd1:\Aurora\Aurora.xex
+rgh launch Hdd1:\Aurora\Aurora.xex --titleid FFFE07D1
+rgh launch --xex Hdd1:\Aurora\Aurora.xex --args &quot;debug=1&quot;
+rgh launch --xex Hdd1:\Aurora\Aurora.xex --dry-run
+</code></pre>
+<h3 id="rgh-install"><code>rgh install</code></h3>
+<p>Install or remove the command shim, or add/remove the machine PATH entry.</p>
+<pre><code class="language-powershell">rgh install
+rgh install --machine-path
+rgh install --uninstall
+</code></pre>
+<h2 id="discovery-commands_1">Discovery Commands</h2>
+<h3 id="rgh-start"><code>rgh start</code></h3>
+<pre><code class="language-powershell">rgh start
+rgh start --json
+</code></pre>
+<h3 id="rgh-connect"><code>rgh connect</code></h3>
+<pre><code class="language-powershell">rgh connect 1
+rgh connect &lt;console-ip&gt;
+</code></pre>
+<h3 id="rgh-scan"><code>rgh scan</code></h3>
+<pre><code class="language-powershell">rgh scan
+rgh scan --json
+</code></pre>
+<h2 id="screenshot-commands">Screenshot Commands</h2>
+<h3 id="rgh-screenshot"><code>rgh screenshot</code></h3>
+<pre><code class="language-powershell">rgh screenshot --out .\screen.bmp
+rgh screenshot --out .\screen.bmp --force
+</code></pre>
+<p>The command emits decoded frame-buffer metadata after a successful capture.</p>
+<h2 id="xbdm-root-commands">XBDM Root Commands</h2>
+<h3 id="rgh-xbdm-info"><code>rgh xbdm info</code></h3>
+<pre><code class="language-powershell">rgh xbdm info
+rgh xbdm info --json
+</code></pre>
+<h3 id="rgh-xbdm-raw"><code>rgh xbdm raw</code></h3>
+<pre><code class="language-powershell">rgh xbdm raw --cmd &quot;modules&quot;
+rgh xbdm raw --cmd &quot;dirlist name=Hdd:\\&quot;
+</code></pre>
+<h3 id="rgh-xbdm-screenshot"><code>rgh xbdm screenshot</code></h3>
+<pre><code class="language-powershell">rgh xbdm screenshot --out .\screen.bmp
+</code></pre>
+<h2 id="module-commands">Module Commands</h2>
+<h3 id="rgh-modules-list"><code>rgh modules list</code></h3>
+<pre><code class="language-powershell">rgh modules list
+rgh modules list --json
+rgh modules list --sections
+</code></pre>
+<h3 id="rgh-modules-info"><code>rgh modules info</code></h3>
+<pre><code class="language-powershell">rgh modules info --name Aurora.xex
+rgh modules info --name xam.xex --sections
+</code></pre>
+<h3 id="rgh-modules-dump"><code>rgh modules dump</code></h3>
+<pre><code class="language-powershell">rgh modules dump --name xam.xex --out .\xam.bin
+rgh modules dump --all --dir .\modules
+</code></pre>
+<h3 id="rgh-modules-load"><code>rgh modules load</code></h3>
+<pre><code class="language-powershell">rgh modules load --path Hdd:\HvP2.xex
+rgh modules load --path Hdd:\HvP2.xex --system
+rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+rgh modules load --path Hdd:\HvP2.xex --dry-run
+</code></pre>
+<p>Important options:</p>
+<ul>
+<li><code>--flags &lt;N&gt;</code> kernel load flags, default <code>8</code></li>
+<li><code>--system</code> runs the load on a system thread instead of the default title thread</li>
+<li><code>--reboot-expected</code> persists pending verification if the console disconnects as part of the load</li>
+<li><code>--notify</code> sends the default console success notification</li>
+</ul>
+<h3 id="rgh-modules-unload"><code>rgh modules unload</code></h3>
+<pre><code class="language-powershell">rgh modules unload --name HvP2.xex --force
+rgh modules unload --handle 0x91340000 --force
+rgh modules unload --name HvP2.xex --force --notify
+</code></pre>
+<p>Important options:</p>
+<ul>
+<li><code>--force</code> is required</li>
+<li><code>--skip-mark</code> disables the sysdll unload marker write at <code>handle+0x40</code></li>
+<li><code>--dry-run</code> resolves the target without modifying memory</li>
+</ul>
+<h3 id="rgh-modules-pending"><code>rgh modules pending</code></h3>
+<pre><code class="language-powershell">rgh modules pending
+</code></pre>
+<p>Use this after:</p>
+<pre><code class="language-powershell">rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+</code></pre>
+<h2 id="memory-commands">Memory Commands</h2>
+<h3 id="rgh-mem-dump"><code>rgh mem dump</code></h3>
+<pre><code class="language-powershell">rgh mem dump --addr 0x82000000 --size 0x20000 --out .\mem.bin
+</code></pre>
+<h3 id="rgh-mem-hexdump"><code>rgh mem hexdump</code></h3>
+<pre><code class="language-powershell">rgh mem hexdump --addr 0x30000000 --size 0x40
+</code></pre>
+<h3 id="rgh-mem-regions"><code>rgh mem regions</code></h3>
+<pre><code class="language-powershell">rgh mem regions
+rgh mem regions --json
+</code></pre>
+<h3 id="rgh-mem-peek"><code>rgh mem peek</code></h3>
+<pre><code class="language-powershell">rgh mem peek --addr 0x82000000 --type u32
+rgh mem peek --addr 0x82000000 --type ascii --len 32
+</code></pre>
+<h3 id="rgh-mem-poke"><code>rgh mem poke</code></h3>
+<pre><code class="language-powershell">rgh mem poke --addr 0x82000000 --type u32 --value 0x12345678
+rgh mem poke --addr 0x82000000 --type float --value 1337
+rgh mem poke --addr 0x82000000 --type string --value &quot;XeCLI&quot;
+</code></pre>
+<p>Type aliases include:</p>
+<ul>
+<li><code>u8</code>, <code>u16</code>, <code>u32</code>, <code>u64</code></li>
+<li><code>s8</code>, <code>s16</code>, <code>s32</code>, <code>s64</code></li>
+<li><code>f32</code>, <code>f64</code></li>
+<li><code>byte</code>, <code>int</code>, <code>uint</code>, <code>float</code></li>
+<li><code>ascii</code>, <code>string</code>, <code>hex</code>, <code>bytes</code></li>
+</ul>
+<h3 id="rgh-mem-watch"><code>rgh mem watch</code></h3>
+<pre><code class="language-powershell">rgh mem watch --addr 0x82000000 --size 0x40
+rgh mem watch --addr 0x82000000 --size 0x40 --interval 100 --count 10
+</code></pre>
+<h3 id="rgh-mem-strings"><code>rgh mem strings</code></h3>
+<pre><code class="language-powershell">rgh mem strings --addr 0x82000000 --size 0x20000 --min 6
+rgh mem strings --addr 0x82000000 --size 0x20000 --json
+</code></pre>
+<h3 id="rgh-mem-search"><code>rgh mem search</code></h3>
+<p>Alias of <code>rgh mem find</code>.</p>
+<pre><code class="language-powershell">rgh mem search --addr 0x30000000 --size 0x1000 --pattern DEADBEEF
+rgh mem search --addr 0x82000000 --size 0x20000 --ascii &quot;xam.xex&quot;
+rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --out .\hits.json
+</code></pre>
+<p>Freeze options:</p>
+<pre><code class="language-powershell">rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --freeze --freeze-type u32 --freeze-value 305419896
+rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --freeze --freeze-all --freeze-count 5
+</code></pre>
+<h2 id="xex-commands">XEX Commands</h2>
+<h3 id="rgh-xex-dump"><code>rgh xex dump</code></h3>
+<pre><code class="language-powershell">rgh xex dump --out .\title.xex
+rgh xex dump --path Hdd1:\Aurora\Aurora.xex --out .\aurora.xex
+</code></pre>
+<h3 id="rgh-xex-strings"><code>rgh xex strings</code></h3>
+<pre><code class="language-powershell">rgh xex strings --running --unicode --min 6
+rgh xex strings --ftp-path /Hdd1/Aurora/Aurora.xex --out .\strings.txt
+rgh xex strings --in .\title.xex --json
+</code></pre>
+<h3 id="rgh-xex-decompile"><code>rgh xex decompile</code></h3>
+<pre><code class="language-powershell">rgh xex decompile --in .\title.xex --out .\decomp
+rgh xex decompile --running --out .\decomp --max 200
+</code></pre>
+<h2 id="file-system-commands">File-System Commands</h2>
+<h3 id="xbdm-backed">XBDM-backed</h3>
+<pre><code class="language-powershell">rgh fs list --path Hdd:\
+rgh fs get --path Hdd:\launch.ini --out .\launch.ini
+rgh fs put --path Hdd:\launch.ini --in .\launch.ini
+rgh fs cat --path Hdd:\launch.ini
+rgh fs rm --path Hdd:\temp\old.txt
+rgh fs mkdir --path Hdd:\temp\newdir
+rgh fs mv --from Hdd:\old.txt --to Hdd:\new.txt
+</code></pre>
+<h3 id="ftp-backed">FTP-backed</h3>
+<p>Target management:</p>
+<pre><code class="language-powershell">rgh ftp target
+rgh ftp target --set &lt;console-ip&gt; --user &lt;ftp-user&gt; --pass &lt;ftp-pass&gt;
+rgh ftp target --clear
+</code></pre>
+<pre><code class="language-powershell">rgh ftp list --path /Hdd1/
+rgh ftp find --path /Hdd1/ --name *.xex
+rgh ftp get --path /Hdd1/launch.ini --out .\launch.ini
+rgh ftp put --path /Hdd1/launch.ini --in .\launch.ini
+rgh ftp cat --path /Hdd1/launch.ini
+rgh ftp rm --path /Hdd1/temp/old.txt
+rgh ftp mkdir --path /Hdd1/newdir
+rgh ftp mv --from /Hdd1/old.txt --to /Hdd1/new.txt
+</code></pre>
+<h2 id="thread-and-debug-commands">Thread and Debug Commands</h2>
+<h3 id="threads">Threads</h3>
+<pre><code class="language-powershell">rgh threads list
+rgh threads context --id 0xFB000008
+rgh threads suspend --id 0xFB000008
+rgh threads resume --id 0xFB000008
+</code></pre>
+<h3 id="debug-control">Debug control</h3>
+<pre><code class="language-powershell">rgh debug stop
+rgh debug go
+rgh debug watch
+</code></pre>
+<h3 id="breakpoints">Breakpoints</h3>
+<pre><code class="language-powershell">rgh debug break add --addr 0x82001000
+rgh debug break remove --addr 0x82001000
+rgh debug break clearall
+</code></pre>
+<h3 id="data-breakpoints">Data breakpoints</h3>
+<pre><code class="language-powershell">rgh debug databreak add --addr 0x82100000 --size 4 --type write
+rgh debug databreak remove --addr 0x82100000 --size 4 --type write
+</code></pre>
+<h2 id="jrpc2-commands">JRPC2 Commands</h2>
+<pre><code class="language-powershell">rgh jrpc2 cpu-key
+rgh jrpc2 temps
+rgh jrpc2 temps --sensor gpu
+rgh jrpc2 title-id
+rgh jrpc2 dashboard
+rgh jrpc2 motherboard
+rgh jrpc2 resolve --module xam.xex --ordinal 526
+rgh jrpc2 notify --message &quot;XeCLI&quot;
+rgh jrpc2 call --module xam.xex --ordinal 526 --ret int --arg int:0
+</code></pre>
+<h2 id="notification-commands">Notification Commands</h2>
+<pre><code class="language-powershell">rgh notify &quot;Success :)&quot;
+rgh notify --message &quot;XeCLI connected&quot; --icon info
+rgh notify-icons list
+rgh notify-icons add --name success --logo 0x24
+rgh notify-icons remove --name success
+</code></pre>
+<h2 id="save-commands">Save Commands</h2>
+<h3 id="rgh-save-list"><code>rgh save list</code></h3>
+<pre><code class="language-powershell">rgh save list --titleid FFFE07D1 --device Hdd1
+rgh save list --titleid 415608C3 --profile E00012AA8D7879B4
+</code></pre>
+<h3 id="rgh-save-extract"><code>rgh save extract</code></h3>
+<pre><code class="language-powershell">rgh save extract --titleid 415608C3 --out .\saves
+rgh save extract --titleid 415608C3 --profile E00012AA8D7879B4 --device Hdd1 --overwrite
+</code></pre>
+<h3 id="rgh-save-inject"><code>rgh save inject</code></h3>
+<pre><code class="language-powershell">rgh save inject --titleid 415608C3 --in .\saves --device Hdd1
+rgh save inject --titleid 415608C3 --profile E00012AA8D7879B4 --in .\save.bin --overwrite
+</code></pre>
+<h2 id="content-commands">Content Commands</h2>
+<h3 id="rgh-content-list"><code>rgh content list</code></h3>
+<pre><code class="language-powershell">rgh content list
+rgh content list --device Hdd1 --show-types
+rgh content list --titleid 415608C3
+</code></pre>
+<h3 id="rgh-content-delete"><code>rgh content delete</code></h3>
+<pre><code class="language-powershell">rgh content delete --titleid 415608C3 --type &quot;Title Update&quot;
+</code></pre>
+<p>Treat delete operations as destructive.</p>
+<h2 id="plugin-commands">Plugin Commands</h2>
+<h3 id="rgh-plugin-list"><code>rgh plugin list</code></h3>
+<pre><code class="language-powershell">rgh plugin list
+</code></pre>
+<h3 id="rgh-plugin-enable"><code>rgh plugin enable</code></h3>
+<pre><code class="language-powershell">rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex
+rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex --backup
+</code></pre>
+<h3 id="rgh-plugin-disable"><code>rgh plugin disable</code></h3>
+<pre><code class="language-powershell">rgh plugin disable --slot 5
+</code></pre>
+<p>These commands edit <code>launch.ini</code> over FTP. Back up first when changing a live configuration.</p>
+<h2 id="god-commands">GOD Commands</h2>
+<h3 id="rgh-god-info"><code>rgh god info</code></h3>
+<pre><code class="language-powershell">rgh god info .\game.iso
+</code></pre>
+<h3 id="rgh-god-build"><code>rgh god build</code></h3>
+<pre><code class="language-powershell">rgh god build .\game.iso .\god
+rgh god build .\game.iso .\god --trim end --threads 2
+</code></pre>
+<h3 id="rgh-god-watch"><code>rgh god watch</code></h3>
+<pre><code class="language-powershell">rgh god watch .\incoming --dest .\god
+rgh god watch .\incoming --dest .\god --recursive --move-done .\done --move-failed .\failed
+rgh god watch .\incoming --dest .\god --once
+</code></pre>
+<p>The watchdog waits for file stability before starting conversion and can process a directory once and exit for automation use.</p>
+<h2 id="ghidra-commands">Ghidra Commands</h2>
+<h3 id="rgh-ghidra-config"><code>rgh ghidra config</code></h3>
+<pre><code class="language-powershell">rgh ghidra config --path &quot;C:\Tools\ghidra&quot; --java &quot;C:\Java&quot;
+</code></pre>
+<h3 id="rgh-ghidra-analyze"><code>rgh ghidra analyze</code></h3>
+<pre><code class="language-powershell">rgh ghidra analyze --in .\title.xex
+rgh ghidra analyze --running
+rgh ghidra analyze --ftp-path /Hdd1/Aurora/Aurora.xex
+</code></pre>
+<h3 id="rgh-ghidra-decompile"><code>rgh ghidra decompile</code></h3>
+<pre><code class="language-powershell">rgh ghidra decompile --in .\title.xex --out .\decomp
+rgh ghidra decompile --running --out .\decomp --max 200
+</code></pre>
+<h3 id="rgh-ghidra-verify"><code>rgh ghidra verify</code></h3>
+<pre><code class="language-powershell">rgh ghidra verify --dir .\decomp
+rgh ghidra verify --dir .\decomp --json
+</code></pre>
+<h2 id="practical-workflows">Practical Workflows</h2>
+<h3 id="fast-console-health-check">Fast console health check</h3>
+<pre><code class="language-powershell">rgh ping
+rgh status --quick
+rgh title
+</code></pre>
+<h3 id="pull-a-running-title-for-analysis">Pull a running title for analysis</h3>
+<pre><code class="language-powershell">rgh xex dump --out .\title.xex
+rgh xex strings --in .\title.xex --unicode --min 6
+rgh ghidra decompile --in .\title.xex --out .\decomp
+</code></pre>
+<h3 id="verify-a-reboot-expected-module-load">Verify a reboot-expected module load</h3>
+<pre><code class="language-powershell">rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+rgh modules pending
+</code></pre>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

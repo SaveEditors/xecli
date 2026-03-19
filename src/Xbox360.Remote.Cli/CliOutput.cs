@@ -9,29 +9,73 @@ namespace Xbox360.Remote.Cli;
 internal static class CliOutput {
     private static readonly TimeZoneInfo EasternTimeZone = GetEasternTimeZone();
 
+    internal readonly record struct TransferProgressUpdate(long Value, string? Status = null);
+    internal readonly record struct TransferBatchItem(string Label, long Size);
+
     public static void EmitJson(object value) {
         string json = JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = true });
         AnsiConsole.WriteLine(json);
     }
 
     public static async Task RunWithProgressAsync(string title, uint? totalBytes, Func<IProgress<long>, Task> operation) {
+        await RunWithProgressAsync(title, totalBytes.HasValue ? totalBytes.Value : null, async progress => {
+            Progress<long> bridged = new Progress<long>(value => progress.Report(new TransferProgressUpdate(value)));
+            await operation(bridged);
+        });
+    }
+
+    public static async Task RunWithProgressAsync(string title, long? totalBytes, Func<IProgress<TransferProgressUpdate>, Task> operation) {
         await AnsiConsole.Progress()
             .AutoClear(false)
             .Columns(new ProgressColumn[] {
                 new TaskDescriptionColumn(),
-                new ProgressBarColumn(),
+                new ProgressBarColumn {
+                    CompletedStyle = new Style(Color.SpringGreen3_1, decoration: Decoration.Bold),
+                    FinishedStyle = new Style(Color.SpringGreen3_1, decoration: Decoration.Bold),
+                    RemainingStyle = new Style(Color.Grey35)
+                },
                 new PercentageColumn(),
+                new DownloadedColumn(),
+                new TransferSpeedColumn(),
                 new RemainingTimeColumn(),
                 new SpinnerColumn()
             })
             .StartAsync(async ctx => {
-                ProgressTask task = ctx.AddTask(title, maxValue: totalBytes ?? 1);
-                Progress<long> progress = new Progress<long>(value => {
-                    task.Value = totalBytes.HasValue ? Math.Min(value, totalBytes.Value) : value;
+                ProgressTask task = ctx.AddTask(FormatTransferDescription(title, "starting"), maxValue: totalBytes ?? 1);
+                if (!totalBytes.HasValue) {
+                    task.IsIndeterminate = true;
+                }
+
+                Progress<TransferProgressUpdate> progress = new Progress<TransferProgressUpdate>(update => {
+                    if (totalBytes.HasValue) {
+                        task.Value = Math.Min(update.Value, totalBytes.Value);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(update.Status)) {
+                        task.Description = FormatTransferDescription(title, update.Status);
+                    }
                 });
+
                 await operation(progress);
-                task.Value = totalBytes ?? task.MaxValue;
+                task.Description = FormatTransferDescription(title, "done");
+                task.Value = task.MaxValue;
             });
+    }
+
+    public static async Task RunBatchProgressAsync(string title, IReadOnlyList<TransferBatchItem> items, Func<TransferBatchScope, Task> operation) {
+        long totalBytes = items.Sum(item => Math.Max(0, item.Size));
+        await RunWithProgressAsync(title, totalBytes > 0 ? totalBytes : null, async progress => {
+            TransferBatchScope scope = new TransferBatchScope(progress, items.Count, totalBytes);
+            await operation(scope);
+            scope.Finish();
+        });
+    }
+
+    private static string FormatTransferDescription(string title, string? status) {
+        string escapedTitle = Markup.Escape(title);
+        if (string.IsNullOrWhiteSpace(status))
+            return $"[bold springgreen3_1]{escapedTitle}[/]";
+        return $"[bold springgreen3_1]{escapedTitle}[/] [silver]{Markup.Escape(status)}[/]";
     }
 
     public static void RenderDiscovery(IReadOnlyList<DiscoveredConsole> consoles, bool json) {
@@ -141,5 +185,49 @@ internal static class CliOutput {
         catch {
             return TimeZoneInfo.Local;
         }
+    }
+}
+
+internal sealed class TransferBatchScope {
+    private readonly IProgress<CliOutput.TransferProgressUpdate> _progress;
+    private readonly int _totalFiles;
+    private readonly long _totalBytes;
+    private long _completedBytes;
+    private long _currentFileSize;
+    private string _currentLabel = string.Empty;
+
+    public TransferBatchScope(IProgress<CliOutput.TransferProgressUpdate> progress, int totalFiles, long totalBytes) {
+        _progress = progress;
+        _totalFiles = Math.Max(0, totalFiles);
+        _totalBytes = Math.Max(0, totalBytes);
+    }
+
+    public int CompletedFiles { get; private set; }
+
+    public void StartFile(string label, long fileSize) {
+        _currentLabel = label;
+        _currentFileSize = Math.Max(0, fileSize);
+        ReportFileProgress(0, $"file {CompletedFiles + 1}/{Math.Max(1, _totalFiles)}");
+    }
+
+    public void ReportFileProgress(long fileBytes, string? status = null) {
+        long bounded = Math.Max(0, Math.Min(fileBytes, _currentFileSize));
+        long totalProgress = _completedBytes + bounded;
+        string suffix = string.IsNullOrWhiteSpace(status)
+            ? $"file {CompletedFiles + 1}/{Math.Max(1, _totalFiles)}"
+            : status;
+        _progress.Report(new CliOutput.TransferProgressUpdate(totalProgress, $"{suffix} | {Path.GetFileName(_currentLabel)}"));
+    }
+
+    public void CompleteFile() {
+        _completedBytes = Math.Min(_completedBytes + _currentFileSize, _totalBytes > 0 ? _totalBytes : _completedBytes + _currentFileSize);
+        CompletedFiles++;
+        _progress.Report(new CliOutput.TransferProgressUpdate(_completedBytes, $"completed {CompletedFiles}/{Math.Max(1, _totalFiles)} | {Path.GetFileName(_currentLabel)}"));
+        _currentFileSize = 0;
+        _currentLabel = string.Empty;
+    }
+
+    public void Finish() {
+        _progress.Report(new CliOutput.TransferProgressUpdate(_totalBytes, $"completed {CompletedFiles}/{Math.Max(1, _totalFiles)}"));
     }
 }

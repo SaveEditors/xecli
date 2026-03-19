@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CLI Help Output | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="CLI-Help.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-logo.svg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" >
+              <summary>Developer Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>CLI Help Output</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/CLI-Help.md">Source</a>
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/CLI-Help.md">Open on GitHub</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="cli-help-output">CLI Help Output</h1>
+<p>This page captures the current built-in help screens from the shipped <code>rgh</code> binary and explains how the shortcut groups map to the canonical command tree.</p>
+<h2 id="how-to-read-the-help-tree">How to Read the Help Tree</h2>
+<p>Use the help system in this order:</p>
+<ol>
+<li><code>rgh help</code></li>
+<li><code>rgh &lt;group&gt; help</code></li>
+<li><code>rgh &lt;group&gt; &lt;command&gt; --help</code></li>
+</ol>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh help
+rgh modules help
+rgh modules load --help
+rgh mem poke --help
+rgh ghidra decompile --help
+</code></pre>
+<h2 id="root-help">Root Help</h2>
+<p>Current <code>rgh help</code> output:</p>
+<pre><code class="language-text">USAGE:
+    rgh [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh status
+    rgh title
+    rgh modules list
+    rgh mem hexdump --addr 0x30000000 --size 0x40
+    rgh ghidra decompile --running --out .\decomp
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    status          Show a compact console status snapshot
+    profiles        List profiles and signed-in users
+    title           Resolve the active title or look up a Title ID in the local database
+    target          Show or set the default target
+    ping            Ping the current console
+    reboot          Reboot the console (cold by default)
+    launch          Launch a XEX with optional arguments
+    install         Install rgh for the current user or add it to the machine PATH
+    start           Discover consoles and set the default target
+    connect         Set or select the default target
+    scan            Scan the network for consoles
+    screenshot      Capture a live screenshot
+    xbdm            XBDM commands
+    modules         Shortcut for `rgh xbdm modules`
+    module          Alias of `rgh modules` and `rgh xbdm modules`
+    mem             Shortcut for `rgh xbdm mem`
+    xex             Shortcut for `rgh xbdm xex`
+    fs              Shortcut for `rgh xbdm fs`
+    threads         Shortcut for `rgh xbdm threads`
+    debug           Shortcut for `rgh xbdm debug`
+    jrpc2           JRPC2 (XDRPC-style) commands
+    notify          Send an on-screen notification
+    notify-icons    Manage notify icon presets
+    ftp             FTP commands (alternate access)
+    save            Profile and save-data helpers over FTP
+    content         Installed content management over FTP
+    plugin          DashLaunch plugin management
+    god             ISO to Games on Demand conversion
+    ghidra          Ghidra headless helpers
+</code></pre>
+<h2 id="shortcut-map">Shortcut Map</h2>
+<p>These shortcut groups are not separate implementations. They are direct operator-facing shortcuts for the canonical XBDM branches.</p>
+<table>
+<thead>
+<tr>
+<th>Shortcut</th>
+<th>Canonical form</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rgh modules ...</code></td>
+<td><code>rgh xbdm modules ...</code></td>
+<td>Loaded module list, info, dump, load, unload, and pending verification</td>
+</tr>
+<tr>
+<td><code>rgh module ...</code></td>
+<td><code>rgh modules ...</code></td>
+<td>Singular alias for the same module branch</td>
+</tr>
+<tr>
+<td><code>rgh mem ...</code></td>
+<td><code>rgh xbdm mem ...</code></td>
+<td>Memory dump, hexdump, peek, poke, watch, strings, and search</td>
+</tr>
+<tr>
+<td><code>rgh xex ...</code></td>
+<td><code>rgh xbdm xex ...</code></td>
+<td>Running-XEX dump, launch, strings, and Ghidra-backed decompile</td>
+</tr>
+<tr>
+<td><code>rgh fs ...</code></td>
+<td><code>rgh xbdm fs ...</code></td>
+<td>XBDM file-system list, get, put, cat, remove, mkdir, and move</td>
+</tr>
+<tr>
+<td><code>rgh threads ...</code></td>
+<td><code>rgh xbdm threads ...</code></td>
+<td>Thread list, context, suspend, and resume</td>
+</tr>
+<tr>
+<td><code>rgh debug ...</code></td>
+<td><code>rgh xbdm debug ...</code></td>
+<td>Break, go, watch, code breakpoints, and data breakpoints</td>
+</tr>
+</tbody>
+</table>
+<h2 id="alias-notes">Alias Notes</h2>
+<p>Several commands also expose quality-of-life aliases. The important ones are:</p>
+<table>
+<thead>
+<tr>
+<th>Primary command</th>
+<th>Alias</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rgh start</code></td>
+<td><code>rgh s</code></td>
+<td>Quick discovery entry point</td>
+</tr>
+<tr>
+<td><code>rgh connect</code></td>
+<td><code>rgh c</code></td>
+<td>Quick target selection</td>
+</tr>
+<tr>
+<td><code>rgh scan</code></td>
+<td><code>rgh discover</code></td>
+<td>Explicit discovery wording</td>
+</tr>
+<tr>
+<td><code>rgh screenshot</code></td>
+<td><code>rgh shot</code></td>
+<td>Short capture form</td>
+</tr>
+<tr>
+<td><code>rgh launch</code></td>
+<td><code>rgh run</code></td>
+<td>XEX launch alias</td>
+</tr>
+<tr>
+<td><code>rgh notify</code></td>
+<td><code>rgh xnotify</code></td>
+<td>Console notification alias</td>
+</tr>
+<tr>
+<td><code>rgh modules unload</code></td>
+<td><code>rgh modules remove</code></td>
+<td>Same unload operation</td>
+</tr>
+<tr>
+<td><code>rgh modules pending</code></td>
+<td><code>rgh modules verify</code></td>
+<td>Same pending-op verification</td>
+</tr>
+<tr>
+<td><code>rgh mem find</code></td>
+<td><code>rgh mem search</code></td>
+<td>Same memory-search operation</td>
+</tr>
+<tr>
+<td><code>rgh mem peek</code></td>
+<td><code>rgh mem read</code></td>
+<td>Same memory-read operation</td>
+</tr>
+<tr>
+<td><code>rgh mem poke</code></td>
+<td><code>rgh mem write</code></td>
+<td>Same memory-write operation</td>
+</tr>
+<tr>
+<td><code>rgh debug watch</code></td>
+<td><code>rgh debug events</code></td>
+<td>Same live-debug stream</td>
+</tr>
+<tr>
+<td><code>rgh debug break remove</code></td>
+<td><code>rgh debug break del</code></td>
+<td>Same breakpoint removal</td>
+</tr>
+<tr>
+<td><code>rgh debug databreak remove</code></td>
+<td><code>rgh debug databreak del</code></td>
+<td>Same data-breakpoint removal</td>
+</tr>
+<tr>
+<td><code>rgh ftp list</code></td>
+<td><code>rgh ftp ls</code></td>
+<td>Same FTP listing</td>
+</tr>
+<tr>
+<td><code>rgh ftp put</code></td>
+<td><code>rgh ftp push</code></td>
+<td>Same upload workflow in docs/examples</td>
+</tr>
+<tr>
+<td><code>rgh save inject</code></td>
+<td><code>rgh save push</code> / <code>rgh save put</code></td>
+<td>Same save-upload workflow</td>
+</tr>
+<tr>
+<td><code>rgh xex decompile</code></td>
+<td><code>rgh xex decode</code></td>
+<td>Same Ghidra-backed export</td>
+</tr>
+</tbody>
+</table>
+<h2 id="top-level-help-screens">Top-Level Help Screens</h2>
+<h3 id="rgh-status-help"><code>rgh status help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Show a compact console status snapshot
+
+USAGE:
+    rgh status [OPTIONS]
+
+OPTIONS:
+    -h, --help            Prints help information
+        --ip &lt;IP&gt;         Console IP address. If omitted, uses the last
+                          connected console
+        --port &lt;PORT&gt;     TCP port (default: 730)
+        --timeout &lt;MS&gt;    Socket timeout in milliseconds (default: 5000)
+        --json            Emit JSON output
+        --quick           Skip JRPC2, drive, and user checks for a fast snapshot
+        --no-jrpc         Skip JRPC2 queries (temps, CPU key, dashboard, title
+                          id)
+        --no-drives       Skip drive and USB size reporting
+        --no-users        Skip user list and signed-in detection
+</code></pre>
+<h3 id="rgh-profiles-help"><code>rgh profiles help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+List profiles and signed-in users
+
+USAGE:
+    rgh profiles [OPTIONS]
+
+OPTIONS:
+    -h, --help            Prints help information
+        --ip &lt;IP&gt;         Console IP address. If omitted, uses the last
+                          connected console
+        --port &lt;PORT&gt;     TCP port (default: 730)
+        --timeout &lt;MS&gt;    Socket timeout in milliseconds (default: 5000)
+        --json            Emit JSON output
+        --no-ftp          Skip FTP profile scan
+        --no-f3           Skip F3 profile lookup (HTTP 9999)
+</code></pre>
+<h3 id="rgh-title-help"><code>rgh title help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Resolve the active title or look up a Title ID in the local database
+
+USAGE:
+    rgh title [TITLEID] [MEDIAID] [OPTIONS]
+
+ARGUMENTS:
+    [TITLEID]    Title ID (hex, with or without 0x). Omit it or pass 'active' to
+                 resolve the current title
+    [MEDIAID]    Optional media ID (hex)
+
+OPTIONS:
+    -h, --help            Prints help information
+        --ip &lt;IP&gt;         Console IP address. If omitted, uses the last
+                          connected console
+        --port &lt;PORT&gt;     TCP port (default: 730)
+        --timeout &lt;MS&gt;    Socket timeout in milliseconds (default: 5000)
+        --json            Emit JSON output
+        --active          Resolve the currently active title from the connected
+                          console
+</code></pre>
+<h3 id="rgh-target-help"><code>rgh target help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Show or set the default target
+
+USAGE:
+    rgh target [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+        --set &lt;IP&gt;       Set the default console IP
+        --port &lt;PORT&gt;    Set the default port (default: 730)
+        --clear          Clear the saved target
+</code></pre>
+<h3 id="rgh-ping-help"><code>rgh ping help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Ping the current console
+
+USAGE:
+    rgh ping [OPTIONS]
+
+OPTIONS:
+    -h, --help            Prints help information
+        --ip &lt;IP&gt;         Console IP address. If omitted, uses the last
+                          connected console
+        --port &lt;PORT&gt;     TCP port (default: 730)
+        --timeout &lt;MS&gt;    Socket timeout in milliseconds (default: 5000)
+        --json            Emit JSON output
+</code></pre>
+<h3 id="rgh-reboot-help"><code>rgh reboot help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Reboot the console (cold by default)
+
+USAGE:
+    rgh reboot [OPTIONS]
+
+OPTIONS:
+    -h, --help                  Prints help information
+        --ip &lt;IP&gt;               Console IP address. If omitted, uses the last
+                                connected console
+        --port &lt;PORT&gt;           TCP port (default: 730)
+        --timeout &lt;MS&gt;          Socket timeout in milliseconds (default: 5000)
+        --json                  Emit JSON output
+        --title                 Restart the current title instead of a cold
+                                reboot
+        --notify                Send a default success notification to the
+                                console
+        --notify-icon &lt;NAME&gt;    Notification icon preset name
+        --notify-logo &lt;ID&gt;      Notification logo id (decimal or 0x hex)
+</code></pre>
+<h3 id="rgh-launch-help"><code>rgh launch help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Launch a XEX with optional arguments
+
+USAGE:
+    rgh launch [XEX] [OPTIONS]
+
+ARGUMENTS:
+    [XEX]    XEX path to launch, for example Hdd1:\Aurora\Aurora.xex
+
+OPTIONS:
+    -h, --help                  Prints help information
+        --ip &lt;IP&gt;               Console IP address. If omitted, uses the last
+                                connected console
+        --port &lt;PORT&gt;           TCP port (default: 730)
+        --timeout &lt;MS&gt;          Socket timeout in milliseconds (default: 5000)
+        --json                  Emit JSON output
+        --xex &lt;PATH&gt;            XEX path to launch, for example
+                                Hdd1:\Aurora\Aurora.xex
+        --directory &lt;DIR&gt;       Working directory passed to XBDM. Defaults to
+                                the XEX folder
+        --args &lt;TEXT&gt;           Command-line arguments passed to the XEX
+        --titleid &lt;TITLEID&gt;     Optional Title ID for display/logging
+        --dry-run               Show the generated XBDM command without
+                                executing it
+        --notify                Send a default success notification to the
+                                console
+        --notify-icon &lt;NAME&gt;    Notification icon preset name
+        --notify-logo &lt;ID&gt;      Notification logo id (decimal or 0x hex)
+</code></pre>
+<h3 id="rgh-install-help"><code>rgh install help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Install rgh for the current user or add it to the machine PATH
+
+USAGE:
+    rgh install [OPTIONS]
+
+OPTIONS:
+    -h, --help            Prints help information
+        --uninstall       Remove the current-user shim or, with --machine-path,
+                          remove the machine PATH entry
+        --machine-path    Add the rgh.exe directory to the machine PATH (admin
+                          required)
+        --path &lt;DIR&gt;      Override the rgh.exe directory (defaults to the
+                          current executable folder)
+        --quiet           Suppress non-error install output
+</code></pre>
+<h3 id="discovery-group">Discovery Group</h3>
+<p><code>rgh start help</code>, <code>rgh connect help</code>, and <code>rgh scan help</code>:</p>
+<pre><code class="language-text">DESCRIPTION:
+Discover consoles and set the default target
+
+USAGE:
+    rgh start [OPTIONS]
+
+OPTIONS:
+    -h, --help             Prints help information
+        --ports &lt;PORTS&gt;    Comma-separated ports to probe. Default: 730,731
+        --timeout &lt;MS&gt;     TCP timeout in milliseconds (default: 400)
+        --no-nap           Disable NAP broadcast discovery
+        --no-tcp           Disable TCP scan discovery
+        --json             Emit JSON output
+</code></pre>
+<p><code>connect</code> changes the usage line to <code>rgh connect [target] [OPTIONS]</code> and accepts a console IP or discovery index.</p>
+<h3 id="rgh-screenshot-help"><code>rgh screenshot help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Capture a live screenshot
+
+USAGE:
+    rgh screenshot [OPTIONS]
+
+OPTIONS:
+    -h, --help                        Prints help information
+        --ip &lt;IP&gt;                     Console IP address. If omitted, uses the
+                                      last connected console
+        --port &lt;PORT&gt;                 TCP port (default: 730)
+        --timeout &lt;MS&gt;                Socket timeout in milliseconds (default:
+                                      5000)
+        --json                        Emit JSON output
+        --out &lt;FILE&gt;                  Output file path (.bmp or .raw)
+        --format &lt;FORMAT&gt;             Output format: bmp or raw
+        --raw                         Force raw output (same as --format raw)
+        --force                       Overwrite the output file if it exists
+        --decode &lt;MODE&gt;               Force decode mode: auto, linear, tiled-v1,
+                                      tiled-v2, tiled-v3, tiled-xenia
+        --endianness &lt;MODE&gt;           Force endianness: auto, none, swap8-16,
+                                      swap8-32, swap16-32
+        --order &lt;ORDER&gt;               Force 32bpp channel order: auto, bgra,
+                                      rgba, argb, abgr, bgrx, rgbx, xrgb, xbgr
+        --dump-variants               Dump all decode variants to a folder next
+                                      to the output file
+        --crop-right &lt;PX&gt;             Crop N pixels from the right edge
+                                      (default: 0)
+        --crop-right-percent &lt;PCT&gt;    Crop a percentage from the right edge
+                                      (0-50)
+        --xenia-bank-xor &lt;N&gt;          Force Xenia tile bank XOR (0-1) when using
+                                      tiled-xenia
+        --xenia-pipe-xor &lt;N&gt;          Force Xenia tile pipe XOR (0-3) when using
+                                      tiled-xenia
+</code></pre>
+<h3 id="rgh-xbdm-help"><code>rgh xbdm help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+XBDM commands
+
+USAGE:
+    rgh xbdm [OPTIONS] &lt;COMMAND&gt;
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    info          Show XBDM console info
+    raw           Send a raw XBDM command
+    screenshot    Capture a screenshot via XBDM
+    modules       Manage loaded modules through XBDM and kernel RPC
+    mem           Inspect, search, and modify live memory
+    xex           Dump, launch, and analyze XEX images
+    fs            Browse and transfer files over XBDM
+    threads       Inspect and control threads
+    debug         Break, resume, and watch live debug state
+</code></pre>
+<h3 id="rgh-modules-help"><code>rgh modules help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Shortcut for `rgh xbdm modules`
+
+USAGE:
+    rgh modules [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh modules list
+    rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list       List loaded modules
+    info       Show module details
+    dump       Dump a module from memory
+    load       Load a module via kernel RPC
+    unload     Unload a module via kernel RPC
+    pending    Verify a pending module operation after reboot
+</code></pre>
+<h3 id="rgh-module-help"><code>rgh module help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Alias of `rgh modules` and `rgh xbdm modules`
+
+USAGE:
+    rgh module [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh module info --name Aurora.xex
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list       List loaded modules
+    info       Show module details
+    dump       Dump a module from memory
+    load       Load a module via kernel RPC
+    unload     Unload a module via kernel RPC
+    pending    Verify a pending module operation after reboot
+</code></pre>
+<h3 id="rgh-mem-help"><code>rgh mem help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Shortcut for `rgh xbdm mem`
+
+USAGE:
+    rgh mem [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh mem hexdump --addr 0x30000000 --size 0x40
+    rgh mem search --addr 0x30000000 --size 0x1000 --pattern DEADBEEF
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    dump       Dump a memory range to a file
+    hexdump    Hex dump a memory range
+    regions    List memory regions
+    peek       Read a value from memory
+    poke       Write a value to memory
+    watch      Stream memory changes
+    strings    Extract strings from memory
+    find       Search memory for a pattern
+</code></pre>
+<h3 id="rgh-xex-help"><code>rgh xex help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Shortcut for `rgh xbdm xex`
+
+USAGE:
+    rgh xex [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh xex dump --out .\title.xex
+    rgh xex strings --running --unicode --min 6
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    dump         Dump the active XEX image
+    launch       Launch a XEX with optional arguments
+    strings      Extract strings from a XEX (local/FTP/running)
+    decompile    Decompile a XEX to C via Ghidra
+</code></pre>
+<h3 id="rgh-fs-help"><code>rgh fs help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Shortcut for `rgh xbdm fs`
+
+USAGE:
+    rgh fs [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh fs list --path Hdd:\
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list     List files in a directory
+    get      Download a file from the console
+    put      Upload a file to the console
+    cat      Print a file from the console
+    rm       Delete a file on the console
+    mkdir    Create a directory on the console
+    mv       Move or rename a file on the console
+</code></pre>
+<h3 id="rgh-threads-help"><code>rgh threads help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Shortcut for `rgh xbdm threads`
+
+USAGE:
+    rgh threads [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh threads list
+    rgh threads context --id 0xFB000008
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list       List threads
+    context    Read thread registers
+    suspend    Suspend a thread
+    resume     Resume a thread
+</code></pre>
+<h3 id="rgh-debug-help"><code>rgh debug help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Shortcut for `rgh xbdm debug`
+
+USAGE:
+    rgh debug [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh debug stop
+    rgh debug watch
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    stop         Break execution
+    go           Resume execution
+    watch        Stream live XBDM debug notifications
+    break        Code breakpoints
+    databreak    Data breakpoints
+</code></pre>
+<h3 id="rgh-jrpc2-help"><code>rgh jrpc2 help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+JRPC2 (XDRPC-style) commands
+
+USAGE:
+    rgh jrpc2 [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh jrpc2 temps
+    rgh jrpc2 notify --message XeCLI
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    cpu-key        Read the CPU key
+    temps          Read temperature sensors
+    title-id       Read the current Title ID
+    dashboard      Read the dashboard version
+    motherboard    Read motherboard type
+    resolve        Resolve a function by module/ordinal
+    notify         Send a notification via JRPC2
+    call           Call a function with RPC
+</code></pre>
+<h3 id="rgh-notify-help"><code>rgh notify help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Send an on-screen notification
+
+USAGE:
+    rgh notify [message] [OPTIONS]
+
+ARGUMENTS:
+    [message]    Notification text
+
+OPTIONS:
+    -h, --help              Prints help information
+        --ip &lt;IP&gt;           Console IP address. If omitted, uses the last
+                            connected console
+        --port &lt;PORT&gt;       TCP port (default: 730)
+        --timeout &lt;MS&gt;      Socket timeout in milliseconds (default: 5000)
+        --json              Emit JSON output
+        --message &lt;TEXT&gt;    Notification text
+        --logo &lt;ID&gt;         Notification logo id (decimal or 0x hex)
+        --icon &lt;NAME&gt;       Notification icon preset name
+</code></pre>
+<h3 id="rgh-notify-icons-help"><code>rgh notify-icons help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Manage notify icon presets
+
+USAGE:
+    rgh notify-icons [OPTIONS] &lt;COMMAND&gt;
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list      List icon presets
+    add       Add an icon preset
+    remove    Remove an icon preset
+</code></pre>
+<h3 id="rgh-ftp-help"><code>rgh ftp help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+FTP commands (alternate access)
+
+USAGE:
+    rgh ftp [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh ftp list --path /Hdd1/
+    rgh ftp target --set &lt;console-ip&gt; --user &lt;ftp-user&gt; --pass &lt;ftp-pass&gt;
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    target    Show or set FTP target
+    list      List files via FTP
+    find      Find files via FTP
+    get       Download a file via FTP
+    put       Upload a file via FTP
+    cat       Print a file via FTP
+    rm        Delete a file via FTP
+    mkdir     Create a directory via FTP
+    mv        Move or rename a file via FTP
+</code></pre>
+<h3 id="rgh-save-help"><code>rgh save help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Profile and save-data helpers over FTP
+
+USAGE:
+    rgh save [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh save list --titleid FFFE07D1 --device Hdd1
+    rgh save extract --titleid 415608C3 --out .\saves
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list       List save files for a title
+    extract    Extract save files for a title
+    inject     Upload save files for a title
+</code></pre>
+<h3 id="rgh-content-help"><code>rgh content help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Installed content management over FTP
+
+USAGE:
+    rgh content [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh content list --device Hdd1 --show-types
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list      List installed titles and content types
+    delete    Delete installed content for a title
+</code></pre>
+<h3 id="rgh-plugin-help"><code>rgh plugin help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+DashLaunch plugin management
+
+USAGE:
+    rgh plugin [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh plugin list
+    rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex --backup
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list       List configured DashLaunch plugins
+    enable     Set a DashLaunch plugin slot
+    disable    Clear a DashLaunch plugin slot
+</code></pre>
+<h3 id="rgh-god-help"><code>rgh god help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+ISO to Games on Demand conversion
+
+USAGE:
+    rgh god [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh god info .\game.iso
+    rgh god watch .\incoming --dest .\god --once
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    info &lt;ISO&gt;            Inspect an ISO and show title metadata
+    build &lt;ISO&gt; &lt;DEST&gt;    Convert an ISO into GOD parts
+    watch &lt;WATCH&gt;         Watch a folder and auto-convert ISOs
+</code></pre>
+<h3 id="rgh-ghidra-help"><code>rgh ghidra help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Ghidra headless helpers
+
+USAGE:
+    rgh ghidra [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh ghidra config --path C:\Tools\ghidra --java C:\Java
+    rgh ghidra decompile --running --out .\decomp
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    config       Configure Ghidra paths
+    analyze      Run headless analysis
+    decompile    Decompile a module or XEX
+    verify       Verify decompiler output for bad-instruction placeholders
+</code></pre>
+<h2 id="where-the-full-examples-live">Where the Full Examples Live</h2>
+<p>Use this page for the real help screens. Use <a href="Commands.html">Commands.md</a> for task-oriented examples and command-by-command usage patterns.</p>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

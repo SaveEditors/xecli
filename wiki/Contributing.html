@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contributing | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Contributing.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-logo.svg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" >
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" open>
+              <summary>Developer Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link is-current" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Developer Reference</div>
+          <h1>Contributing</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Contributing.md">Source</a>
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Contributing.md">Open on GitHub</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="contributing">Contributing</h1>
+<p>This page defines the expected contribution model for XeCLI.</p>
+<h2 id="what-good-contributions-look-like">What Good Contributions Look Like</h2>
+<p>Good contributions improve one of these areas:</p>
+<ul>
+<li>live-console reliability</li>
+<li>command clarity</li>
+<li>output quality</li>
+<li>documentation accuracy</li>
+<li>release quality</li>
+<li>integration surface for external tools</li>
+</ul>
+<p>Every contribution should leave the command surface clearer, safer, or easier to automate.</p>
+<h2 id="code-expectations">Code Expectations</h2>
+<h3 id="behavior">Behavior</h3>
+<ul>
+<li>Do not silently change command meaning.</li>
+<li>Do not widen the scope of a dangerous command without an explicit flag or confirmation path.</li>
+<li>Prefer explicit subcommands over overloaded positional behavior.</li>
+</ul>
+<h3 id="reliability">Reliability</h3>
+<ul>
+<li>Commands that should fail fast must not hang for long periods.</li>
+<li>Console-disconnect behavior must be handled honestly.</li>
+<li>If a command can trigger a reboot or disconnect, document that and verify post-state where possible.</li>
+</ul>
+<h3 id="output">Output</h3>
+<ul>
+<li>Human-readable output should stay clean and scannable.</li>
+<li>JSON output should remain stable enough for scripts.</li>
+<li>Help text must explain the real operator workflow, not internal implementation details.</li>
+</ul>
+<h2 id="documentation-expectations">Documentation Expectations</h2>
+<p>Any command or behavior change should update the relevant docs in the same change set.</p>
+<p>Minimum docs coverage:</p>
+<ul>
+<li><code>README.md</code> for user-visible feature additions</li>
+<li><code>wiki/Commands.md</code> for new commands or flags</li>
+<li><code>wiki/CLI-Help.md</code> when help output changes</li>
+<li><code>wiki/Frameworks.md</code> when internal behavior meaningfully changes</li>
+</ul>
+<h2 id="validation-expectations">Validation Expectations</h2>
+<h3 id="prefer-live-validation-when-possible">Prefer live validation when possible</h3>
+<p>For console-facing features, verify on real hardware or against the actual target environment where available.</p>
+<p>Examples:</p>
+<ul>
+<li><code>status</code> returns promptly and shows the expected fields</li>
+<li><code>title</code> resolves the active title correctly</li>
+<li><code>modules load</code> and <code>modules unload</code> verify against real module state</li>
+<li><code>save inject</code> round-trips cleanly</li>
+<li>screenshot output is viewable and not corrupted</li>
+</ul>
+<h3 id="if-something-cannot-be-verified">If something cannot be verified</h3>
+<p>State exactly what was and was not proven.</p>
+<p>Unacceptable:</p>
+<ul>
+<li>implying a feature is verified when it only builds</li>
+</ul>
+<p>Acceptable:</p>
+<ul>
+<li><code>command compiles, but live verification was blocked by missing JRPC2</code></li>
+</ul>
+<h2 id="release-contributions">Release Contributions</h2>
+<p>Release-facing work should include:</p>
+<ul>
+<li>current screenshots</li>
+<li>current README links</li>
+<li>clean release archive contents</li>
+<li>no machine-specific local paths in docs</li>
+<li>no leftover dumps or test artifacts in the repo</li>
+</ul>
+<h2 id="documentation-contribution-model">Documentation Contribution Model</h2>
+<p>The wiki should read like a real developer-owned knowledge base.</p>
+<p>That means:</p>
+<ul>
+<li>grouped page navigation</li>
+<li>operator path and developer path</li>
+<li>subsystem explanation</li>
+<li>standards for future documentation updates</li>
+</ul>
+<h2 id="current-constraints">Current Constraints</h2>
+<p>At the time of writing, the source-tree wiki content exists and Pages is live, but GitHub’s separate Wiki backend may still require first-page initialization on GitHub itself before <code>.wiki.git</code> is writable.</p>
+<p>Treat that as an infrastructure constraint, not a reason to lower the quality of the wiki content.</p>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Integrations | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Integrations.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-logo.svg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" >
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" >
+              <summary>Developer Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" open>
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link is-current" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Data and Integrations</div>
+          <h1>Integrations</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Integrations.md">Source</a>
+          <a href="https://github.com/SaveEditors/xecli/blob/main/wiki/Integrations.md">Open on GitHub</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="integrations">Integrations</h1>
+<p>This page is for developers who want to build other tools around XeCLI or reuse its shipped assets.</p>
+<h2 id="integration-modes">Integration Modes</h2>
+<p>There are three useful ways to integrate with XeCLI:</p>
+<ol>
+<li>Call the CLI directly.</li>
+<li>Parse its JSON output.</li>
+<li>Read the bundled metadata files directly.</li>
+</ol>
+<p>Use the smallest integration surface that solves the problem.</p>
+<h2 id="use-the-cli-directly">Use the CLI Directly</h2>
+<p>XeCLI is useful as an orchestration backend when your tool needs live console interaction but you do not want to duplicate transport code.</p>
+<p>Good examples:</p>
+<ul>
+<li>launchers that need title and module metadata</li>
+<li>dashboards that need status snapshots</li>
+<li>save tools that need extraction and injection</li>
+<li>reverse-engineering helpers that need XEX pulls or Ghidra automation</li>
+</ul>
+<p>Typical calls:</p>
+<pre><code class="language-powershell">rgh status --json
+rgh title --json
+rgh modules list --json
+rgh content list --json
+</code></pre>
+<h2 id="parse-json-output">Parse JSON Output</h2>
+<p>Prefer <code>--json</code> when you need stable machine-readable output instead of screen scraping terminal tables.</p>
+<p>Common commands with useful JSON output:</p>
+<ul>
+<li><code>status</code></li>
+<li><code>profiles</code></li>
+<li><code>title</code></li>
+<li><code>scan</code></li>
+<li><code>modules list</code></li>
+<li><code>modules info</code></li>
+<li><code>mem regions</code></li>
+<li><code>mem strings</code></li>
+<li><code>content list</code></li>
+<li><code>ghidra verify</code></li>
+</ul>
+<h2 id="reuse-the-title-id-database">Reuse the Title ID Database</h2>
+<p>Bundled files:</p>
+<ul>
+<li><code>src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv</code></li>
+<li><code>src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt</code></li>
+</ul>
+<p>External tools can consume these files directly to:</p>
+<ul>
+<li>resolve Title IDs</li>
+<li>annotate content inventory</li>
+<li>label saves and dumps</li>
+<li>enrich UI views with media and region data</li>
+</ul>
+<p>That database is shipped with the repo and the release output. There is no runtime fetch requirement.</p>
+<h2 id="use-xecli-as-a-console-worker">Use XeCLI as a Console Worker</h2>
+<p>Example pattern:</p>
+<pre><code class="language-powershell">rgh xex dump --out .\title.xex
+rgh screenshot --out .\screen.bmp
+rgh save extract --titleid 415608C3 --out .\saves
+</code></pre>
+<p>This works well when your application wants the files that XeCLI can pull rather than embedding transport logic itself.</p>
+<h2 id="ghidra-integration-pattern">Ghidra Integration Pattern</h2>
+<p>If your tool needs decompile output but you do not want to own a Ghidra automation layer:</p>
+<pre><code class="language-powershell">rgh ghidra decompile --in .\title.xex --out .\decomp
+rgh ghidra verify --dir .\decomp --json
+</code></pre>
+<p>This keeps import, decompile, and verification logic in one place.</p>
+<h2 id="config-and-override-files">Config and Override Files</h2>
+<p>Runtime config:</p>
+<ul>
+<li><code>%APPDATA%\XeCLI\config.json</code></li>
+</ul>
+<p>Optional user metadata override:</p>
+<ul>
+<li><code>%APPDATA%\XeCLI\titleids.local.csv</code></li>
+</ul>
+<p>If you build another tool around XeCLI, do not hardcode machine-specific paths. Resolve config and asset paths relative to the XeCLI executable or the documented per-user config locations.</p>
+<h2 id="when-to-reuse-xecli-instead-of-rewriting-it">When to Reuse XeCLI Instead of Rewriting It</h2>
+<p>Use XeCLI directly when:</p>
+<ul>
+<li>you want stable operator-facing commands</li>
+<li>you need live XBDM/JRPC2/FTP coordination</li>
+<li>you want the shipped metadata and Ghidra flow</li>
+<li>you need a tool that can still be used manually in terminal</li>
+</ul>
+<p>Reimplement only if:</p>
+<ul>
+<li>you need a library API instead of a process boundary</li>
+<li>you must own every transport and retry detail internally</li>
+<li>your application cannot tolerate CLI process orchestration</li>
+</ul>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

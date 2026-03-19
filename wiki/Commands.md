@@ -2,6 +2,8 @@
 
 This page documents the XeCLI command surface by workflow area. Command examples use the installed terminal command `rgh`.
 
+The `Example output` blocks on this page are representative operator-facing results from the shipped CLI. Exact spacing, colors, and secondary detail lines can vary by flags, console state, and whether JSON mode is enabled.
+
 ## Command Model
 XeCLI is organized into a few major namespaces:
 
@@ -83,6 +85,18 @@ Notes:
 - Skipped fields are rendered as skipped instead of unknown.
 - When a pending module load or unload is being tracked across a reboot, `status` can surface that state.
 
+Example output:
+
+```text
+Status
+IP               192.168.1.186
+Execution State  start
+Title ID         0xFFFE07D1
+Title Name       Aurora
+Signed In        Yes
+Gamertag         Diamond KSG
+```
+
 ### `rgh profiles`
 Enumerates sign-in and profile information gathered from XBDM, JRPC/XAM, FTP, and F3 when available.
 
@@ -91,6 +105,16 @@ rgh profiles
 rgh profiles --json
 rgh profiles --no-ftp
 rgh profiles --no-f3
+```
+
+Example output:
+
+```text
+Signed-In Users
+User 0   Diamond KSG   state=SignedInToLive   xuid=0x5D83300C00000900
+
+Profiles (FTP)
+72 profile containers found across Hdd1 and Usb devices
 ```
 
 ### `rgh title`
@@ -104,6 +128,16 @@ rgh title 415608C3 2B7302D6
 rgh title active
 ```
 
+Example output:
+
+```text
+Active Title
+Title ID     0xFFFE07D1
+Title Name   Aurora
+Media ID     unknown
+Source       running xex path + bundled database
+```
+
 ### `rgh target`
 Show, set, or clear the saved default XBDM target.
 
@@ -114,11 +148,25 @@ rgh target --set <console-ip> --port 730
 rgh target --clear
 ```
 
+Example output:
+
+```text
+Default target
+IP      192.168.1.186
+Port    730
+```
+
 ### `rgh ping`
 Fast XBDM connectivity check.
 
 ```powershell
 rgh ping
+```
+
+Example output:
+
+```text
+OK 21 ms
 ```
 
 ### `rgh reboot`
@@ -128,6 +176,13 @@ Cold reboot or title reboot.
 rgh reboot
 rgh reboot --title
 rgh reboot --notify
+```
+
+Example output:
+
+```text
+SUCCESS Reboot requested
+cold reboot command sent to console
 ```
 
 ### `rgh launch`
@@ -140,6 +195,15 @@ rgh launch --xex Hdd1:\Aurora\Aurora.xex --args "debug=1"
 rgh launch --xex Hdd1:\Aurora\Aurora.xex --dry-run
 ```
 
+Example output:
+
+```text
+SUCCESS Launch requested
+Hdd1:\Aurora\Aurora.xex
+Target title: Aurora (0xFFFE07D1)
+Arguments: debug=1
+```
+
 ### `rgh install`
 Install or remove the command shim, or add/remove the machine PATH entry.
 
@@ -149,11 +213,27 @@ rgh install --machine-path
 rgh install --uninstall
 ```
 
+Example output:
+
+```text
+Created by Pew - Se7ensins
+SUCCESS Install complete
+rgh is now available in new terminals
+```
+
 ## Discovery Commands
 ### `rgh start`
 ```powershell
 rgh start
 rgh start --json
+```
+
+Example output:
+
+```text
+Detected Consoles
+#1  192.168.1.186  Jtag  0037XXXXXXXX190
+Default target updated to 192.168.1.186
 ```
 
 ### `rgh connect`
@@ -162,10 +242,24 @@ rgh connect 1
 rgh connect <console-ip>
 ```
 
+Example output:
+
+```text
+SUCCESS Target updated
+192.168.1.186:730
+```
+
 ### `rgh scan`
 ```powershell
 rgh scan
 rgh scan --json
+```
+
+Example output:
+
+```text
+Detected Consoles
+#1  192.168.1.186  Jtag  0037XXXXXXXX190  tcp+nap
 ```
 
 ## Screenshot Commands
@@ -177,11 +271,28 @@ rgh screenshot --out .\screen.bmp --force
 
 The command emits decoded frame-buffer metadata after a successful capture.
 
+Example output:
+
+```text
+SUCCESS Screenshot captured
+1024x576  pitch=4096  format=0x00000012
+.\screen.bmp
+```
+
 ## XBDM Root Commands
 ### `rgh xbdm info`
 ```powershell
 rgh xbdm info
 rgh xbdm info --json
+```
+
+Example output:
+
+```text
+XBDM Info
+Debug Name    Jtag
+DM Version    2.0.21076.11
+Flavor        Natelx did, of course
 ```
 
 ### `rgh xbdm raw`
@@ -190,9 +301,24 @@ rgh xbdm raw --cmd "modules"
 rgh xbdm raw --cmd "dirlist name=Hdd:\\"
 ```
 
+Example output:
+
+```text
+(202) multiline response follows
+name="xam.xex" base=0x82000000 size=0x001C0000
+name="Aurora.xex" base=0x90F00000 size=0x00480000
+```
+
 ### `rgh xbdm screenshot`
 ```powershell
 rgh xbdm screenshot --out .\screen.bmp
+```
+
+Example output:
+
+```text
+SUCCESS Screenshot captured
+.\screen.bmp
 ```
 
 ## Module Commands
@@ -203,16 +329,42 @@ rgh modules list --json
 rgh modules list --sections
 ```
 
+Example output:
+
+```text
+Modules
+xboxkrnl.exe   0x80010000   0x005A0000
+xam.xex        0x82000000   0x001C0000
+Aurora.xex     0x90F00000   0x00480000
+```
+
 ### `rgh modules info`
 ```powershell
 rgh modules info --name Aurora.xex
 rgh modules info --name xam.xex --sections
 ```
 
+Example output:
+
+```text
+Module Info
+Name         Aurora.xex
+Base         0x90F00000
+Size         0x00480000
+Path         \Device\Harddisk0\Partition1\Aurora\Aurora.xex
+```
+
 ### `rgh modules dump`
 ```powershell
 rgh modules dump --name xam.xex --out .\xam.bin
 rgh modules dump --all --dir .\modules
+```
+
+Example output:
+
+```text
+SUCCESS Module dump complete
+xam.xex -> .\xam.bin
 ```
 
 ### `rgh modules load`
@@ -230,6 +382,13 @@ Important options:
 - `--reboot-expected` persists pending verification if the console disconnects as part of the load
 - `--notify` sends the default console success notification
 
+Example output:
+
+```text
+SUCCESS Module loaded
+HvP2.xex at 0x91340000
+```
+
 ### `rgh modules unload`
 ```powershell
 rgh modules unload --name HvP2.xex --force
@@ -243,6 +402,13 @@ Important options:
 - `--skip-mark` disables the sysdll unload marker write at `handle+0x40`
 - `--dry-run` resolves the target without modifying memory
 
+Example output:
+
+```text
+SUCCESS Module unloaded
+0x91340000 HvP2.xex
+```
+
 ### `rgh modules pending`
 ```powershell
 rgh modules pending
@@ -254,15 +420,36 @@ Use this after:
 rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
 ```
 
+Example output:
+
+```text
+SUCCESS Pending module load verified
+HvP2.xex at 0x91340000
+```
+
 ## Memory Commands
 ### `rgh mem dump`
 ```powershell
 rgh mem dump --addr 0x82000000 --size 0x20000 --out .\mem.bin
 ```
 
+Example output:
+
+```text
+SUCCESS Memory dump complete
+0x82000000 length=0x00020000 -> .\mem.bin
+```
+
 ### `rgh mem hexdump`
 ```powershell
 rgh mem hexdump --addr 0x30000000 --size 0x40
+```
+
+Example output:
+
+```text
+0x30000000 DE AD BE EF 01 02 03 04 05 06 07 08 09 0A 0B 0C  ................
+0x30000010 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F  ................
 ```
 
 ### `rgh mem regions`
@@ -271,10 +458,24 @@ rgh mem regions
 rgh mem regions --json
 ```
 
+Example output:
+
+```text
+Memory Regions
+0x80000000  0x02000000  protect=0x00000020
+0x82000000  0x01000000  protect=0x00000004
+```
+
 ### `rgh mem peek`
 ```powershell
 rgh mem peek --addr 0x82000000 --type u32
 rgh mem peek --addr 0x82000000 --type ascii --len 32
+```
+
+Example output:
+
+```text
+0x82000000 = 0x12345678 (u32)
 ```
 
 ### `rgh mem poke`
@@ -292,16 +493,37 @@ Type aliases include:
 - `byte`, `int`, `uint`, `float`
 - `ascii`, `string`, `hex`, `bytes`
 
+Example output:
+
+```text
+SUCCESS Memory write complete
+0x82000000 <= 0x12345678 (u32)
+```
+
 ### `rgh mem watch`
 ```powershell
 rgh mem watch --addr 0x82000000 --size 0x40
 rgh mem watch --addr 0x82000000 --size 0x40 --interval 100 --count 10
 ```
 
+Example output:
+
+```text
+watch 1  0x82000000  78 56 34 12 ...
+watch 2  0x82000000  79 56 34 12 ...
+```
+
 ### `rgh mem strings`
 ```powershell
 rgh mem strings --addr 0x82000000 --size 0x20000 --min 6
 rgh mem strings --addr 0x82000000 --size 0x20000 --json
+```
+
+Example output:
+
+```text
+0x82014020  ascii    xam.xex
+0x82014210  ascii    XeKeysExecute
 ```
 
 ### `rgh mem search`
@@ -320,11 +542,27 @@ rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --freeze --fr
 rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --freeze --freeze-all --freeze-count 5
 ```
 
+Example output:
+
+```text
+Hits
+0x82000120
+0x820004A8
+0x820019F0
+```
+
 ## XEX Commands
 ### `rgh xex dump`
 ```powershell
 rgh xex dump --out .\title.xex
 rgh xex dump --path Hdd1:\Aurora\Aurora.xex --out .\aurora.xex
+```
+
+Example output:
+
+```text
+SUCCESS XEX dump complete
+\Device\Harddisk0\Partition1\Aurora\Aurora.xex -> .\aurora.xex
 ```
 
 ### `rgh xex strings`
@@ -334,10 +572,25 @@ rgh xex strings --ftp-path /Hdd1/Aurora/Aurora.xex --out .\strings.txt
 rgh xex strings --in .\title.xex --json
 ```
 
+Example output:
+
+```text
+XEX Strings
+0x00000000  ascii    XEX2
+0x0005B8A0  utf16le  Aurora
+```
+
 ### `rgh xex decompile`
 ```powershell
 rgh xex decompile --in .\title.xex --out .\decomp
 rgh xex decompile --running --out .\decomp --max 200
+```
+
+Example output:
+
+```text
+SUCCESS Ghidra decompile complete
+200 function files written to .\decomp
 ```
 
 ## File-System Commands
@@ -350,6 +603,14 @@ rgh fs cat --path Hdd:\launch.ini
 rgh fs rm --path Hdd:\temp\old.txt
 rgh fs mkdir --path Hdd:\temp\newdir
 rgh fs mv --from Hdd:\old.txt --to Hdd:\new.txt
+```
+
+Example output:
+
+```text
+Directory
+Aurora           Dir
+launch.ini       File   12794
 ```
 
 ### FTP-backed
@@ -372,6 +633,13 @@ rgh ftp mkdir --path /Hdd1/newdir
 rgh ftp mv --from /Hdd1/old.txt --to /Hdd1/new.txt
 ```
 
+Example output:
+
+```text
+SUCCESS FTP upload complete
+.\launch.ini -> /Hdd1/launch.ini (12.49 KB)
+```
+
 ## Thread and Debug Commands
 ### Threads
 ```powershell
@@ -381,11 +649,26 @@ rgh threads suspend --id 0xFB000008
 rgh threads resume --id 0xFB000008
 ```
 
+Example output:
+
+```text
+Threads
+0xFB000008  priority=100  state=Running
+0xFB000009  priority=100  state=Waiting
+```
+
 ### Debug control
 ```powershell
 rgh debug stop
 rgh debug go
 rgh debug watch
+```
+
+Example output:
+
+```text
+execution stopped
+execution started
 ```
 
 ### Breakpoints
@@ -395,10 +678,24 @@ rgh debug break remove --addr 0x82001000
 rgh debug break clearall
 ```
 
+Example output:
+
+```text
+SUCCESS Breakpoint added
+0x82001000
+```
+
 ### Data breakpoints
 ```powershell
 rgh debug databreak add --addr 0x82100000 --size 4 --type write
 rgh debug databreak remove --addr 0x82100000 --size 4 --type write
+```
+
+Example output:
+
+```text
+SUCCESS Data breakpoint added
+addr=0x82100000 size=4 type=write
 ```
 
 ## JRPC2 Commands
@@ -414,6 +711,14 @@ rgh jrpc2 notify --message "XeCLI"
 rgh jrpc2 call --module xam.xex --ordinal 526 --ret int --arg int:0
 ```
 
+Example output:
+
+```text
+CPU Key     587AC7...
+Dashboard   17559
+Motherboard Trinity
+```
+
 ## Notification Commands
 ```powershell
 rgh notify "Success :)"
@@ -423,11 +728,25 @@ rgh notify-icons add --name success --logo 0x24
 rgh notify-icons remove --name success
 ```
 
+Example output:
+
+```text
+SUCCESS Notification sent
+message="XeCLI connected" logo=14 (Flashing happy face)
+```
+
 ## Save Commands
 ### `rgh save list`
 ```powershell
 rgh save list --titleid FFFE07D1 --device Hdd1
 rgh save list --titleid 415608C3 --profile E00012AA8D7879B4
+```
+
+Example output:
+
+```text
+Save Files
+/Hdd1/Content/E00012AA8D7879B4/415608C3/00010000/savegame.svg
 ```
 
 ### `rgh save extract`
@@ -436,10 +755,24 @@ rgh save extract --titleid 415608C3 --out .\saves
 rgh save extract --titleid 415608C3 --profile E00012AA8D7879B4 --device Hdd1 --overwrite
 ```
 
+Example output:
+
+```text
+SUCCESS Save extract complete
+3 file(s)  8.2 MB -> .\saves\Grand Theft Auto V (0x415608C3)
+```
+
 ### `rgh save inject`
 ```powershell
 rgh save inject --titleid 415608C3 --in .\saves --device Hdd1
 rgh save inject --titleid 415608C3 --profile E00012AA8D7879B4 --in .\save.bin --overwrite
+```
+
+Example output:
+
+```text
+SUCCESS Save inject complete
+1 file(s)  128 KB -> /Hdd1/Content/E00012AA8D7879B4/415608C3
 ```
 
 ## Content Commands
@@ -450,6 +783,14 @@ rgh content list --device Hdd1 --show-types
 rgh content list --titleid 415608C3
 ```
 
+Example output:
+
+```text
+Installed Content
+415608C3  Grand Theft Auto V  Game
+415608C3  Grand Theft Auto V  Title Update
+```
+
 ### `rgh content delete`
 ```powershell
 rgh content delete --titleid 415608C3 --type "Title Update"
@@ -457,16 +798,38 @@ rgh content delete --titleid 415608C3 --type "Title Update"
 
 Treat delete operations as destructive.
 
+Example output:
+
+```text
+SUCCESS Content delete complete
+Title Update for 0x415608C3 removed
+```
+
 ## Plugin Commands
 ### `rgh plugin list`
 ```powershell
 rgh plugin list
 ```
 
+Example output:
+
+```text
+DashLaunch Plugins
+slot1  Hdd:\xbdm.xex
+slot5  Hdd:\XDRPC.xex
+```
+
 ### `rgh plugin enable`
 ```powershell
 rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex
 rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex --backup
+```
+
+Example output:
+
+```text
+SUCCESS Plugin enabled
+slot 5 -> Hdd:\XDRPC.xex
 ```
 
 ### `rgh plugin disable`
@@ -476,16 +839,39 @@ rgh plugin disable --slot 5
 
 These commands edit `launch.ini` over FTP. Back up first when changing a live configuration.
 
+Example output:
+
+```text
+SUCCESS Plugin disabled
+slot 5 cleared
+```
+
 ## GOD Commands
 ### `rgh god info`
 ```powershell
 rgh god info .\game.iso
 ```
 
+Example output:
+
+```text
+ISO Info
+Title ID   415608C3
+Name       Grand Theft Auto V
+Media      DVD1
+```
+
 ### `rgh god build`
 ```powershell
 rgh god build .\game.iso .\god
 rgh god build .\game.iso .\god --trim end --threads 2
+```
+
+Example output:
+
+```text
+SUCCESS GoD build complete
+output written to .\god\415608C3
 ```
 
 ### `rgh god watch`
@@ -497,10 +883,26 @@ rgh god watch .\incoming --dest .\god --once
 
 The watchdog waits for file stability before starting conversion and can process a directory once and exit for automation use.
 
+Example output:
+
+```text
+Watching .\incoming
+queued   game.iso
+done     game.iso -> .\god\415608C3
+```
+
 ## Ghidra Commands
 ### `rgh ghidra config`
 ```powershell
 rgh ghidra config --path "C:\Tools\ghidra" --java "C:\Java"
+```
+
+Example output:
+
+```text
+SUCCESS Ghidra config updated
+path=C:\Tools\ghidra
+java=C:\Java
 ```
 
 ### `rgh ghidra analyze`
@@ -510,16 +912,36 @@ rgh ghidra analyze --running
 rgh ghidra analyze --ftp-path /Hdd1/Aurora/Aurora.xex
 ```
 
+Example output:
+
+```text
+SUCCESS Ghidra analysis complete
+project=title  loader=xex
+```
+
 ### `rgh ghidra decompile`
 ```powershell
 rgh ghidra decompile --in .\title.xex --out .\decomp
 rgh ghidra decompile --running --out .\decomp --max 200
 ```
 
+Example output:
+
+```text
+SUCCESS Ghidra decompile complete
+200 function files written to .\decomp
+```
+
 ### `rgh ghidra verify`
 ```powershell
 rgh ghidra verify --dir .\decomp
 rgh ghidra verify --dir .\decomp --json
+```
+
+Example output:
+
+```text
+No flagged files found.
 ```
 
 ## Practical Workflows

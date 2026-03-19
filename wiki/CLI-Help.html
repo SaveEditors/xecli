@@ -280,6 +280,46 @@ COMMANDS:
 </tr>
 </tbody>
 </table>
+<h2 id="representative-runtime-results">Representative Runtime Results</h2>
+<p>The built-in help screens tell you how to call a command. They do not show what success or failure usually looks like in terminal use. The examples below are representative operator-facing results from the shipped CLI.</p>
+<h3 id="core-console-checks">Core console checks</h3>
+<pre><code class="language-text">rgh ping
+OK 21 ms
+
+rgh title
+Active Title
+Title ID     0xFFFE07D1
+Title Name   Aurora
+Media ID     unknown
+</code></pre>
+<h3 id="live-inspection">Live inspection</h3>
+<pre><code class="language-text">rgh modules list
+Modules
+xboxkrnl.exe   0x80010000   0x005A0000
+xam.xex        0x82000000   0x001C0000
+Aurora.xex     0x90F00000   0x00480000
+
+rgh mem hexdump --addr 0x30000000 --size 0x10
+0x30000000 DE AD BE EF 01 02 03 04 05 06 07 08 09 0A 0B 0C  ................
+</code></pre>
+<h3 id="transfer-and-content-workflows">Transfer and content workflows</h3>
+<pre><code class="language-text">rgh ftp get --path /Hdd1/launch.ini --out .\launch.ini
+SUCCESS FTP download complete
+/Hdd1/launch.ini -&gt; .\launch.ini (12.49 KB)
+
+rgh save extract --titleid 415608C3 --out .\saves
+SUCCESS Save extract complete
+3 file(s)  8.2 MB -&gt; .\saves\Grand Theft Auto V (0x415608C3)
+</code></pre>
+<h3 id="notifications-and-analysis">Notifications and analysis</h3>
+<pre><code class="language-text">rgh notify &quot;XeCLI connected&quot; 14
+SUCCESS Notification sent
+message=&quot;XeCLI connected&quot; logo=14 (Flashing happy face)
+
+rgh ghidra decompile --running --out .\decomp
+SUCCESS Ghidra decompile complete
+200 function files written to .\decomp
+</code></pre>
 <h2 id="top-level-help-screens">Top-Level Help Screens</h2>
 <h3 id="rgh-status-help"><code>rgh status help</code></h3>
 <pre><code class="language-text">DESCRIPTION:

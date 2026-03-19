@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/readme/xecli-logo.jpg" alt="XeCLI logo" width="280">
+</p>
+
 # Beginner Guide
 
 This guide covers the safe, practical path from a fresh install to a working live-console session.

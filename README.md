@@ -37,12 +37,16 @@ It is intended to replace scattered one-off console utilities with a consistent 
 The repository and release package include:
 
 - The CLI source and managed project dependencies.
+- Common console-side `.xex` dependency files used with XeCLI workflows.
 - A bundled Title ID database.
 - Ghidra helper scripts.
 - Wiki documentation and release-facing README content.
 
 Bundled assets:
 
+- `src/Xbox360.Remote.Cli/ConsoleDependencies/xbdm.xex`
+- `src/Xbox360.Remote.Cli/ConsoleDependencies/XDRPC.xex`
+- `src/Xbox360.Remote.Cli/ConsoleDependencies/JRPC2.xex`
 - `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
 - `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
 - `src/Xbox360.Remote.Cli/ghidra_scripts/DecompileAllToC.java`
@@ -56,7 +60,7 @@ XeCLI does not replace console-side plugins or services. The target console must
 - JRPC2 for CPU key, temperatures, Title ID, dashboard version, motherboard type, notifications, and generic RPC.
 - FTP service for FTP-backed file browsing, save management, content management, and DashLaunch plugin edits.
 
-XeCLI is shipped as a self-contained local toolchain. Console-side services remain prerequisites.
+XeCLI is shipped as a self-contained local toolchain and now includes common console-side `.xex` dependency files in `ConsoleDependencies/` for packaging convenience, but those services still have to be installed and enabled on the target console.
 
 ## Feature Summary
 Core console workflows:
@@ -100,6 +104,7 @@ Download the release archive, extract it, and run `rgh.exe`.
 Release contents:
 
 - `rgh.exe`
+- `ConsoleDependencies/`
 - `Assets/`
 - `ghidra_scripts/`
 

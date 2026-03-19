@@ -13,7 +13,9 @@ No. The bundled Title ID database ships with the repository and with the publish
 Yes. That is a supported use case. Read the bundled CSV/TXT files directly or use `rgh title --json`.
 
 ## Does XeCLI include console-side plugins
-No. Console-side services such as XBDM, JRPC2, and FTP must already exist on the target console.
+Partially. The source tree and release package now ship common console-side `.xex` dependency files in `ConsoleDependencies/`, including `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex`.
+
+That does not mean XeCLI installs or enables them automatically. Console-side services such as XBDM, JRPC2, and FTP still need to be installed and configured on the target console.
 
 ## Why does `rgh title` work with no arguments
 Because the command is designed to resolve the active title by default when no Title ID is supplied.

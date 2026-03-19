@@ -121,9 +121,12 @@ pre {
 }
 
 .wiki-brand img {
-  width: 52px;
-  height: 52px;
+  width: 42px;
+  height: 42px;
   flex: 0 0 auto;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(212, 255, 77, 0.18);
 }
 
 .wiki-sidebar__tagline {

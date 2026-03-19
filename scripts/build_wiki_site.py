@@ -124,7 +124,7 @@ def build_page(md_name: str) -> None:
   <div class="wiki-shell">
     <aside class="wiki-sidebar">
       <a class="wiki-brand" href="Home.html">
-        <img src="assets/xecli-logo.svg" alt="XeCLI logo">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
         <span>XeCLI Wiki</span>
       </a>
       <p class="wiki-sidebar__tagline">Developer-grade documentation for the <code>rgh</code> command surface.</p>

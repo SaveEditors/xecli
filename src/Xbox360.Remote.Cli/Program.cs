@@ -64,12 +64,12 @@ internal static class Program {
 
             config.AddCommand<StatusCommand>("status").WithDescription("Show a compact console status snapshot.");
             config.AddCommand<ProfilesCommand>("profiles").WithAlias("users").WithDescription("List profiles and signed-in users.");
-            config.AddCommand<TitleLookupCommand>("title").WithAlias("titles").WithDescription("Resolve the active title or look up a Title ID in the local database.");
+            config.AddCommand<TitleLookupCommand>("title").WithAlias("titles").WithDescription("Resolve the active title or look up a Title ID.");
             config.AddCommand<TargetCommand>("target").WithDescription("Show or set the default target.");
             config.AddCommand<PingCommand>("ping").WithDescription("Ping the current console.");
             config.AddCommand<RebootCommand>("reboot").WithAlias("restart").WithDescription("Reboot the console (cold by default).");
             config.AddCommand<LaunchCommand>("launch").WithAlias("run").WithDescription("Launch a XEX with optional arguments.");
-            config.AddCommand<InstallCommand>("install").WithDescription("Install rgh for the current user or add it to the machine PATH.");
+            config.AddCommand<InstallCommand>("install").WithDescription("Install rgh or add it to the machine PATH.");
             config.AddCommand<StartCommand>("start").WithAlias("s").WithDescription("Discover consoles and set the default target.");
             config.AddCommand<ConnectCommand>("connect").WithAlias("c").WithDescription("Set or select the default target.");
             config.AddCommand<ScanCommand>("scan").WithAlias("discover").WithDescription("Scan the network for consoles.");
@@ -252,9 +252,9 @@ internal static class Program {
                 rpc.AddCommand<Jrpc2CallCommand>("call").WithDescription("Call a function with RPC.");
             });
 
-            config.AddCommand<NotifySendCommand>("notify").WithAlias("xnotify").WithDescription("Send an on-screen notification with a raw icon id, built-in icon name, or preset alias.");
+            config.AddCommand<NotifySendCommand>("notify").WithAlias("xnotify").WithDescription("Send an on-screen notification.");
             config.AddBranch("notify-icons", icons => {
-                icons.SetDescription("Browse the built-in XNotify icon catalog and manage preset aliases.");
+                icons.SetDescription("Browse XNotify icons and manage preset aliases.");
                 icons.AddExample(new[] { "notify-icons", "list" });
                 icons.AddExample(new[] { "notify-icons", "show", "14" });
                 icons.AddExample(new[] { "notify-icons", "add", "--name", "success", "--logo", "14" });

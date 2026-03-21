@@ -157,12 +157,13 @@ rgh mem peek --addr 0x30000000 --type u32
 <p>List DashLaunch plugins:</p>
 <pre><code class="language-powershell">rgh plugin list
 </code></pre>
-<h2 id="8-stage-homebrew-to-usb">8. Stage Homebrew to USB</h2>
-<p>If you want a ready-to-use USB with the common public dashboards and tools, XeCLI can stage them directly:</p>
+<h2 id="8-install-or-stage-homebrew">8. Install or Stage Homebrew</h2>
+<p>XeCLI can either stage the common public dashboards and tools to a USB drive or folder, or install them directly onto a detected console drive.</p>
 <pre><code class="language-powershell">rgh homebrew install aurora --usb E:
 rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
 </code></pre>
-<p>That flow:</p>
+<p>USB or folder staging:</p>
 <ul>
 <li>downloads the selected public package archives</li>
 <li>extracts them into clean folders on the USB or staging path</li>
@@ -172,6 +173,13 @@ rgh homebrew install all --usb E: --auto-confirm
 <p>If no removable USB drive is visible, use a normal folder path instead:</p>
 <pre><code class="language-powershell">rgh homebrew install all --usb A:\UsbStage --auto-confirm
 </code></pre>
+<p>Direct console install:</p>
+<ul>
+<li>detects only <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, and <code>Usb2</code> from the live console over FTP</li>
+<li>asks which detected drive you want to install to</li>
+<li>asks whether XeCLI should generate a new <code>launch.ini</code>, merge plugin entries into the existing file, or leave it unchanged</li>
+<li>uploads the selected dashboards/tools and bundled plugins directly onto the selected console drive</li>
+</ul>
 <p>Read <a href="Homebrew-and-USB.html">Homebrew-and-USB.md</a> for the full package workflow.</p>
 <h2 id="9-launch-and-notify">9. Launch and Notify</h2>
 <p>Launch a XEX:</p>
@@ -199,7 +207,7 @@ rgh led state
 <li><code>ftp list</code></li>
 <li><code>screenshot</code></li>
 <li><code>signin state</code></li>
-<li><code>install all --usb E: --auto-confirm</code></li>
+<li><code>homebrew install all --usb E: --auto-confirm</code></li>
 <li><code>led set --preset quadrant1</code></li>
 </ul>
 <p>Delay these until you know the target is stable:</p>
@@ -214,7 +222,7 @@ rgh led state
 <h2 id="12-know-where-to-go-next">12. Know Where to Go Next</h2>
 <ul>
 <li><a href="Commands.html">Commands Reference</a> for full command coverage</li>
-<li><a href="Homebrew-and-USB.html">Homebrew and USB</a> for USB-side package staging</li>
+<li><a href="Homebrew-and-USB.html">Homebrew and USB</a> for USB/folder staging and direct console installs</li>
 <li><a href="Hardware-and-System.html">Hardware and System Controls</a> for sign-in, LED, fan, and SMC behavior</li>
 <li><a href="XNotify.html">XNotify</a> for icon IDs and notification usage</li>
 <li><a href="Advanced-Guide.html">Advanced Guide</a> for reverse-engineering and automation workflows</li>

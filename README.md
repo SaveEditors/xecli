@@ -24,16 +24,16 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 </p>
 
 ## Documentation
-- [Wiki Home](wiki/Home.md)
-- [Commands Reference](wiki/Commands.md)
-- [CLI Help Output](wiki/CLI-Help.md)
-- [Beginner Guide](wiki/Beginner-Guide.md)
-- [Hardware and System Controls](wiki/Hardware-and-System.md)
-- [XNotify](wiki/XNotify.md)
-- [Homebrew and USB](wiki/Homebrew-and-USB.md)
-- [Avatar Item Collection](wiki/Avatar-Item-Collection.md)
-- [Advanced Guide](wiki/Advanced-Guide.md)
-- [Published Docs Site](https://saveeditors.github.io/xecli/wiki/Home.html)
+- [Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)
+- [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html)
+- [CLI Help Output](https://saveeditors.github.io/xecli/wiki/CLI-Help.html)
+- [Beginner Guide](https://saveeditors.github.io/xecli/wiki/Beginner-Guide.html)
+- [Hardware and System Controls](https://saveeditors.github.io/xecli/wiki/Hardware-and-System.html)
+- [XNotify](https://saveeditors.github.io/xecli/wiki/XNotify.html)
+- [Homebrew and USB](https://saveeditors.github.io/xecli/wiki/Homebrew-and-USB.html)
+- [Avatar Item Collection](https://saveeditors.github.io/xecli/wiki/Avatar-Item-Collection.html)
+- [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html)
+- [Published Docs Site](https://saveeditors.github.io/xecli/wiki/)
 
 ## Release Changelog
 ### v1.0.2 Installer and Homebrew Update
@@ -41,14 +41,14 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - Added a dedicated homebrew package catalog with cached downloads, archive extraction, generated `launch.ini`, bundled plugin copies, and staging to removable USB drives or normal folders.
 - Kept silent backward compatibility for older `rgh install aurora` style calls by redirecting them to the new homebrew path without exposing that legacy syntax in public help.
 - Fixed installer summaries and follow-up instructions so installs without PATH enabled now point users to the installed `rgh.exe` directly instead of telling them to run a missing `rgh` command.
-- Added the [Homebrew and USB](wiki/Homebrew-and-USB.md) wiki page and updated the README, Beginner Guide, Commands Reference, CLI Help, FAQ, and site navigation to reflect the new split.
+- Added the [Homebrew and USB](https://saveeditors.github.io/xecli/wiki/Homebrew-and-USB.html) wiki page and updated the README, Beginner Guide, Commands Reference, CLI Help, FAQ, and site navigation to reflect the new split.
 
 ### v1.0.1 Avatar Update
 - Added hosted and local `Avatar-Item-Collection` support with `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install`, and `rgh avatar apply`.
 - Added terminal and Windows picker flows for avatar item selection, with current-user ownership patching, cached downloads, and multi-item progress bars.
 - Added hardware and session controls including sign-in state, LED presets, fan commands, tray control, shutdown, native popup messages, and title-aware spoof helpers.
 - Added a dedicated `rgh homebrew install` workflow for staging Aurora, DashLaunch, XeXMenu, and Freestyle Dash onto USB drives or staging folders, with archive caching, progress bars, generated `launch.ini`, and bundled plugin copies.
-- Expanded the wiki with [Hardware and System Controls](wiki/Hardware-and-System.md), [XNotify](wiki/XNotify.md), and [Avatar Item Collection](wiki/Avatar-Item-Collection.md), and cleaned the wording across the public docs.
+- Expanded the wiki with [Hardware and System Controls](https://saveeditors.github.io/xecli/wiki/Hardware-and-System.html), [XNotify](https://saveeditors.github.io/xecli/wiki/XNotify.html), and [Avatar Item Collection](https://saveeditors.github.io/xecli/wiki/Avatar-Item-Collection.html), and cleaned the wording across the public docs.
 - Reworked `rgh install` into a real installer flow with install-path selection, PATH registration, clearer first-time setup, and post-install console discovery prompts.
 - Fixed current-user command registration so PATH-based installs resolve directly to `rgh.exe` instead of relying on a fragile wrapper-first path.
 - Added direct repo-root copies of `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex`, and linked them from the Beginner Guide for separate download/use.
@@ -57,7 +57,7 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - Shipped the first public XeCLI release with the `rgh` command, XBDM discovery, console status, module inspection, memory inspection, thread control, and debug helpers.
 - Added JRPC2 helpers for Title ID, temperatures, notifications, CPU key, motherboard, and dashboard queries, plus FTP-backed file, save, content, and plugin workflows.
 - Added XEX dumping, string extraction, Ghidra headless integration, ISO to GOD conversion, and the bundled Title ID database in the release package.
-- Published the initial wiki set including [Home](wiki/Home.md), [Commands Reference](wiki/Commands.md), [CLI Help Output](wiki/CLI-Help.md), [Beginner Guide](wiki/Beginner-Guide.md), [Advanced Guide](wiki/Advanced-Guide.md), and [Troubleshooting](wiki/Troubleshooting.md).
+- Published the initial wiki set including [Home](https://saveeditors.github.io/xecli/wiki/Home.html), [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html), [CLI Help Output](https://saveeditors.github.io/xecli/wiki/CLI-Help.html), [Beginner Guide](https://saveeditors.github.io/xecli/wiki/Beginner-Guide.html), [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html), and [Troubleshooting](https://saveeditors.github.io/xecli/wiki/Troubleshooting.html).
 
 ## Interface Preview
 Top-level help:
@@ -137,7 +137,7 @@ File and content workflows:
 - Save listing, extraction, and injection.
 - Installed-content inventory and deletion.
 - DashLaunch plugin listing and slot management.
-- Public homebrew package staging for Aurora, DashLaunch, XeXMenu, and Freestyle Dash through `rgh homebrew install <package>`.
+- Public homebrew package staging for Aurora, DashLaunch, XeXMenu, and Freestyle Dash through `rgh homebrew install <package>`, either to USB/folder targets or directly onto detected console drives.
 
 XEX and analysis workflows:
 
@@ -220,20 +220,30 @@ rgh install --path C:\Tools\XeCLI
 rgh install --machine
 ```
 
-### Homebrew package staging
-XeCLI also exposes a dedicated `homebrew` group to stage public homebrew packages onto a USB drive or staging folder:
+### Homebrew package install and staging
+XeCLI also exposes a dedicated `homebrew` group to either stage public homebrew packages onto a USB drive or folder, or install them directly onto a detected console drive:
 
 ```powershell
 rgh homebrew install aurora --usb E:
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
+rgh homebrew install all --device Hdd1 --ini-mode generated --auto-confirm
 rgh homebrew install dashlaunch --usb E:
 rgh homebrew install xexmenu --usb E:
 rgh homebrew install fsd --usb E:
 rgh homebrew install all --usb E: --auto-confirm
 ```
 
-Package mode downloads the public archives, extracts them into clean package folders, copies bundled console plugins into `Plugins\`, and generates `launch.ini` with Aurora as the default path when applicable.
+When `--usb` is present, XeCLI stages the downloaded packages onto the selected USB drive or folder.
 
-Read [Homebrew and USB](wiki/Homebrew-and-USB.md) for the full workflow.
+When `--usb` is omitted, XeCLI connects to the console over FTP, detects only `Hdd1`, `Usb0`, `Usb1`, and `Usb2`, asks which detected drive to use, and then installs the selected packages directly onto that console drive.
+
+Console install mode also asks how `launch.ini` should be handled:
+
+- `generated` writes a fresh XeCLI `launch.ini`
+- `merge` keeps the existing file and adds or updates the bundled plugin entries
+- `skip` installs the homebrew only and leaves `launch.ini` alone
+
+Read [Homebrew and USB](https://saveeditors.github.io/xecli/wiki/Homebrew-and-USB.html) for the full workflow.
 
 ### From source
 ```powershell

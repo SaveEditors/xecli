@@ -10,7 +10,7 @@ Use this page when you need:
 
 Use [Commands.md](Commands.md) when you need task-oriented examples and expected outputs. Use [XNotify.md](XNotify.md) when you need icon IDs, notification usage, and integration notes.
 
-For first-time setup from the release package, start with `.\rgh.exe install` from the extracted release folder. After installation, use `rgh install` for maintenance or reinstall flows, and use `rgh homebrew install ...` for USB-side dashboard and homebrew staging. The installer can copy XeCLI to a chosen folder, register `rgh`, silently scan for consoles, and offer to run `status` on a detected target.
+For first-time setup from the release package, start with `.\rgh.exe install` from the extracted release folder. After installation, use `rgh install` for maintenance or reinstall flows, and use `rgh homebrew install ...` for USB/folder staging or direct console installs. The installer can copy XeCLI to a chosen folder, register `rgh`, silently scan for consoles, and offer to run `status` on a detected target.
 
 ## How to Read the Help Tree
 Use the help system in this order:
@@ -94,7 +94,7 @@ COMMANDS:
     ftp             FTP commands (alternate access)
     save            Profile and save-data helpers over FTP
     content         Installed content management over FTP
-    homebrew        Download and stage public homebrew packages
+    homebrew        Download public homebrew packages to USB, a folder, or the console
     avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
@@ -522,7 +522,7 @@ OPTIONS:
 ### `rgh homebrew help`
 ```text
 DESCRIPTION:
-Download and stage public homebrew packages to USB or a folder
+Download public homebrew packages to USB, a folder, or the console
 
 USAGE:
     rgh homebrew [OPTIONS] <COMMAND>
@@ -537,13 +537,13 @@ OPTIONS:
 
 COMMANDS:
     list       List the built-in package catalog
-    install    Download and stage one or more public homebrew packages
+    install    Download one or more public homebrew packages to USB, a folder, or the console
 ```
 
 ### `rgh homebrew install help`
 ```text
 DESCRIPTION:
-Download and stage one or more public homebrew packages
+Download one or more public homebrew packages to USB, a folder, or the console
 
 USAGE:
     rgh homebrew install <PACKAGE> [OPTIONS]

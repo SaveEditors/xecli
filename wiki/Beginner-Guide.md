@@ -136,15 +136,16 @@ List DashLaunch plugins:
 rgh plugin list
 ```
 
-## 8. Stage Homebrew to USB
-If you want a ready-to-use USB with the common public dashboards and tools, XeCLI can stage them directly:
+## 8. Install or Stage Homebrew
+XeCLI can either stage the common public dashboards and tools to a USB drive or folder, or install them directly onto a detected console drive.
 
 ```powershell
 rgh homebrew install aurora --usb E:
 rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
 ```
 
-That flow:
+USB or folder staging:
 
 - downloads the selected public package archives
 - extracts them into clean folders on the USB or staging path
@@ -156,6 +157,13 @@ If no removable USB drive is visible, use a normal folder path instead:
 ```powershell
 rgh homebrew install all --usb A:\UsbStage --auto-confirm
 ```
+
+Direct console install:
+
+- detects only `Hdd1`, `Usb0`, `Usb1`, and `Usb2` from the live console over FTP
+- asks which detected drive you want to install to
+- asks whether XeCLI should generate a new `launch.ini`, merge plugin entries into the existing file, or leave it unchanged
+- uploads the selected dashboards/tools and bundled plugins directly onto the selected console drive
 
 Read [Homebrew-and-USB.md](Homebrew-and-USB.md) for the full package workflow.
 
@@ -199,7 +207,7 @@ Start with:
 - `ftp list`
 - `screenshot`
 - `signin state`
-- `install all --usb E: --auto-confirm`
+- `homebrew install all --usb E: --auto-confirm`
 - `led set --preset quadrant1`
 
 Delay these until you know the target is stable:
@@ -213,7 +221,7 @@ Delay these until you know the target is stable:
 
 ## 12. Know Where to Go Next
 - [Commands Reference](Commands.md) for full command coverage
-- [Homebrew and USB](Homebrew-and-USB.md) for USB-side package staging
+- [Homebrew and USB](Homebrew-and-USB.md) for USB/folder staging and direct console installs
 - [Hardware and System Controls](Hardware-and-System.md) for sign-in, LED, fan, and SMC behavior
 - [XNotify](XNotify.md) for icon IDs and notification usage
 - [Advanced Guide](Advanced-Guide.md) for reverse-engineering and automation workflows

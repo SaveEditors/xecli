@@ -19,6 +19,7 @@ internal sealed record HomebrewPackageDefinition(
 internal sealed record InstalledHomebrewPackage(
     string Id,
     string DisplayName,
+    string InstallFolderName,
     string ArchivePath,
     string InstallPath,
     int FileCount,
@@ -114,6 +115,36 @@ internal static class HomebrewPackageService {
                     throw new OperationCanceledException("Install cancelled by user.");
             }
 
+            HomebrewInstallResult staged = await StagePackagesAsync(
+                packageId,
+                targetRoot,
+                explicitCacheDirectory,
+                forceDownload,
+                cancellationToken);
+
+            bool launchIniWritten = WriteLaunchIni(targetRoot, staged.Packages);
+            return new HomebrewInstallResult(targetRoot, staged.Packages, launchIniWritten, staged.PluginsCopied);
+        }
+        finally {
+            TryDeleteDirectory(extractRoot);
+        }
+    }
+
+    internal static async Task<HomebrewInstallResult> StagePackagesAsync(
+        string packageId,
+        string targetRoot,
+        string? explicitCacheDirectory,
+        bool forceDownload,
+        CancellationToken cancellationToken) {
+        IReadOnlyList<HomebrewPackageDefinition> packages = ResolveSelection(packageId);
+        string cacheRoot = GetPackageCacheRoot(explicitCacheDirectory);
+        string archiveRoot = Path.Combine(cacheRoot, "archives");
+        string extractRoot = ResolveStagingRoot(targetRoot, explicitCacheDirectory);
+        Directory.CreateDirectory(archiveRoot);
+        Directory.CreateDirectory(extractRoot);
+        Directory.CreateDirectory(targetRoot);
+
+        try {
             List<InstalledHomebrewPackage> installed = new List<InstalledHomebrewPackage>();
             foreach (HomebrewPackageDefinition definition in packages) {
                 string archivePath = await EnsureArchiveAsync(definition, archiveRoot, forceDownload, cancellationToken);
@@ -129,6 +160,7 @@ internal static class HomebrewPackageService {
                 installed.Add(new InstalledHomebrewPackage(
                     definition.Id,
                     definition.DisplayName,
+                    definition.InstallFolderName,
                     archivePath,
                     installRoot,
                     fileCount,
@@ -136,9 +168,7 @@ internal static class HomebrewPackageService {
             }
 
             bool pluginsCopied = await CopyConsoleDependenciesAsync(targetRoot, cancellationToken);
-            bool launchIniWritten = WriteLaunchIni(targetRoot, installed);
-
-            return new HomebrewInstallResult(targetRoot, installed, launchIniWritten, pluginsCopied);
+            return new HomebrewInstallResult(targetRoot, installed, false, pluginsCopied);
         }
         finally {
             TryDeleteDirectory(extractRoot);
@@ -169,6 +199,26 @@ internal static class HomebrewPackageService {
             AnsiConsole.MarkupLine($"[grey]Generated[/] [springgreen3_1]{Markup.Escape(Path.Combine(result.TargetRoot, "launch.ini"))}[/]");
         if (result.PluginsCopied)
             AnsiConsole.MarkupLine($"[grey]Copied bundled console plugins into[/] [springgreen3_1]{Markup.Escape(Path.Combine(result.TargetRoot, "Plugins"))}[/]");
+    }
+
+    internal static string CreateLaunchIniText(string launchRootAlias) {
+        StringBuilder builder = new StringBuilder();
+        builder.AppendLine("[Paths]");
+        builder.AppendLine($"Default = {launchRootAlias}:\\Aurora\\Aurora.xex");
+        builder.AppendLine();
+        builder.AppendLine("[Plugins]");
+        builder.AppendLine($"plugin1 = {launchRootAlias}:\\Plugins\\xbdm.xex");
+        builder.AppendLine($"plugin2 = {launchRootAlias}:\\Plugins\\JRPC2.xex");
+        builder.AppendLine($"plugin3 = {launchRootAlias}:\\Plugins\\XDRPC.xex");
+        builder.AppendLine();
+        builder.AppendLine("[Settings]");
+        builder.AppendLine("nxemini = false");
+        builder.AppendLine("ftpserv = true");
+        builder.AppendLine("pingpatch = true");
+        builder.AppendLine("contpatch = true");
+        builder.AppendLine("fatalfreeze = false");
+        builder.AppendLine("livestrong = false");
+        return builder.ToString();
     }
 
     private static async Task<string> EnsureArchiveAsync(
@@ -331,24 +381,7 @@ internal static class HomebrewPackageService {
                 return false;
         }
 
-        StringBuilder builder = new StringBuilder();
-        builder.AppendLine("[Paths]");
-        builder.AppendLine("Default = Usb:\\Aurora\\Aurora.xex");
-        builder.AppendLine();
-        builder.AppendLine("[Plugins]");
-        builder.AppendLine("plugin1 = Usb:\\Plugins\\xbdm.xex");
-        builder.AppendLine("plugin2 = Usb:\\Plugins\\JRPC2.xex");
-        builder.AppendLine("plugin3 = Usb:\\Plugins\\XDRPC.xex");
-        builder.AppendLine();
-        builder.AppendLine("[Settings]");
-        builder.AppendLine("nxemini = false");
-        builder.AppendLine("ftpserv = true");
-        builder.AppendLine("pingpatch = true");
-        builder.AppendLine("contpatch = true");
-        builder.AppendLine("fatalfreeze = false");
-        builder.AppendLine("livestrong = false");
-
-        File.WriteAllText(Path.Combine(targetRoot, "launch.ini"), builder.ToString(), Encoding.ASCII);
+        File.WriteAllText(Path.Combine(targetRoot, "launch.ini"), CreateLaunchIniText("Usb"), Encoding.ASCII);
         return true;
     }
 
@@ -370,7 +403,7 @@ internal static class HomebrewPackageService {
     }
 
     private static string ResolveStagingRoot(string targetRoot, string? explicitCacheDirectory) {
-        string stamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        string stamp = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}-{Guid.NewGuid():N}";
         if (!string.IsNullOrWhiteSpace(explicitCacheDirectory))
             return Path.Combine(GetPackageCacheRoot(explicitCacheDirectory), "staging", stamp);
 
@@ -399,7 +432,7 @@ internal static class HomebrewPackageService {
     private static HttpClient CreateHttpClient() {
         HttpClient client = new HttpClient();
         client.Timeout = TimeSpan.FromMinutes(15);
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("XeCLI/1.0.1");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("XeCLI/1.0.2");
         return client;
     }
 

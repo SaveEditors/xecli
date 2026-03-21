@@ -68,17 +68,20 @@
       <section class="wiki-content-card">
         <article id="wiki-content" class="markdown-body">
           <h1 id="homebrew-and-usb">Homebrew and USB</h1>
-<p>This page covers the USB-side package workflow in XeCLI.</p>
+<p>This page covers the <code>rgh homebrew install</code> workflow in XeCLI.</p>
 <p>Use it when you want to:</p>
 <ul>
-<li>stage Aurora, DashLaunch, XeXMenu, or Freestyle Dash onto a USB drive</li>
-<li>prepare a clean USB layout without manually hunting archives</li>
+<li>stage Aurora, DashLaunch, XeXMenu, or Freestyle Dash onto a USB drive or folder</li>
+<li>install those packages directly onto <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, or <code>Usb2</code> on the console</li>
+<li>prepare a clean homebrew layout without manually hunting archives</li>
 <li>reuse the bundled <code>xbdm.xex</code>, <code>JRPC2.xex</code>, and <code>XDRPC.xex</code> files in the same package</li>
 </ul>
 <h2 id="package-mode">Package Mode</h2>
 <p>XeCLI now exposes package staging through the <code>homebrew</code> command group:</p>
 <pre><code class="language-powershell">rgh homebrew list
 rgh homebrew install aurora --usb E:
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
+rgh homebrew install all --device Hdd1 --ini-mode generated --auto-confirm
 rgh homebrew install dashlaunch --usb E:
 rgh homebrew install xexmenu --usb E:
 rgh homebrew install fsd --usb E:
@@ -95,7 +98,9 @@ rgh homebrew install all --usb E: --auto-confirm
 <li><code>fsd</code></li>
 <li><code>all</code></li>
 </ul>
-<h2 id="usb-target-selection">USB Target Selection</h2>
+<h2 id="target-selection">Target Selection</h2>
+<h3 id="usb-or-folder-staging">USB or folder staging</h3>
+<p>Use <code>--usb</code> when you want a host-side staging target.</p>
 <p><code>--usb</code> accepts:</p>
 <ul>
 <li>a drive letter like <code>E:</code></li>
@@ -108,13 +113,27 @@ rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install all --usb F: --auto-confirm
 rgh homebrew install dashlaunch --usb A:\Builds\UsbStage
 </code></pre>
-<p>If you omit <code>--usb</code>, XeCLI looks for removable drives and prompts for one. If no removable drives are visible, it stops and asks you to provide <code>--usb &lt;drive-or-path&gt;</code>.</p>
+<h3 id="direct-console-install">Direct console install</h3>
+<p>If you omit <code>--usb</code>, XeCLI switches into direct console install mode.</p>
+<p>It connects to the console over FTP, probes only these supported install roots:</p>
+<ul>
+<li><code>Hdd1</code></li>
+<li><code>Usb0</code></li>
+<li><code>Usb1</code></li>
+<li><code>Usb2</code></li>
+</ul>
+<p>It does not offer <code>System</code>, <code>SysExt</code>, <code>HddX</code>, or other system roots in this workflow.</p>
+<p>If more than one supported install root is present, XeCLI asks which one to use. You can also pass it explicitly:</p>
+<pre><code class="language-powershell">rgh homebrew install aurora --device Hdd1
+rgh homebrew install all --device Usb0 --auto-confirm
+</code></pre>
+<p>Use <code>--device</code> only with direct console install. Do not combine it with <code>--usb</code>.</p>
 <h2 id="download-and-cache-behavior">Download and Cache Behavior</h2>
 <p>XeCLI downloads package archives into the local cache:</p>
 <ul>
 <li><code>%LOCALAPPDATA%\XeCLI\cache\packages\archives</code></li>
 </ul>
-<p>It then extracts them into a staging area on the target drive by default, copies the payload into the selected USB or folder target, and reuses cached archives on later installs.</p>
+<p>It then extracts them into a staging area, copies the payload into the selected USB/folder target or onto the console, and reuses cached archives on later installs.</p>
 <p>Useful flags:</p>
 <pre><code class="language-powershell">rgh homebrew install aurora --usb E: --force-download
 rgh homebrew install all --usb E: --cache D:\XeCLI-Cache --auto-confirm
@@ -136,11 +155,40 @@ rgh homebrew install all --usb E: --cache D:\XeCLI-Cache --auto-confirm
 <ul>
 <li><code>Plugins\</code></li>
 </ul>
-<p>When Aurora is part of the install, XeCLI also writes:</p>
+<p>When you choose <code>generated</code> launch.ini mode, XeCLI also writes:</p>
 <ul>
 <li><code>launch.ini</code></li>
 </ul>
 <p>The generated <code>launch.ini</code> sets Aurora as the default path and points the plugin slots at the bundled <code>Plugins\</code> directory.</p>
+<p>Direct console install uses these console paths:</p>
+<ul>
+<li><code>/&lt;Device&gt;/Aurora</code></li>
+<li><code>/&lt;Device&gt;/DashLaunch</code></li>
+<li><code>/&lt;Device&gt;/XeXMenu</code></li>
+<li><code>/&lt;Device&gt;/FreestyleDash</code></li>
+<li><code>/&lt;Device&gt;/Plugins</code></li>
+</ul>
+<p>Default <code>launch.ini</code> path for console installs:</p>
+<ul>
+<li><code>/Hdd1/launch.ini</code></li>
+</ul>
+<p>Override it with:</p>
+<pre><code class="language-powershell">rgh homebrew install dashlaunch --device Hdd1 --ini /Hdd1/launch.dev.ini --ini-mode merge
+</code></pre>
+<h2 id="launchini-modes">launch.ini Modes</h2>
+<p>Direct console install supports three launch.ini modes:</p>
+<ul>
+<li><code>generated</code></li>
+<li>write a fresh XeCLI <code>launch.ini</code></li>
+<li>useful when you want Aurora + the bundled plugins as a clean baseline</li>
+<li><code>merge</code></li>
+<li>keep the existing file</li>
+<li>add or update plugin entries for the bundled <code>xbdm.xex</code>, <code>JRPC2.xex</code>, and <code>XDRPC.xex</code></li>
+<li>preserve the current <code>launch.ini</code> content before writing the merged plugin entries when the target path supports a backup copy</li>
+<li><code>skip</code></li>
+<li>install only the homebrew files and bundled plugins</li>
+<li>leave <code>launch.ini</code> untouched</li>
+</ul>
 <h2 id="example-output">Example Output</h2>
 <pre><code class="language-text">rgh homebrew install all --usb E: --auto-confirm
 Extracting Aurora 0.7b.2...
@@ -150,6 +198,17 @@ Extracting XeXMenu 1.2...
 Extracting Freestyle Dash 3...
 SUCCESS Homebrew install complete
 4 package(s) 326 MB -&gt; E:\
+</code></pre>
+<pre><code class="language-text">rgh homebrew install dashlaunch --device Hdd1 --ini-mode merge --auto-confirm
+Extracting DashLaunch 3.21...
+SUCCESS Console homebrew install complete
+1 package(s) 2.52 MB -&gt; Hdd1 on 192.168.1.186
+
+Package            Console Path       Files   Size
+DashLaunch 3.21    /Hdd1/DashLaunch   8       2.52 MB
+
+Bundled plugins copied to /Hdd1/Plugins
+Updated existing launch.ini plugin entries /Hdd1/launch.ini
 </code></pre>
 <h2 id="package-sources">Package Sources</h2>
 <p>The current build uses these public sources:</p>
@@ -169,9 +228,10 @@ SUCCESS Homebrew install complete
 <h2 id="notes">Notes</h2>
 <ul>
 <li><code>rgh install</code> is the XeCLI installer</li>
-<li><code>rgh homebrew install ...</code> is the package staging path</li>
-<li>package-mode is local USB or folder staging only</li>
-<li>package installs do not push these dashboards onto the console HDD yet</li>
+<li><code>rgh homebrew install ...</code> is the package workflow for both local staging and direct console install</li>
+<li>use <code>--usb</code> for local staging</li>
+<li>omit <code>--usb</code> for direct console install</li>
+<li>direct console install only targets <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, or <code>Usb2</code></li>
 </ul>
         </article>
       </section>

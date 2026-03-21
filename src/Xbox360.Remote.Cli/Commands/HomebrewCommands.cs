@@ -6,14 +6,26 @@ using Xbox360.Remote.Cli.Homebrew;
 namespace Xbox360.Remote.Cli.Commands;
 
 public sealed class HomebrewInstallCommand : Command<HomebrewInstallCommand.Settings> {
-    public sealed class Settings : CommandSettings {
+    public sealed class Settings : FtpConnectionSettings {
         [CommandArgument(0, "<PACKAGE>")]
-        [Description("Package to stage: aurora, dashlaunch, xexmenu, fsd, or all.")]
+        [Description("Package to install or stage: aurora, dashlaunch, xexmenu, fsd, or all.")]
         public string Package { get; init; } = string.Empty;
 
         [CommandOption("--usb <TARGET>")]
-        [Description("USB drive, drive letter, selection number, or folder path.")]
+        [Description("Stage to a removable USB drive, drive letter, selection number, or host folder path.")]
         public string? UsbTarget { get; init; }
+
+        [CommandOption("--device <DEVICE>")]
+        [Description("Install directly to a detected console device such as Hdd1, Usb0, Usb1, or Usb2.")]
+        public string? Device { get; init; }
+
+        [CommandOption("--ini-mode <MODE>")]
+        [Description("Console install launch.ini behavior: generated, merge, or skip.")]
+        public string? IniMode { get; init; }
+
+        [CommandOption("--ini <PATH>")]
+        [Description("Console launch.ini path (default: /Hdd1/launch.ini).")]
+        public string? IniPath { get; init; }
 
         [CommandOption("--cache <DIR>")]
         [Description("Package download cache directory.")]
@@ -27,11 +39,10 @@ public sealed class HomebrewInstallCommand : Command<HomebrewInstallCommand.Sett
         [Description("Skip confirmation prompts.")]
         public bool AutoConfirm { get; init; }
 
-        [CommandOption("--json")]
-        [Description("Emit machine-readable output.")]
-        public bool Json { get; init; }
-
         public override ValidationResult Validate() {
+            if (!string.IsNullOrWhiteSpace(UsbTarget) && !string.IsNullOrWhiteSpace(Device))
+                return ValidationResult.Error("Use either --usb for local staging or --device for console install, not both.");
+
             if (HomebrewPackageService.IsKnownPackageId(Package))
                 return ValidationResult.Success();
             return ValidationResult.Error($"Unknown package '{Package}'. Expected aurora, dashlaunch, xexmenu, fsd, or all.");
@@ -40,26 +51,62 @@ public sealed class HomebrewInstallCommand : Command<HomebrewInstallCommand.Sett
 
     public override int Execute(CommandContext context, Settings settings) {
         try {
-            string targetRoot = HostDriveService.ResolveTargetRoot(settings.UsbTarget, settings.AutoConfirm);
-            HomebrewInstallResult result = HomebrewPackageService
-                .InstallAsync(
-                    settings.Package,
-                    targetRoot,
-                    settings.CacheDirectory,
-                    settings.ForceDownload,
-                    settings.AutoConfirm,
-                    CancellationToken.None)
+            if (!string.IsNullOrWhiteSpace(settings.UsbTarget)) {
+                string targetRoot = HostDriveService.ResolveTargetRoot(settings.UsbTarget, settings.AutoConfirm);
+                HomebrewInstallResult result = HomebrewPackageService
+                    .InstallAsync(
+                        settings.Package,
+                        targetRoot,
+                        settings.CacheDirectory,
+                        settings.ForceDownload,
+                        settings.AutoConfirm,
+                        CancellationToken.None)
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (settings.Json) {
+                    CliOutput.EmitJson(new {
+                        Mode = "local",
+                        result.TargetRoot,
+                        result.LaunchIniWritten,
+                        result.PluginsCopied,
+                        Packages = result.Packages.Select(package => new {
+                            package.Id,
+                            package.DisplayName,
+                            package.InstallFolderName,
+                            package.ArchivePath,
+                            package.InstallPath,
+                            package.FileCount,
+                            package.TotalBytes
+                        })
+                    });
+                    return 0;
+                }
+
+                HomebrewPackageService.RenderInstallResult(result);
+                return 0;
+            }
+
+            HomebrewConsoleInstallResult resultConsole = HomebrewConsoleInstallService
+                .InstallAsync(settings, CancellationToken.None)
                 .GetAwaiter()
                 .GetResult();
 
             if (settings.Json) {
                 CliOutput.EmitJson(new {
-                    result.TargetRoot,
-                    result.LaunchIniWritten,
-                    result.PluginsCopied,
-                    Packages = result.Packages.Select(package => new {
+                    Mode = "console",
+                    resultConsole.Ip,
+                    resultConsole.DeviceRoot,
+                    resultConsole.DeviceAlias,
+                    LaunchIniMode = resultConsole.LaunchIniMode.ToString(),
+                    resultConsole.LaunchIniPath,
+                    resultConsole.LaunchIniWritten,
+                    resultConsole.LaunchIniBackedUp,
+                    resultConsole.PluginsUploaded,
+                    Packages = resultConsole.Packages.Select(package => new {
                         package.Id,
                         package.DisplayName,
+                        package.InstallFolderName,
                         package.ArchivePath,
                         package.InstallPath,
                         package.FileCount,
@@ -69,7 +116,7 @@ public sealed class HomebrewInstallCommand : Command<HomebrewInstallCommand.Sett
                 return 0;
             }
 
-            HomebrewPackageService.RenderInstallResult(result);
+            HomebrewConsoleInstallService.RenderInstallResult(resultConsole);
             return 0;
         }
         catch (OperationCanceledException) {
@@ -111,6 +158,7 @@ public sealed class HomebrewListCommand : Command<HomebrewListCommand.Settings> 
         table.AddRow("[springgreen3_1]fsd[/]", "[cyan]Freestyle Dash 3[/]");
         table.AddRow("[springgreen3_1]all[/]", "[cyan]Aurora, DashLaunch, XeXMenu, and Freestyle Dash[/]");
         AnsiConsole.Write(table);
+        AnsiConsole.MarkupLine("[grey]Use[/] [springgreen3_1]rgh homebrew install <package> --usb E:[/] [grey]to stage locally, or omit[/] [springgreen3_1]--usb[/] [grey]to install directly to a detected console drive.[/]");
         return 0;
     }
 }

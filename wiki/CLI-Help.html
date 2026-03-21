@@ -76,7 +76,7 @@
 <li>a quick reminder of what each top-level branch exposes</li>
 </ul>
 <p>Use <a href="Commands.html">Commands.md</a> when you need task-oriented examples and expected outputs. Use <a href="XNotify.html">XNotify.md</a> when you need icon IDs, notification usage, and integration notes.</p>
-<p>For first-time setup from the release package, start with <code>.\rgh.exe install</code> from the extracted release folder. After installation, use <code>rgh install</code> for maintenance or reinstall flows, and use <code>rgh homebrew install ...</code> for USB-side dashboard and homebrew staging. The installer can copy XeCLI to a chosen folder, register <code>rgh</code>, silently scan for consoles, and offer to run <code>status</code> on a detected target.</p>
+<p>For first-time setup from the release package, start with <code>.\rgh.exe install</code> from the extracted release folder. After installation, use <code>rgh install</code> for maintenance or reinstall flows, and use <code>rgh homebrew install ...</code> for USB/folder staging or direct console installs. The installer can copy XeCLI to a chosen folder, register <code>rgh</code>, silently scan for consoles, and offer to run <code>status</code> on a detected target.</p>
 <h2 id="how-to-read-the-help-tree">How to Read the Help Tree</h2>
 <p>Use the help system in this order:</p>
 <ol>
@@ -154,7 +154,7 @@ COMMANDS:
     ftp             FTP commands (alternate access)
     save            Profile and save-data helpers over FTP
     content         Installed content management over FTP
-    homebrew        Download and stage public homebrew packages
+    homebrew        Download public homebrew packages to USB, a folder, or the console
     avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
@@ -663,7 +663,7 @@ OPTIONS:
 </code></pre>
 <h3 id="rgh-homebrew-help"><code>rgh homebrew help</code></h3>
 <pre><code class="language-text">DESCRIPTION:
-Download and stage public homebrew packages to USB or a folder
+Download public homebrew packages to USB, a folder, or the console
 
 USAGE:
     rgh homebrew [OPTIONS] &lt;COMMAND&gt;
@@ -678,11 +678,11 @@ OPTIONS:
 
 COMMANDS:
     list       List the built-in package catalog
-    install    Download and stage one or more public homebrew packages
+    install    Download one or more public homebrew packages to USB, a folder, or the console
 </code></pre>
 <h3 id="rgh-homebrew-install-help"><code>rgh homebrew install help</code></h3>
 <pre><code class="language-text">DESCRIPTION:
-Download and stage one or more public homebrew packages
+Download one or more public homebrew packages to USB, a folder, or the console
 
 USAGE:
     rgh homebrew install &lt;PACKAGE&gt; [OPTIONS]

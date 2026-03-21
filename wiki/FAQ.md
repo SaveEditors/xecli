@@ -33,7 +33,7 @@ It can.
 
 During install, XeCLI asks whether you want `rgh` available in new terminals. You can accept or skip that step.
 
-## Can XeCLI stage dashboards and homebrew to USB
+## Can XeCLI stage dashboards to USB or install them directly to the console
 Yes.
 
 Use the dedicated `homebrew` branch:
@@ -41,6 +41,7 @@ Use the dedicated `homebrew` branch:
 ```powershell
 rgh homebrew install aurora --usb E:
 rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
 ```
 
 Supported package IDs are:
@@ -51,7 +52,7 @@ Supported package IDs are:
 - `fsd`
 - `all`
 
-That flow downloads the public archives, extracts them into clean folders on the selected USB or staging path, copies the bundled console plugins into `Plugins\`, and writes `launch.ini` when Aurora is part of the staged set.
+With `--usb`, XeCLI stages the packages onto a USB drive or folder. Without `--usb`, XeCLI connects to the console, detects only `Hdd1`, `Usb0`, `Usb1`, and `Usb2`, installs to the selected drive, and asks whether it should generate a new `launch.ini`, merge plugin entries into the existing one, or leave `launch.ini` alone.
 
 By default, temporary extraction now happens on the target drive instead of `%LOCALAPPDATA%`, which avoids the common "not enough space on disk" failure when staging larger packages.
 

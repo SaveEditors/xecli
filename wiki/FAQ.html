@@ -89,11 +89,12 @@
 <h2 id="does-the-installer-add-rgh-to-path">Does the installer add <code>rgh</code> to PATH</h2>
 <p>It can.</p>
 <p>During install, XeCLI asks whether you want <code>rgh</code> available in new terminals. You can accept or skip that step.</p>
-<h2 id="can-xecli-stage-dashboards-and-homebrew-to-usb">Can XeCLI stage dashboards and homebrew to USB</h2>
+<h2 id="can-xecli-stage-dashboards-to-usb-or-install-them-directly-to-the-console">Can XeCLI stage dashboards to USB or install them directly to the console</h2>
 <p>Yes.</p>
 <p>Use the dedicated <code>homebrew</code> branch:</p>
 <pre><code class="language-powershell">rgh homebrew install aurora --usb E:
 rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
 </code></pre>
 <p>Supported package IDs are:</p>
 <ul>
@@ -103,7 +104,7 @@ rgh homebrew install all --usb E: --auto-confirm
 <li><code>fsd</code></li>
 <li><code>all</code></li>
 </ul>
-<p>That flow downloads the public archives, extracts them into clean folders on the selected USB or staging path, copies the bundled console plugins into <code>Plugins\</code>, and writes <code>launch.ini</code> when Aurora is part of the staged set.</p>
+<p>With <code>--usb</code>, XeCLI stages the packages onto a USB drive or folder. Without <code>--usb</code>, XeCLI connects to the console, detects only <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, and <code>Usb2</code>, installs to the selected drive, and asks whether it should generate a new <code>launch.ini</code>, merge plugin entries into the existing one, or leave <code>launch.ini</code> alone.</p>
 <p>By default, temporary extraction now happens on the target drive instead of <code>%LOCALAPPDATA%</code>, which avoids the common "not enough space on disk" failure when staging larger packages.</p>
 <p>Read <code>Homebrew and USB</code> for the full package workflow.</p>
 <h2 id="does-xecli-fetch-title-id-metadata-from-the-internet">Does XeCLI fetch Title ID metadata from the internet</h2>

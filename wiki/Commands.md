@@ -280,12 +280,14 @@ Jtag at 192.168.1.186 was detected, would you like to connect now? [y/N]:
 For dashboard and homebrew package staging, use `rgh homebrew install ...`. That keeps the installer flow and the USB package workflow separate in both help and docs.
 
 ### `rgh homebrew install`
-Download and stage one or more public homebrew packages onto a USB drive or staging folder.
+Download one or more public homebrew packages onto a USB drive, staging folder, or detected console drive.
 
 ```powershell
 rgh homebrew list
 rgh homebrew install aurora --usb E:
 rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
+rgh homebrew install all --device Hdd1 --ini-mode generated --auto-confirm
 rgh homebrew install dashlaunch --usb A:\UsbStage --force-download
 ```
 
@@ -305,9 +307,26 @@ Generated E:\launch.ini
 Copied bundled console plugins into E:\Plugins
 ```
 
+Console install example output:
+
+```text
+SUCCESS Console homebrew install complete
+1 package(s) 2.52 MB -> Hdd1 on 192.168.1.186
+
+Package            Console Path       Files   Size
+DashLaunch 3.21    /Hdd1/DashLaunch   8       2.52 MB
+
+Bundled plugins copied to /Hdd1/Plugins
+Updated existing launch.ini plugin entries /Hdd1/launch.ini
+```
+
 Important options:
 
 - `--usb <TARGET>` accepts a drive letter, removable-drive selection number, or folder path
+- omit `--usb` to install directly onto the console through FTP
+- `--device <DEVICE>` targets a detected console drive such as `Hdd1`, `Usb0`, `Usb1`, or `Usb2`
+- `--ini-mode <generated|merge|skip>` chooses whether XeCLI creates a fresh `launch.ini`, updates plugin entries in the existing file, or leaves it alone
+- `--ini <PATH>` overrides the console-side `launch.ini` path when using direct console install
 - `--cache <DIR>` moves archive and staging storage to a different directory
 - `--force-download` refreshes cached archives
 - `--auto-confirm` skips the confirmation prompt before staging

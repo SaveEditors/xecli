@@ -21,7 +21,7 @@ Avatar workflows in the shipped release now support both:
 | [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
 | [Hardware and System Controls](Hardware-and-System.md) | Sign-in state, ring-light LEDs, fan commands, and SMC version notes |
 | [XNotify](XNotify.md) | Notification usage, icon IDs, and direct integration notes |
-| [Homebrew and USB](Homebrew-and-USB.md) | USB-side Aurora, DashLaunch, XeXMenu, and Freestyle Dash package staging |
+| [Homebrew and USB](Homebrew-and-USB.md) | USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, and Freestyle Dash |
 | [Avatar Item Collection](Avatar-Item-Collection.md) | Local and hosted avatar corpus naming, browser flows, layout, and install model |
 | [Troubleshooting](Troubleshooting.md) | Failure cases, common console/plugin issues, and recovery paths |
 
@@ -83,7 +83,7 @@ Avatar workflows in the shipped release now support both:
 - FTP-based browsing, transfer, and content discovery
 - Save extraction and injection
 - DashLaunch plugin slot management
-- USB-side homebrew package staging with `rgh homebrew install aurora|dashlaunch|xexmenu|fsd|all`
+- USB/folder staging or direct console installs with `rgh homebrew install aurora|dashlaunch|xexmenu|fsd|all`
 - Avatar Item Collection cataloging, remote browsing, search, dry-run planning, progress-driven installs, and install execution
 
 ### Analysis and packaging
@@ -126,6 +126,7 @@ Current out-of-scope areas:
 rgh --help
 rgh start
 rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
 rgh ping
 rgh status
 rgh title

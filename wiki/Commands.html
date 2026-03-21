@@ -401,10 +401,12 @@ Jtag at 192.168.1.186 was detected, would you like to connect now? [y/N]:
 </code></pre>
 <p>For dashboard and homebrew package staging, use <code>rgh homebrew install ...</code>. That keeps the installer flow and the USB package workflow separate in both help and docs.</p>
 <h3 id="rgh-homebrew-install"><code>rgh homebrew install</code></h3>
-<p>Download and stage one or more public homebrew packages onto a USB drive or staging folder.</p>
+<p>Download one or more public homebrew packages onto a USB drive, staging folder, or detected console drive.</p>
 <pre><code class="language-powershell">rgh homebrew list
 rgh homebrew install aurora --usb E:
 rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
+rgh homebrew install all --device Hdd1 --ini-mode generated --auto-confirm
 rgh homebrew install dashlaunch --usb A:\UsbStage --force-download
 </code></pre>
 <p>Example output:</p>
@@ -420,9 +422,23 @@ Freestyle Dash 3   E:\FreestyleDash      26     81.43 MB
 Generated E:\launch.ini
 Copied bundled console plugins into E:\Plugins
 </code></pre>
+<p>Console install example output:</p>
+<pre><code class="language-text">SUCCESS Console homebrew install complete
+1 package(s) 2.52 MB -&gt; Hdd1 on 192.168.1.186
+
+Package            Console Path       Files   Size
+DashLaunch 3.21    /Hdd1/DashLaunch   8       2.52 MB
+
+Bundled plugins copied to /Hdd1/Plugins
+Updated existing launch.ini plugin entries /Hdd1/launch.ini
+</code></pre>
 <p>Important options:</p>
 <ul>
 <li><code>--usb &lt;TARGET&gt;</code> accepts a drive letter, removable-drive selection number, or folder path</li>
+<li>omit <code>--usb</code> to install directly onto the console through FTP</li>
+<li><code>--device &lt;DEVICE&gt;</code> targets a detected console drive such as <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, or <code>Usb2</code></li>
+<li><code>--ini-mode &lt;generated|merge|skip&gt;</code> chooses whether XeCLI creates a fresh <code>launch.ini</code>, updates plugin entries in the existing file, or leaves it alone</li>
+<li><code>--ini &lt;PATH&gt;</code> overrides the console-side <code>launch.ini</code> path when using direct console install</li>
 <li><code>--cache &lt;DIR&gt;</code> moves archive and staging storage to a different directory</li>
 <li><code>--force-download</code> refreshes cached archives</li>
 <li><code>--auto-confirm</code> skips the confirmation prompt before staging</li>

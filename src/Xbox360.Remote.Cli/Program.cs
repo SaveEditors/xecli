@@ -92,12 +92,13 @@ internal static class Program {
             config.AddCommand<ScanCommand>("scan").WithAlias("discover").WithDescription("Scan the network for consoles.");
             config.AddCommand<XbdmScreenshotCommand>("screenshot").WithAlias("shot").WithDescription("Capture a live screenshot.");
             config.AddBranch("homebrew", homebrew => {
-                homebrew.SetDescription("Download and stage public homebrew packages to USB or a folder.");
+                homebrew.SetDescription("Download public homebrew packages to USB, a folder, or a detected console drive.");
                 homebrew.AddExample(new[] { "homebrew", "list" });
                 homebrew.AddExample(new[] { "homebrew", "install", "aurora", "--usb", "E:" });
                 homebrew.AddExample(new[] { "homebrew", "install", "all", "--usb", "E:", "--auto-confirm" });
+                homebrew.AddExample(new[] { "homebrew", "install", "aurora", "--device", "Hdd1", "--ini-mode", "merge" });
                 homebrew.AddCommand<HomebrewListCommand>("list").WithAlias("ls").WithDescription("List the built-in package catalog.");
-                homebrew.AddCommand<HomebrewInstallCommand>("install").WithAlias("stage").WithDescription("Download and stage one or more public homebrew packages.");
+                homebrew.AddCommand<HomebrewInstallCommand>("install").WithAlias("stage").WithDescription("Download one or more public homebrew packages to USB, a folder, or the console.");
             }).WithAlias("hb");
 
             config.AddBranch("xbdm", xbdm => {

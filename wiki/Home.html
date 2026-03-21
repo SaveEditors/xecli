@@ -108,7 +108,7 @@
 </tr>
 <tr>
 <td><a href="Homebrew-and-USB.html">Homebrew and USB</a></td>
-<td>USB-side Aurora, DashLaunch, XeXMenu, and Freestyle Dash package staging</td>
+<td>USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, and Freestyle Dash</td>
 </tr>
 <tr>
 <td><a href="Avatar-Item-Collection.html">Avatar Item Collection</a></td>
@@ -217,7 +217,7 @@
 <li>FTP-based browsing, transfer, and content discovery</li>
 <li>Save extraction and injection</li>
 <li>DashLaunch plugin slot management</li>
-<li>USB-side homebrew package staging with <code>rgh homebrew install aurora|dashlaunch|xexmenu|fsd|all</code></li>
+<li>USB/folder staging or direct console installs with <code>rgh homebrew install aurora|dashlaunch|xexmenu|fsd|all</code></li>
 <li>Avatar Item Collection cataloging, remote browsing, search, dry-run planning, progress-driven installs, and install execution</li>
 </ul>
 <h3 id="analysis-and-packaging">Analysis and packaging</h3>
@@ -261,6 +261,7 @@
 rgh --help
 rgh start
 rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
 rgh ping
 rgh status
 rgh title

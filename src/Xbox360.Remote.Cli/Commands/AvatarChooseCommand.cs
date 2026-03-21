@@ -40,7 +40,7 @@ public sealed class AvatarChooseCommand : AsyncCommand<AvatarChooseCommand.Setti
                 .InstructionsText("[grey]Press [green]space[/] to toggle, [green]enter[/] to confirm.[/]")
                 .PageSize(Math.Min(15, Math.Max(6, items.Count)))
                 .NotRequired()
-                .UseConverter(item => $"{item.DisplayName} [grey]({item.ContentId}, {AvatarCommandHelpers.DescribeLayout(item)}, {FtpHelpers.FormatBytes(item.SizeBytes)})[/]")
+                .UseConverter(item => $"{AvatarCommandHelpers.ResolveItemDisplayName(item)} [grey]({item.ContentId}, {AvatarCommandHelpers.DescribeLayout(item)}, {FtpHelpers.FormatBytes(item.SizeBytes)})[/]")
                 .AddChoices(items));
 
         if (selectedItems.Count == 0) {

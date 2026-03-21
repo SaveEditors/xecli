@@ -30,10 +30,10 @@
             </details>
             
 
-            <details class="wiki-nav__group" data-group="developer-reference" >
+            <details class="wiki-nav__group" data-group="architecture-reference" >
               <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
             </details>
             
@@ -71,7 +71,7 @@
 <p>This page covers the <code>rgh homebrew install</code> workflow in XeCLI.</p>
 <p>Use it when you want to:</p>
 <ul>
-<li>stage Aurora, DashLaunch, XeXMenu, or Freestyle Dash onto a USB drive or folder</li>
+<li>stage Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, or XellLaunch onto a USB drive or folder</li>
 <li>install those packages directly onto <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, or <code>Usb2</code> on the console</li>
 <li>prepare a clean homebrew layout without manually hunting archives</li>
 <li>reuse the bundled <code>xbdm.xex</code>, <code>JRPC2.xex</code>, and <code>XDRPC.xex</code> files in the same package</li>
@@ -85,6 +85,10 @@ rgh homebrew install all --device Hdd1 --ini-mode generated --auto-confirm
 rgh homebrew install dashlaunch --usb E:
 rgh homebrew install xexmenu --usb E:
 rgh homebrew install fsd --usb E:
+rgh homebrew install xm360 --usb E:
+rgh homebrew install timefixer --usb E:
+rgh homebrew install simple360 --usb E:
+rgh homebrew install xelllaunch --usb E:
 rgh homebrew install all --usb E: --auto-confirm
 </code></pre>
 <p>If you are still in the extracted release folder and <code>rgh</code> is not registered yet, use:</p>
@@ -96,6 +100,10 @@ rgh homebrew install all --usb E: --auto-confirm
 <li><code>dashlaunch</code></li>
 <li><code>xexmenu</code></li>
 <li><code>fsd</code></li>
+<li><code>xm360</code></li>
+<li><code>timefixer</code></li>
+<li><code>simple360</code></li>
+<li><code>xelllaunch</code></li>
 <li><code>all</code></li>
 </ul>
 <h2 id="target-selection">Target Selection</h2>
@@ -112,6 +120,10 @@ rgh homebrew install all --usb E: --auto-confirm
 <pre><code class="language-powershell">rgh homebrew install aurora --usb E:
 rgh homebrew install all --usb F: --auto-confirm
 rgh homebrew install dashlaunch --usb A:\Builds\UsbStage
+rgh homebrew install xm360 --usb E:
+rgh homebrew install timefixer --usb E:
+rgh homebrew install simple360 --usb E:
+rgh homebrew install xelllaunch --usb E:
 </code></pre>
 <h3 id="direct-console-install">Direct console install</h3>
 <p>If you omit <code>--usb</code>, XeCLI switches into direct console install mode.</p>
@@ -143,6 +155,8 @@ rgh homebrew install all --usb E: --cache D:\XeCLI-Cache --auto-confirm
 <li><code>--cache &lt;DIR&gt;</code> moves both the archive cache and staging root to a different location</li>
 <li><code>--auto-confirm</code> skips the confirmation step before package install</li>
 </ul>
+<h2 id="confirmation-behavior">Confirmation Behavior</h2>
+<p>XeCLI asks before staging or installing a package unless <code>--auto-confirm</code> is supplied or the command is running in a non-interactive context.</p>
 <h2 id="what-xecli-places-on-the-target">What XeCLI Places on the Target</h2>
 <p>For each selected package, XeCLI creates a clean package folder on the target:</p>
 <ul>
@@ -196,9 +210,14 @@ Extracting DashLaunch 3.21...
 Download XeXMenu 1.2 downloading: 55%
 Extracting XeXMenu 1.2...
 Extracting Freestyle Dash 3...
+Extracting XM360...
+Extracting TimeFixer...
+Extracting Simple 360 NAND Flasher...
+Extracting XellLaunch...
 SUCCESS Homebrew install complete
 4 package(s) 326 MB -&gt; E:\
 </code></pre>
+<p>That example is abbreviated. The current package catalog also includes XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch.</p>
 <pre><code class="language-text">rgh homebrew install dashlaunch --device Hdd1 --ini-mode merge --auto-confirm
 Extracting DashLaunch 3.21...
 SUCCESS Console homebrew install complete
@@ -223,6 +242,17 @@ Updated existing launch.ini plugin entries /Hdd1/launch.ini
 <li>Freestyle Dash 3</li>
 <li><code>https://consolemods.org/wiki/images/a/a0/Fsd3.zip</code></li>
 <li>fallback: <code>https://consolemods.org/wiki/images/7/76/TeamFSD.Freestyle3.0.775.7z</code></li>
+<li>XM360</li>
+<li><code>https://consolemods.org/wiki/images/5/5f/XM360.7z</code></li>
+<li><code>https://consolemods.org/wiki/File:XM360.7z</code></li>
+<li>TimeFixer</li>
+<li><code>https://github.com/DerfJagged/TimeFixer/releases/download/v1/TimeFixer_by_Derf.zip</code></li>
+<li>Simple 360 NAND Flasher</li>
+<li><code>https://consolemods.org/wiki/images/f/ff/Simple_360_NAND_Flasher.7z</code></li>
+<li><code>https://consolemods.org/wiki/File:Simple_360_NAND_Flasher.7z</code></li>
+<li>XellLaunch</li>
+<li><code>https://consolemods.org/wiki/images/4/41/XellLaunch.7z</code></li>
+<li><code>https://consolemods.org/wiki/File:XellLaunch.7z</code></li>
 </ul>
 <p>XeCLI resolves MediaWiki file pages to the raw archive automatically when a page URL is provided instead of a direct file URL.</p>
 <h2 id="notes">Notes</h2>
@@ -232,6 +262,7 @@ Updated existing launch.ini plugin entries /Hdd1/launch.ini
 <li>use <code>--usb</code> for local staging</li>
 <li>omit <code>--usb</code> for direct console install</li>
 <li>direct console install only targets <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, or <code>Usb2</code></li>
+<li>installs prompt for confirmation unless <code>--auto-confirm</code> is supplied or the command is running non-interactively</li>
 </ul>
         </article>
       </section>

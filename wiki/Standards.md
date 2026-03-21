@@ -44,8 +44,8 @@ It must be updated whenever:
 - aliases are added or removed
 - example lines in the command app are changed
 
-### Internal/reference pages
-Internal pages should explain:
+### Architecture/reference pages
+These pages should explain:
 
 - how the CLI is structured
 - how the transport layers fit together
@@ -61,7 +61,7 @@ Internal pages should explain:
 - Prefer direct statements like `requires XBDM` or `uses FTP`.
 
 ### Examples
-- Use `rgh` in examples, not internal executable paths.
+- Use `rgh` in examples, not non-release executable paths.
 - Keep examples realistic and copy-paste ready.
 - Use placeholder values only when they are truly environment-specific.
 
@@ -85,7 +85,7 @@ Add or update:
 
 - an entry from `Home.md`
 - the relevant command reference section
-- internal design notes in `Frameworks.md`
+- architecture notes in `Frameworks.md`
 - integration notes if the feature is reusable by external tools
 
 ### When a feature is blocked by external services

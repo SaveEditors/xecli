@@ -528,12 +528,6 @@ internal static class Program {
         if (args.Length == 0)
             return args;
 
-        if (string.Equals(args[0], "install", StringComparison.OrdinalIgnoreCase) &&
-            args.Length > 1 &&
-            HomebrewPackageService.IsKnownPackageId(args[1])) {
-            return new[] { "homebrew", "install" }.Concat(args.Skip(1)).ToArray();
-        }
-
         if (string.Equals(args[0], "spoof", StringComparison.OrdinalIgnoreCase))
             return NormalizeSpoofArgs(args);
 

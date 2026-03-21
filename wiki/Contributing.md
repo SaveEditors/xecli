@@ -29,7 +29,7 @@ Every contribution should leave the command surface clearer, safer, or easier to
 ### Output
 - Human-readable output should stay clean and scannable.
 - JSON output should remain stable enough for scripts.
-- Help text must explain the real operator workflow, not internal implementation details.
+- Help text must explain the real operator workflow, not implementation details.
 
 ## Documentation Expectations
 Any command or behavior change should update the relevant docs in the same change set.
@@ -39,7 +39,7 @@ Minimum docs coverage:
 - `README.md` for user-visible feature additions
 - `wiki/Commands.md` for new commands or flags
 - `wiki/CLI-Help.md` when help output changes
-- `wiki/Frameworks.md` when internal behavior meaningfully changes
+- `wiki/Frameworks.md` when implementation behavior meaningfully changes
 
 ## Validation Expectations
 
@@ -80,6 +80,6 @@ The wiki should read like a maintained technical knowledge base.
 That means:
 
 - grouped page navigation
-- operator path and developer path
+- operator path and integration path
 - subsystem explanation
 - standards for future documentation updates

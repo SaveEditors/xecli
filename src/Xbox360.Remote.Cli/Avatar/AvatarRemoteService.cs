@@ -28,11 +28,11 @@ internal static class AvatarRemoteService {
 
     public static string GetCachePath(string? explicitCachePath) {
         if (string.IsNullOrWhiteSpace(explicitCachePath))
-            return Path.Combine(CliPaths.CachePath, "avatar", "avatar-remote-index.v1.json");
+            return Path.Combine(CliPaths.CachePath, "avatar", "avatar-remote-index.v2.json");
 
         string fullPath = Path.GetFullPath(explicitCachePath);
         if (string.IsNullOrWhiteSpace(Path.GetExtension(fullPath)))
-            return Path.Combine(fullPath, "avatar-remote-index.v1.json");
+            return Path.Combine(fullPath, "avatar-remote-index.v2.json");
 
         string directory = Path.GetDirectoryName(fullPath) ?? CliPaths.ConfigDirectory;
         string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fullPath);
@@ -88,7 +88,10 @@ internal static class AvatarRemoteService {
             string? contentType = entry.Layout.Equals("root", StringComparison.OrdinalIgnoreCase) ? null : entry.Layout;
             string titleName = ResolveRemoteTitleName(titleId, entry.TitleId, titleMap);
             string? publisher = ResolveRemotePublisher(entry.TitleId, titleMap);
-            string displayName = string.IsNullOrWhiteSpace(entry.ItemName) ? entry.FileName : entry.ItemName;
+            string displayName = AvatarLibraryService.ResolveItemDisplayName(
+                entry.FileName,
+                entry.ItemName,
+                titleName);
             string downloadUrl = CombineContentUrl(contentBaseUrl, normalizedRelative);
             IReadOnlyList<string> tags = BuildTags(displayName, titleName, publisher);
 
@@ -119,7 +122,7 @@ internal static class AvatarRemoteService {
             DateTimeOffset.UtcNow,
             items
                 .OrderBy(item => item.TitleName, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(item => item.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(item => AvatarLibraryService.ResolveItemDisplayName(item.ContentId, item.DisplayName, item.GameName, item.TitleName), StringComparer.OrdinalIgnoreCase)
                 .ThenBy(item => item.ContentId, StringComparer.OrdinalIgnoreCase)
                 .ToArray());
 

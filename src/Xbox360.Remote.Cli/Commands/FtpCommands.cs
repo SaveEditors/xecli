@@ -12,6 +12,7 @@ namespace Xbox360.Remote.Cli.Commands;
 internal static class FtpHelpers {
     private const int ReconnectAttempts = 3;
     private const int ReconnectDelaySeconds = 10;
+    private const int UploadReconnectDelayMs = 500;
     private static readonly HashSet<string> RootNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
         "Hdd1",
         "HddX",
@@ -49,17 +50,31 @@ internal static class FtpHelpers {
         return (ip, port, user, pass, timeout);
     }
 
+    public static AsyncFtpClient CreateClient(string ip, int port, string user, string pass, int timeoutMs) {
+        AsyncFtpClient client = new AsyncFtpClient(ip, user, pass, port);
+        ConfigureClient(client, timeoutMs);
+        return client;
+    }
+
+    public static void ConfigureClient(AsyncFtpClient client, int timeoutMs) {
+        client.Config.ConnectTimeout = timeoutMs;
+        client.Config.ReadTimeout = timeoutMs;
+        client.Config.DataConnectionConnectTimeout = timeoutMs;
+        client.Config.DataConnectionReadTimeout = timeoutMs;
+        client.Config.DataConnectionType = FtpDataConnectionType.AutoPassive;
+        client.Config.UploadDataType = FtpDataType.Binary;
+        client.Config.DownloadDataType = FtpDataType.Binary;
+        client.Config.RetryAttempts = ReconnectAttempts;
+        client.Config.SocketKeepAlive = true;
+    }
+
     public static async Task<int> WithClientAsync(FtpConnectionSettings settings, Func<AsyncFtpClient, Task<int>> action, CancellationToken cancellationToken) {
         (string ip, int port, string user, string pass, int timeout) = await ResolveAsync(settings, cancellationToken);
         Exception? lastError = null;
 
         for (int attempt = 1; attempt <= ReconnectAttempts; attempt++) {
             try {
-                await using AsyncFtpClient client = new AsyncFtpClient(ip, user, pass, port);
-                client.Config.ConnectTimeout = timeout;
-                client.Config.ReadTimeout = timeout;
-                client.Config.DataConnectionConnectTimeout = timeout;
-                client.Config.DataConnectionReadTimeout = timeout;
+                await using AsyncFtpClient client = CreateClient(ip, port, user, pass, timeout);
                 await client.Connect(cancellationToken);
                 return await action(client);
             }
@@ -186,6 +201,117 @@ internal static class FtpHelpers {
         return null;
     }
 
+    public static async Task EnsureRemoteDirectoryAsync(AsyncFtpClient client, string path) {
+        string normalized = NormalizePath(path).Trim('/');
+        if (string.IsNullOrWhiteSpace(normalized))
+            return;
+
+        string[] parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        StringBuilder current = new StringBuilder();
+        foreach (string part in parts) {
+            current.Append('/').Append(part);
+            string currentPath = current.ToString();
+            if (!await client.DirectoryExists(currentPath))
+                await client.CreateDirectory(currentPath, true);
+        }
+    }
+
+    public static async Task UploadFileVerifiedAsync(
+        string ip,
+        int port,
+        string user,
+        string pass,
+        int timeoutMs,
+        string localPath,
+        string remotePath,
+        bool ensureRemoteDirectory,
+        IProgress<FtpProgress>? progress,
+        CancellationToken cancellationToken) {
+        string normalizedRemotePath = NormalizePath(remotePath);
+        string? parentDirectory = GetParentDirectory(normalizedRemotePath);
+        Exception? lastError = null;
+
+        for (int attempt = 1; attempt <= ReconnectAttempts; attempt++) {
+            cancellationToken.ThrowIfCancellationRequested();
+            try {
+                await using AsyncFtpClient client = CreateClient(ip, port, user, pass, timeoutMs);
+                await client.Connect(cancellationToken);
+
+                if (ensureRemoteDirectory && parentDirectory != null)
+                    await EnsureRemoteDirectoryAsync(client, parentDirectory);
+
+                long expectedSize = new FileInfo(localPath).Length;
+                FtpStatus status = await client.UploadFile(
+                    localPath,
+                    normalizedRemotePath,
+                    FtpRemoteExists.Overwrite,
+                    false,
+                    FtpVerify.None,
+                    progress,
+                    cancellationToken);
+
+                if (status != FtpStatus.Success)
+                    throw new IOException($"FTP upload did not complete for {normalizedRemotePath} (status: {status}).");
+
+                long? remoteSize = await TryGetFileSizeAsync(client, normalizedRemotePath);
+                if (!remoteSize.HasValue || remoteSize.Value != expectedSize) {
+                    throw new IOException(
+                        $"FTP upload size mismatch for {normalizedRemotePath} (expected {expectedSize} bytes, got {(remoteSize.HasValue ? remoteSize.Value.ToString(CultureInfo.InvariantCulture) : "unknown")}).");
+                }
+
+                return;
+            }
+            catch (Exception ex) when (attempt < ReconnectAttempts && IsTransient(ex)) {
+                lastError = ex;
+                await TryDeleteRemoteFileAsync(ip, port, user, pass, timeoutMs, normalizedRemotePath, cancellationToken);
+                await Task.Delay(UploadReconnectDelayMs, cancellationToken);
+            }
+            catch (Exception ex) {
+                lastError = ex;
+                break;
+            }
+        }
+
+        throw lastError ?? new IOException($"Unable to upload {Path.GetFileName(localPath)}.");
+    }
+
+    public static async Task UploadBytesVerifiedAsync(
+        string ip,
+        int port,
+        string user,
+        string pass,
+        int timeoutMs,
+        byte[] data,
+        string remotePath,
+        bool ensureRemoteDirectory,
+        IProgress<FtpProgress>? progress,
+        CancellationToken cancellationToken) {
+        string tempPath = Path.Combine(Path.GetTempPath(), $"xecli-ftp-bytes-{Guid.NewGuid():N}.tmp");
+        try {
+            await File.WriteAllBytesAsync(tempPath, data, cancellationToken);
+            await UploadFileVerifiedAsync(
+                ip,
+                port,
+                user,
+                pass,
+                timeoutMs,
+                tempPath,
+                remotePath,
+                ensureRemoteDirectory,
+                progress,
+                cancellationToken);
+        }
+        finally {
+            try {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
+            catch {
+                // ignored
+            }
+        }
+    }
+
     public static string FormatBytes(long bytes) {
         double size = bytes;
         string[] units = { "B", "KB", "MB", "GB", "TB" };
@@ -195,6 +321,26 @@ internal static class FtpHelpers {
             unit++;
         }
         return $"{size:0.##} {units[unit]}";
+    }
+
+    private static async Task TryDeleteRemoteFileAsync(string ip, int port, string user, string pass, int timeoutMs, string remotePath, CancellationToken cancellationToken) {
+        try {
+            await using AsyncFtpClient cleanupClient = CreateClient(ip, port, user, pass, timeoutMs);
+            await cleanupClient.Connect(cancellationToken);
+            if (await cleanupClient.FileExists(remotePath))
+                await cleanupClient.DeleteFile(remotePath);
+        }
+        catch {
+            // ignored
+        }
+    }
+
+    private static string? GetParentDirectory(string remotePath) {
+        string normalized = NormalizePath(remotePath).TrimEnd('/');
+        int slash = normalized.LastIndexOf('/');
+        if (slash < 0)
+            return null;
+        return slash == 0 ? "/" : normalized.Substring(0, slash);
     }
 }
 
@@ -506,23 +652,33 @@ public sealed class FtpPutCommand : AsyncCommand<FtpPutCommand.Settings> {
             return 1;
         }
 
-        return await FtpHelpers.WithClientAsync(settings, async client => {
-            string remote = FtpHelpers.NormalizePath(settings.Path);
-            string local = settings.Input!;
-            long size = new FileInfo(local).Length;
-            await CliOutput.RunWithProgressAsync($"FTP upload {Markup.Escape(remote)}", size > 0 ? (uint) size : null, async progress => {
-                Progress<FtpProgress> ftpProgress = new Progress<FtpProgress>(p => {
-                    if (p.TransferredBytes > 0)
-                        progress.Report(new CliOutput.TransferProgressUpdate(p.TransferredBytes, "sending"));
-                });
-                await client.UploadFile(local, remote, FtpRemoteExists.Overwrite, true, FtpVerify.None, ftpProgress);
-            });
+        (string ip, int port, string user, string pass, int timeout) = await FtpHelpers.ResolveAsync(settings, CancellationToken.None);
+        string remote = FtpHelpers.NormalizePath(settings.Path);
+        string local = settings.Input!;
+        long size = new FileInfo(local).Length;
 
-            OperationFeedback.WriteSuccess(
-                "FTP upload complete",
-                $"[white]{Markup.Escape(local)}[/] -> [cyan]{Markup.Escape(remote)}[/] [silver]({FtpHelpers.FormatBytes(size)})[/]");
-            return 0;
-        }, CancellationToken.None);
+        await CliOutput.RunWithProgressAsync($"FTP upload {Markup.Escape(remote)}", size > 0 ? (uint) size : null, async progress => {
+            Progress<FtpProgress> ftpProgress = new Progress<FtpProgress>(p => {
+                if (p.TransferredBytes > 0)
+                    progress.Report(new CliOutput.TransferProgressUpdate(p.TransferredBytes, "sending"));
+            });
+            await FtpHelpers.UploadFileVerifiedAsync(
+                ip,
+                port,
+                user,
+                pass,
+                timeout,
+                local,
+                remote,
+                ensureRemoteDirectory: true,
+                progress: ftpProgress,
+                cancellationToken: CancellationToken.None);
+        });
+
+        OperationFeedback.WriteSuccess(
+            "FTP upload complete",
+            $"[white]{Markup.Escape(local)}[/] -> [cyan]{Markup.Escape(remote)}[/] [silver]({FtpHelpers.FormatBytes(size)})[/]");
+        return 0;
     }
 }
 

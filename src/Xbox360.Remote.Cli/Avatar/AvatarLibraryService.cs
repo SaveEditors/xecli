@@ -67,7 +67,11 @@ internal static class AvatarLibraryService {
                 AvatarPackageMetadata metadata = AvatarPackageReader.ReadMetadata(filePath);
                 uint titleId = metadata.TitleId != 0 ? metadata.TitleId : titleIdFromFolder;
                 string titleName = ResolveTitleName(titleId, metadata.GameName);
-                string displayName = metadata.DisplayName ?? contentId;
+                string displayName = ResolveItemDisplayName(
+                    contentId,
+                    metadata.DisplayName,
+                    metadata.GameName,
+                    titleName);
                 string relativePath = $"{titleIdFromFolder:X8}/{relativeStorePath.Replace('\\', '/')}";
                 IReadOnlyList<string> tags = BuildTags(displayName, titleName, metadata.Publisher);
 
@@ -93,7 +97,7 @@ internal static class AvatarLibraryService {
             DateTimeOffset.UtcNow,
             items
                 .OrderBy(item => item.TitleName, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(item => item.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(item => ResolveItemDisplayName(item.ContentId, item.DisplayName, item.GameName, item.TitleName), StringComparer.OrdinalIgnoreCase)
                 .ThenBy(item => item.ContentId, StringComparer.OrdinalIgnoreCase)
                 .ToArray());
 
@@ -101,6 +105,38 @@ internal static class AvatarLibraryService {
             AvatarIndexCache.Save(cachePath, index);
 
         return index;
+    }
+
+    public static AvatarLibraryIndex MergeMetadata(AvatarLibraryIndex primary, AvatarLibraryIndex overlay) {
+        if (primary.Items.Count == 0 || overlay.Items.Count == 0)
+            return primary;
+
+        Dictionary<(uint TitleId, string RelativePath), AvatarItemRecord> overlayByPath = overlay.Items
+            .GroupBy(item => (item.TitleId, NormalizeRelativePath(item.RelativePath)))
+            .ToDictionary(group => group.Key, group => group.First());
+
+        Dictionary<(uint TitleId, string ContentId), AvatarItemRecord> overlayByContent = overlay.Items
+            .GroupBy(item => (item.TitleId, item.ContentId.Trim()))
+            .ToDictionary(group => group.Key, group => group.First());
+
+        List<AvatarItemRecord> merged = new List<AvatarItemRecord>(primary.Items.Count);
+        foreach (AvatarItemRecord item in primary.Items) {
+            AvatarItemRecord? local = null;
+            overlayByPath.TryGetValue((item.TitleId, NormalizeRelativePath(item.RelativePath)), out local);
+            local ??= overlayByContent.TryGetValue((item.TitleId, item.ContentId.Trim()), out AvatarItemRecord? contentMatch) ? contentMatch : null;
+
+            if (local == null) {
+                merged.Add(item);
+                continue;
+            }
+
+            merged.Add(MergeItemMetadata(item, local));
+        }
+
+        return new AvatarLibraryIndex(
+            primary.Fingerprint,
+            primary.GeneratedUtc,
+            merged.ToArray());
     }
 
     public static IReadOnlyList<AvatarTitleSummary> ListTitles(AvatarLibraryIndex index) {
@@ -167,6 +203,98 @@ internal static class AvatarLibraryService {
             return metadataGameName.Trim();
 
         return $"Title 0x{titleId:X8}";
+    }
+
+    private static AvatarItemRecord MergeItemMetadata(AvatarItemRecord primary, AvatarItemRecord overlay) {
+        string titleName = ChooseTitleName(primary.TitleName, overlay.TitleName);
+        string displayName = ResolveItemDisplayName(
+            primary.ContentId,
+            overlay.DisplayName,
+            overlay.GameName,
+            primary.DisplayName,
+            primary.GameName,
+            titleName);
+        string? gameName = ChooseOptionalText(primary.GameName, overlay.GameName);
+        string? publisher = ChooseOptionalText(primary.Publisher, overlay.Publisher);
+        IReadOnlyList<string> tags = primary.Tags
+            .Concat(overlay.Tags)
+            .Where(tag => !string.IsNullOrWhiteSpace(tag))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(tag => tag, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return primary with {
+            TitleName = titleName,
+            DisplayName = displayName,
+            GameName = gameName,
+            Publisher = publisher,
+            Tags = tags
+        };
+    }
+
+    private static string ChooseTitleName(string primary, string overlay) {
+        if (IsMeaningfulText(overlay) && !IsPlaceholderTitleName(overlay))
+            return overlay.Trim();
+        if (IsMeaningfulText(primary))
+            return primary.Trim();
+        return overlay.Trim();
+    }
+
+    internal static string ResolveItemDisplayName(string contentId, params string?[] candidates) {
+        foreach (string? candidate in candidates) {
+            if (!IsMeaningfulText(candidate))
+                continue;
+
+            string trimmed = candidate!.Trim();
+            if (IsPlaceholderDisplayName(trimmed, contentId))
+                continue;
+
+            return trimmed;
+        }
+
+        return contentId;
+    }
+
+    private static string? ChooseOptionalText(string? primary, string? overlay) {
+        if (IsMeaningfulText(overlay))
+            return overlay!.Trim();
+        if (IsMeaningfulText(primary))
+            return primary!.Trim();
+        return null;
+    }
+
+    private static bool IsMeaningfulText(string? value) {
+        return !string.IsNullOrWhiteSpace(value) &&
+               value.Trim().Length >= 2 &&
+               !LooksLikeRawContentId(value);
+    }
+
+    private static bool LooksLikeRawContentId(string value) {
+        string trimmed = value.Trim();
+        return trimmed.Length >= 12 &&
+               trimmed.Length <= 64 &&
+               trimmed.All(ch => char.IsDigit(ch) || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f'));
+    }
+
+    private static bool IsPlaceholderDisplayName(string? value, string contentId) {
+        if (string.IsNullOrWhiteSpace(value))
+            return true;
+
+        string trimmed = value.Trim();
+        return LooksLikeRawContentId(trimmed) ||
+               trimmed.Equals(contentId, StringComparison.OrdinalIgnoreCase) ||
+               trimmed.StartsWith("Title 0x", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsPlaceholderTitleName(string? value) {
+        if (string.IsNullOrWhiteSpace(value))
+            return true;
+
+        return value.Trim().StartsWith("Title 0x", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeRelativePath(string relativePath) {
+        return relativePath.Replace('\\', '/').TrimStart('/').Trim();
     }
 
     private static IReadOnlyList<string> BuildTags(string displayName, string titleName, string? publisher) {

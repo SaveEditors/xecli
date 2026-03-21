@@ -30,10 +30,10 @@
             </details>
             
 
-            <details class="wiki-nav__group" data-group="developer-reference" >
+            <details class="wiki-nav__group" data-group="architecture-reference" >
               <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
             </details>
             
@@ -102,9 +102,13 @@ rgh homebrew install aurora --device Hdd1 --ini-mode merge
 <li><code>dashlaunch</code></li>
 <li><code>xexmenu</code></li>
 <li><code>fsd</code></li>
+<li><code>xm360</code></li>
+<li><code>timefixer</code></li>
+<li><code>simple360</code></li>
+<li><code>xelllaunch</code></li>
 <li><code>all</code></li>
 </ul>
-<p>With <code>--usb</code>, XeCLI stages the packages onto a USB drive or folder. Without <code>--usb</code>, XeCLI connects to the console, detects only <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, and <code>Usb2</code>, installs to the selected drive, and asks whether it should generate a new <code>launch.ini</code>, merge plugin entries into the existing one, or leave <code>launch.ini</code> alone.</p>
+<p>With <code>--usb</code>, XeCLI stages the packages onto a USB drive or folder. Without <code>--usb</code>, XeCLI connects to the console, detects only <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, and <code>Usb2</code>, installs to the selected drive, and asks whether it should generate a new <code>launch.ini</code>, merge plugin entries into the existing one, or leave <code>launch.ini</code> alone. XeCLI asks before staging or installing unless you use <code>--auto-confirm</code> or run the command non-interactively.</p>
 <p>By default, temporary extraction now happens on the target drive instead of <code>%LOCALAPPDATA%</code>, which avoids the common "not enough space on disk" failure when staging larger packages.</p>
 <p>Read <code>Homebrew and USB</code> for the full package workflow.</p>
 <h2 id="does-xecli-fetch-title-id-metadata-from-the-internet">Does XeCLI fetch Title ID metadata from the internet</h2>

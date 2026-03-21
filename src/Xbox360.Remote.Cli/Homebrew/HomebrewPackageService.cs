@@ -12,6 +12,7 @@ namespace Xbox360.Remote.Cli.Homebrew;
 internal sealed record HomebrewPackageDefinition(
     string Id,
     string DisplayName,
+    string Description,
     string InstallFolderName,
     string PrimaryUrl,
     string? MirrorUrl);
@@ -36,28 +37,62 @@ internal static class HomebrewPackageService {
         new HomebrewPackageDefinition(
             "aurora",
             "Aurora 0.7b.2",
+            "Dashboard package for Aurora 0.7b.2.",
             "Aurora",
             "http://phoenix.xboxunity.net/downloads/Aurora%200.7b.2%20-%20Release%20Package.rar",
             "https://consolemods.org/wiki/images/d/dd/Aurora_0.7b.2_-_Release_Package.rar"),
         new HomebrewPackageDefinition(
             "dashlaunch",
             "DashLaunch 3.21",
+            "Launch.ini configuration tool with a built-in FTP server.",
             "DashLaunch",
             "https://consolemods.org/wiki/File:DashLaunch_v3.21.7z",
             null),
         new HomebrewPackageDefinition(
             "xexmenu",
             "XeXMenu 1.2",
+            "File manager and launcher for XEX content.",
             "XeXMenu",
             "https://consolemods.org/wiki/images/5/5c/XeXmenu_1.2.7z",
             null),
         new HomebrewPackageDefinition(
             "fsd",
             "Freestyle Dash 3",
+            "Freestyle Dash 3 dashboard package.",
             "FreestyleDash",
             "https://consolemods.org/wiki/images/a/a0/Fsd3.zip",
-            "https://consolemods.org/wiki/images/7/76/TeamFSD.Freestyle3.0.775.7z")
+            "https://consolemods.org/wiki/images/7/76/TeamFSD.Freestyle3.0.775.7z"),
+        new HomebrewPackageDefinition(
+            "xm360",
+            "XM360",
+            "Unlocks STFS content such as XBLA, DLC, and title updates.",
+            "XM360",
+            "https://consolemods.org/wiki/images/5/5f/XM360.7z",
+            "https://consolemods.org/wiki/File:XM360.7z"),
+        new HomebrewPackageDefinition(
+            "timefixer",
+            "TimeFixer",
+            "Sets the Xbox 360 clock past 2025 and up to 9/17/2036.",
+            "TimeFixer",
+            "https://github.com/DerfJagged/TimeFixer/releases/download/v1/TimeFixer_by_Derf.zip",
+            null),
+        new HomebrewPackageDefinition(
+            "simple360",
+            "Simple 360 NAND Flasher",
+            "Flashes or dumps Xbox 360 NAND images.",
+            "Simple360NANDFlasher",
+            "https://consolemods.org/wiki/images/f/ff/Simple_360_NAND_Flasher.7z",
+            "https://consolemods.org/wiki/File:Simple_360_NAND_Flasher.7z"),
+        new HomebrewPackageDefinition(
+            "xelllaunch",
+            "XellLaunch",
+            "Launches XeLL from the dashboard or console flash.",
+            "XellLaunch",
+            "https://consolemods.org/wiki/images/4/41/XellLaunch.7z",
+            "https://consolemods.org/wiki/File:XellLaunch.7z")
     };
+
+    public static IReadOnlyList<HomebrewPackageDefinition> Catalog => Definitions;
 
     public static IReadOnlyList<string> KnownPackageIds => Definitions.Select(definition => definition.Id).Append("all").ToArray();
 
@@ -86,6 +121,21 @@ internal static class HomebrewPackageService {
         return Path.Combine(CliPaths.CachePath, "packages");
     }
 
+    public static string DescribePackage(HomebrewPackageDefinition package) {
+        string source = GetSourceLabel(package.PrimaryUrl);
+        return $"{package.DisplayName} - {package.Description} (source: {source})";
+    }
+
+    public static string DescribePackageSelection(IReadOnlyList<HomebrewPackageDefinition> packages) {
+        return string.Join(Environment.NewLine, packages.Select(DescribePackage));
+    }
+
+    public static string DescribeInstallAction(bool consoleInstall) {
+        return consoleInstall
+            ? "XeCLI will download the selected public package archives, extract them, and upload the files to the console. If a package includes plugins or launch.ini support, XeCLI will write those as part of the install."
+            : "XeCLI will download the selected public package archives, extract them into a staging folder, and copy the files to the chosen USB drive or folder. If a package includes plugins or launch.ini support, XeCLI will write those as part of the staged install.";
+    }
+
     public static async Task<HomebrewInstallResult> InstallAsync(
         string packageId,
         string targetRoot,
@@ -107,7 +157,8 @@ internal static class HomebrewPackageService {
                 summary.AddColumn(new TableColumn("[white]Field[/]"));
                 summary.AddColumn(new TableColumn("[white]Value[/]"));
                 summary.AddRow("[white]Target[/]", $"[springgreen3_1]{Markup.Escape(targetRoot)}[/]");
-                summary.AddRow("[white]Packages[/]", $"[deepskyblue1]{Markup.Escape(string.Join(", ", packages.Select(p => p.DisplayName)))}[/]");
+                summary.AddRow("[white]Packages[/]", $"[deepskyblue1]{Markup.Escape(DescribePackageSelection(packages))}[/]");
+                summary.AddRow("[white]Action[/]", $"[grey]{Markup.Escape(DescribeInstallAction(consoleInstall: false))}[/]");
                 summary.AddRow("[white]Archive Cache[/]", $"[cyan]{Markup.Escape(archiveRoot)}[/]");
                 summary.AddRow("[white]Staging[/]", $"[gold1]{Markup.Escape(extractRoot)}[/]");
                 AnsiConsole.Write(summary);
@@ -183,12 +234,15 @@ internal static class HomebrewPackageService {
 
         Table table = CliOutput.CreateTable();
         table.AddColumn(new TableColumn("[green]Package[/]"));
+        table.AddColumn(new TableColumn("[grey]Description[/]"));
         table.AddColumn(new TableColumn("[cyan]Installed To[/]"));
         table.AddColumn(new TableColumn("[gold1]Files[/]"));
         table.AddColumn(new TableColumn("[grey]Size[/]"));
         foreach (InstalledHomebrewPackage package in result.Packages) {
+            HomebrewPackageDefinition packageDefinition = Definitions.First(candidate => string.Equals(candidate.Id, package.Id, StringComparison.OrdinalIgnoreCase));
             table.AddRow(
                 $"[green]{Markup.Escape(package.DisplayName)}[/]",
+                $"[grey]{Markup.Escape(packageDefinition.Description)}[/]",
                 $"[cyan]{Markup.Escape(package.InstallPath)}[/]",
                 $"[gold1]{package.FileCount}[/]",
                 $"[grey]{FormatBytes(package.TotalBytes)}[/]");
@@ -502,5 +556,14 @@ internal static class HomebrewPackageService {
         }
 
         return true;
+    }
+
+    private static string GetSourceLabel(string url) {
+        Uri uri = new Uri(url);
+        return uri.Host switch {
+            "consolemods.org" => "ConsoleMods",
+            "github.com" => "GitHub",
+            _ => uri.Host
+        };
     }
 }

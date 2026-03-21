@@ -28,6 +28,7 @@ That surface can:
 - resolve the active collection root
 - fall back to the hosted GitHub collection when a local corpus is not configured
 - build and cache a searchable item index
+- resolve item names and title labels from package metadata before falling back to raw IDs
 - list games with avatar content
 - list items by title, text match, publisher, or derived tag
 - offer a terminal picker for title-first or item-first selection
@@ -215,7 +216,7 @@ XeCLI indexes avatar items with:
 - derived tags
 - package layout type
 
-Title matching uses container metadata first and the bundled Title ID database as fallback.
+Title matching uses container metadata first, then the bundled Title ID database as fallback. That keeps avatar item labels readable even when a package would otherwise surface only a raw content ID.
 
 For hosted browsing, XeCLI uses the remote manifest/title-map pair before falling back to the bundled database. That keeps title labels consistent across the CLI and future UI clients.
 

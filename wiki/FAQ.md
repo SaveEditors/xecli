@@ -50,9 +50,13 @@ Supported package IDs are:
 - `dashlaunch`
 - `xexmenu`
 - `fsd`
+- `xm360`
+- `timefixer`
+- `simple360`
+- `xelllaunch`
 - `all`
 
-With `--usb`, XeCLI stages the packages onto a USB drive or folder. Without `--usb`, XeCLI connects to the console, detects only `Hdd1`, `Usb0`, `Usb1`, and `Usb2`, installs to the selected drive, and asks whether it should generate a new `launch.ini`, merge plugin entries into the existing one, or leave `launch.ini` alone.
+With `--usb`, XeCLI stages the packages onto a USB drive or folder. Without `--usb`, XeCLI connects to the console, detects only `Hdd1`, `Usb0`, `Usb1`, and `Usb2`, installs to the selected drive, and asks whether it should generate a new `launch.ini`, merge plugin entries into the existing one, or leave `launch.ini` alone. XeCLI asks before staging or installing unless you use `--auto-confirm` or run the command non-interactively.
 
 By default, temporary extraction now happens on the target drive instead of `%LOCALAPPDATA%`, which avoids the common "not enough space on disk" failure when staging larger packages.
 

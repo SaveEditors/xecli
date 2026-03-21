@@ -29,11 +29,11 @@ SITE_GROUPS = [
         ],
     },
     {
-        "id": "developer-reference",
+        "id": "architecture-reference",
         "title": "Technical Reference",
         "pages": [
             ("Advanced Guide", "Advanced-Guide.md"),
-            ("Frameworks and Internals", "Frameworks.md"),
+            ("Frameworks and Architecture", "Frameworks.md"),
             ("Documentation Standards", "Standards.md"),
             ("Contributing", "Contributing.md"),
         ],

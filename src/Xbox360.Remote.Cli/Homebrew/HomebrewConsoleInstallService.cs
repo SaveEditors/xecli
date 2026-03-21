@@ -37,11 +37,7 @@ internal static class HomebrewConsoleInstallService {
         (string ip, int port, string user, string pass, int timeout) = await FtpHelpers.ResolveAsync(settings, cancellationToken);
         timeout = Math.Max(timeout, 15000);
 
-        await using AsyncFtpClient client = new AsyncFtpClient(ip, user, pass, port);
-        client.Config.ConnectTimeout = timeout;
-        client.Config.ReadTimeout = timeout;
-        client.Config.DataConnectionConnectTimeout = timeout;
-        client.Config.DataConnectionReadTimeout = timeout;
+        await using AsyncFtpClient client = FtpHelpers.CreateClient(ip, port, user, pass, timeout);
         await client.Connect(cancellationToken);
 
         IReadOnlyList<HomebrewConsoleDevice> devices = await DetectDevicesAsync(client);
@@ -57,7 +53,8 @@ internal static class HomebrewConsoleInstallService {
             summary.AddColumn(new TableColumn("[white]Field[/]"));
             summary.AddColumn(new TableColumn("[white]Value[/]"));
             summary.AddRow("[white]Console[/]", $"[springgreen3_1]{Markup.Escape(ip)}[/]");
-            summary.AddRow("[white]Packages[/]", $"[deepskyblue1]{Markup.Escape(string.Join(", ", HomebrewPackageService.ResolveSelection(settings.Package).Select(p => p.DisplayName)))}[/]");
+            summary.AddRow("[white]Packages[/]", $"[deepskyblue1]{Markup.Escape(HomebrewPackageService.DescribePackageSelection(HomebrewPackageService.ResolveSelection(settings.Package)))}[/]");
+            summary.AddRow("[white]Action[/]", $"[grey]{Markup.Escape(HomebrewPackageService.DescribeInstallAction(consoleInstall: true))}[/]");
             summary.AddRow("[white]Target Device[/]", $"[gold1]{Markup.Escape(device.DisplayName)}[/]");
             summary.AddRow("[white]Install Root[/]", $"[cyan]{Markup.Escape('/' + device.RootName)}[/]");
             summary.AddRow("[white]launch.ini[/]", $"[mediumpurple3]{Markup.Escape(DescribeIniMode(iniMode))}[/]");
@@ -83,26 +80,36 @@ internal static class HomebrewConsoleInstallService {
 
             foreach (InstalledHomebrewPackage package in staged.Packages) {
                 string remoteRoot = $"/{device.RootName}/{package.InstallFolderName}";
-                await UploadDirectoryAsync(client, package.InstallPath, remoteRoot, $"Upload {package.DisplayName}", cancellationToken);
+                await UploadDirectoryAsync(client, ip, port, user, pass, timeout, package.InstallPath, remoteRoot, $"Upload {package.DisplayName}", cancellationToken);
             }
 
             bool pluginsUploaded = false;
             string pluginRoot = Path.Combine(stagingRoot, "Plugins");
             if (Directory.Exists(pluginRoot)) {
-                await UploadDirectoryAsync(client, pluginRoot, $"/{device.RootName}/Plugins", "Upload bundled plugins", cancellationToken);
+                await UploadDirectoryAsync(client, ip, port, user, pass, timeout, pluginRoot, $"/{device.RootName}/Plugins", "Upload bundled plugins", cancellationToken);
                 pluginsUploaded = true;
             }
 
             bool launchIniBackedUp = false;
             bool launchIniWritten = false;
             if (iniMode == HomebrewLaunchIniMode.Generated) {
-                launchIniBackedUp = await BackupFileIfPresentAsync(client, iniPath);
+                launchIniBackedUp = await BackupFileIfPresentAsync(ip, port, user, pass, timeout, client, iniPath, cancellationToken);
                 string text = HomebrewPackageService.CreateLaunchIniText(device.LaunchAlias);
-                await client.UploadBytes(Encoding.ASCII.GetBytes(text), iniPath, FtpRemoteExists.Overwrite, false);
+                await FtpHelpers.UploadBytesVerifiedAsync(
+                    ip,
+                    port,
+                    user,
+                    pass,
+                    timeout,
+                    Encoding.ASCII.GetBytes(text),
+                    iniPath,
+                    ensureRemoteDirectory: true,
+                    progress: null,
+                    cancellationToken);
                 launchIniWritten = true;
             }
             else if (iniMode == HomebrewLaunchIniMode.Merge) {
-                (launchIniWritten, launchIniBackedUp) = await MergeLaunchIniAsync(client, ip, port, user, pass, timeout, iniPath, device.LaunchAlias);
+                (launchIniWritten, launchIniBackedUp) = await MergeLaunchIniAsync(client, ip, port, user, pass, timeout, iniPath, device.LaunchAlias, cancellationToken);
             }
 
             return new HomebrewConsoleInstallResult(
@@ -284,6 +291,11 @@ internal static class HomebrewConsoleInstallService {
 
     private static async Task UploadDirectoryAsync(
         AsyncFtpClient client,
+        string ip,
+        int port,
+        string user,
+        string pass,
+        int timeout,
         string localRoot,
         string remoteRoot,
         string title,
@@ -294,38 +306,49 @@ internal static class HomebrewConsoleInstallService {
             .ToArray();
 
         await client.CreateDirectory(FtpHelpers.NormalizePath(remoteRoot), cancellationToken);
-        HashSet<string> createdDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
-            FtpHelpers.NormalizePath(remoteRoot)
-        };
 
         await CliOutput.RunBatchProgressAsync(title, items, async batch => {
             foreach (string localFile in files) {
                 string relative = Path.GetRelativePath(localRoot, localFile).Replace('\\', '/');
                 string remoteFile = CombineRemotePath(remoteRoot, relative);
-                string remoteDirectory = GetRemoteDirectory(remoteFile);
-                if (createdDirectories.Add(remoteDirectory))
-                    await client.CreateDirectory(remoteDirectory, cancellationToken);
-
                 long size = new FileInfo(localFile).Length;
                 batch.StartFile(relative, size);
                 Progress<FtpProgress> progress = new Progress<FtpProgress>(ftpProgress => {
                     if (ftpProgress.TransferredBytes > 0)
                         batch.ReportFileProgress(ftpProgress.TransferredBytes, $"file {batch.CompletedFiles + 1}/{Math.Max(1, items.Count)}");
                 });
-                await UploadFileWithRetryAsync(client, localFile, remoteFile, progress, cancellationToken);
+                await UploadFileWithRetryAsync(ip, port, user, pass, timeout, localFile, remoteFile, progress, cancellationToken);
                 batch.CompleteFile();
             }
         });
     }
 
-    private static async Task<bool> BackupFileIfPresentAsync(AsyncFtpClient client, string remotePath) {
+    private static async Task<bool> BackupFileIfPresentAsync(
+        string ip,
+        int port,
+        string user,
+        string pass,
+        int timeout,
+        AsyncFtpClient client,
+        string remotePath,
+        CancellationToken cancellationToken) {
         string tempFile = Path.Combine(Path.GetTempPath(), $"xecli-launch-backup-{Guid.NewGuid():N}.tmp");
         try {
             FtpStatus status = await client.DownloadFile(tempFile, remotePath, FtpLocalExists.Overwrite, FtpVerify.None);
             if (status != FtpStatus.Success)
                 return false;
 
-            await client.UploadFile(tempFile, remotePath + ".bak", FtpRemoteExists.Overwrite, false, FtpVerify.None);
+            await FtpHelpers.UploadFileVerifiedAsync(
+                ip,
+                port,
+                user,
+                pass,
+                timeout,
+                tempFile,
+                remotePath + ".bak",
+                ensureRemoteDirectory: false,
+                progress: null,
+                cancellationToken);
             return true;
         }
         catch {
@@ -350,7 +373,8 @@ internal static class HomebrewConsoleInstallService {
         string pass,
         int timeout,
         string iniPath,
-        string launchAlias) {
+        string launchAlias,
+        CancellationToken cancellationToken) {
         string[] pluginPaths = {
             $"{launchAlias}:\\Plugins\\xbdm.xex",
             $"{launchAlias}:\\Plugins\\JRPC2.xex",
@@ -364,7 +388,17 @@ internal static class HomebrewConsoleInstallService {
             builder.AppendLine($"plugin1 = {pluginPaths[0]}");
             builder.AppendLine($"plugin2 = {pluginPaths[1]}");
             builder.AppendLine($"plugin3 = {pluginPaths[2]}");
-            await client.UploadBytes(Encoding.ASCII.GetBytes(builder.ToString()), iniPath, FtpRemoteExists.Overwrite, false);
+            await FtpHelpers.UploadBytesVerifiedAsync(
+                ip,
+                port,
+                user,
+                pass,
+                timeout,
+                Encoding.ASCII.GetBytes(builder.ToString()),
+                iniPath,
+                ensureRemoteDirectory: true,
+                progress: null,
+                cancellationToken);
             return (true, false);
         }
 
@@ -372,7 +406,17 @@ internal static class HomebrewConsoleInstallService {
         string tempBackupPath = Path.Combine(Path.GetTempPath(), $"xecli-ini-backup-{Guid.NewGuid():N}.ini");
         try {
             await File.WriteAllTextAsync(tempBackupPath, string.Join("\r\n", config.Lines), Encoding.UTF8);
-            await UploadBackupWithFreshClientAsync(ip, port, user, pass, timeout, tempBackupPath, iniPath + ".bak");
+            await FtpHelpers.UploadFileVerifiedAsync(
+                ip,
+                port,
+                user,
+                pass,
+                timeout,
+                tempBackupPath,
+                iniPath + ".bak",
+                ensureRemoteDirectory: false,
+                progress: null,
+                cancellationToken);
         }
         finally {
             try {
@@ -405,7 +449,7 @@ internal static class HomebrewConsoleInstallService {
             config.SetSlot(slot, pluginPath);
         }
 
-        await PluginHelpers.SaveAsync(ip, port, user, pass, timeout, config, backup: false);
+        await PluginHelpers.SaveAsync(ip, port, user, pass, timeout, config, backup: false, cancellationToken);
         return (true, true);
     }
 
@@ -415,49 +459,27 @@ internal static class HomebrewConsoleInstallService {
         return $"{normalizedRoot}/{normalizedRelative}";
     }
 
-    private static async Task UploadBackupWithFreshClientAsync(string ip, int port, string user, string pass, int timeout, string localPath, string remotePath) {
-        await using AsyncFtpClient backupClient = new AsyncFtpClient(ip, user, pass, port);
-        backupClient.Config.ConnectTimeout = timeout;
-        backupClient.Config.ReadTimeout = timeout;
-        backupClient.Config.DataConnectionConnectTimeout = timeout;
-        backupClient.Config.DataConnectionReadTimeout = timeout;
-        await backupClient.Connect();
-        FtpStatus status = await backupClient.UploadFile(localPath, remotePath, FtpRemoteExists.Overwrite, false, FtpVerify.None);
-        if (status != FtpStatus.Success)
-            throw new IOException($"Unable to create launch.ini backup at {remotePath}.");
-    }
-
     private static async Task UploadFileWithRetryAsync(
-        AsyncFtpClient client,
+        string ip,
+        int port,
+        string user,
+        string pass,
+        int timeout,
         string localFile,
         string remoteFile,
         IProgress<FtpProgress> progress,
         CancellationToken cancellationToken) {
-        Exception? lastError = null;
-        for (int attempt = 1; attempt <= 3; attempt++) {
-            try {
-                await client.UploadFile(localFile, remoteFile, FtpRemoteExists.Overwrite, true, FtpVerify.None, progress, cancellationToken);
-                return;
-            }
-            catch (Exception ex) {
-                lastError = ex;
-                if (attempt >= 3)
-                    break;
-
-                try {
-                    if (client.IsConnected)
-                        await client.Disconnect(cancellationToken);
-                }
-                catch {
-                    // ignored
-                }
-
-                await Task.Delay(500, cancellationToken);
-                await client.Connect(cancellationToken);
-            }
-        }
-
-        throw lastError ?? new IOException($"Unable to upload {Path.GetFileName(localFile)}.");
+        await FtpHelpers.UploadFileVerifiedAsync(
+            ip,
+            port,
+            user,
+            pass,
+            timeout,
+            localFile,
+            remoteFile,
+            ensureRemoteDirectory: true,
+            progress: progress,
+            cancellationToken: cancellationToken);
     }
 
     private static string GetRemoteDirectory(string remoteFile) {

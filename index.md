@@ -5,16 +5,16 @@ XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with X
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
 ## Start Here
-- [Wiki Home](wiki/Home.md)
-- [Commands Reference](wiki/Commands.md)
-- [CLI Help Output](wiki/CLI-Help.md)
-- [Beginner Guide](wiki/Beginner-Guide.md)
-- [Advanced Guide](wiki/Advanced-Guide.md)
-- [Frameworks and Internals](wiki/Frameworks.md)
-- [Integrations](wiki/Integrations.md)
-- [Title ID Database](wiki/Title-ID-Database.md)
-- [Troubleshooting](wiki/Troubleshooting.md)
-- [FAQ](wiki/FAQ.md)
+- [Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)
+- [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html)
+- [CLI Help Output](https://saveeditors.github.io/xecli/wiki/CLI-Help.html)
+- [Beginner Guide](https://saveeditors.github.io/xecli/wiki/Beginner-Guide.html)
+- [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html)
+- [Frameworks and Architecture](https://saveeditors.github.io/xecli/wiki/Frameworks.html)
+- [Integrations](https://saveeditors.github.io/xecli/wiki/Integrations.html)
+- [Title ID Database](https://saveeditors.github.io/xecli/wiki/Title-ID-Database.html)
+- [Troubleshooting](https://saveeditors.github.io/xecli/wiki/Troubleshooting.html)
+- [FAQ](https://saveeditors.github.io/xecli/wiki/FAQ.html)
 
 ## Release
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)

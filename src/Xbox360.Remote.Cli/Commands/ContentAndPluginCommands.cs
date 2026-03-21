@@ -355,30 +355,37 @@ internal static class PluginHelpers {
         };
     }
 
-    public static async Task SaveAsync(string ip, int port, string user, string pass, int timeoutMs, PluginConfig config, bool backup) {
+    public static async Task SaveAsync(string ip, int port, string user, string pass, int timeoutMs, PluginConfig config, bool backup, CancellationToken cancellationToken = default) {
         List<string> lines = UpdatePluginLines(config.Lines, config.Slots);
         string content = string.Join("\r\n", lines);
         byte[] bytes = Encoding.UTF8.GetBytes(content);
 
-        await using AsyncFtpClient client = new AsyncFtpClient(ip, user, pass, port);
-        client.Config.ConnectTimeout = timeoutMs;
-        client.Config.ReadTimeout = timeoutMs;
-        client.Config.DataConnectionConnectTimeout = timeoutMs;
-        client.Config.DataConnectionReadTimeout = timeoutMs;
-        await client.Connect();
-
         if (backup) {
             string backupPath = config.Path + ".bak";
-            try {
-                await client.DeleteFile(backupPath);
-            }
-            catch {
-                // ignored
-            }
-            await client.UploadBytes(Encoding.UTF8.GetBytes(string.Join("\r\n", config.Lines)), backupPath, FtpRemoteExists.Overwrite, false);
+            await FtpHelpers.UploadBytesVerifiedAsync(
+                ip,
+                port,
+                user,
+                pass,
+                timeoutMs,
+                Encoding.UTF8.GetBytes(string.Join("\r\n", config.Lines)),
+                backupPath,
+                ensureRemoteDirectory: true,
+                progress: null,
+                cancellationToken);
         }
 
-        await client.UploadBytes(bytes, config.Path, FtpRemoteExists.Overwrite, false);
+        await FtpHelpers.UploadBytesVerifiedAsync(
+            ip,
+            port,
+            user,
+            pass,
+            timeoutMs,
+            bytes,
+            config.Path,
+            ensureRemoteDirectory: true,
+            progress: null,
+            cancellationToken);
     }
 
     private static Dictionary<int, string> ParseSlots(List<string> lines) {

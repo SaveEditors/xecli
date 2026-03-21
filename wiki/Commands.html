@@ -30,10 +30,10 @@
             </details>
             
 
-            <details class="wiki-nav__group" data-group="developer-reference" >
+            <details class="wiki-nav__group" data-group="architecture-reference" >
               <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
             </details>
             
@@ -408,6 +408,10 @@ rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
 rgh homebrew install all --device Hdd1 --ini-mode generated --auto-confirm
 rgh homebrew install dashlaunch --usb A:\UsbStage --force-download
+rgh homebrew install xm360 --usb E:
+rgh homebrew install timefixer --usb E:
+rgh homebrew install simple360 --usb E:
+rgh homebrew install xelllaunch --usb E:
 </code></pre>
 <p>Example output:</p>
 <pre><code class="language-text">SUCCESS Homebrew install complete
@@ -422,6 +426,7 @@ Freestyle Dash 3   E:\FreestyleDash      26     81.43 MB
 Generated E:\launch.ini
 Copied bundled console plugins into E:\Plugins
 </code></pre>
+<p>The current package catalog also includes XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch.</p>
 <p>Console install example output:</p>
 <pre><code class="language-text">SUCCESS Console homebrew install complete
 1 package(s) 2.52 MB -&gt; Hdd1 on 192.168.1.186
@@ -441,7 +446,7 @@ Updated existing launch.ini plugin entries /Hdd1/launch.ini
 <li><code>--ini &lt;PATH&gt;</code> overrides the console-side <code>launch.ini</code> path when using direct console install</li>
 <li><code>--cache &lt;DIR&gt;</code> moves archive and staging storage to a different directory</li>
 <li><code>--force-download</code> refreshes cached archives</li>
-<li><code>--auto-confirm</code> skips the confirmation prompt before staging</li>
+<li><code>--auto-confirm</code> skips the confirmation prompt before staging or direct console install</li>
 <li><code>--json</code> emits machine-readable package install output</li>
 </ul>
 <h2 id="discovery-commands_1">Discovery Commands</h2>

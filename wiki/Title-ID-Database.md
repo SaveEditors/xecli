@@ -68,7 +68,7 @@ That means local overrides can extend the bundled data without replacing it.
 Use the local override file when you want to add:
 
 - private homebrew entries
-- internal builds
+- private builds
 - scene tools not present in the bundled set
 - corrected names or media-specific annotations
 

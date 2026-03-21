@@ -21,7 +21,7 @@ Avatar workflows in the shipped release now support both:
 | [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
 | [Hardware and System Controls](Hardware-and-System.md) | Sign-in state, ring-light LEDs, fan commands, and SMC version notes |
 | [XNotify](XNotify.md) | Notification usage, icon IDs, and direct integration notes |
-| [Homebrew and USB](Homebrew-and-USB.md) | USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, and Freestyle Dash |
+| [Homebrew and USB](Homebrew-and-USB.md) | USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch |
 | [Avatar Item Collection](Avatar-Item-Collection.md) | Local and hosted avatar corpus naming, browser flows, layout, and install model |
 | [Troubleshooting](Troubleshooting.md) | Failure cases, common console/plugin issues, and recovery paths |
 
@@ -29,7 +29,7 @@ Avatar workflows in the shipped release now support both:
 | Page | Purpose |
 | --- | --- |
 | [Advanced Guide](Advanced-Guide.md) | Reverse engineering, memory workflows, Ghidra flows, and automation usage |
-| [Frameworks and Internals](Frameworks.md) | Command architecture, transport layers, and internal design decisions |
+| [Frameworks and Architecture](Frameworks.md) | Command architecture, transport layers, and design decisions |
 | [Documentation Standards](Standards.md) | Structure, conventions, and maintenance rules for this wiki |
 | [Contributing](Contributing.md) | Contribution expectations for code, docs, validation, and release prep |
 
@@ -53,14 +53,14 @@ Avatar workflows in the shipped release now support both:
 
 ### Reverse-engineering path
 1. [Advanced Guide](Advanced-Guide.md)
-2. [Frameworks and Internals](Frameworks.md)
+2. [Frameworks and Architecture](Frameworks.md)
 3. [Commands Reference](Commands.md)
 4. [Title ID Database](Title-ID-Database.md)
 
 ### Contributor path
 1. [Contributing](Contributing.md)
 2. [Documentation Standards](Standards.md)
-3. [Frameworks and Internals](Frameworks.md)
+3. [Frameworks and Architecture](Frameworks.md)
 4. [CLI Help Output](CLI-Help.md)
 
 ## Capability Map
@@ -83,7 +83,7 @@ Avatar workflows in the shipped release now support both:
 - FTP-based browsing, transfer, and content discovery
 - Save extraction and injection
 - DashLaunch plugin slot management
-- USB/folder staging or direct console installs with `rgh homebrew install aurora|dashlaunch|xexmenu|fsd|all`
+- USB/folder staging or direct console installs with `rgh homebrew install aurora|dashlaunch|xexmenu|fsd|xm360|timefixer|simple360|xelllaunch|all`
 - Avatar Item Collection cataloging, remote browsing, search, dry-run planning, progress-driven installs, and install execution
 
 ### Analysis and packaging

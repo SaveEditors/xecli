@@ -30,10 +30,10 @@
             </details>
             
 
-            <details class="wiki-nav__group" data-group="developer-reference" open>
+            <details class="wiki-nav__group" data-group="architecture-reference" open>
               <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link is-current" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link is-current" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
             </details>
             
@@ -97,7 +97,7 @@
 <ul>
 <li>Human-readable output should stay clean and scannable.</li>
 <li>JSON output should remain stable enough for scripts.</li>
-<li>Help text must explain the real operator workflow, not internal implementation details.</li>
+<li>Help text must explain the real operator workflow, not implementation details.</li>
 </ul>
 <h2 id="documentation-expectations">Documentation Expectations</h2>
 <p>Any command or behavior change should update the relevant docs in the same change set.</p>
@@ -106,7 +106,7 @@
 <li><code>README.md</code> for user-visible feature additions</li>
 <li><code>wiki/Commands.md</code> for new commands or flags</li>
 <li><code>wiki/CLI-Help.md</code> when help output changes</li>
-<li><code>wiki/Frameworks.md</code> when internal behavior meaningfully changes</li>
+<li><code>wiki/Frameworks.md</code> when implementation behavior meaningfully changes</li>
 </ul>
 <h2 id="validation-expectations">Validation Expectations</h2>
 <h3 id="prefer-live-validation-when-possible">Prefer live validation when possible</h3>
@@ -143,7 +143,7 @@
 <p>That means:</p>
 <ul>
 <li>grouped page navigation</li>
-<li>operator path and developer path</li>
+<li>operator path and integration path</li>
 <li>subsystem explanation</li>
 <li>standards for future documentation updates</li>
 </ul>

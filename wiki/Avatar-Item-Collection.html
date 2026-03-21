@@ -30,10 +30,10 @@
             </details>
             
 
-            <details class="wiki-nav__group" data-group="developer-reference" >
+            <details class="wiki-nav__group" data-group="architecture-reference" >
               <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
             </details>
             
@@ -93,6 +93,7 @@
 <li>resolve the active collection root</li>
 <li>fall back to the hosted GitHub collection when a local corpus is not configured</li>
 <li>build and cache a searchable item index</li>
+<li>resolve item names and title labels from package metadata before falling back to raw IDs</li>
 <li>list games with avatar content</li>
 <li>list items by title, text match, publisher, or derived tag</li>
 <li>offer a terminal picker for title-first or item-first selection</li>
@@ -246,7 +247,7 @@ rgh avatar install --remote --titleid 415608C3 --all --current-user
 <li>derived tags</li>
 <li>package layout type</li>
 </ul>
-<p>Title matching uses container metadata first and the bundled Title ID database as fallback.</p>
+<p>Title matching uses container metadata first, then the bundled Title ID database as fallback. That keeps avatar item labels readable even when a package would otherwise surface only a raw content ID.</p>
 <p>For hosted browsing, XeCLI uses the remote manifest/title-map pair before falling back to the bundled database. That keeps title labels consistent across the CLI and future UI clients.</p>
 <h2 id="use-with-other-tools">Use With Other Tools</h2>
 <p>Other launchers or managers can reuse the same collection name and layout model.</p>

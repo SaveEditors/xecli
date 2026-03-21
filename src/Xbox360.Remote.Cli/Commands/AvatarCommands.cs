@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Globalization;
+using System.Reflection;
 using FluentFTP;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -92,13 +93,40 @@ internal static class AvatarCommandHelpers {
 
     public static async Task<AvatarLibraryIndex> LoadIndexAsync(AvatarResolvedPaths paths, bool useCache, CancellationToken cancellationToken) {
         if (paths.RemoteMode) {
-            return await AvatarRemoteService.LoadIndexAsync(
+            AvatarLibraryIndex remoteIndex = await AvatarRemoteService.LoadIndexAsync(
                 paths.EffectiveManifestUrl,
                 paths.EffectiveTitleMapUrl,
                 paths.EffectiveContentBaseUrl,
                 useCache,
                 paths.EffectiveCachePath,
                 cancellationToken);
+
+            string? overlayRoot = null;
+            if (!string.IsNullOrWhiteSpace(paths.ConfiguredLibraryRoot)) {
+                try {
+                    overlayRoot = AvatarLibraryService.ResolveCollectionRoot(paths.ConfiguredLibraryRoot);
+                }
+                catch {
+                    overlayRoot = null;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(overlayRoot)) {
+                try {
+                    overlayRoot = AvatarLibraryService.ResolveCollectionRoot();
+                }
+                catch {
+                    overlayRoot = null;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(overlayRoot)) {
+                string overlayCachePath = Path.Combine(CliPaths.CachePath, "avatar", "avatar-local-overlay-index.v2.json");
+                AvatarLibraryIndex overlayIndex = AvatarLibraryService.LoadIndex(overlayRoot, useCache, overlayCachePath);
+                remoteIndex = AvatarLibraryService.MergeMetadata(remoteIndex, overlayIndex);
+            }
+
+            return remoteIndex;
         }
 
         return AvatarLibraryService.LoadIndex(paths.EffectiveLibraryRoot!, useCache, paths.EffectiveCachePath);
@@ -162,17 +190,23 @@ internal static class AvatarCommandHelpers {
         return string.IsNullOrWhiteSpace(item.ContentType) ? "root" : item.ContentType;
     }
 
+    public static string ResolveItemDisplayName(AvatarItemRecord item) {
+        return AvatarLibraryService.ResolveItemDisplayName(item.ContentId, item.DisplayName, item.GameName, item.TitleName);
+    }
+
     public static string DescribeItem(AvatarItemRecord item) {
-        return $"{item.TitleName} - {item.DisplayName}";
+        return $"{item.TitleName} - {ResolveItemDisplayName(item)}";
     }
 
     public static async Task<AvatarResolvedOwnership> ResolveOwnershipAsync(
         AvatarInstallSettingsBase settings,
         string targetIp,
         CancellationToken cancellationToken) {
-        if (TryParseXuid(settings.Xuid, out ulong explicitXuid)) {
+        string? explicitXuidText = GetOptionText(settings, "Xuid") ?? GetCommandLineOptionText("xuid");
+        string? explicitGamertag = GetOptionText(settings, "Gamertag") ?? GetCommandLineOptionText("gamertag");
+        if (TryParseXuid(explicitXuidText, out ulong explicitXuid)) {
             return new AvatarResolvedOwnership(
-                settings.Gamertag,
+                explicitGamertag,
                 explicitXuid,
                 $"0x{explicitXuid:X16}",
                 "Explicit XUID",
@@ -193,6 +227,34 @@ internal static class AvatarCommandHelpers {
             $"0x{resolvedXuid:X16}",
             HardwareHelpers.DescribeSignInState(user.SignInState),
             true);
+    }
+
+    private static string? GetOptionText(object settings, string propertyName) {
+        PropertyInfo? property = settings.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (property == null)
+            return null;
+
+        object? value = property.GetValue(settings);
+        return value?.ToString();
+    }
+
+    private static string? GetCommandLineOptionText(string optionName) {
+        string[] args = Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length; i++) {
+            string arg = args[i];
+            if (arg.Equals($"--{optionName}", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals($"-{optionName}", StringComparison.OrdinalIgnoreCase)) {
+                if (i + 1 < args.Length)
+                    return args[i + 1];
+                return null;
+            }
+
+            string prefix = $"--{optionName}=";
+            if (arg.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return arg[prefix.Length..];
+        }
+
+        return null;
     }
 
     public static IEnumerable<AvatarTitleSummary> FilterTitles(IEnumerable<AvatarTitleSummary> titles, string? search, int limit) {
@@ -723,7 +785,7 @@ public sealed class AvatarItemsCommand : AsyncCommand<AvatarItemsCommand.Setting
             table.AddRow(
                 $"[cyan]0x{item.TitleId:X8}[/]",
                 $"[green]{Markup.Escape(item.TitleName)}[/]",
-                $"[springgreen3_1]{Markup.Escape(item.DisplayName)}[/]",
+                $"[springgreen3_1]{Markup.Escape(AvatarCommandHelpers.ResolveItemDisplayName(item))}[/]",
                 $"[gold1]{Markup.Escape(item.ContentId)}[/]",
                 $"[deepskyblue1]{Markup.Escape(AvatarCommandHelpers.DescribeLayout(item))}[/]",
                 $"[grey]{FtpHelpers.FormatBytes(item.SizeBytes)}[/]");

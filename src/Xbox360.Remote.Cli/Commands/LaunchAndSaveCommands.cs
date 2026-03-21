@@ -478,18 +478,23 @@ internal static class SaveHelpers {
     }
 
     public static async Task UploadFileAsync(string ip, int port, string user, string pass, int timeoutMs, string localPath, string remotePath, IProgress<long>? progress = null) {
-        await WithFreshClientAsync(ip, port, user, pass, timeoutMs, async client => {
-            string? parent = Path.GetDirectoryName(remotePath.Replace('/', Path.DirectorySeparatorChar));
-            if (!string.IsNullOrWhiteSpace(parent))
-                await EnsureRemoteDirectoryAsync(client, parent);
-            Progress<FtpProgress>? ftpProgress = progress == null
-                ? null
-                : new Progress<FtpProgress>(p => {
-                    if (p.TransferredBytes >= 0)
-                        progress.Report(p.TransferredBytes);
-                });
-            await client.UploadFile(localPath, remotePath, FtpRemoteExists.Overwrite, true, FtpVerify.None, ftpProgress);
-        });
+        Progress<FtpProgress>? ftpProgress = progress == null
+            ? null
+            : new Progress<FtpProgress>(p => {
+                if (p.TransferredBytes >= 0)
+                    progress.Report(p.TransferredBytes);
+            });
+        await FtpHelpers.UploadFileVerifiedAsync(
+            ip,
+            port,
+            user,
+            pass,
+            timeoutMs,
+            localPath,
+            remotePath,
+            ensureRemoteDirectory: true,
+            progress: ftpProgress,
+            cancellationToken: CancellationToken.None);
     }
 
     public static async Task<bool> RemoteFileExistsAsync(string ip, int port, string user, string pass, int timeoutMs, string remotePath) {
@@ -634,38 +639,15 @@ internal static class SaveHelpers {
     }
 
     private static async Task<T> WithFreshClientAsync<T>(string ip, int port, string user, string pass, int timeoutMs, Func<AsyncFtpClient, Task<T>> action) {
-        await using AsyncFtpClient client = new AsyncFtpClient(ip, user, pass, port);
-        client.Config.ConnectTimeout = timeoutMs;
-        client.Config.ReadTimeout = timeoutMs;
-        client.Config.DataConnectionConnectTimeout = timeoutMs;
-        client.Config.DataConnectionReadTimeout = timeoutMs;
+        await using AsyncFtpClient client = FtpHelpers.CreateClient(ip, port, user, pass, timeoutMs);
         await client.Connect();
         return await action(client);
     }
 
     private static async Task WithFreshClientAsync(string ip, int port, string user, string pass, int timeoutMs, Func<AsyncFtpClient, Task> action) {
-        await using AsyncFtpClient client = new AsyncFtpClient(ip, user, pass, port);
-        client.Config.ConnectTimeout = timeoutMs;
-        client.Config.ReadTimeout = timeoutMs;
-        client.Config.DataConnectionConnectTimeout = timeoutMs;
-        client.Config.DataConnectionReadTimeout = timeoutMs;
+        await using AsyncFtpClient client = FtpHelpers.CreateClient(ip, port, user, pass, timeoutMs);
         await client.Connect();
         await action(client);
-    }
-
-    private static async Task EnsureRemoteDirectoryAsync(AsyncFtpClient client, string path) {
-        string normalized = NormalizeRemotePath(path).Trim('/');
-        if (string.IsNullOrWhiteSpace(normalized))
-            return;
-
-        string[] parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        StringBuilder current = new StringBuilder();
-        foreach (string part in parts) {
-            current.Append('/').Append(part);
-            string currentPath = current.ToString();
-            if (!await client.DirectoryExists(currentPath))
-                await client.CreateDirectory(currentPath, true);
-        }
     }
 
     private static string NormalizeRemotePath(string path) {

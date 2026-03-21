@@ -30,10 +30,10 @@
             </details>
             
 
-            <details class="wiki-nav__group" data-group="developer-reference" >
+            <details class="wiki-nav__group" data-group="architecture-reference" >
               <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
             </details>
             
@@ -162,6 +162,10 @@ rgh mem peek --addr 0x30000000 --type u32
 <pre><code class="language-powershell">rgh homebrew install aurora --usb E:
 rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
+rgh homebrew install xm360 --usb E:
+rgh homebrew install timefixer --usb E:
+rgh homebrew install simple360 --usb E:
+rgh homebrew install xelllaunch --usb E:
 </code></pre>
 <p>USB or folder staging:</p>
 <ul>
@@ -169,6 +173,8 @@ rgh homebrew install aurora --device Hdd1 --ini-mode merge
 <li>extracts them into clean folders on the USB or staging path</li>
 <li>copies the bundled <code>xbdm.xex</code>, <code>JRPC2.xex</code>, and <code>XDRPC.xex</code> files into <code>Plugins\</code></li>
 <li>generates <code>launch.ini</code> when Aurora is present</li>
+<li>prompts before staging or installing unless <code>--auto-confirm</code> is supplied</li>
+<li>supports Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch</li>
 </ul>
 <p>If no removable USB drive is visible, use a normal folder path instead:</p>
 <pre><code class="language-powershell">rgh homebrew install all --usb A:\UsbStage --auto-confirm

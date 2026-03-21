@@ -11,7 +11,7 @@
 
 ## Technical Reference
 - [Advanced Guide](Advanced-Guide)
-- [Frameworks and Internals](Frameworks)
+- [Frameworks and Architecture](Frameworks)
 - [Documentation Standards](Standards)
 - [Contributing](Contributing)
 

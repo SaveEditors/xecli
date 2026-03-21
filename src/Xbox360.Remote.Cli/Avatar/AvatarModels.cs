@@ -109,7 +109,7 @@ internal static class AvatarLibraryQueries {
         if (!string.IsNullOrWhiteSpace(query.Search)) {
             string search = query.Search.Trim();
             filtered = filtered.Where(item =>
-                item.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                AvatarLibraryService.ResolveItemDisplayName(item.ContentId, item.DisplayName, item.GameName, item.TitleName).Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 item.TitleName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 (!string.IsNullOrWhiteSpace(item.GameName) && item.GameName.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
                 item.ContentId.Contains(search, StringComparison.OrdinalIgnoreCase));
@@ -127,7 +127,7 @@ internal static class AvatarLibraryQueries {
 
         filtered = filtered
             .OrderBy(item => item.TitleName, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(item => item.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(item => AvatarLibraryService.ResolveItemDisplayName(item.ContentId, item.DisplayName, item.GameName, item.TitleName), StringComparer.OrdinalIgnoreCase)
             .ThenBy(item => item.ContentId, StringComparer.OrdinalIgnoreCase);
 
         if (query.Limit.HasValue && query.Limit.Value > 0)

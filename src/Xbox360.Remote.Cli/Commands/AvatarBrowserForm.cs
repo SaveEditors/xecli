@@ -35,7 +35,6 @@ internal sealed class AvatarBrowserForm : Form {
     private readonly Button _clearButton = new Button();
     private readonly Button _installButton = new Button();
     private readonly Button _closeButton = new Button();
-    private SplitContainer? _mainSplit;
 
     public AvatarBrowserForm(
         AvatarLibraryIndex index,
@@ -50,7 +49,7 @@ internal sealed class AvatarBrowserForm : Form {
         _allTitles = index.Titles.ToList();
         _itemsByTitle = index.Items
             .GroupBy(item => item.TitleId)
-            .ToDictionary(group => group.Key, group => group.OrderBy(item => item.DisplayName, StringComparer.OrdinalIgnoreCase).ToList());
+            .ToDictionary(group => group.Key, group => group.OrderBy(item => AvatarCommandHelpers.ResolveItemDisplayName(item), StringComparer.OrdinalIgnoreCase).ToList());
         _itemsByContentId = index.Items.ToDictionary(item => item.ContentId, StringComparer.OrdinalIgnoreCase);
         _selectedContentIds = new HashSet<string>(initialSelection.Select(item => item.ContentId), StringComparer.OrdinalIgnoreCase);
         _allTags = index.Items.SelectMany(item => item.Tags).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -70,7 +69,7 @@ internal sealed class AvatarBrowserForm : Form {
                 .Where(item => item != null)
                 .Select(item => item!)
                 .OrderBy(item => item.TitleName, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(item => item.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(item => AvatarCommandHelpers.ResolveItemDisplayName(item), StringComparer.OrdinalIgnoreCase)
                 .ThenBy(item => item.ContentId, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
         }
@@ -96,17 +95,13 @@ internal sealed class AvatarBrowserForm : Form {
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
         Panel header = BuildHeaderPanel();
-        SplitContainer split = BuildSplitContainer();
-        _mainSplit = split;
+        TableLayoutPanel split = BuildSplitContainer();
         Panel actions = BuildActionsPanel();
 
         root.Controls.Add(header, 0, 0);
         root.Controls.Add(split, 0, 1);
         root.Controls.Add(actions, 0, 2);
         Controls.Add(root);
-
-        Shown += (_, _) => ApplySafeSplitLayout();
-        Resize += (_, _) => ApplySafeSplitLayout();
     }
 
     private Panel BuildHeaderPanel() {
@@ -158,43 +153,35 @@ internal sealed class AvatarBrowserForm : Form {
         return header;
     }
 
-    private SplitContainer BuildSplitContainer() {
-        SplitContainer split = new SplitContainer {
+    private TableLayoutPanel BuildSplitContainer() {
+        TableLayoutPanel split = new TableLayoutPanel {
             Dock = DockStyle.Fill,
-            Orientation = Orientation.Vertical,
-            Panel1MinSize = 320,
-            Panel2MinSize = 520,
-            BorderStyle = BorderStyle.FixedSingle,
+            ColumnCount = 2,
+            RowCount = 1,
             BackColor = Color.FromArgb(20, 32, 20)
         };
 
-        split.Panel1.Padding = new Padding(8);
-        split.Panel2.Padding = new Padding(8);
-        split.Panel1.BackColor = Color.FromArgb(20, 32, 20);
-        split.Panel2.BackColor = Color.FromArgb(20, 32, 20);
-        split.SizeChanged += (_, _) => ApplySafeSplitLayout();
+        split.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38F));
+        split.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62F));
+        split.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        split.Padding = new Padding(0);
 
-        split.Panel1.Controls.Add(BuildTitlePane());
-        split.Panel2.Controls.Add(BuildItemPane());
+        Panel left = new Panel {
+            Dock = DockStyle.Fill,
+            Padding = new Padding(8),
+            BackColor = Color.FromArgb(20, 32, 20)
+        };
+        Panel right = new Panel {
+            Dock = DockStyle.Fill,
+            Padding = new Padding(8),
+            BackColor = Color.FromArgb(20, 32, 20)
+        };
+
+        left.Controls.Add(BuildTitlePane());
+        right.Controls.Add(BuildItemPane());
+        split.Controls.Add(left, 0, 0);
+        split.Controls.Add(right, 1, 0);
         return split;
-    }
-
-    private void ApplySafeSplitLayout() {
-        if (_mainSplit == null)
-            return;
-
-        int width = _mainSplit.ClientSize.Width;
-        if (width <= 0)
-            return;
-
-        int min = _mainSplit.Panel1MinSize;
-        int max = width - _mainSplit.Panel2MinSize;
-        if (max < min)
-            return;
-
-        int preferred = Math.Clamp(width / 3, min, max);
-        if (_mainSplit.SplitterDistance != preferred)
-            _mainSplit.SplitterDistance = preferred;
     }
 
     private Control BuildTitlePane() {
@@ -206,8 +193,8 @@ internal sealed class AvatarBrowserForm : Form {
         };
         pane.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         pane.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        pane.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         pane.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        pane.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
 
         Label searchLabel = new Label {
             Text = "Game / title filter",
@@ -240,11 +227,11 @@ internal sealed class AvatarBrowserForm : Form {
         _titleList.BackColor = Color.FromArgb(15, 25, 15);
         _titleList.ForeColor = Color.WhiteSmoke;
         _titleList.BorderStyle = BorderStyle.FixedSingle;
-        _titleList.Columns.Add("Game", 210);
-        _titleList.Columns.Add("Title ID", 95);
-        _titleList.Columns.Add("Items", 60);
-        _titleList.Columns.Add("Size", 80);
-        _titleList.Columns.Add("Publisher", 120);
+        _titleList.Columns.Add("Game", 260);
+        _titleList.Columns.Add("Title ID", 105);
+        _titleList.Columns.Add("Items", 70);
+        _titleList.Columns.Add("Size", 90);
+        _titleList.Columns.Add("Publisher", 150);
         _titleList.SelectedIndexChanged += (_, _) => RefreshItems();
         _titleList.DoubleClick += (_, _) => RefreshItems();
 
@@ -265,8 +252,8 @@ internal sealed class AvatarBrowserForm : Form {
         pane.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         pane.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         pane.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        pane.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         pane.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        pane.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         pane.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
         Label searchLabel = new Label {
@@ -324,11 +311,11 @@ internal sealed class AvatarBrowserForm : Form {
         _itemList.BackColor = Color.FromArgb(15, 25, 15);
         _itemList.ForeColor = Color.WhiteSmoke;
         _itemList.BorderStyle = BorderStyle.FixedSingle;
-        _itemList.Columns.Add("Item", 260);
-        _itemList.Columns.Add("Content ID", 250);
-        _itemList.Columns.Add("Layout", 85);
-        _itemList.Columns.Add("Size", 90);
-        _itemList.Columns.Add("Publisher", 180);
+        _itemList.Columns.Add("Item", 360);
+        _itemList.Columns.Add("Content ID", 310);
+        _itemList.Columns.Add("Layout", 95);
+        _itemList.Columns.Add("Size", 100);
+        _itemList.Columns.Add("Publisher", 220);
         _itemList.ItemChecked += ItemListOnItemChecked;
 
         FlowLayoutPanel statusRow = new FlowLayoutPanel {
@@ -510,7 +497,7 @@ internal sealed class AvatarBrowserForm : Form {
 
             if (!string.IsNullOrWhiteSpace(search)) {
                 items = items.Where(item =>
-                    item.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    AvatarCommandHelpers.ResolveItemDisplayName(item).Contains(search, StringComparison.OrdinalIgnoreCase) ||
                     item.ContentId.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                     item.TitleName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                     (!string.IsNullOrWhiteSpace(item.GameName) && item.GameName.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
@@ -526,7 +513,7 @@ internal sealed class AvatarBrowserForm : Form {
             _itemList.ItemChecked -= ItemListOnItemChecked;
             _itemList.Items.Clear();
             foreach (AvatarItemRecord item in filtered) {
-                ListViewItem row = new ListViewItem(item.DisplayName) {
+                ListViewItem row = new ListViewItem(AvatarCommandHelpers.ResolveItemDisplayName(item)) {
                     Tag = item,
                     Checked = _selectedContentIds.Contains(item.ContentId)
                 };

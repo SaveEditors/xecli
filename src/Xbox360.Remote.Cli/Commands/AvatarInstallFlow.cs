@@ -46,7 +46,7 @@ internal static class AvatarInstallFlow {
                 Items = plans.Select(plan => new {
                     plan.Item.TitleId,
                     plan.Item.TitleName,
-                    plan.Item.DisplayName,
+                    DisplayName = AvatarCommandHelpers.ResolveItemDisplayName(plan.Item),
                     plan.Item.ContentId,
                     Layout = AvatarCommandHelpers.DescribeLayout(plan.Item),
                     plan.Item.DownloadUrl,
@@ -155,7 +155,7 @@ internal static class AvatarInstallFlow {
         table.AddColumn(new TableColumn("[grey]Size[/]"));
         foreach ((AvatarInstallPlan plan, string? remoteSize) in verified.Take(25)) {
             table.AddRow(
-                $"[green]{Markup.Escape(plan.Item.DisplayName)}[/]",
+                $"[green]{Markup.Escape(AvatarCommandHelpers.ResolveItemDisplayName(plan.Item))}[/]",
                 $"[gold1]{Markup.Escape(plan.Item.ContentId)}[/]",
                 $"[cyan]{Markup.Escape(plan.RemoteFilePath)}[/]",
                 remoteSize != null ? $"[grey]{remoteSize}[/]" : "[grey]unverified[/]");

@@ -289,6 +289,10 @@ rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
 rgh homebrew install all --device Hdd1 --ini-mode generated --auto-confirm
 rgh homebrew install dashlaunch --usb A:\UsbStage --force-download
+rgh homebrew install xm360 --usb E:
+rgh homebrew install timefixer --usb E:
+rgh homebrew install simple360 --usb E:
+rgh homebrew install xelllaunch --usb E:
 ```
 
 Example output:
@@ -306,6 +310,8 @@ Freestyle Dash 3   E:\FreestyleDash      26     81.43 MB
 Generated E:\launch.ini
 Copied bundled console plugins into E:\Plugins
 ```
+
+The current package catalog also includes XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch.
 
 Console install example output:
 
@@ -329,7 +335,7 @@ Important options:
 - `--ini <PATH>` overrides the console-side `launch.ini` path when using direct console install
 - `--cache <DIR>` moves archive and staging storage to a different directory
 - `--force-download` refreshes cached archives
-- `--auto-confirm` skips the confirmation prompt before staging
+- `--auto-confirm` skips the confirmation prompt before staging or direct console install
 - `--json` emits machine-readable package install output
 
 ## Discovery Commands

@@ -1,6 +1,6 @@
 # Integrations
 
-This page is for developers who want to build other tools around XeCLI or reuse its shipped assets.
+This page is for people who want to build other tools around XeCLI or reuse its shipped assets.
 
 ## Integration Modes
 There are three useful ways to integrate with XeCLI:

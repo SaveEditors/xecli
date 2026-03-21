@@ -8,7 +8,7 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class HomebrewInstallCommand : Command<HomebrewInstallCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandArgument(0, "<PACKAGE>")]
-        [Description("Package to install or stage: aurora, dashlaunch, xexmenu, fsd, or all.")]
+        [Description("Package to install or stage: aurora, dashlaunch, xexmenu, fsd, xm360, timefixer, simple360, xelllaunch, or all.")]
         public string Package { get; init; } = string.Empty;
 
         [CommandOption("--usb <TARGET>")]
@@ -45,7 +45,7 @@ public sealed class HomebrewInstallCommand : Command<HomebrewInstallCommand.Sett
 
             if (HomebrewPackageService.IsKnownPackageId(Package))
                 return ValidationResult.Success();
-            return ValidationResult.Error($"Unknown package '{Package}'. Expected aurora, dashlaunch, xexmenu, fsd, or all.");
+            return ValidationResult.Error($"Unknown package '{Package}'. Expected aurora, dashlaunch, xexmenu, fsd, xm360, timefixer, simple360, xelllaunch, or all.");
         }
     }
 
@@ -152,11 +152,14 @@ public sealed class HomebrewListCommand : Command<HomebrewListCommand.Settings> 
         Table table = CliOutput.CreateTable();
         table.AddColumn(new TableColumn("[bold white]Package[/]"));
         table.AddColumn(new TableColumn("[bold white]Description[/]"));
-        table.AddRow("[springgreen3_1]aurora[/]", "[cyan]Aurora 0.7b.2 release package[/]");
-        table.AddRow("[springgreen3_1]dashlaunch[/]", "[cyan]DashLaunch 3.21[/]");
-        table.AddRow("[springgreen3_1]xexmenu[/]", "[cyan]XeXMenu 1.2[/]");
-        table.AddRow("[springgreen3_1]fsd[/]", "[cyan]Freestyle Dash 3[/]");
-        table.AddRow("[springgreen3_1]all[/]", "[cyan]Aurora, DashLaunch, XeXMenu, and Freestyle Dash[/]");
+        table.AddColumn(new TableColumn("[bold white]Source[/]"));
+        foreach (var package in HomebrewPackageService.Catalog) {
+            table.AddRow(
+                $"[springgreen3_1]{Markup.Escape(package.Id)}[/]",
+                $"[cyan]{Markup.Escape(package.Description)}[/]",
+                $"[grey]{Markup.Escape(new Uri(package.PrimaryUrl).Host switch { "consolemods.org" => "ConsoleMods", "github.com" => "GitHub", _ => new Uri(package.PrimaryUrl).Host })}[/]");
+        }
+        table.AddRow("[springgreen3_1]all[/]", "[cyan]Installs every built-in homebrew package.[/]", "[grey]-[/]");
         AnsiConsole.Write(table);
         AnsiConsole.MarkupLine("[grey]Use[/] [springgreen3_1]rgh homebrew install <package> --usb E:[/] [grey]to stage locally, or omit[/] [springgreen3_1]--usb[/] [grey]to install directly to a detected console drive.[/]");
         return 0;

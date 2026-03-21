@@ -37,8 +37,8 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 
 ## Release Changelog
 ### v1.0.2 Installer and Homebrew Update
-- Split first-time setup and package staging cleanly so `rgh install` remains the XeCLI installer and `rgh homebrew install <package>` handles Aurora, DashLaunch, XeXMenu, and Freestyle Dash staging.
-- Added a dedicated homebrew package catalog with cached downloads, archive extraction, generated `launch.ini`, bundled plugin copies, and staging to removable USB drives or normal folders.
+- Split first-time setup and package staging cleanly so `rgh install` remains the XeCLI installer and `rgh homebrew install <package>` handles Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch staging.
+- Added a dedicated homebrew package catalog with cached downloads, archive extraction, generated `launch.ini`, bundled plugin copies, staging to removable USB drives or normal folders, and an explicit install confirmation prompt unless `--auto-confirm` is supplied.
 - Kept silent backward compatibility for older `rgh install aurora` style calls by redirecting them to the new homebrew path without exposing that legacy syntax in public help.
 - Fixed installer summaries and follow-up instructions so installs without PATH enabled now point users to the installed `rgh.exe` directly instead of telling them to run a missing `rgh` command.
 - Added the [Homebrew and USB](https://saveeditors.github.io/xecli/wiki/Homebrew-and-USB.html) wiki page and updated the README, Beginner Guide, Commands Reference, CLI Help, FAQ, and site navigation to reflect the new split.
@@ -47,7 +47,7 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - Added hosted and local `Avatar-Item-Collection` support with `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install`, and `rgh avatar apply`.
 - Added terminal and Windows picker flows for avatar item selection, with current-user ownership patching, cached downloads, and multi-item progress bars.
 - Added hardware and session controls including sign-in state, LED presets, fan commands, tray control, shutdown, native popup messages, and title-aware spoof helpers.
-- Added a dedicated `rgh homebrew install` workflow for staging Aurora, DashLaunch, XeXMenu, and Freestyle Dash onto USB drives or staging folders, with archive caching, progress bars, generated `launch.ini`, and bundled plugin copies.
+- Added a dedicated `rgh homebrew install` workflow for staging Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch onto USB drives or staging folders, with archive caching, progress bars, generated `launch.ini`, bundled plugin copies, and confirm-before-install behavior.
 - Expanded the wiki with [Hardware and System Controls](https://saveeditors.github.io/xecli/wiki/Hardware-and-System.html), [XNotify](https://saveeditors.github.io/xecli/wiki/XNotify.html), and [Avatar Item Collection](https://saveeditors.github.io/xecli/wiki/Avatar-Item-Collection.html), and cleaned the wording across the public docs.
 - Reworked `rgh install` into a real installer flow with install-path selection, PATH registration, clearer first-time setup, and post-install console discovery prompts.
 - Fixed current-user command registration so PATH-based installs resolve directly to `rgh.exe` instead of relying on a fragile wrapper-first path.
@@ -83,7 +83,7 @@ The repository and release package include:
 - The CLI source and managed project dependencies.
 - Common console-side `.xex` dependency files used with XeCLI workflows.
 - A bundled Title ID database.
-- Avatar item browsing and install workflows from either a local `Avatar-Item-Collection` corpus or the hosted GitHub-backed collection, with cached downloads and progress bars.
+- Avatar item browsing and install workflows from either a local `Avatar-Item-Collection` corpus or the hosted GitHub-backed collection, with cached downloads, progress bars, and metadata-first item names instead of raw content-ID labels.
 - Ghidra helper scripts.
 - Wiki documentation and release-facing README content.
 
@@ -137,7 +137,7 @@ File and content workflows:
 - Save listing, extraction, and injection.
 - Installed-content inventory and deletion.
 - DashLaunch plugin listing and slot management.
-- Public homebrew package staging for Aurora, DashLaunch, XeXMenu, and Freestyle Dash through `rgh homebrew install <package>`, either to USB/folder targets or directly onto detected console drives.
+- Public homebrew package staging for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch through `rgh homebrew install <package>`, either to USB/folder targets or directly onto detected console drives, with a confirmation prompt unless `--auto-confirm` is used.
 
 XEX and analysis workflows:
 
@@ -165,7 +165,7 @@ Both feed the same ownership-patch and install flow used by `rgh avatar install`
 The same flow works against either:
 
 - the local `Avatar-Item-Collection` corpus
-- the hosted GitHub-backed collection, with local caching and verified downloads
+- the hosted GitHub-backed collection, with local caching, verified downloads, and the same metadata-first item naming used by the local corpus
 
 Remote browsing examples:
 
@@ -399,18 +399,18 @@ Release artifacts should be built outside the repository root so publish output,
 ## Documentation Map
 Start here:
 
-- `wiki/Home.md`
-- `wiki/Beginner-Guide.md`
-- `wiki/Commands.md`
+- [Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)
+- [Beginner Guide](https://saveeditors.github.io/xecli/wiki/Beginner-Guide.html)
+- [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html)
 
 Deep reference:
 
-- `wiki/Advanced-Guide.md`
-- `wiki/Frameworks.md`
-- `wiki/Title-ID-Database.md`
-- `wiki/Integrations.md`
-- `wiki/Troubleshooting.md`
-- `wiki/FAQ.md`
+- [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html)
+- [Frameworks and Architecture](https://saveeditors.github.io/xecli/wiki/Frameworks.html)
+- [Title ID Database](https://saveeditors.github.io/xecli/wiki/Title-ID-Database.html)
+- [Integrations](https://saveeditors.github.io/xecli/wiki/Integrations.html)
+- [Troubleshooting](https://saveeditors.github.io/xecli/wiki/Troubleshooting.html)
+- [FAQ](https://saveeditors.github.io/xecli/wiki/FAQ.html)
 
 ## Safety Notes
 XeCLI includes both safe operational commands and commands that can destabilize the running title or console session.

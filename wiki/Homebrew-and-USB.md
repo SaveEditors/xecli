@@ -4,7 +4,7 @@ This page covers the `rgh homebrew install` workflow in XeCLI.
 
 Use it when you want to:
 
-- stage Aurora, DashLaunch, XeXMenu, or Freestyle Dash onto a USB drive or folder
+- stage Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, or XellLaunch onto a USB drive or folder
 - install those packages directly onto `Hdd1`, `Usb0`, `Usb1`, or `Usb2` on the console
 - prepare a clean homebrew layout without manually hunting archives
 - reuse the bundled `xbdm.xex`, `JRPC2.xex`, and `XDRPC.xex` files in the same package
@@ -21,6 +21,10 @@ rgh homebrew install all --device Hdd1 --ini-mode generated --auto-confirm
 rgh homebrew install dashlaunch --usb E:
 rgh homebrew install xexmenu --usb E:
 rgh homebrew install fsd --usb E:
+rgh homebrew install xm360 --usb E:
+rgh homebrew install timefixer --usb E:
+rgh homebrew install simple360 --usb E:
+rgh homebrew install xelllaunch --usb E:
 rgh homebrew install all --usb E: --auto-confirm
 ```
 
@@ -36,6 +40,10 @@ Supported package IDs:
 - `dashlaunch`
 - `xexmenu`
 - `fsd`
+- `xm360`
+- `timefixer`
+- `simple360`
+- `xelllaunch`
 - `all`
 
 ## Target Selection
@@ -56,6 +64,10 @@ Examples:
 rgh homebrew install aurora --usb E:
 rgh homebrew install all --usb F: --auto-confirm
 rgh homebrew install dashlaunch --usb A:\Builds\UsbStage
+rgh homebrew install xm360 --usb E:
+rgh homebrew install timefixer --usb E:
+rgh homebrew install simple360 --usb E:
+rgh homebrew install xelllaunch --usb E:
 ```
 
 ### Direct console install
@@ -97,6 +109,10 @@ rgh homebrew install all --usb E: --cache D:\XeCLI-Cache --auto-confirm
 - `--force-download` ignores the cached archive and fetches it again
 - `--cache <DIR>` moves both the archive cache and staging root to a different location
 - `--auto-confirm` skips the confirmation step before package install
+
+## Confirmation Behavior
+
+XeCLI asks before staging or installing a package unless `--auto-confirm` is supplied or the command is running in a non-interactive context.
 
 ## What XeCLI Places on the Target
 
@@ -159,9 +175,15 @@ Extracting DashLaunch 3.21...
 Download XeXMenu 1.2 downloading: 55%
 Extracting XeXMenu 1.2...
 Extracting Freestyle Dash 3...
+Extracting XM360...
+Extracting TimeFixer...
+Extracting Simple 360 NAND Flasher...
+Extracting XellLaunch...
 SUCCESS Homebrew install complete
 4 package(s) 326 MB -> E:\
 ```
+
+That example is abbreviated. The current package catalog also includes XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch.
 
 ```text
 rgh homebrew install dashlaunch --device Hdd1 --ini-mode merge --auto-confirm
@@ -190,6 +212,17 @@ The current build uses these public sources:
 - Freestyle Dash 3
   - `https://consolemods.org/wiki/images/a/a0/Fsd3.zip`
   - fallback: `https://consolemods.org/wiki/images/7/76/TeamFSD.Freestyle3.0.775.7z`
+- XM360
+  - `https://consolemods.org/wiki/images/5/5f/XM360.7z`
+  - `https://consolemods.org/wiki/File:XM360.7z`
+- TimeFixer
+  - `https://github.com/DerfJagged/TimeFixer/releases/download/v1/TimeFixer_by_Derf.zip`
+- Simple 360 NAND Flasher
+  - `https://consolemods.org/wiki/images/f/ff/Simple_360_NAND_Flasher.7z`
+  - `https://consolemods.org/wiki/File:Simple_360_NAND_Flasher.7z`
+- XellLaunch
+  - `https://consolemods.org/wiki/images/4/41/XellLaunch.7z`
+  - `https://consolemods.org/wiki/File:XellLaunch.7z`
 
 XeCLI resolves MediaWiki file pages to the raw archive automatically when a page URL is provided instead of a direct file URL.
 
@@ -200,3 +233,4 @@ XeCLI resolves MediaWiki file pages to the raw archive automatically when a page
 - use `--usb` for local staging
 - omit `--usb` for direct console install
 - direct console install only targets `Hdd1`, `Usb0`, `Usb1`, or `Usb2`
+- installs prompt for confirmation unless `--auto-confirm` is supplied or the command is running non-interactively

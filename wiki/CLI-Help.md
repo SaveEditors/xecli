@@ -530,6 +530,7 @@ USAGE:
 EXAMPLES:
     rgh homebrew list
     rgh homebrew install aurora --usb E:
+    rgh homebrew install xm360 --usb E:
     rgh homebrew install all --usb E: --auto-confirm
 
 OPTIONS:
@@ -549,7 +550,8 @@ USAGE:
     rgh homebrew install <PACKAGE> [OPTIONS]
 
 ARGUMENTS:
-    <PACKAGE>    Package to stage: aurora, dashlaunch, xexmenu, fsd, or all
+    <PACKAGE>    Package to stage: aurora, dashlaunch, xexmenu, fsd, xm360,
+                 timefixer, simple360, xelllaunch, or all
 
 OPTIONS:
     -h, --help            Prints help information

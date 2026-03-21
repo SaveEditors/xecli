@@ -1,6 +1,6 @@
-# Frameworks and Internals
+# Frameworks and Architecture
 
-This page explains how XeCLI is structured internally and how the major subsystems fit together.
+This page explains how XeCLI is structured and how the major subsystems fit together.
 
 ## Command Layer
 The CLI surface is implemented in `src/Xbox360.Remote.Cli/`. Commands are grouped by operational area and exposed through the `rgh` command.

@@ -143,6 +143,10 @@ XeCLI can either stage the common public dashboards and tools to a USB drive or 
 rgh homebrew install aurora --usb E:
 rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
+rgh homebrew install xm360 --usb E:
+rgh homebrew install timefixer --usb E:
+rgh homebrew install simple360 --usb E:
+rgh homebrew install xelllaunch --usb E:
 ```
 
 USB or folder staging:
@@ -151,6 +155,8 @@ USB or folder staging:
 - extracts them into clean folders on the USB or staging path
 - copies the bundled `xbdm.xex`, `JRPC2.xex`, and `XDRPC.xex` files into `Plugins\`
 - generates `launch.ini` when Aurora is present
+- prompts before staging or installing unless `--auto-confirm` is supplied
+- supports Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch
 
 If no removable USB drive is visible, use a normal folder path instead:
 

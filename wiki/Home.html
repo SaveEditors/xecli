@@ -25,13 +25,13 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
 
             <details class="wiki-nav__group" data-group="developer-reference" >
-              <summary>Developer Reference</summary>
+              <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
                 <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
@@ -48,7 +48,7 @@
       </nav>
       <div class="wiki-sidebar__meta">
         <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
-        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
         <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
       </div>
     </aside>
@@ -70,6 +70,12 @@
           <h1 id="xecli-wiki">XeCLI Wiki</h1>
 <p>XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the <code>rgh</code> CLI, bundled metadata, and release workflows.</p>
 <p>The repository and product name are <code>XeCLI</code>. The installed terminal command is <code>rgh</code>.</p>
+<p>Avatar workflows in the shipped release now support both:</p>
+<ul>
+<li><code>rgh avatar choose</code> for a terminal game/item picker</li>
+<li><code>rgh avatar browse</code> for a Windows picker with search, filters, multi-select, and install</li>
+</ul>
+<p><code>rgh avatar install</code> remains the direct path for explicit one-item or full-title installs. <code>--remote</code> switches the same workflow to the hosted <code>Avatar-Item-Collection</code> repository with local caching.</p>
 <h2 id="documentation-index">Documentation Index</h2>
 <h3 id="getting-started">Getting Started</h3>
 <table>
@@ -101,12 +107,16 @@
 <td>Notification usage, icon IDs, and direct integration notes</td>
 </tr>
 <tr>
+<td><a href="Avatar-Item-Collection.html">Avatar Item Collection</a></td>
+<td>Local and hosted avatar corpus naming, browser flows, layout, and install model</td>
+</tr>
+<tr>
 <td><a href="Troubleshooting.html">Troubleshooting</a></td>
 <td>Failure cases, common console/plugin issues, and recovery paths</td>
 </tr>
 </tbody>
 </table>
-<h3 id="developer-reference">Developer Reference</h3>
+<h3 id="technical-reference">Technical Reference</h3>
 <table>
 <thead>
 <tr>
@@ -152,12 +162,12 @@
 </tr>
 <tr>
 <td><a href="FAQ.html">FAQ</a></td>
-<td>Short answers to repeated operator and developer questions</td>
+<td>Short answers to common setup and usage questions</td>
 </tr>
 </tbody>
 </table>
 <h2 id="recommended-reading-paths">Recommended Reading Paths</h2>
-<h3 id="new-operator-path">New operator path</h3>
+<h3 id="new-user-path">New user path</h3>
 <ol>
 <li><a href="Beginner-Guide.html">Beginner Guide</a></li>
 <li><a href="Commands.html">Commands Reference</a></li>
@@ -187,6 +197,7 @@
 <li>Status, title resolution, and profile visibility</li>
 <li>Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing</li>
 <li>Launch, reboot, and console notification workflows</li>
+<li>Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs</li>
 </ul>
 <h3 id="live-inspection-and-debugging">Live inspection and debugging</h3>
 <ul>
@@ -201,6 +212,7 @@
 <li>FTP-based browsing, transfer, and content discovery</li>
 <li>Save extraction and injection</li>
 <li>DashLaunch plugin slot management</li>
+<li>Avatar Item Collection cataloging, remote browsing, search, dry-run planning, progress-driven installs, and install execution</li>
 </ul>
 <h3 id="analysis-and-packaging">Analysis and packaging</h3>
 <ul>
@@ -208,6 +220,7 @@
 <li>Ghidra headless analysis and decompile export</li>
 <li>ISO to Games on Demand conversion with watchdog mode</li>
 <li>Bundled Title ID metadata for richer output and external tool reuse</li>
+<li>Avatar item catalog reuse for external launchers, installers, and companion tools</li>
 </ul>
 <h2 id="scope-boundaries">Scope Boundaries</h2>
 <p>XeCLI is strong in live-console workflows. It does not currently claim to be:</p>
@@ -242,6 +255,12 @@
 rgh ping
 rgh status
 rgh title
+rgh avatar library show
+rgh avatar games --search Black Ops
+rgh avatar items --titleid 415608C3 --limit 10
+rgh avatar choose --search Black Ops --current-user
+rgh avatar browse --remote
+rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
 rgh modules list
 rgh mem hexdump --addr 0x30000000 --size 0x40
 rgh screenshot --out .\screen.bmp

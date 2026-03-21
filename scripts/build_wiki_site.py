@@ -23,12 +23,13 @@ SITE_GROUPS = [
             ("CLI Help Output", "CLI-Help.md"),
             ("Hardware and System Controls", "Hardware-and-System.md"),
             ("XNotify", "XNotify.md"),
+            ("Avatar Item Collection", "Avatar-Item-Collection.md"),
             ("Troubleshooting", "Troubleshooting.md"),
         ],
     },
     {
         "id": "developer-reference",
-        "title": "Developer Reference",
+        "title": "Technical Reference",
         "pages": [
             ("Advanced Guide", "Advanced-Guide.md"),
             ("Frameworks and Internals", "Frameworks.md"),
@@ -140,7 +141,7 @@ def build_page(md_name: str) -> None:
       </nav>
       <div class="wiki-sidebar__meta">
         <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
-        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
         <a href="{WIKI_HOME_URL}">Wiki Home</a>
       </div>
     </aside>

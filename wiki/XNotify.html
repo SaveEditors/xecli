@@ -25,13 +25,13 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link is-current" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link is-current" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
 
             <details class="wiki-nav__group" data-group="developer-reference" >
-              <summary>Developer Reference</summary>
+              <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
                 <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
@@ -48,7 +48,7 @@
       </nav>
       <div class="wiki-sidebar__meta">
         <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
-        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
         <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
       </div>
     </aside>
@@ -69,7 +69,7 @@
         <article id="wiki-content" class="markdown-body">
           <h1 id="xnotify">XNotify</h1>
 <p>XNotify is the Xbox 360 on-screen notification system used for sign-in prompts, achievements, storage warnings, party/chat events, and other shell-level status messages.</p>
-<p>XeCLI exposes XNotify through the <code>rgh notify</code>, <code>rgh notify-icons</code>, and <code>rgh jrpc2 notify</code> commands so you can send operator messages directly to the console without opening a separate tool.</p>
+<p>XeCLI exposes XNotify through the <code>rgh notify</code>, <code>rgh notify-icons</code>, and <code>rgh jrpc2 notify</code> commands so you can send messages directly to the console without opening a separate tool.</p>
 <p>At the practical level, every XNotify workflow comes down to three inputs:</p>
 <ul>
 <li>message text</li>
@@ -81,7 +81,7 @@
 <ul>
 <li>direct message sends with a numeric icon ID</li>
 <li>direct message sends with a built-in icon name</li>
-<li>reusable icon presets for operator shortcuts</li>
+<li>reusable icon presets for common shortcuts</li>
 <li>the same icon mapping through both <code>notify</code> and <code>jrpc2 notify</code></li>
 </ul>
 <p>Examples:</p>
@@ -103,7 +103,7 @@ message=&quot;XeCLI connected&quot; logo=14 (Flashing happy face)
 <li>confirming that a long-running action finished while you are looking at the console</li>
 <li>validating that JRPC2 is alive and responding</li>
 <li>confirming trainer, module, save, or plugin operations without manually checking files first</li>
-<li>building custom tooling that gives visible operator feedback during scripted workflows</li>
+<li>building custom tooling that gives visible feedback during scripted workflows</li>
 </ul>
 <h2 id="what-xnotify-actually-is">What XNotify Actually Is</h2>
 <p>XNotify is the shell popup system built into the Xbox 360 dashboard environment.</p>
@@ -118,7 +118,7 @@ message=&quot;XeCLI connected&quot; logo=14 (Flashing happy face)
 <p>That is why the icon list contains shell-event names instead of generic app icons. XeCLI is not inventing a new notification framework. It is exposing the console’s existing one in a terminal-friendly way.</p>
 <h2 id="command-surface">Command Surface</h2>
 <h3 id="rgh-notify"><code>rgh notify</code></h3>
-<p>Operator-facing notification command.</p>
+<p>Main notification command.</p>
 <p>Examples:</p>
 <pre><code class="language-powershell">rgh notify &quot;XeCLI connected&quot;
 rgh notify &quot;XeCLI connected&quot; 14
@@ -172,7 +172,7 @@ rgh jrpc2 notify &quot;XeCLI connected&quot; 14
 <li>message text = <code>XeCLI connected</code></li>
 <li>logo/icon id = <code>14</code></li>
 </ul>
-<p>This is the fastest operator form when you already know the ID you want.</p>
+<p>This is the fastest form when you already know the ID you want.</p>
 <h2 id="direct-rpc-usage-notes">Direct RPC Usage Notes</h2>
 <p>If you are building tooling outside XeCLI, the lower-level shape is still:</p>
 <ul>
@@ -187,7 +187,7 @@ rgh notify --message &quot;XeCLI connected&quot; --logo 14
 </code></pre>
 <p>That keeps users away from raw command framing while still matching the way other JRPC/XDRPC-capable tools think about XNotify.</p>
 <h2 id="built-in-icon-reference">Built-In Icon Reference</h2>
-<p>Common operator-friendly icons:</p>
+<p>Common easy-to-use icons:</p>
 <table>
 <thead>
 <tr>
@@ -553,7 +553,7 @@ rgh notify --message &quot;XeCLI connected&quot; --logo 14
 </tr>
 </tbody>
 </table>
-<h2 id="suggested-operator-patterns">Suggested Operator Patterns</h2>
+<h2 id="suggested-usage-patterns">Suggested Usage Patterns</h2>
 <p>Use a small predictable icon set instead of choosing a random logo each time.</p>
 <p>Recommended mapping:</p>
 <ul>

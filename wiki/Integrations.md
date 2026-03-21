@@ -74,6 +74,48 @@ External tools can consume these files directly to:
 
 That database is shipped with the repo and the release output. There is no runtime fetch requirement.
 
+## Reuse the Avatar Item Collection
+XeCLI also expects an avatar corpus named `Avatar-Item-Collection`.
+
+That corpus is intended to be reused by external tools that need:
+
+- offline avatar item browsing
+- title-aware filtering
+- item metadata indexing
+- pack-level download or cache orchestration
+- avatar install workflows without depending on an online marketplace
+
+The hosted collection lives at:
+
+- [SaveEditors/Avatar-Item-Collection](https://github.com/SaveEditors/Avatar-Item-Collection)
+
+Remote consumers should treat the manifest/title-map pair as the primary entry point:
+
+- `avatar-manifest.json`
+- `avatar-title-map.json`
+
+The current XeCLI remote defaults resolve to the same hosted repo and keep a local download cache so repeated installs do not re-fetch the same pack.
+
+The recommended external-tool pattern is:
+
+1. index the local collection once
+2. expose title-based and text-based filters in your own UI
+3. download or cache only the packs your workflow needs
+4. hand install or patch data to XeCLI or a companion installer layer
+
+Do not hardcode the old `avataritems_compiled` label. Use `Avatar-Item-Collection` as the public-facing corpus name.
+
+Typical CLI entry points:
+
+```powershell
+rgh avatar library show --json
+rgh avatar games --json
+rgh avatar items --titleid 415608C3 --json
+rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+```
+
+When FTP is unavailable on the target console, `rgh avatar install` can fall back to XBDM upload and XBDM-side verification.
+
 ## Use XeCLI as a Console Worker
 Example pattern:
 
@@ -85,7 +127,7 @@ rgh save extract --titleid 415608C3 --out .\saves
 
 This works well when your application wants the files that XeCLI can pull rather than embedding transport logic itself.
 
-This is also a good fit when you want XeCLI’s live progress handling and operator-facing error messages without rewriting FTP/XBDM transport code yourself.
+This is also a good fit when you want XeCLI’s live progress handling and clear error messages without rewriting FTP/XBDM transport code yourself.
 
 ## Ghidra Integration Pattern
 If your tool needs decompile output but you do not want to own a Ghidra automation layer:
@@ -137,7 +179,7 @@ If you ship XeCLI beside another tool, prefer resolving:
 ## When to Reuse XeCLI Instead of Rewriting It
 Use XeCLI directly when:
 
-- you want stable operator-facing commands
+- you want stable command names
 - you need live XBDM/JRPC2/FTP coordination
 - you want the shipped metadata and Ghidra flow
 - you need a tool that can still be used manually in terminal

@@ -1,11 +1,13 @@
 # Hardware and System Controls
 
-XeCLI exposes a small set of operator-facing hardware and session controls that are useful during daily RGH/JTAG work:
+XeCLI exposes a small set of hardware and session controls that are useful during daily RGH/JTAG work:
 
 - sign-in state inspection
 - ring-of-light LED control
 - manual fan command dispatch
 - SMC version probing
+- disc tray open/close
+- trainer-style message-box popups
 
 This page explains what those commands do, how they are intended to be used, and what their current practical limits are.
 
@@ -18,6 +20,8 @@ rgh led state
 rgh fan set --speed 55 --channel both
 rgh fan show
 rgh smc version
+rgh tray open
+rgh popup show --title "XeCLI" --body "Connected"
 ```
 
 ## Signed-In Session State
@@ -56,7 +60,7 @@ Sign-in state meanings:
 | `1` | Signed in locally |
 | `2` | Signed in to Xbox Live |
 
-This command is the cleanest way to answer the operator questions:
+This command is the cleanest way to answer the common questions:
 
 - is anyone signed in right now?
 - which profile is active?
@@ -136,7 +140,7 @@ Updated       08:45:30
 
 Important note:
 
-- `led state` is an operator cache of the last XeCLI-applied state
+- `led state` is a local cache of the last XeCLI-applied state
 - it is not a hardware readback from the SMC
 
 That distinction matters after a reboot or if another tool changes the LEDs.
@@ -219,6 +223,66 @@ Operational reality:
 - SMC version probing is more plugin-stack-sensitive than normal JRPC title/temperature calls
 - if the installed JRPC/XBDM stack does not expose a usable SMC reply path, XeCLI reports the failure instead of fabricating a value
 - `rgh status` treats SMC version as optional and does not let an SMC failure poison the rest of the status output
+
+## Disc Tray Control
+### `rgh tray open`
+### `rgh tray close`
+
+Open or close the physical optical tray through the console-side XAM/JRPC path.
+
+Examples:
+
+```powershell
+rgh tray open
+rgh tray close
+```
+
+Representative output:
+
+```text
+SUCCESS Disc tray opened
+```
+
+```text
+SUCCESS Disc tray closed
+```
+
+Use this when you need quick hardware confirmation that the console is responding to control calls beyond plain XBDM connectivity.
+
+## Native Message Boxes
+### `rgh popup show`
+
+Shows a native Xbox 360 popup. This is the same UI family trainers commonly use for full-screen prompts and instruction popups.
+
+Examples:
+
+```powershell
+rgh popup show --title "XeCLI" --body "Connected to console"
+rgh popup show --title "Warning" --body "Reboot required" --preset warning
+rgh popup show --title "Question" --body "Continue?" --preset question
+rgh popup show --title "Raw Style" --body "Test" --style 3
+```
+
+Preset values:
+
+- `none`
+- `error`
+- `warning`
+- `question`
+
+Representative output:
+
+```text
+SUCCESS Popup requested
+Title="XeCLI" Preset=warning Buttons=1
+```
+
+Operational notes:
+
+- `popup show` is different from `rgh notify`
+- `notify` sends a toast in the XNotify queue
+- `popup show` blocks the foreground UI until the user dismisses it
+- use `--preset none` when you want the cleaner look without the red error icon
 
 ## Status Integration
 

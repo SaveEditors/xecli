@@ -2,7 +2,7 @@
 
 XNotify is the Xbox 360 on-screen notification system used for sign-in prompts, achievements, storage warnings, party/chat events, and other shell-level status messages.
 
-XeCLI exposes XNotify through the `rgh notify`, `rgh notify-icons`, and `rgh jrpc2 notify` commands so you can send operator messages directly to the console without opening a separate tool.
+XeCLI exposes XNotify through the `rgh notify`, `rgh notify-icons`, and `rgh jrpc2 notify` commands so you can send messages directly to the console without opening a separate tool.
 
 At the practical level, every XNotify workflow comes down to three inputs:
 
@@ -16,7 +16,7 @@ XeCLI supports:
 
 - direct message sends with a numeric icon ID
 - direct message sends with a built-in icon name
-- reusable icon presets for operator shortcuts
+- reusable icon presets for common shortcuts
 - the same icon mapping through both `notify` and `jrpc2 notify`
 
 Examples:
@@ -45,7 +45,7 @@ In real RGH/JTAG workflows, XNotify is useful for:
 - confirming that a long-running action finished while you are looking at the console
 - validating that JRPC2 is alive and responding
 - confirming trainer, module, save, or plugin operations without manually checking files first
-- building custom tooling that gives visible operator feedback during scripted workflows
+- building custom tooling that gives visible feedback during scripted workflows
 
 ## What XNotify Actually Is
 
@@ -64,7 +64,7 @@ That is why the icon list contains shell-event names instead of generic app icon
 ## Command Surface
 
 ### `rgh notify`
-Operator-facing notification command.
+Main notification command.
 
 Examples:
 
@@ -146,7 +146,7 @@ That means:
 - message text = `XeCLI connected`
 - logo/icon id = `14`
 
-This is the fastest operator form when you already know the ID you want.
+This is the fastest form when you already know the ID you want.
 
 ## Direct RPC Usage Notes
 
@@ -168,7 +168,7 @@ That keeps users away from raw command framing while still matching the way othe
 
 ## Built-In Icon Reference
 
-Common operator-friendly icons:
+Common easy-to-use icons:
 
 | ID | Name | Notes |
 | --- | --- | --- |
@@ -260,7 +260,7 @@ Broader built-in catalog:
 | `65` | Flashing chat symbol |
 | `76` | Updating |
 
-## Suggested Operator Patterns
+## Suggested Usage Patterns
 
 Use a small predictable icon set instead of choosing a random logo each time.
 

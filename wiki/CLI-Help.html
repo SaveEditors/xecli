@@ -25,13 +25,13 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
 
             <details class="wiki-nav__group" data-group="developer-reference" >
-              <summary>Developer Reference</summary>
+              <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
                 <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
@@ -48,7 +48,7 @@
       </nav>
       <div class="wiki-sidebar__meta">
         <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
-        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
         <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
       </div>
     </aside>
@@ -104,6 +104,11 @@ EXAMPLES:
     rgh smc version
     rgh fan set --speed 55 --channel both
     rgh led set --preset quadrant1
+    rgh tray open
+    rgh popup show --title XeCLI --body Connected to console --preset none
+    rgh avatar games --search Black Ops
+    rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 
+--current-user
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -116,6 +121,7 @@ COMMANDS:
     target          Show or set the default target
     ping            Ping the current console
     reboot          Reboot the console (cold by default)
+    shutdown        Power off the console
     launch          Launch a XEX with optional arguments
     install         Install rgh for the current user or add it to the machine PATH
     start           Discover consoles and set the default target
@@ -139,15 +145,20 @@ COMMANDS:
     fan             Fan speed helpers
     led             Ring-of-light LED helpers
     signin          Signed-in user helpers
+    tray            Disc tray helpers
+    popup           Trainer-style console popup helpers
+    spoof           Private title-aware spoof helpers
     ftp             FTP commands (alternate access)
     save            Profile and save-data helpers over FTP
     content         Installed content management over FTP
+    avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
     ghidra          Ghidra headless helpers
 </code></pre>
+<p>Avatar browsing in the shipped build now has both a terminal path and a Windows picker. Use <code>rgh avatar choose</code> for terminal selection, <code>rgh avatar browse</code> for the Windows picker, and <code>rgh avatar install</code> for direct one-item or full-title installs. Add <code>--remote</code> to use the hosted <code>Avatar-Item-Collection</code> repo with local caching and progress bars.</p>
 <h2 id="shortcut-map">Shortcut Map</h2>
-<p>These shortcut groups are not separate implementations. They are direct operator-facing shortcuts for the canonical XBDM branches.</p>
+<p>These shortcut groups are not separate implementations. They are direct shortcuts for the canonical XBDM branches.</p>
 <table>
 <thead>
 <tr>
@@ -291,6 +302,11 @@ COMMANDS:
 <td>Same save-upload workflow</td>
 </tr>
 <tr>
+<td><code>rgh avatar install</code></td>
+<td><code>rgh avatar apply</code></td>
+<td>Same avatar patch-and-install workflow</td>
+</tr>
+<tr>
 <td><code>rgh xex decompile</code></td>
 <td><code>rgh xex decode</code></td>
 <td>Same Ghidra-backed export</td>
@@ -298,7 +314,7 @@ COMMANDS:
 </tbody>
 </table>
 <h2 id="representative-runtime-results">Representative Runtime Results</h2>
-<p>The built-in help screens tell you how to call a command. They do not show what success or failure usually looks like in terminal use. The examples below are representative operator-facing results from the shipped CLI.</p>
+<p>The built-in help screens tell you how to call a command. They do not show what success or failure usually looks like in terminal use. The examples below are representative results from the shipped CLI.</p>
 <h3 id="core-console-checks">Core console checks</h3>
 <pre><code class="language-text">rgh ping
 OK 21 ms
@@ -346,6 +362,39 @@ TL=green, TR=off, BL=off, BR=off
 rgh fan set --speed 50 --channel both
 SUCCESS Fan command sent
 50% requested for both
+
+rgh tray open
+SUCCESS Disc tray opened
+
+rgh popup show --title &quot;XeCLI&quot; --body &quot;Connected&quot; --preset question
+SUCCESS Popup requested
+Title=&quot;XeCLI&quot; Preset=question Buttons=1
+
+rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite
+Avatar download 3 item(s) file 2/3 | Destination Arcade - 0000020800069131C14650A158410A5D: 21%
+Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+3 item(s)  512 KB -&gt; /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
+
+rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+1 item(s)  116 KB -&gt; /Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3 via XBDM
+
+rgh avatar install --contentid 0000020800060102C383304058410A5D --current-user
+Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+1 item(s)  112 KB -&gt; /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
+
+rgh spoof gamertag
+Game            Call of Duty: Black Ops II
+Gamertag        Diamond KSG
+Address         0x841E1B30
+
+rgh spoof xuid
+Game            Call of Duty: Black Ops II
+XUID            5D83300C00000900
+Stored          000900000C30835D
 
 rgh ghidra decompile --running --out .\decomp
 SUCCESS Ghidra decompile complete
@@ -410,6 +459,103 @@ OPTIONS:
         --json            Emit JSON output
         --active          Resolve the currently active title from the connected
                           console
+</code></pre>
+<h3 id="rgh-avatar-help"><code>rgh avatar help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Avatar item library and install helpers
+
+USAGE:
+    rgh avatar [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh avatar library show
+    rgh avatar games --search Black Ops
+    rgh avatar items --titleid 415608C3 --limit 10
+    rgh avatar choose --search Black Ops
+    rgh avatar browse --remote
+    rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 
+--current-user
+    rgh avatar apply --titleid 415608C3 --all --current-user
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    library    Show or set avatar collection paths
+    games      List games with available avatar items
+    items      List avatar items from the collection
+    choose     Interactively choose a game and avatar items in the terminal
+    browse     Browse avatar items in a Windows picker and install selected
+               entries
+    install    Patch avatar items for a user and install them to the console
+</code></pre>
+<h3 id="rgh-avatar-choose-help"><code>rgh avatar choose help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Interactively choose a game and avatar items in the terminal
+
+USAGE:
+    rgh avatar choose [OPTIONS]
+
+OPTIONS:
+    -h, --help                      Prints help information
+        --remote                    Use the hosted avatar library instead of the local corpus
+        --titleid &lt;TITLEID&gt;         Install all items for one title when paired with --all
+        --all                       Install all items for the selected title
+        --current-user              Use the current signed-in user explicitly
+        --search &lt;TEXT&gt;             Initial item search text
+        --game &lt;TEXT&gt;               Initial game/title filter text
+</code></pre>
+<h3 id="rgh-avatar-browse-help"><code>rgh avatar browse help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Browse avatar items in a Windows picker and install selected entries
+
+USAGE:
+    rgh avatar browse [OPTIONS]
+
+OPTIONS:
+    -h, --help                      Prints help information
+        --remote                    Use the hosted avatar library instead of the local corpus
+        --titleid &lt;TITLEID&gt;         Preload one title or install all items for that title when paired with --all
+        --search &lt;TEXT&gt;             Initial item search text
+        --game &lt;TEXT&gt;               Initial game/title filter text
+        --tag &lt;TEXT&gt;                Initial derived tag filter
+        --current-user              Use the current signed-in user explicitly
+</code></pre>
+<h3 id="rgh-avatar-install-help"><code>rgh avatar install help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Patch avatar items for a user and install them to the console
+
+USAGE:
+    rgh avatar install [OPTIONS]
+
+OPTIONS:
+    -h, --help                     Prints help information
+        --ip &lt;IP&gt;                  Console IP address. If omitted, uses the last
+                                   connected console
+        --port &lt;PORT&gt;              FTP port (default: 21)
+        --user &lt;USER&gt;              FTP username (default: xboxftp)
+        --pass &lt;PASS&gt;              FTP password (default: xboxftp)
+        --timeout &lt;MS&gt;             FTP timeout in milliseconds (default: 5000)
+        --json                     Emit JSON output
+        --library &lt;DIR&gt;            Avatar item library root. Defaults to config
+                                   or Avatar-Item-Collection
+        --cache &lt;PATH&gt;             Avatar index cache file or directory
+        --titleid &lt;TITLEID&gt;        Install all items for one title when paired
+                                   with --all
+        --contentid &lt;CONTENTID&gt;    Install one specific avatar item
+        --all                      Install all items for the selected title
+        --device &lt;ROOT&gt;            Console storage root (default: Hdd1)
+        --xuid &lt;XUID&gt;              Explicit target XUID. Defaults to the current
+                                   signed-in user
+        --gamertag &lt;NAME&gt;          Label shown in local output when --xuid is
+                                   provided
+        --current-user             Use the current signed-in user explicitly
+        --xbdm-port &lt;PORT&gt;         XBDM port used for current-user resolution
+                                   (default: saved target port or 730)
+        --working &lt;DIR&gt;            Working directory for patched temporary files
+        --overwrite                Overwrite remote files that already exist
+        --dry-run                  Show the install plan without uploading
+                                   anything
 </code></pre>
 <h3 id="rgh-target-help"><code>rgh target help</code></h3>
 <pre><code class="language-text">DESCRIPTION:
@@ -859,6 +1005,46 @@ OPTIONS:
 
 COMMANDS:
     state    Read the active sign-in state, gamertag, and XUID
+</code></pre>
+<h3 id="rgh-tray-help"><code>rgh tray help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Disc tray helpers
+
+USAGE:
+    rgh tray [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh tray open
+    rgh tray close
+
+COMMANDS:
+    open     Open the disc tray
+    close    Close the disc tray
+</code></pre>
+<h3 id="rgh-popup-help"><code>rgh popup help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Trainer-style console popup helpers
+
+USAGE:
+    rgh popup [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh popup show --title XeCLI --body Connected to console
+
+COMMANDS:
+    show    Show a native Xbox 360 popup
+</code></pre>
+<h3 id="rgh-spoof-help"><code>rgh spoof help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Private title-aware spoof helpers
+
+USAGE:
+    rgh spoof [OPTIONS] &lt;COMMAND&gt;
+
+COMMANDS:
+    gt        Spoof the current in-game gamertag for supported titles
+    xuid      Spoof the current in-game XUID for supported titles
+    remote    Remote-player text spoofing for supported titles
 </code></pre>
 <h3 id="rgh-ftp-help"><code>rgh ftp help</code></h3>
 <pre><code class="language-text">DESCRIPTION:

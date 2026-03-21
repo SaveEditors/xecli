@@ -3,6 +3,8 @@ using System.Globalization;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Xbox360.Remote;
+using Color = Spectre.Console.Color;
+using Panel = Spectre.Console.Panel;
 
 namespace Xbox360.Remote.Cli.Commands;
 

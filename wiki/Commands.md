@@ -2,7 +2,7 @@
 
 This page documents the XeCLI command surface by workflow area. Command examples use the installed terminal command `rgh`.
 
-The `Example output` blocks on this page are representative operator-facing results from the shipped CLI. Exact spacing, colors, and secondary detail lines can vary by flags, console state, and whether JSON mode is enabled.
+The `Example output` blocks on this page are representative results from the shipped CLI. Exact spacing, colors, and secondary detail lines can vary by flags, console state, and whether JSON mode is enabled.
 
 ## Find by Workflow
 Use this table when you know the job you need done but not the exact command namespace yet.
@@ -19,6 +19,7 @@ Use this table when you know the job you need done but not the exact command nam
 | Push files to the console | `rgh fs put`, `rgh ftp put`, `rgh save inject`, `rgh plugin enable` |
 | Manage saves | `rgh save list`, `rgh save extract`, `rgh save inject` |
 | Manage title content or DashLaunch plugins | `rgh content ...`, `rgh plugin ...` |
+| Browse or install avatar items from the local or hosted collection | `rgh avatar library ...`, `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install` |
 | Send visible console messages | `rgh notify`, `rgh notify-icons`, `rgh jrpc2 notify` |
 | Analyze XEX files | `rgh xex strings`, `rgh xex decompile`, `rgh ghidra ...` |
 | Convert retail ISOs | `rgh god info`, `rgh god build`, `rgh god watch` |
@@ -56,6 +57,7 @@ High-traffic aliases:
 - `rgh mem write` = `rgh mem poke`
 - `rgh module remove` = `rgh modules unload`
 - `rgh module verify` = `rgh modules pending`
+- `rgh avatar apply` = `rgh avatar install`
 
 For the exact top-level help screen and the exact help output of every top-level command group, see [CLI-Help.md](CLI-Help.md).
 
@@ -202,6 +204,21 @@ Example output:
 ```text
 SUCCESS Reboot requested
 cold reboot command sent to console
+```
+
+### `rgh shutdown`
+Power off the console through the JRPC power path.
+
+```powershell
+rgh shutdown
+rgh shutdown --notify
+```
+
+Example output:
+
+```text
+SUCCESS Shutdown requested
+power-off command sent to console
 ```
 
 ### `rgh launch`
@@ -865,6 +882,114 @@ SUCCESS SMC version
 
 Read [Hardware-and-System.md](Hardware-and-System.md) for the deeper operational notes around sign-in state, LED presets, fan command behavior, and SMC version availability.
 
+### `rgh tray open` / `rgh tray close`
+Open or close the physical disc tray through the JRPC/XAM path.
+
+```powershell
+rgh tray open
+rgh tray close
+```
+
+Example output:
+
+```text
+SUCCESS Disc tray opened
+```
+
+```text
+SUCCESS Disc tray closed
+```
+
+### `rgh popup show`
+Show a native Xbox 360 popup. This is the trainer-style popup path, not a standard XNotify toast.
+
+```powershell
+rgh popup show --title "XeCLI" --body "Connected to console"
+rgh popup show --title "Warning" --body "Module reload required" --preset warning
+rgh popup show --title "Question" --body "Continue?" --preset question
+rgh popup show --title "Raw Style" --body "Testing" --style 3
+```
+
+Preset values:
+
+- `none`
+- `error`
+- `warning`
+- `question`
+
+Example output:
+
+```text
+SUCCESS Popup requested
+Title="XeCLI" Preset=warning Buttons=1
+```
+
+### `rgh spoof gamertag`
+Reads or writes the current in-game gamertag for supported titles. The simple form is positional.
+
+```powershell
+rgh spoof gamertag
+rgh spoof gamertag ExampleTag
+rgh spoof gt set --value ExampleTag --notify
+```
+
+Example output:
+
+```text
+Game            Call of Duty: Black Ops II
+Gamertag        Diamond KSG
+Address         0x841E1B30
+```
+
+Write example:
+
+```text
+SUCCESS Gamertag spoof applied
+XeCliTmp
+```
+
+### `rgh spoof xuid`
+Reads or writes the current in-game XUID for supported titles.
+
+```powershell
+rgh spoof xuid
+rgh spoof xuid 5D83300C00000900
+rgh spoof xuid set --value 5D83300C00000900
+```
+
+Example output:
+
+```text
+Game            Call of Duty: Black Ops II
+XUID            5D83300C00000900
+Stored          000900000C30835D
+Binary Addr     0x841E1B50
+Text Addr       0x841E1B58
+```
+
+### `rgh spoof remote`
+Overwrites remote-player text slots for supported titles. The simple positional form applies the same text to every supported slot in the current title.
+
+```powershell
+rgh spoof remote XeCliRemote
+rgh spoof remote list
+rgh spoof remote apply --slot 1 --text HostName
+rgh spoof remote apply --all --text XeCLI-{slot}
+```
+
+Example output:
+
+```text
+SUCCESS Remote spoof applied
+Call of Duty: Black Ops II => XeCliRemote
+
+Slot  Verified       Address
+1     XeCliRemote    0x841E1B3C
+2     XeCliRemote    0x841E7334
+...
+12    XeCliRemote    0x8421E2E4
+```
+
 ## Save Commands
 ### `rgh save list`
 ```powershell
@@ -933,6 +1058,177 @@ Example output:
 ```text
 SUCCESS Content delete complete
 Title Update for 0x415608C3 removed
+```
+
+## Avatar Commands
+The avatar surface now has three operator paths:
+
+- `rgh avatar choose` for a terminal picker
+- `rgh avatar browse` for a Windows picker
+- `rgh avatar install` for direct one-item or full-title installs
+
+All three use the same local or hosted `Avatar-Item-Collection` index, ownership patching, caching, and upload pipeline.
+
+Validated behavior:
+
+- `rgh avatar install` patches ownership for the target XUID before upload.
+- `rgh avatar apply` is an alias of `rgh avatar install`.
+- Standard avatar content layouts under `00009000` are supported.
+- Irregular title-root payload layouts are also supported.
+- If FTP is unavailable, install can fall back to XBDM upload and XBDM verification automatically.
+- `--remote` switches the browser/install flow to the hosted manifest and content cache.
+- `rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite` was validated live against `192.168.1.186`.
+
+### `rgh avatar library show`
+```powershell
+rgh avatar library show
+rgh avatar library show --json
+```
+
+Example output:
+
+```text
+Mode                local
+Configured Library  auto
+Effective Library   A:\Downloads\12\em\Avatar-Item-Collection
+Configured Cache    default
+Effective Cache     C:\Users\B\AppData\Roaming\XeCLI\avatar-index.v3.json
+Manifest URL        https://raw.githubusercontent.com/SaveEditors/Avatar-Item-Collection/main/avatar-manifest.json
+Content Base URL    https://raw.githubusercontent.com/SaveEditors/Avatar-Item-Collection/main/
+```
+
+### `rgh avatar library set`
+```powershell
+rgh avatar library set --path A:\Downloads\12\em\Avatar-Item-Collection
+rgh avatar library set --cache C:\Users\B\AppData\Roaming\XeCLI
+rgh avatar library set --clear
+```
+
+Example output:
+
+```text
+SUCCESS Avatar library settings updated
+Library: A:\Downloads\12\em\Avatar-Item-Collection
+Cache:   C:\Users\B\AppData\Roaming\XeCLI\avatar-index.v3.json
+```
+
+### `rgh avatar games`
+```powershell
+rgh avatar games
+rgh avatar games --search "Black Ops"
+rgh avatar games --remote --search "Black Ops"
+rgh avatar games --limit 20
+rgh avatar games --no-cache
+```
+
+Example output:
+
+```text
+Avatar Games
+0x415608C3   COD: Black Ops II   37 items   7.44 MB   Activision
+```
+
+### `rgh avatar items`
+```powershell
+rgh avatar items --titleid 415608C3 --limit 10
+rgh avatar items --search hoodie
+rgh avatar items --titleid 58410A5D --limit 5
+rgh avatar items --remote --titleid 415608C3 --limit 10
+```
+
+Example output:
+
+```text
+Avatar Items
+0x415608C3   COD: Black Ops II   COD: Black Ops II Logo Shirt White - Female   000000080DF3B242CAE65A52415608C3   00009000   116 KB
+0x58410A5D   Destination Arcade   A cool hoodie                                  0000020800060102C383304058410A5D   root      112 KB
+```
+
+### `rgh avatar choose`
+```powershell
+rgh avatar choose --search "Black Ops" --current-user
+rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite
+```
+
+What it does:
+
+- resolves one title interactively or from `--titleid`
+- lets you select items in terminal, unless `--all` is set
+- hands the chosen set to the same install pipeline used by `rgh avatar install`
+
+Example output:
+
+```text
+Avatar download 3 item(s) file 2/3 | Destination Arcade - 0000020800069131C14650A158410A5D: 21%
+Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+3 item(s)  512 KB -> /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
+```
+
+### `rgh avatar browse`
+```powershell
+rgh avatar browse --remote
+rgh avatar browse --remote --titleid 415608C3 --search hoodie
+```
+
+What it does:
+
+- opens the Windows avatar picker
+- shows title search, item search, tag filtering, multi-select, select-all, and clear
+- displays the current signed-in user when that information can be resolved
+- installs the selected set through the same pipeline used by `rgh avatar install`
+
+Notes:
+
+- `browse` is Windows-only.
+- `gui` is an alias of `browse`.
+- the picker shares the same hosted/local backend and download cache as the CLI commands.
+
+### `rgh avatar install`
+```powershell
+rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+rgh avatar install --contentid 0000020800060102C383304058410A5D --current-user
+rgh avatar install --titleid 415608C3 --all --current-user
+rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user --dry-run
+rgh avatar install --remote --titleid 415608C3 --all --current-user
+```
+
+Notes:
+
+- Use `--current-user` or `--xuid <XUID>` for ownership targeting.
+- `--gamertag <NAME>` is only a local output label when `--xuid` is explicit.
+- `--overwrite` replaces an existing remote item.
+- `--device` defaults to `Hdd1`.
+- When FTP is closed on the console, XeCLI can fall back to XBDM upload and XBDM verification automatically.
+- Multi-item installs emit batch progress plus per-item transfer bars.
+
+Validated install proofs:
+
+- Standard layout:
+  - source item:
+    - `A:\Downloads\12\em\Avatar-Item-Collection\415608C3\00009000\000000080DF3B242CAE65A52415608C3`
+  - verified remote path:
+    - `/Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3`
+- Root layout:
+  - source item:
+    - `A:\Downloads\12\em\Avatar-Item-Collection\58410A5D\0000020800060102C383304058410A5D`
+  - verified remote path:
+    - `/Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D`
+
+Example output:
+
+```text
+Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+1 item(s)  116 KB -> /Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3 via XBDM
+```
+
+### `rgh avatar apply`
+`rgh avatar apply` is an alias of `rgh avatar install`.
+
+```powershell
+rgh avatar apply --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+rgh avatar apply --titleid 415608C3 --all --current-user
 ```
 
 ## Plugin Commands

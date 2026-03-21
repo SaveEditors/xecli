@@ -21,6 +21,7 @@ XeCLI uses the Title ID database to:
 - enrich content listings
 - label active-title output
 - attach region/media metadata to lookups
+- help normalize title-aware avatar item browsing in `Avatar-Item-Collection`
 
 Other tools can use the same files to:
 

@@ -36,6 +36,12 @@ internal sealed class CliConfig {
     public string? GhidraPath { get; set; }
     public string? GhidraJavaPath { get; set; }
     public string? GhidraProjectsPath { get; set; }
+    public string? AvatarLibraryRoot { get; set; }
+    public string? AvatarCachePath { get; set; }
+    public string? AvatarManifestUrl { get; set; }
+    public string? AvatarTitleMapUrl { get; set; }
+    public string? AvatarContentBaseUrl { get; set; }
+    public string? AvatarDownloadCachePath { get; set; }
     public bool PathPromptHandled { get; set; }
     public PendingModuleOperationInfo? PendingModuleOperation { get; set; }
     public LedStateInfo? LastLedState { get; set; }

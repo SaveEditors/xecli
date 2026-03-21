@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Spectre.Console;
 using Xbox360.Remote;
+using Color = Spectre.Console.Color;
 
 namespace Xbox360.Remote.Cli;
 

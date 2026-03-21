@@ -75,7 +75,7 @@ Release-facing work should include:
 - no leftover dumps or test artifacts in the repo
 
 ## Documentation Contribution Model
-The wiki should read like a real developer-owned knowledge base.
+The wiki should read like a maintained technical knowledge base.
 
 That means:
 

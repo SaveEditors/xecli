@@ -1,18 +1,25 @@
 using System.ComponentModel;
+using System.Reflection;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Cli.Help;
 using Xbox360.Remote.Cli;
 using Xbox360.Remote.Cli.Commands;
+using Color = Spectre.Console.Color;
+using Panel = Spectre.Console.Panel;
 
 internal static class Program {
+    [STAThread]
     public static async Task<int> Main(string[] args) {
         args = NormalizeArgs(args);
+        if (IsVersionRequest(args)) {
+            AnsiConsole.MarkupLine($"[deepskyblue1]XeCLI[/] [white]{Markup.Escape(GetApplicationVersion())}[/]");
+            return 0;
+        }
         await HandleFirstRunPathPromptAsync(args);
         CommandApp app = new CommandApp();
         app.Configure(config => {
             config.SetApplicationName("rgh");
-            config.ValidateExamples();
             config.Settings.ShowOptionDefaultValues = true;
             config.Settings.MaximumIndirectExamples = 2;
             config.Settings.HelpProviderStyles = new HelpProviderStyle {
@@ -60,6 +67,11 @@ internal static class Program {
             config.AddExample(new[] { "smc", "version" });
             config.AddExample(new[] { "fan", "set", "--speed", "55", "--channel", "both" });
             config.AddExample(new[] { "led", "set", "--preset", "quadrant1" });
+            config.AddExample(new[] { "tray", "open" });
+            config.AddExample(new[] { "popup", "show", "--title", "XeCLI", "--body", "Connected to console", "--preset", "none" });
+            config.AddExample(new[] { "avatar", "games", "--search", "Black Ops" });
+            config.AddExample(new[] { "avatar", "install", "--contentid", "000000080DF3B242CAE65A52415608C3", "--current-user" });
+            config.AddExample(new[] { "avatar", "browse", "--remote" });
             config.AddExample(new[] { "ghidra", "decompile", "--running", "--out", ".\\decomp" });
 
             config.AddCommand<StatusCommand>("status").WithDescription("Show a compact console status snapshot.");
@@ -68,6 +80,7 @@ internal static class Program {
             config.AddCommand<TargetCommand>("target").WithDescription("Show or set the default target.");
             config.AddCommand<PingCommand>("ping").WithDescription("Ping the current console.");
             config.AddCommand<RebootCommand>("reboot").WithAlias("restart").WithDescription("Reboot the console (cold by default).");
+            config.AddCommand<ShutdownCommand>("shutdown").WithAlias("poweroff").WithDescription("Power off the console.");
             config.AddCommand<LaunchCommand>("launch").WithAlias("run").WithDescription("Launch a XEX with optional arguments.");
             config.AddCommand<InstallCommand>("install").WithDescription("Install rgh or add it to the machine PATH.");
             config.AddCommand<StartCommand>("start").WithAlias("s").WithDescription("Discover consoles and set the default target.");
@@ -292,6 +305,51 @@ internal static class Program {
                 signin.AddCommand<SignInStateCommand>("state").WithAlias("status").WithDescription("Read the active sign-in state, gamertag, and XUID.");
             });
 
+            config.AddBranch("tray", tray => {
+                tray.SetDescription("Disc tray helpers.");
+                tray.AddExample(new[] { "tray", "open" });
+                tray.AddExample(new[] { "tray", "close" });
+                tray.AddCommand<TrayOpenCommand>("open").WithDescription("Open the disc tray.");
+                tray.AddCommand<TrayCloseCommand>("close").WithDescription("Close the disc tray.");
+            });
+
+            config.AddBranch("popup", popup => {
+                popup.SetDescription("Trainer-style console popup helpers.");
+                popup.AddExample(new[] { "popup", "show", "--title", "XeCLI", "--body", "Connected to console" });
+                popup.AddCommand<PopupMessageBoxCommand>("show").WithAlias("open").WithDescription("Show a native Xbox 360 popup.");
+            });
+
+            config.AddBranch("spoof", spoof => {
+                spoof.SetDescription("Private title-aware spoof helpers.");
+
+                spoof.AddBranch("gt", gt => {
+                    gt.SetDescription("Spoof the current in-game gamertag for supported titles.");
+                    gt.AddExample(new[] { "spoof", "gt", "show" });
+                    gt.AddExample(new[] { "spoof", "gt", "set", "--current-user" });
+                    gt.AddExample(new[] { "spoof", "gt", "set", "--value", "ExampleTag" });
+                    gt.AddCommand<GamertagSpoofShowCommand>("show").WithAlias("state").WithDescription("Show the current in-game gamertag.");
+                    gt.AddCommand<GamertagSpoofSetCommand>("set").WithAlias("apply").WithDescription("Apply a gamertag spoof to the running title.");
+                });
+
+                spoof.AddBranch("xuid", xuid => {
+                    xuid.SetDescription("Spoof the current in-game XUID for supported titles.");
+                    xuid.AddExample(new[] { "spoof", "xuid", "show" });
+                    xuid.AddExample(new[] { "spoof", "xuid", "set", "--current-user" });
+                    xuid.AddExample(new[] { "spoof", "xuid", "set", "--value", "5D83300C00000900" });
+                    xuid.AddCommand<XuidSpoofShowCommand>("show").WithAlias("state").WithDescription("Show the current in-game XUID.");
+                    xuid.AddCommand<XuidSpoofSetCommand>("set").WithAlias("apply").WithDescription("Apply an XUID spoof to the running title.");
+                });
+
+                spoof.AddBranch("remote", remote => {
+                    remote.SetDescription("Remote-player text spoofing for supported titles.");
+                    remote.AddExample(new[] { "spoof", "remote", "list" });
+                    remote.AddExample(new[] { "spoof", "remote", "apply", "--slot", "1", "--text", "XeCLI" });
+                    remote.AddExample(new[] { "spoof", "remote", "apply", "--all", "--text", "XeCLI-{slot}" });
+                    remote.AddCommand<RemoteSpoofListCommand>("list").WithAlias("show").WithDescription("List spoofable remote slots for the current title.");
+                    remote.AddCommand<RemoteSpoofApplyCommand>("apply").WithAlias("set").WithDescription("Overwrite one or more remote slot names.");
+                });
+            });
+
             config.AddBranch("ftp", ftp => {
                 ftp.SetDescription("FTP commands (alternate access).");
                 ftp.AddExample(new[] { "ftp", "list", "--path", "/Hdd1/" });
@@ -321,6 +379,29 @@ internal static class Program {
                 content.AddExample(new[] { "content", "list", "--device", "Hdd1", "--show-types" });
                 content.AddCommand<ContentListCommand>("list").WithAlias("ls").WithDescription("List installed titles and content types.");
                 content.AddCommand<ContentDeleteCommand>("delete").WithAlias("rm").WithDescription("Delete installed content for a title.");
+            });
+
+            config.AddBranch("avatar", avatar => {
+                avatar.SetDescription("Avatar item library and install helpers.");
+                avatar.AddExample(new[] { "avatar", "library", "show" });
+                avatar.AddExample(new[] { "avatar", "games", "--search", "Black Ops" });
+                avatar.AddExample(new[] { "avatar", "items", "--titleid", "415608C3", "--limit", "10" });
+                avatar.AddExample(new[] { "avatar", "choose", "--search", "Black Ops" });
+                avatar.AddExample(new[] { "avatar", "browse", "--remote" });
+                avatar.AddExample(new[] { "avatar", "install", "--contentid", "000000080DF3B242CAE65A52415608C3", "--current-user" });
+                avatar.AddExample(new[] { "avatar", "apply", "--titleid", "415608C3", "--all", "--current-user" });
+
+                avatar.AddBranch("library", library => {
+                    library.SetDescription("Show or set avatar collection paths.");
+                    library.AddCommand<AvatarLibraryShowCommand>("show").WithDescription("Show the current avatar library and cache paths.");
+                    library.AddCommand<AvatarLibrarySetCommand>("set").WithDescription("Set the default avatar library and cache paths.");
+                });
+
+                avatar.AddCommand<AvatarGamesCommand>("games").WithDescription("List games with available avatar items.");
+                avatar.AddCommand<AvatarItemsCommand>("items").WithDescription("List avatar items from the collection.");
+                avatar.AddCommand<AvatarChooseCommand>("choose").WithAlias("pick").WithDescription("Interactively choose a game and avatar items in the terminal.");
+                avatar.AddCommand<AvatarBrowseCommand>("browse").WithAlias("gui").WithDescription("Browse avatar items in a Windows picker and install selected entries.");
+                avatar.AddCommand<AvatarInstallCommand>("install").WithAlias("apply").WithDescription("Patch avatar items for a user and install them to the console.");
             });
 
             config.AddBranch("plugin", plugin => {
@@ -421,6 +502,9 @@ internal static class Program {
         if (args.Length == 0)
             return args;
 
+        if (string.Equals(args[0], "spoof", StringComparison.OrdinalIgnoreCase))
+            return NormalizeSpoofArgs(args);
+
         if (string.Equals(args[0], "title", StringComparison.OrdinalIgnoreCase) &&
             args.Skip(1).All(a => a.StartsWith("-", StringComparison.Ordinal))) {
             return new[] { "title", "active" }.Concat(args.Skip(1)).ToArray();
@@ -439,13 +523,104 @@ internal static class Program {
         return args;
     }
 
+    private static string[] NormalizeSpoofArgs(string[] args) {
+        if (args.Length == 1)
+            return args;
+
+        string topic = args[1];
+        if (Matches(topic, "gamertag", "gt", "name")) {
+            return NormalizeSpoofIdentityArgs(args, "gt");
+        }
+
+        if (Matches(topic, "xuid")) {
+            return NormalizeSpoofIdentityArgs(args, "xuid");
+        }
+
+        if (Matches(topic, "remote", "remotes")) {
+            return NormalizeSpoofRemoteArgs(args);
+        }
+
+        return args;
+    }
+
+    private static string[] NormalizeSpoofIdentityArgs(string[] args, string canonicalTopic) {
+        if (args.Length == 2)
+            return new[] { "spoof", canonicalTopic, "show" };
+
+        string action = args[2];
+        if (action.StartsWith("-", StringComparison.Ordinal)) {
+            bool isWrite = args.Skip(2).Any(arg =>
+                arg.Equals("--value", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("--current-user", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("--notify", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("--notify-icon", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("--notify-logo", StringComparison.OrdinalIgnoreCase));
+            return isWrite
+                ? new[] { "spoof", canonicalTopic, "set" }.Concat(args.Skip(2)).ToArray()
+                : new[] { "spoof", canonicalTopic, "show" }.Concat(args.Skip(2)).ToArray();
+        }
+
+        if (Matches(action, "show", "state", "set", "apply"))
+            return new[] { "spoof", canonicalTopic }.Concat(args.Skip(2)).ToArray();
+
+        return new[] { "spoof", canonicalTopic, "set", "--value" }.Concat(args.Skip(2)).ToArray();
+    }
+
+    private static string[] NormalizeSpoofRemoteArgs(string[] args) {
+        if (args.Length == 2)
+            return new[] { "spoof", "remote", "list" };
+
+        string action = args[2];
+        if (action.StartsWith("-", StringComparison.Ordinal)) {
+            bool isWrite = args.Skip(2).Any(arg =>
+                arg.Equals("--slot", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("--all", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("--text", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("--notify", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("--notify-icon", StringComparison.OrdinalIgnoreCase) ||
+                arg.Equals("--notify-logo", StringComparison.OrdinalIgnoreCase));
+            return isWrite
+                ? new[] { "spoof", "remote", "apply" }.Concat(args.Skip(2)).ToArray()
+                : new[] { "spoof", "remote", "list" }.Concat(args.Skip(2)).ToArray();
+        }
+
+        if (Matches(action, "list", "show", "set", "apply"))
+            return new[] { "spoof", "remote" }.Concat(args.Skip(2)).ToArray();
+
+        return new[] { "spoof", "remote", "apply", "--all", "--text" }.Concat(args.Skip(2)).ToArray();
+    }
+
+    private static bool Matches(string value, params string[] candidates) {
+        return candidates.Any(candidate => value.Equals(candidate, StringComparison.OrdinalIgnoreCase));
+    }
+
     private static bool IsHelpToken(string arg) {
         return arg.Equals("help", StringComparison.OrdinalIgnoreCase) ||
                arg.Equals("?", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool IsVersionRequest(string[] args) {
+        if (args.Length != 1)
+            return false;
+
+        string arg = args[0];
+        return arg.Equals("--version", StringComparison.OrdinalIgnoreCase) ||
+               arg.Equals("-v", StringComparison.OrdinalIgnoreCase) ||
+               arg.Equals("version", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string GetApplicationVersion() {
+        Assembly assembly = Assembly.GetEntryAssembly() ?? typeof(Program).Assembly;
+        return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+            ?? assembly.GetName().Version?.ToString()
+            ?? "unknown";
+    }
+
     private static bool ShouldShowPathPrompt(string[] args) {
         if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
+            return false;
+
+        if (IsVersionRequest(args))
             return false;
 
         if (args.Any(IsHelpToken) || args.Any(arg => arg.Equals("--help", StringComparison.OrdinalIgnoreCase) || arg.Equals("-h", StringComparison.OrdinalIgnoreCase)))

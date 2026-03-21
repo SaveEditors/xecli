@@ -43,6 +43,11 @@ EXAMPLES:
     rgh smc version
     rgh fan set --speed 55 --channel both
     rgh led set --preset quadrant1
+    rgh tray open
+    rgh popup show --title XeCLI --body Connected to console --preset none
+    rgh avatar games --search Black Ops
+    rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 
+--current-user
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -55,6 +60,7 @@ COMMANDS:
     target          Show or set the default target
     ping            Ping the current console
     reboot          Reboot the console (cold by default)
+    shutdown        Power off the console
     launch          Launch a XEX with optional arguments
     install         Install rgh for the current user or add it to the machine PATH
     start           Discover consoles and set the default target
@@ -78,16 +84,22 @@ COMMANDS:
     fan             Fan speed helpers
     led             Ring-of-light LED helpers
     signin          Signed-in user helpers
+    tray            Disc tray helpers
+    popup           Trainer-style console popup helpers
+    spoof           Private title-aware spoof helpers
     ftp             FTP commands (alternate access)
     save            Profile and save-data helpers over FTP
     content         Installed content management over FTP
+    avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
     ghidra          Ghidra headless helpers
 ```
 
+Avatar browsing in the shipped build now has both a terminal path and a Windows picker. Use `rgh avatar choose` for terminal selection, `rgh avatar browse` for the Windows picker, and `rgh avatar install` for direct one-item or full-title installs. Add `--remote` to use the hosted `Avatar-Item-Collection` repo with local caching and progress bars.
+
 ## Shortcut Map
-These shortcut groups are not separate implementations. They are direct operator-facing shortcuts for the canonical XBDM branches.
+These shortcut groups are not separate implementations. They are direct shortcuts for the canonical XBDM branches.
 
 | Shortcut | Canonical form | Meaning |
 | --- | --- | --- |
@@ -121,10 +133,11 @@ Several commands also expose quality-of-life aliases. The important ones are:
 | `rgh ftp list` | `rgh ftp ls` | Same FTP listing |
 | `rgh ftp put` | `rgh ftp push` | Same upload workflow in docs/examples |
 | `rgh save inject` | `rgh save push` / `rgh save put` | Same save-upload workflow |
+| `rgh avatar install` | `rgh avatar apply` | Same avatar patch-and-install workflow |
 | `rgh xex decompile` | `rgh xex decode` | Same Ghidra-backed export |
 
 ## Representative Runtime Results
-The built-in help screens tell you how to call a command. They do not show what success or failure usually looks like in terminal use. The examples below are representative operator-facing results from the shipped CLI.
+The built-in help screens tell you how to call a command. They do not show what success or failure usually looks like in terminal use. The examples below are representative results from the shipped CLI.
 
 ### Core console checks
 ```text
@@ -180,6 +193,39 @@ TL=green, TR=off, BL=off, BR=off
 rgh fan set --speed 50 --channel both
 SUCCESS Fan command sent
 50% requested for both
+
+rgh tray open
+SUCCESS Disc tray opened
+
+rgh popup show --title "XeCLI" --body "Connected" --preset question
+SUCCESS Popup requested
+Title="XeCLI" Preset=question Buttons=1
+
+rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite
+Avatar download 3 item(s) file 2/3 | Destination Arcade - 0000020800069131C14650A158410A5D: 21%
+Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+3 item(s)  512 KB -> /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
+
+rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+1 item(s)  116 KB -> /Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3 via XBDM
+
+rgh avatar install --contentid 0000020800060102C383304058410A5D --current-user
+Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+1 item(s)  112 KB -> /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
+
+rgh spoof gamertag
+Game            Call of Duty: Black Ops II
+Gamertag        Diamond KSG
+Address         0x841E1B30
+
+rgh spoof xuid
+Game            Call of Duty: Black Ops II
+XUID            5D83300C00000900
+Stored          000900000C30835D
 
 rgh ghidra decompile --running --out .\decomp
 SUCCESS Ghidra decompile complete
@@ -251,6 +297,111 @@ OPTIONS:
         --json            Emit JSON output
         --active          Resolve the currently active title from the connected
                           console
+```
+
+### `rgh avatar help`
+```text
+DESCRIPTION:
+Avatar item library and install helpers
+
+USAGE:
+    rgh avatar [OPTIONS] <COMMAND>
+
+EXAMPLES:
+    rgh avatar library show
+    rgh avatar games --search Black Ops
+    rgh avatar items --titleid 415608C3 --limit 10
+    rgh avatar choose --search Black Ops
+    rgh avatar browse --remote
+    rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 
+--current-user
+    rgh avatar apply --titleid 415608C3 --all --current-user
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    library    Show or set avatar collection paths
+    games      List games with available avatar items
+    items      List avatar items from the collection
+    choose     Interactively choose a game and avatar items in the terminal
+    browse     Browse avatar items in a Windows picker and install selected
+               entries
+    install    Patch avatar items for a user and install them to the console
+```
+
+### `rgh avatar choose help`
+```text
+DESCRIPTION:
+Interactively choose a game and avatar items in the terminal
+
+USAGE:
+    rgh avatar choose [OPTIONS]
+
+OPTIONS:
+    -h, --help                      Prints help information
+        --remote                    Use the hosted avatar library instead of the local corpus
+        --titleid <TITLEID>         Install all items for one title when paired with --all
+        --all                       Install all items for the selected title
+        --current-user              Use the current signed-in user explicitly
+        --search <TEXT>             Initial item search text
+        --game <TEXT>               Initial game/title filter text
+```
+
+### `rgh avatar browse help`
+```text
+DESCRIPTION:
+Browse avatar items in a Windows picker and install selected entries
+
+USAGE:
+    rgh avatar browse [OPTIONS]
+
+OPTIONS:
+    -h, --help                      Prints help information
+        --remote                    Use the hosted avatar library instead of the local corpus
+        --titleid <TITLEID>         Preload one title or install all items for that title when paired with --all
+        --search <TEXT>             Initial item search text
+        --game <TEXT>               Initial game/title filter text
+        --tag <TEXT>                Initial derived tag filter
+        --current-user              Use the current signed-in user explicitly
+```
+
+### `rgh avatar install help`
+```text
+DESCRIPTION:
+Patch avatar items for a user and install them to the console
+
+USAGE:
+    rgh avatar install [OPTIONS]
+
+OPTIONS:
+    -h, --help                     Prints help information
+        --ip <IP>                  Console IP address. If omitted, uses the last
+                                   connected console
+        --port <PORT>              FTP port (default: 21)
+        --user <USER>              FTP username (default: xboxftp)
+        --pass <PASS>              FTP password (default: xboxftp)
+        --timeout <MS>             FTP timeout in milliseconds (default: 5000)
+        --json                     Emit JSON output
+        --library <DIR>            Avatar item library root. Defaults to config
+                                   or Avatar-Item-Collection
+        --cache <PATH>             Avatar index cache file or directory
+        --titleid <TITLEID>        Install all items for one title when paired
+                                   with --all
+        --contentid <CONTENTID>    Install one specific avatar item
+        --all                      Install all items for the selected title
+        --device <ROOT>            Console storage root (default: Hdd1)
+        --xuid <XUID>              Explicit target XUID. Defaults to the current
+                                   signed-in user
+        --gamertag <NAME>          Label shown in local output when --xuid is
+                                   provided
+        --current-user             Use the current signed-in user explicitly
+        --xbdm-port <PORT>         XBDM port used for current-user resolution
+                                   (default: saved target port or 730)
+        --working <DIR>            Working directory for patched temporary files
+        --overwrite                Overwrite remote files that already exist
+        --dry-run                  Show the install plan without uploading
+                                   anything
 ```
 
 ### `rgh target help`
@@ -746,6 +897,52 @@ OPTIONS:
 
 COMMANDS:
     state    Read the active sign-in state, gamertag, and XUID
+```
+
+### `rgh tray help`
+```text
+DESCRIPTION:
+Disc tray helpers
+
+USAGE:
+    rgh tray [OPTIONS] <COMMAND>
+
+EXAMPLES:
+    rgh tray open
+    rgh tray close
+
+COMMANDS:
+    open     Open the disc tray
+    close    Close the disc tray
+```
+
+### `rgh popup help`
+```text
+DESCRIPTION:
+Trainer-style console popup helpers
+
+USAGE:
+    rgh popup [OPTIONS] <COMMAND>
+
+EXAMPLES:
+    rgh popup show --title XeCLI --body Connected to console
+
+COMMANDS:
+    show    Show a native Xbox 360 popup
+```
+
+### `rgh spoof help`
+```text
+DESCRIPTION:
+Private title-aware spoof helpers
+
+USAGE:
+    rgh spoof [OPTIONS] <COMMAND>
+
+COMMANDS:
+    gt        Spoof the current in-game gamertag for supported titles
+    xuid      Spoof the current in-game XUID for supported titles
+    remote    Remote-player text spoofing for supported titles
 ```
 
 ### `rgh ftp help`

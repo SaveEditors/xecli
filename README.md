@@ -30,8 +30,22 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - [Beginner Guide](wiki/Beginner-Guide.md)
 - [Hardware and System Controls](wiki/Hardware-and-System.md)
 - [XNotify](wiki/XNotify.md)
+- [Avatar Item Collection](wiki/Avatar-Item-Collection.md)
 - [Advanced Guide](wiki/Advanced-Guide.md)
 - [Published Docs Site](https://saveeditors.github.io/xecli/wiki/Home.html)
+
+## Release Changelog
+### v1.0.1 Avatar Update
+- Added hosted and local `Avatar-Item-Collection` support with `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install`, and `rgh avatar apply`.
+- Added terminal and Windows picker flows for avatar item selection, with current-user ownership patching, cached downloads, and multi-item progress bars.
+- Added hardware and session controls including sign-in state, LED presets, fan commands, tray control, shutdown, native popup messages, and title-aware spoof helpers.
+- Expanded the wiki with [Hardware and System Controls](wiki/Hardware-and-System.md), [XNotify](wiki/XNotify.md), and [Avatar Item Collection](wiki/Avatar-Item-Collection.md), and cleaned the wording across the public docs.
+
+### v1.0.0 Initial Release
+- Shipped the first public XeCLI release with the `rgh` command, XBDM discovery, console status, module inspection, memory inspection, thread control, and debug helpers.
+- Added JRPC2 helpers for Title ID, temperatures, notifications, CPU key, motherboard, and dashboard queries, plus FTP-backed file, save, content, and plugin workflows.
+- Added XEX dumping, string extraction, Ghidra headless integration, ISO to GOD conversion, and the bundled Title ID database in the release package.
+- Published the initial wiki set including [Home](wiki/Home.md), [Commands Reference](wiki/Commands.md), [CLI Help Output](wiki/CLI-Help.md), [Beginner Guide](wiki/Beginner-Guide.md), [Advanced Guide](wiki/Advanced-Guide.md), and [Troubleshooting](wiki/Troubleshooting.md).
 
 ## Interface Preview
 Top-level help:
@@ -45,7 +59,7 @@ Live status:
 ## Why XeCLI
 XeCLI is designed for three kinds of work:
 
-- Daily operator workflows: discovery, connection management, status, FTP, plugin control, and title launching.
+- Daily console workflows: discovery, connection management, status, FTP, plugin control, and title launching.
 - Reverse engineering workflows: module listing, memory reads and writes, thread context, breakpoints, XEX dumping, strings, and Ghidra export.
 - Tool integration workflows: JSON output, bundled metadata, and stable command-based orchestration from scripts or companion apps.
 
@@ -57,6 +71,7 @@ The repository and release package include:
 - The CLI source and managed project dependencies.
 - Common console-side `.xex` dependency files used with XeCLI workflows.
 - A bundled Title ID database.
+- Avatar item browsing and install workflows from either a local `Avatar-Item-Collection` corpus or the hosted GitHub-backed collection, with cached downloads and progress bars.
 - Ghidra helper scripts.
 - Wiki documentation and release-facing README content.
 
@@ -69,7 +84,7 @@ Bundled assets:
 - `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
 - `src/Xbox360.Remote.Cli/ghidra_scripts/DecompileAllToC.java`
 
-At publish time, these assets are copied into the release output so the package remains self-contained.
+At publish time, these assets are copied into the release output so the package remains self-contained. The hosted avatar corpus itself lives separately at [SaveEditors/Avatar-Item-Collection](https://github.com/SaveEditors/Avatar-Item-Collection).
 
 ## What the Console Must Provide
 XeCLI does not replace console-side plugins or services. The target console must already provide the pieces you want to use:
@@ -116,7 +131,34 @@ Packaging and automation:
 - ISO to Games on Demand conversion.
 - Folder watchdog for unattended ISO processing.
 - JSON output on automation-friendly commands.
+- Command-based avatar browsing, remote-hosted downloads, and console-side avatar item installs.
 - A bundled Title ID database that other tools can consume directly.
+
+## Avatar Item Collection
+XeCLI now exposes two user-facing avatar selection paths on top of the same install pipeline:
+
+- `rgh avatar choose` for a terminal-first game and item picker
+- `rgh avatar browse` for a Windows picker with title search, item filtering, and multi-select
+
+Both feed the same ownership-patch and install flow used by `rgh avatar install`.
+
+The same flow works against either:
+
+- the local `Avatar-Item-Collection` corpus
+- the hosted GitHub-backed collection, with local caching and verified downloads
+
+Remote browsing examples:
+
+```powershell
+rgh avatar library show
+rgh avatar games --remote --search "Black Ops"
+rgh avatar items --remote --titleid 415608C3 --limit 10
+rgh avatar choose --remote --search "Black Ops" --current-user
+rgh avatar browse --remote
+rgh avatar install --remote --titleid 415608C3 --all --current-user
+```
+
+Multi-item installs show progress bars and per-item transfer status so large title packs stay visible during download and upload. The hosted corpus lives at [SaveEditors/Avatar-Item-Collection](https://github.com/SaveEditors/Avatar-Item-Collection).
 
 ## Installation
 ### Release package

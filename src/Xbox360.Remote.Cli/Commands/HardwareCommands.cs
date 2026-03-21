@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Xbox360.Remote;
@@ -14,8 +15,23 @@ internal enum RingLedColor {
     Orange = 0x88
 }
 
+internal enum XamShortcutOrdinal {
+    OpenTray = 0x60,
+    CloseTray = 0x62,
+    TurnOffConsole = 0x295
+}
+
+internal enum PopupStylePreset : uint {
+    None = 0x00,
+    Error = 0x01,
+    Warning = 0x02,
+    Question = 0x03
+}
+
 internal static class HardwareHelpers {
     private const int HalSendSmcMessageOrdinal = 0x29;
+    private const int XamAllocOrdinal = 0x1EA;
+    private const int XamShowMessageBoxUiOrdinal = 714;
 
     public static string DescribeSignInState(uint? state) {
         return state switch {
@@ -60,8 +76,58 @@ internal static class HardwareHelpers {
         await jrpc.SetLedsAsync((int) topLeft, (int) topRight, (int) bottomLeft, (int) bottomRight, cancellationToken);
     }
 
+    public static async Task ExecuteXamShortcutAsync(XbdmClient client, XamShortcutOrdinal ordinal, CancellationToken cancellationToken) {
+        Jrpc2Client jrpc = new Jrpc2Client(client);
+        await jrpc.DispatchAsync(
+            RpcDataType.Void,
+            null,
+            "xam.xex",
+            (int) ordinal,
+            false,
+            false,
+            new[] {
+                new RpcArgument(RpcArgType.Int, 0),
+                new RpcArgument(RpcArgType.Int, 0),
+                new RpcArgument(RpcArgType.Int, 0),
+                new RpcArgument(RpcArgType.Int, 0)
+            },
+            cancellationToken);
+    }
+
     public static string FormatLedSummary(CliConfig.LedStateInfo state) {
         return $"TL={state.TopLeft}, TR={state.TopRight}, BL={state.BottomLeft}, BR={state.BottomRight}";
+    }
+
+    public static bool TryParsePopupStylePreset(string? value, out PopupStylePreset preset) {
+        preset = PopupStylePreset.None;
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        switch (value.Trim().ToLowerInvariant()) {
+            case "none":
+            case "plain":
+            case "clean":
+            case "noicon":
+            case "no-icon":
+                preset = PopupStylePreset.None;
+                return true;
+            case "error":
+            case "alert":
+            case "x":
+                preset = PopupStylePreset.Error;
+                return true;
+            case "question":
+            case "ask":
+                preset = PopupStylePreset.Question;
+                return true;
+            case "warning":
+            case "warn":
+            case "caution":
+                preset = PopupStylePreset.Warning;
+                return true;
+            default:
+                return false;
+        }
     }
 
     public static bool TryParseLedColor(string? value, out RingLedColor color) {
@@ -156,6 +222,61 @@ internal static class HardwareHelpers {
 
     public static async Task<ProfileHelpers.XamUserInfo?> TryGetSignedInUserAsync(XbdmClient client, CancellationToken cancellationToken) {
         return await ProfileHelpers.TryGetSignedInXamUserAsync(client, cancellationToken);
+    }
+
+    public static async Task ShowMessageBoxAsync(
+        XbdmClient client,
+        string title,
+        string body,
+        IReadOnlyList<string> buttons,
+        uint messageBoxType,
+        uint focusedButtonIndex,
+        CancellationToken cancellationToken) {
+        uint? baseAddress = await TryAllocateXamMemoryAsync(client, EstimateMessageBoxBufferSize(title, body, buttons), cancellationToken);
+        if (!baseAddress.HasValue) {
+            uint? scratchBase = await FindScratchBaseAsync(client, cancellationToken);
+            if (!scratchBase.HasValue)
+                throw new IOException("Could not locate writable memory for popup UI.");
+            baseAddress = scratchBase.Value + 0x2000;
+        }
+
+        RemoteUiBuffer buffer = new RemoteUiBuffer(baseAddress.Value);
+        uint titleAddress = buffer.WriteUtf16String(title);
+        uint bodyAddress = buffer.WriteUtf16String(body);
+
+        List<uint> buttonAddresses = new List<uint>(buttons.Count);
+        foreach (string button in buttons) {
+            buttonAddresses.Add(buffer.WriteUtf16String(button));
+        }
+
+        uint buttonArrayAddress = buffer.WritePointerArray(buttonAddresses);
+        uint resultAddress = buffer.WriteZeroBlock(0x20, 0x10);
+        uint overlappedAddress = buffer.WriteZeroBlock(0x20, 0x10);
+
+        foreach ((uint address, byte[] data) in buffer.GetSegments()) {
+            await client.WriteMemoryAsync(address, data, cancellationToken);
+        }
+
+        Jrpc2Client jrpc = new Jrpc2Client(client);
+        await jrpc.DispatchAsync(
+            RpcDataType.Int,
+            null,
+            "xam.xex",
+            XamShowMessageBoxUiOrdinal,
+            false,
+            false,
+            new[] {
+                new RpcArgument(RpcArgType.UInt, 0u),
+                new RpcArgument(RpcArgType.UInt, titleAddress),
+                new RpcArgument(RpcArgType.UInt, bodyAddress),
+                new RpcArgument(RpcArgType.UInt, (uint) buttons.Count),
+                new RpcArgument(RpcArgType.UInt, buttonArrayAddress),
+                new RpcArgument(RpcArgType.UInt, focusedButtonIndex),
+                new RpcArgument(RpcArgType.UInt, messageBoxType),
+                new RpcArgument(RpcArgType.UInt, resultAddress),
+                new RpcArgument(RpcArgType.UInt, overlappedAddress)
+            },
+            cancellationToken);
     }
 
     private static bool TryGetPreset(string preset, out CliConfig.LedStateInfo state) {
@@ -270,6 +391,106 @@ internal static class HardwareHelpers {
         }
 
         return null;
+    }
+
+    private static int EstimateMessageBoxBufferSize(string title, string body, IReadOnlyList<string> buttons) {
+        int size = 0x80;
+        size += AlignInt((title.Length + 1) * 2, 4);
+        size += AlignInt((body.Length + 1) * 2, 4);
+        size += AlignInt(buttons.Count * sizeof(uint), 4);
+        foreach (string button in buttons) {
+            size += AlignInt((button.Length + 1) * 2, 4);
+        }
+
+        return size;
+    }
+
+    private static async Task<uint?> TryAllocateXamMemoryAsync(XbdmClient client, int size, CancellationToken cancellationToken) {
+        Jrpc2Client jrpc = new Jrpc2Client(client);
+        try {
+            string response = await jrpc.CallAsync(
+                RpcDataType.Int,
+                null,
+                "xam.xex",
+                XamAllocOrdinal,
+                true,
+                false,
+                new[] { new RpcArgument(RpcArgType.Int, size) },
+                cancellationToken);
+            return ParseRpcUInt32(response);
+        }
+        catch {
+            return null;
+        }
+    }
+
+    private static uint ParseRpcUInt32(string value) {
+        string text = value.Trim();
+        if (string.IsNullOrWhiteSpace(text))
+            return 0;
+        if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            text = text.Substring(2);
+        return uint.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint hex)
+            ? hex
+            : uint.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out uint dec)
+                ? dec
+                : 0;
+    }
+
+    private static int AlignInt(int value, int alignment) {
+        int remainder = value % alignment;
+        return remainder == 0 ? value : value + (alignment - remainder);
+    }
+
+    private sealed class RemoteUiBuffer {
+        private readonly List<(uint Address, byte[] Data)> segments = new();
+        private uint cursor;
+
+        public RemoteUiBuffer(uint baseAddress) {
+            cursor = baseAddress;
+        }
+
+        public uint WriteUtf16String(string value) {
+            byte[] bytes = Encoding.BigEndianUnicode.GetBytes(value + "\0");
+            return WriteBlock(bytes, 2);
+        }
+
+        public uint WritePointerArray(IReadOnlyList<uint> pointers) {
+            byte[] bytes = new byte[pointers.Count * sizeof(uint)];
+            for (int i = 0; i < pointers.Count; i++) {
+                WriteUInt32BigEndian(bytes, i * sizeof(uint), pointers[i]);
+            }
+
+            return WriteBlock(bytes, 4);
+        }
+
+        public uint WriteZeroBlock(int size, int alignment) {
+            return WriteBlock(new byte[size], alignment);
+        }
+
+        public IReadOnlyList<(uint Address, byte[] Data)> GetSegments() {
+            return segments;
+        }
+
+        private uint WriteBlock(byte[] data, int alignment) {
+            cursor = Align(cursor, (uint) alignment);
+            uint address = cursor;
+            segments.Add((address, data));
+            cursor += (uint) data.Length;
+            return address;
+        }
+
+        private static void WriteUInt32BigEndian(byte[] buffer, int offset, uint value) {
+            buffer[offset] = (byte) (value >> 24);
+            buffer[offset + 1] = (byte) (value >> 16);
+            buffer[offset + 2] = (byte) (value >> 8);
+            buffer[offset + 3] = (byte) value;
+        }
+
+        private static uint Align(uint value, uint alignment) {
+            uint remainder = value % alignment;
+            return remainder == 0 ? value : value + (alignment - remainder);
+        }
     }
 }
 
@@ -526,6 +747,215 @@ public sealed class SignInStateCommand : AsyncCommand<ConnectionSettings> {
             table.AddRow("[white]XUID[/]", signedIn ? $"[gold1]{Markup.Escape(user?.Xuid ?? "unknown")}[/]" : "[grey70]none[/]");
             table.AddRow("[white]Slot[/]", signedIn ? $"[deepskyblue1]{user!.Slot.ToString(CultureInfo.InvariantCulture)}[/]" : "[grey70]-[/]");
             AnsiConsole.Write(table);
+            return 0;
+        }, CancellationToken.None);
+    }
+}
+
+public sealed class TrayOpenCommand : AsyncCommand<TrayOpenCommand.Settings> {
+    public sealed class Settings : ConnectionSettings {
+        [CommandOption("--notify")]
+        [Description("Send a default success notification to the console.")]
+        public bool Notify { get; init; }
+
+        [CommandOption("--notify-icon <NAME>")]
+        [Description("Notification icon preset name.")]
+        public string? NotifyIcon { get; init; }
+
+        [CommandOption("--notify-logo <ID>")]
+        [Description("Notification logo id (decimal or 0x hex).")]
+        public string? NotifyLogo { get; init; }
+    }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
+        return await CliHelpers.WithClientAsync(settings, async client => {
+            using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings, Math.Max(settings.TimeoutMs ?? 5000, 15000));
+            await HardwareHelpers.ExecuteXamShortcutAsync(client, XamShortcutOrdinal.OpenTray, cts.Token);
+
+            if (settings.Json) {
+                CliOutput.EmitJson(new { Tray = "open", Status = "requested" });
+                return 0;
+            }
+
+            OperationFeedback.WriteSuccess("Disc tray opened", "[deepskyblue1]Open request sent to the console.[/]");
+            await NotifyHelpers.TrySendOperationNotificationAsync(
+                client,
+                settings.Notify,
+                settings.NotifyIcon,
+                settings.NotifyLogo,
+                "Success :)",
+                CancellationToken.None);
+            return 0;
+        }, CancellationToken.None);
+    }
+}
+
+public sealed class TrayCloseCommand : AsyncCommand<TrayCloseCommand.Settings> {
+    public sealed class Settings : ConnectionSettings {
+        [CommandOption("--notify")]
+        [Description("Send a default success notification to the console.")]
+        public bool Notify { get; init; }
+
+        [CommandOption("--notify-icon <NAME>")]
+        [Description("Notification icon preset name.")]
+        public string? NotifyIcon { get; init; }
+
+        [CommandOption("--notify-logo <ID>")]
+        [Description("Notification logo id (decimal or 0x hex).")]
+        public string? NotifyLogo { get; init; }
+    }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
+        return await CliHelpers.WithClientAsync(settings, async client => {
+            using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings, Math.Max(settings.TimeoutMs ?? 5000, 15000));
+            await HardwareHelpers.ExecuteXamShortcutAsync(client, XamShortcutOrdinal.CloseTray, cts.Token);
+
+            if (settings.Json) {
+                CliOutput.EmitJson(new { Tray = "close", Status = "requested" });
+                return 0;
+            }
+
+            OperationFeedback.WriteSuccess("Disc tray closed", "[deepskyblue1]Close request sent to the console.[/]");
+            await NotifyHelpers.TrySendOperationNotificationAsync(
+                client,
+                settings.Notify,
+                settings.NotifyIcon,
+                settings.NotifyLogo,
+                "Success :)",
+                CancellationToken.None);
+            return 0;
+        }, CancellationToken.None);
+    }
+}
+
+public sealed class ShutdownCommand : AsyncCommand<ShutdownCommand.Settings> {
+    public sealed class Settings : ConnectionSettings {
+        [CommandOption("--notify")]
+        [Description("Send a default success notification to the console before shutdown.")]
+        public bool Notify { get; init; }
+
+        [CommandOption("--notify-icon <NAME>")]
+        [Description("Notification icon preset name.")]
+        public string? NotifyIcon { get; init; }
+
+        [CommandOption("--notify-logo <ID>")]
+        [Description("Notification logo id (decimal or 0x hex).")]
+        public string? NotifyLogo { get; init; }
+    }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
+        return await CliHelpers.WithClientOnceAsync(settings, async client => {
+            if (settings.Notify) {
+                await NotifyHelpers.TrySendOperationNotificationAsync(
+                    client,
+                    true,
+                    settings.NotifyIcon,
+                    settings.NotifyLogo,
+                    "Success :)",
+                    CancellationToken.None);
+                await Task.Delay(300, CancellationToken.None);
+            }
+
+            using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings, Math.Max(settings.TimeoutMs ?? 5000, 10000));
+            Jrpc2Client jrpc = new Jrpc2Client(client);
+            await jrpc.ShutdownAsync(cts.Token);
+
+            if (settings.Json) {
+                CliOutput.EmitJson(new { Power = "off", Status = "requested" });
+                return 0;
+            }
+
+            OperationFeedback.WriteSuccess("Shutdown requested", "[deepskyblue1]Power-off request sent to the console.[/]");
+            return 0;
+        }, CancellationToken.None);
+    }
+}
+
+public sealed class PopupMessageBoxCommand : AsyncCommand<PopupMessageBoxCommand.Settings> {
+    public sealed class Settings : ConnectionSettings {
+        [CommandOption("--title <TEXT>")]
+        [Description("Popup title text.")]
+        public string? Title { get; init; }
+
+        [CommandOption("--body <TEXT>")]
+        [Description("Popup body text.")]
+        public string? Body { get; init; }
+
+        [CommandOption("--button <TEXT>")]
+        [Description("Button label. Repeat to add multiple buttons.")]
+        public string[]? Buttons { get; init; }
+
+        [CommandOption("--focus <INDEX>")]
+        [Description("Focused button index (default: 0).")]
+        public uint? FocusedButtonIndex { get; init; }
+
+        [CommandOption("--preset <NAME>")]
+        [Description("Popup icon preset: none|error|warning|question (default: none).")]
+        public string? Preset { get; init; }
+
+        [CommandOption("--style <ID>")]
+        [Description("Raw popup style id. Overrides --preset when provided.")]
+        public uint? MessageBoxType { get; init; }
+    }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
+        string title = string.IsNullOrWhiteSpace(settings.Title) ? "XeCLI" : settings.Title.Trim();
+        string? body = settings.Body;
+        if (string.IsNullOrWhiteSpace(body)) {
+            AnsiConsole.MarkupLine("[red]--body is required.[/]");
+            return 1;
+        }
+
+        string[] buttons = settings.Buttons is { Length: > 0 }
+            ? settings.Buttons.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray()
+            : new[] { "Continue" };
+
+        if (buttons.Length == 0 || buttons.Length > 4) {
+            AnsiConsole.MarkupLine("[red]Use between 1 and 4 --button values.[/]");
+            return 1;
+        }
+
+        uint focus = settings.FocusedButtonIndex ?? 0;
+        if (focus >= buttons.Length) {
+            AnsiConsole.MarkupLine("[red]--focus must point to an existing button index.[/]");
+            return 1;
+        }
+
+        uint messageBoxType;
+        if (settings.MessageBoxType.HasValue) {
+            messageBoxType = settings.MessageBoxType.Value;
+        }
+        else if (!string.IsNullOrWhiteSpace(settings.Preset)) {
+            if (!HardwareHelpers.TryParsePopupStylePreset(settings.Preset, out PopupStylePreset preset)) {
+                AnsiConsole.MarkupLine("[red]Unknown popup preset. Use none, error, warning, or question.[/]");
+                return 1;
+            }
+
+            messageBoxType = (uint) preset;
+        }
+        else {
+            messageBoxType = (uint) PopupStylePreset.None;
+        }
+
+        return await CliHelpers.WithClientAsync(settings, async client => {
+            using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings, Math.Max(settings.TimeoutMs ?? 5000, 15000));
+            await HardwareHelpers.ShowMessageBoxAsync(client, title, body!, buttons, messageBoxType, focus, cts.Token);
+
+            if (settings.Json) {
+                CliOutput.EmitJson(new {
+                    Title = title,
+                    Body = body,
+                    Buttons = buttons,
+                    FocusedButtonIndex = focus,
+                    MessageBoxType = messageBoxType,
+                    Status = "requested"
+                });
+                return 0;
+            }
+
+            OperationFeedback.WriteSuccess(
+                "Popup requested",
+                $"[deepskyblue1]{Markup.Escape(title)}[/] [grey]with[/] [springgreen3_1]{buttons.Length}[/] [grey]button(s)[/]");
             return 0;
         }, CancellationToken.None);
     }

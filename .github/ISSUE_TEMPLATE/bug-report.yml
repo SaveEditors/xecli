@@ -21,7 +21,7 @@ body:
     attributes:
       label: XeCLI version
       description: Output of `rgh --version` or the release tag
-      placeholder: v1.0.0
+      placeholder: v1.0.1
     validations:
       required: true
   - type: input

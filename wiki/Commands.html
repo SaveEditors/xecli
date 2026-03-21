@@ -25,13 +25,13 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
 
             <details class="wiki-nav__group" data-group="developer-reference" >
-              <summary>Developer Reference</summary>
+              <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
                 <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
@@ -48,7 +48,7 @@
       </nav>
       <div class="wiki-sidebar__meta">
         <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
-        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
         <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
       </div>
     </aside>
@@ -69,7 +69,7 @@
         <article id="wiki-content" class="markdown-body">
           <h1 id="commands-reference">Commands Reference</h1>
 <p>This page documents the XeCLI command surface by workflow area. Command examples use the installed terminal command <code>rgh</code>.</p>
-<p>The <code>Example output</code> blocks on this page are representative operator-facing results from the shipped CLI. Exact spacing, colors, and secondary detail lines can vary by flags, console state, and whether JSON mode is enabled.</p>
+<p>The <code>Example output</code> blocks on this page are representative results from the shipped CLI. Exact spacing, colors, and secondary detail lines can vary by flags, console state, and whether JSON mode is enabled.</p>
 <h2 id="find-by-workflow">Find by Workflow</h2>
 <p>Use this table when you know the job you need done but not the exact command namespace yet.</p>
 <table>
@@ -121,6 +121,10 @@
 <td><code>rgh content ...</code>, <code>rgh plugin ...</code></td>
 </tr>
 <tr>
+<td>Browse or install avatar items from the local or hosted collection</td>
+<td><code>rgh avatar library ...</code>, <code>rgh avatar games</code>, <code>rgh avatar items</code>, <code>rgh avatar choose</code>, <code>rgh avatar browse</code>, <code>rgh avatar install</code></td>
+</tr>
+<tr>
 <td>Send visible console messages</td>
 <td><code>rgh notify</code>, <code>rgh notify-icons</code>, <code>rgh jrpc2 notify</code></td>
 </tr>
@@ -167,6 +171,7 @@
 <li><code>rgh mem write</code> = <code>rgh mem poke</code></li>
 <li><code>rgh module remove</code> = <code>rgh modules unload</code></li>
 <li><code>rgh module verify</code> = <code>rgh modules pending</code></li>
+<li><code>rgh avatar apply</code> = <code>rgh avatar install</code></li>
 </ul>
 <p>For the exact top-level help screen and the exact help output of every top-level command group, see <a href="CLI-Help.html">CLI-Help.md</a>.</p>
 <h2 id="common-options">Common Options</h2>
@@ -343,6 +348,15 @@ rgh reboot --notify
 <p>Example output:</p>
 <pre><code class="language-text">SUCCESS Reboot requested
 cold reboot command sent to console
+</code></pre>
+<h3 id="rgh-shutdown"><code>rgh shutdown</code></h3>
+<p>Power off the console through the JRPC power path.</p>
+<pre><code class="language-powershell">rgh shutdown
+rgh shutdown --notify
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Shutdown requested
+power-off command sent to console
 </code></pre>
 <h3 id="rgh-launch"><code>rgh launch</code></h3>
 <p>Launch a XEX with optional directory, arguments, title hint, and notification.</p>
@@ -785,6 +799,79 @@ rgh smc version --json
 2.3
 </code></pre>
 <p>Read <a href="Hardware-and-System.html">Hardware-and-System.md</a> for the deeper operational notes around sign-in state, LED presets, fan command behavior, and SMC version availability.</p>
+<h3 id="rgh-tray-open-rgh-tray-close"><code>rgh tray open</code> / <code>rgh tray close</code></h3>
+<p>Open or close the physical disc tray through the JRPC/XAM path.</p>
+<pre><code class="language-powershell">rgh tray open
+rgh tray close
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Disc tray opened
+</code></pre>
+<pre><code class="language-text">SUCCESS Disc tray closed
+</code></pre>
+<h3 id="rgh-popup-show"><code>rgh popup show</code></h3>
+<p>Show a native Xbox 360 popup. This is the trainer-style popup path, not a standard XNotify toast.</p>
+<pre><code class="language-powershell">rgh popup show --title &quot;XeCLI&quot; --body &quot;Connected to console&quot;
+rgh popup show --title &quot;Warning&quot; --body &quot;Module reload required&quot; --preset warning
+rgh popup show --title &quot;Question&quot; --body &quot;Continue?&quot; --preset question
+rgh popup show --title &quot;Raw Style&quot; --body &quot;Testing&quot; --style 3
+</code></pre>
+<p>Preset values:</p>
+<ul>
+<li><code>none</code></li>
+<li><code>error</code></li>
+<li><code>warning</code></li>
+<li><code>question</code></li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Popup requested
+Title=&quot;XeCLI&quot; Preset=warning Buttons=1
+</code></pre>
+<h3 id="rgh-spoof-gamertag"><code>rgh spoof gamertag</code></h3>
+<p>Reads or writes the current in-game gamertag for supported titles. The simple form is positional.</p>
+<pre><code class="language-powershell">rgh spoof gamertag
+rgh spoof gamertag ExampleTag
+rgh spoof gt set --value ExampleTag --notify
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Game            Call of Duty: Black Ops II
+Gamertag        Diamond KSG
+Address         0x841E1B30
+</code></pre>
+<p>Write example:</p>
+<pre><code class="language-text">SUCCESS Gamertag spoof applied
+XeCliTmp
+</code></pre>
+<h3 id="rgh-spoof-xuid"><code>rgh spoof xuid</code></h3>
+<p>Reads or writes the current in-game XUID for supported titles.</p>
+<pre><code class="language-powershell">rgh spoof xuid
+rgh spoof xuid 5D83300C00000900
+rgh spoof xuid set --value 5D83300C00000900
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Game            Call of Duty: Black Ops II
+XUID            5D83300C00000900
+Stored          000900000C30835D
+Binary Addr     0x841E1B50
+Text Addr       0x841E1B58
+</code></pre>
+<h3 id="rgh-spoof-remote"><code>rgh spoof remote</code></h3>
+<p>Overwrites remote-player text slots for supported titles. The simple positional form applies the same text to every supported slot in the current title.</p>
+<pre><code class="language-powershell">rgh spoof remote XeCliRemote
+rgh spoof remote list
+rgh spoof remote apply --slot 1 --text HostName
+rgh spoof remote apply --all --text XeCLI-{slot}
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Remote spoof applied
+Call of Duty: Black Ops II =&gt; XeCliRemote
+
+Slot  Verified       Address
+1     XeCliRemote    0x841E1B3C
+2     XeCliRemote    0x841E7334
+...
+12    XeCliRemote    0x8421E2E4
+</code></pre>
 <h2 id="save-commands">Save Commands</h2>
 <h3 id="rgh-save-list"><code>rgh save list</code></h3>
 <pre><code class="language-powershell">rgh save list --titleid FFFE07D1 --device Hdd1
@@ -828,6 +915,149 @@ rgh content list --titleid 415608C3
 <p>Example output:</p>
 <pre><code class="language-text">SUCCESS Content delete complete
 Title Update for 0x415608C3 removed
+</code></pre>
+<h2 id="avatar-commands">Avatar Commands</h2>
+<p>The avatar surface now has three operator paths:</p>
+<ul>
+<li><code>rgh avatar choose</code> for a terminal picker</li>
+<li><code>rgh avatar browse</code> for a Windows picker</li>
+<li><code>rgh avatar install</code> for direct one-item or full-title installs</li>
+</ul>
+<p>All three use the same local or hosted <code>Avatar-Item-Collection</code> index, ownership patching, caching, and upload pipeline.</p>
+<p>Validated behavior:</p>
+<ul>
+<li><code>rgh avatar install</code> patches ownership for the target XUID before upload.</li>
+<li><code>rgh avatar apply</code> is an alias of <code>rgh avatar install</code>.</li>
+<li>Standard avatar content layouts under <code>00009000</code> are supported.</li>
+<li>Irregular title-root payload layouts are also supported.</li>
+<li>If FTP is unavailable, install can fall back to XBDM upload and XBDM verification automatically.</li>
+<li><code>--remote</code> switches the browser/install flow to the hosted manifest and content cache.</li>
+<li><code>rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite</code> was validated live against <code>192.168.1.186</code>.</li>
+</ul>
+<h3 id="rgh-avatar-library-show"><code>rgh avatar library show</code></h3>
+<pre><code class="language-powershell">rgh avatar library show
+rgh avatar library show --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Mode                local
+Configured Library  auto
+Effective Library   A:\Downloads\12\em\Avatar-Item-Collection
+Configured Cache    default
+Effective Cache     C:\Users\B\AppData\Roaming\XeCLI\avatar-index.v3.json
+Manifest URL        https://raw.githubusercontent.com/SaveEditors/Avatar-Item-Collection/main/avatar-manifest.json
+Content Base URL    https://raw.githubusercontent.com/SaveEditors/Avatar-Item-Collection/main/
+</code></pre>
+<h3 id="rgh-avatar-library-set"><code>rgh avatar library set</code></h3>
+<pre><code class="language-powershell">rgh avatar library set --path A:\Downloads\12\em\Avatar-Item-Collection
+rgh avatar library set --cache C:\Users\B\AppData\Roaming\XeCLI
+rgh avatar library set --clear
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Avatar library settings updated
+Library: A:\Downloads\12\em\Avatar-Item-Collection
+Cache:   C:\Users\B\AppData\Roaming\XeCLI\avatar-index.v3.json
+</code></pre>
+<h3 id="rgh-avatar-games"><code>rgh avatar games</code></h3>
+<pre><code class="language-powershell">rgh avatar games
+rgh avatar games --search &quot;Black Ops&quot;
+rgh avatar games --remote --search &quot;Black Ops&quot;
+rgh avatar games --limit 20
+rgh avatar games --no-cache
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Avatar Games
+0x415608C3   COD: Black Ops II   37 items   7.44 MB   Activision
+</code></pre>
+<h3 id="rgh-avatar-items"><code>rgh avatar items</code></h3>
+<pre><code class="language-powershell">rgh avatar items --titleid 415608C3 --limit 10
+rgh avatar items --search hoodie
+rgh avatar items --titleid 58410A5D --limit 5
+rgh avatar items --remote --titleid 415608C3 --limit 10
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Avatar Items
+0x415608C3   COD: Black Ops II   COD: Black Ops II Logo Shirt White - Female   000000080DF3B242CAE65A52415608C3   00009000   116 KB
+0x58410A5D   Destination Arcade   A cool hoodie                                  0000020800060102C383304058410A5D   root      112 KB
+</code></pre>
+<h3 id="rgh-avatar-choose"><code>rgh avatar choose</code></h3>
+<pre><code class="language-powershell">rgh avatar choose --search &quot;Black Ops&quot; --current-user
+rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite
+</code></pre>
+<p>What it does:</p>
+<ul>
+<li>resolves one title interactively or from <code>--titleid</code></li>
+<li>lets you select items in terminal, unless <code>--all</code> is set</li>
+<li>hands the chosen set to the same install pipeline used by <code>rgh avatar install</code></li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">Avatar download 3 item(s) file 2/3 | Destination Arcade - 0000020800069131C14650A158410A5D: 21%
+Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+3 item(s)  512 KB -&gt; /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
+</code></pre>
+<h3 id="rgh-avatar-browse"><code>rgh avatar browse</code></h3>
+<pre><code class="language-powershell">rgh avatar browse --remote
+rgh avatar browse --remote --titleid 415608C3 --search hoodie
+</code></pre>
+<p>What it does:</p>
+<ul>
+<li>opens the Windows avatar picker</li>
+<li>shows title search, item search, tag filtering, multi-select, select-all, and clear</li>
+<li>displays the current signed-in user when that information can be resolved</li>
+<li>installs the selected set through the same pipeline used by <code>rgh avatar install</code></li>
+</ul>
+<p>Notes:</p>
+<ul>
+<li><code>browse</code> is Windows-only.</li>
+<li><code>gui</code> is an alias of <code>browse</code>.</li>
+<li>the picker shares the same hosted/local backend and download cache as the CLI commands.</li>
+</ul>
+<h3 id="rgh-avatar-install"><code>rgh avatar install</code></h3>
+<pre><code class="language-powershell">rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+rgh avatar install --contentid 0000020800060102C383304058410A5D --current-user
+rgh avatar install --titleid 415608C3 --all --current-user
+rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user --dry-run
+rgh avatar install --remote --titleid 415608C3 --all --current-user
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>Use <code>--current-user</code> or <code>--xuid &lt;XUID&gt;</code> for ownership targeting.</li>
+<li><code>--gamertag &lt;NAME&gt;</code> is only a local output label when <code>--xuid</code> is explicit.</li>
+<li><code>--overwrite</code> replaces an existing remote item.</li>
+<li><code>--device</code> defaults to <code>Hdd1</code>.</li>
+<li>When FTP is closed on the console, XeCLI can fall back to XBDM upload and XBDM verification automatically.</li>
+<li>Multi-item installs emit batch progress plus per-item transfer bars.</li>
+</ul>
+<p>Validated install proofs:</p>
+<ul>
+<li>Standard layout:</li>
+<li>source item:<ul>
+<li><code>A:\Downloads\12\em\Avatar-Item-Collection\415608C3\00009000\000000080DF3B242CAE65A52415608C3</code></li>
+</ul>
+</li>
+<li>verified remote path:<ul>
+<li><code>/Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3</code></li>
+</ul>
+</li>
+<li>Root layout:</li>
+<li>source item:<ul>
+<li><code>A:\Downloads\12\em\Avatar-Item-Collection\58410A5D\0000020800060102C383304058410A5D</code></li>
+</ul>
+</li>
+<li>verified remote path:<ul>
+<li><code>/Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D</code></li>
+</ul>
+</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+1 item(s)  116 KB -&gt; /Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3 via XBDM
+</code></pre>
+<h3 id="rgh-avatar-apply"><code>rgh avatar apply</code></h3>
+<p><code>rgh avatar apply</code> is an alias of <code>rgh avatar install</code>.</p>
+<pre><code class="language-powershell">rgh avatar apply --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+rgh avatar apply --titleid 415608C3 --all --current-user
 </code></pre>
 <h2 id="plugin-commands">Plugin Commands</h2>
 <h3 id="rgh-plugin-list"><code>rgh plugin list</code></h3>

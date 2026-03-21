@@ -9,7 +9,7 @@
 - [Hardware and System Controls](Hardware-and-System)
 - [XNotify](XNotify)
 
-## Developer Reference
+## Technical Reference
 - [Advanced Guide](Advanced-Guide)
 - [Frameworks and Internals](Frameworks)
 - [Documentation Standards](Standards)
@@ -18,6 +18,7 @@
 ## Data and Integrations
 - [Integrations](Integrations)
 - [Title ID Database](Title-ID-Database)
+- [Avatar Item Collection](Avatar-Item-Collection)
 - [Troubleshooting](Troubleshooting)
 - [FAQ](FAQ)
 

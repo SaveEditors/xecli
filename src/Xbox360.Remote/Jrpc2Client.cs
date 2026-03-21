@@ -110,6 +110,13 @@ public sealed class Jrpc2Client {
         return xbdm.SendCommandAsync(command, cancellationToken);
     }
 
+    public async Task ShutdownAsync(CancellationToken cancellationToken) {
+        const string command = "consolefeatures ver=2 type=11 params=\"A\\0\\A\\0\\\"";
+        XbdmResponse response = await xbdm.SendCommandAsync(command, cancellationToken);
+        if (response.StatusCode != 200)
+            throw new IOException($"JRPC2 shutdown failed: {response.RawMessage}");
+    }
+
     public async Task<uint> ResolveFunctionAsync(string moduleName, uint ordinal, CancellationToken cancellationToken) {
         string command = $"consolefeatures ver=2 type=9 params=\"A\\0\\A\\2\\" +
                          $"{(int) RpcDataType.String}/{moduleName.Length}\\" +

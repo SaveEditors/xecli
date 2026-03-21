@@ -25,13 +25,13 @@
             <details class="wiki-nav__group" data-group="getting-started" >
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
 
             <details class="wiki-nav__group" data-group="developer-reference" >
-              <summary>Developer Reference</summary>
+              <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
                 <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
@@ -48,7 +48,7 @@
       </nav>
       <div class="wiki-sidebar__meta">
         <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
-        <a href="https://github.com/SaveEditors/xecli">Repository</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
         <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
       </div>
     </aside>
@@ -131,6 +131,41 @@ rgh modules list --json &gt; modules.json
 <li>enrich UI views with media and region data</li>
 </ul>
 <p>That database is shipped with the repo and the release output. There is no runtime fetch requirement.</p>
+<h2 id="reuse-the-avatar-item-collection">Reuse the Avatar Item Collection</h2>
+<p>XeCLI also expects an avatar corpus named <code>Avatar-Item-Collection</code>.</p>
+<p>That corpus is intended to be reused by external tools that need:</p>
+<ul>
+<li>offline avatar item browsing</li>
+<li>title-aware filtering</li>
+<li>item metadata indexing</li>
+<li>pack-level download or cache orchestration</li>
+<li>avatar install workflows without depending on an online marketplace</li>
+</ul>
+<p>The hosted collection lives at:</p>
+<ul>
+<li><a href="https://github.com/SaveEditors/Avatar-Item-Collection">SaveEditors/Avatar-Item-Collection</a></li>
+</ul>
+<p>Remote consumers should treat the manifest/title-map pair as the primary entry point:</p>
+<ul>
+<li><code>avatar-manifest.json</code></li>
+<li><code>avatar-title-map.json</code></li>
+</ul>
+<p>The current XeCLI remote defaults resolve to the same hosted repo and keep a local download cache so repeated installs do not re-fetch the same pack.</p>
+<p>The recommended external-tool pattern is:</p>
+<ol>
+<li>index the local collection once</li>
+<li>expose title-based and text-based filters in your own UI</li>
+<li>download or cache only the packs your workflow needs</li>
+<li>hand install or patch data to XeCLI or a companion installer layer</li>
+</ol>
+<p>Do not hardcode the old <code>avataritems_compiled</code> label. Use <code>Avatar-Item-Collection</code> as the public-facing corpus name.</p>
+<p>Typical CLI entry points:</p>
+<pre><code class="language-powershell">rgh avatar library show --json
+rgh avatar games --json
+rgh avatar items --titleid 415608C3 --json
+rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+</code></pre>
+<p>When FTP is unavailable on the target console, <code>rgh avatar install</code> can fall back to XBDM upload and XBDM-side verification.</p>
 <h2 id="use-xecli-as-a-console-worker">Use XeCLI as a Console Worker</h2>
 <p>Example pattern:</p>
 <pre><code class="language-powershell">rgh xex dump --out .\title.xex
@@ -138,7 +173,7 @@ rgh screenshot --out .\screen.bmp
 rgh save extract --titleid 415608C3 --out .\saves
 </code></pre>
 <p>This works well when your application wants the files that XeCLI can pull rather than embedding transport logic itself.</p>
-<p>This is also a good fit when you want XeCLI’s live progress handling and operator-facing error messages without rewriting FTP/XBDM transport code yourself.</p>
+<p>This is also a good fit when you want XeCLI’s live progress handling and clear error messages without rewriting FTP/XBDM transport code yourself.</p>
 <h2 id="ghidra-integration-pattern">Ghidra Integration Pattern</h2>
 <p>If your tool needs decompile output but you do not want to own a Ghidra automation layer:</p>
 <pre><code class="language-powershell">rgh ghidra decompile --in .\title.xex --out .\decomp
@@ -179,7 +214,7 @@ rgh led set --preset quadrant1
 <h2 id="when-to-reuse-xecli-instead-of-rewriting-it">When to Reuse XeCLI Instead of Rewriting It</h2>
 <p>Use XeCLI directly when:</p>
 <ul>
-<li>you want stable operator-facing commands</li>
+<li>you want stable command names</li>
 <li>you need live XBDM/JRPC2/FTP coordination</li>
 <li>you want the shipped metadata and Ghidra flow</li>
 <li>you need a tool that can still be used manually in terminal</li>

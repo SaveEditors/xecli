@@ -67,7 +67,7 @@ Internal pages should explain:
 
 ### Paths and naming
 - Prefer repository-relative paths in docs about the repo.
-- Prefer Windows-style console paths where that is the operator-facing reality.
+- Prefer Windows-style console paths where that matches the real console workflow.
 - Use `XeCLI` for the project and `rgh` for the command.
 
 ## Maintenance Rules

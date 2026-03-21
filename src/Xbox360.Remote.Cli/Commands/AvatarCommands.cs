@@ -218,7 +218,11 @@ internal static class AvatarCommandHelpers {
         ProfileHelpers.XamUserInfo? user = await ProfileHelpers.TryGetSignedInXamUserAsync(targetIp, xbdmPort, xbdmTimeout, cancellationToken);
         if (user == null || string.IsNullOrWhiteSpace(user.Xuid) || !TryParseXuid(user.Xuid, out ulong resolvedXuid)) {
             string currentUserText = string.IsNullOrWhiteSpace(user?.Gamertag) ? "none" : user!.Gamertag!;
-            throw new InvalidOperationException($"Please sign in the account you'd like to receive avatar items for. Current user: {currentUserText}.");
+            if (string.Equals(currentUserText, "none", StringComparison.OrdinalIgnoreCase)) {
+                throw new InvalidOperationException("It seems you are not signed in. Please sign in and run `rgh signin state` to verify.");
+            }
+
+            throw new InvalidOperationException($"It seems no usable signed-in profile was detected. Current user: {currentUserText}. Please sign in again and run `rgh signin state` to verify.");
         }
 
         return new AvatarResolvedOwnership(

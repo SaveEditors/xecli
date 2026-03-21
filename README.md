@@ -30,15 +30,24 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - [Beginner Guide](wiki/Beginner-Guide.md)
 - [Hardware and System Controls](wiki/Hardware-and-System.md)
 - [XNotify](wiki/XNotify.md)
+- [Homebrew and USB](wiki/Homebrew-and-USB.md)
 - [Avatar Item Collection](wiki/Avatar-Item-Collection.md)
 - [Advanced Guide](wiki/Advanced-Guide.md)
 - [Published Docs Site](https://saveeditors.github.io/xecli/wiki/Home.html)
 
 ## Release Changelog
+### v1.0.2 Installer and Homebrew Update
+- Split first-time setup and package staging cleanly so `rgh install` remains the XeCLI installer and `rgh homebrew install <package>` handles Aurora, DashLaunch, XeXMenu, and Freestyle Dash staging.
+- Added a dedicated homebrew package catalog with cached downloads, archive extraction, generated `launch.ini`, bundled plugin copies, and staging to removable USB drives or normal folders.
+- Kept silent backward compatibility for older `rgh install aurora` style calls by redirecting them to the new homebrew path without exposing that legacy syntax in public help.
+- Fixed installer summaries and follow-up instructions so installs without PATH enabled now point users to the installed `rgh.exe` directly instead of telling them to run a missing `rgh` command.
+- Added the [Homebrew and USB](wiki/Homebrew-and-USB.md) wiki page and updated the README, Beginner Guide, Commands Reference, CLI Help, FAQ, and site navigation to reflect the new split.
+
 ### v1.0.1 Avatar Update
 - Added hosted and local `Avatar-Item-Collection` support with `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install`, and `rgh avatar apply`.
 - Added terminal and Windows picker flows for avatar item selection, with current-user ownership patching, cached downloads, and multi-item progress bars.
 - Added hardware and session controls including sign-in state, LED presets, fan commands, tray control, shutdown, native popup messages, and title-aware spoof helpers.
+- Added a dedicated `rgh homebrew install` workflow for staging Aurora, DashLaunch, XeXMenu, and Freestyle Dash onto USB drives or staging folders, with archive caching, progress bars, generated `launch.ini`, and bundled plugin copies.
 - Expanded the wiki with [Hardware and System Controls](wiki/Hardware-and-System.md), [XNotify](wiki/XNotify.md), and [Avatar Item Collection](wiki/Avatar-Item-Collection.md), and cleaned the wording across the public docs.
 - Reworked `rgh install` into a real installer flow with install-path selection, PATH registration, clearer first-time setup, and post-install console discovery prompts.
 - Fixed current-user command registration so PATH-based installs resolve directly to `rgh.exe` instead of relying on a fragile wrapper-first path.
@@ -128,6 +137,7 @@ File and content workflows:
 - Save listing, extraction, and injection.
 - Installed-content inventory and deletion.
 - DashLaunch plugin listing and slot management.
+- Public homebrew package staging for Aurora, DashLaunch, XeXMenu, and Freestyle Dash through `rgh homebrew install <package>`.
 
 XEX and analysis workflows:
 
@@ -209,6 +219,21 @@ rgh install
 rgh install --path C:\Tools\XeCLI
 rgh install --machine
 ```
+
+### Homebrew package staging
+XeCLI also exposes a dedicated `homebrew` group to stage public homebrew packages onto a USB drive or staging folder:
+
+```powershell
+rgh homebrew install aurora --usb E:
+rgh homebrew install dashlaunch --usb E:
+rgh homebrew install xexmenu --usb E:
+rgh homebrew install fsd --usb E:
+rgh homebrew install all --usb E: --auto-confirm
+```
+
+Package mode downloads the public archives, extracts them into clean package folders, copies bundled console plugins into `Plugins\`, and generates `launch.ini` with Aurora as the default path when applicable.
+
+Read [Homebrew and USB](wiki/Homebrew-and-USB.md) for the full workflow.
 
 ### From source
 ```powershell

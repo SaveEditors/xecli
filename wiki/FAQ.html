@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" >
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -89,6 +89,23 @@
 <h2 id="does-the-installer-add-rgh-to-path">Does the installer add <code>rgh</code> to PATH</h2>
 <p>It can.</p>
 <p>During install, XeCLI asks whether you want <code>rgh</code> available in new terminals. You can accept or skip that step.</p>
+<h2 id="can-xecli-stage-dashboards-and-homebrew-to-usb">Can XeCLI stage dashboards and homebrew to USB</h2>
+<p>Yes.</p>
+<p>Use the dedicated <code>homebrew</code> branch:</p>
+<pre><code class="language-powershell">rgh homebrew install aurora --usb E:
+rgh homebrew install all --usb E: --auto-confirm
+</code></pre>
+<p>Supported package IDs are:</p>
+<ul>
+<li><code>aurora</code></li>
+<li><code>dashlaunch</code></li>
+<li><code>xexmenu</code></li>
+<li><code>fsd</code></li>
+<li><code>all</code></li>
+</ul>
+<p>That flow downloads the public archives, extracts them into clean folders on the selected USB or staging path, copies the bundled console plugins into <code>Plugins\</code>, and writes <code>launch.ini</code> when Aurora is part of the staged set.</p>
+<p>By default, temporary extraction now happens on the target drive instead of <code>%LOCALAPPDATA%</code>, which avoids the common "not enough space on disk" failure when staging larger packages.</p>
+<p>Read <code>Homebrew and USB</code> for the full package workflow.</p>
 <h2 id="does-xecli-fetch-title-id-metadata-from-the-internet">Does XeCLI fetch Title ID metadata from the internet</h2>
 <p>No. The bundled Title ID database ships with the repository and with the published release.</p>
 <h2 id="can-i-use-the-title-id-database-in-my-own-tools">Can I use the Title ID database in my own tools</h2>
@@ -176,7 +193,7 @@ rgh fan show
 <h2 id="does-xecli-replace-aurora-neighborhood-or-xexmenu-completely">Does XeCLI replace Aurora, Neighborhood, or XeXMenu completely</h2>
 <p>No single tool replaces every scene workflow perfectly. The goal of XeCLI is to cover the high-value terminal-first workflows cleanly enough that you do not need to bounce between small one-off utilities for status, dumps, memory work, saves, content, notifications, screenshots, and scripted automation.</p>
 <h2 id="how-can-i-support-the-project">How can I support the project</h2>
-<p>Use the Ko-fi link in the README or the support card in the published wiki:</p>
+<p>Use the Ko-fi link in the README or the support button in the published wiki:</p>
 <ul>
 <li><a href="https://ko-fi.com/saveeditors">ko-fi.com/saveeditors</a></li>
 </ul>

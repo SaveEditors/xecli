@@ -10,7 +10,7 @@ Use this page when you need:
 
 Use [Commands.md](Commands.md) when you need task-oriented examples and expected outputs. Use [XNotify.md](XNotify.md) when you need icon IDs, notification usage, and integration notes.
 
-For first-time setup from the release package, start with `.\rgh.exe install` from the extracted release folder. After installation, use `rgh install` for maintenance or reinstall flows. The installer can copy XeCLI to a chosen folder, register `rgh`, silently scan for consoles, and offer to run `status` on a detected target.
+For first-time setup from the release package, start with `.\rgh.exe install` from the extracted release folder. After installation, use `rgh install` for maintenance or reinstall flows, and use `rgh homebrew install ...` for USB-side dashboard and homebrew staging. The installer can copy XeCLI to a chosen folder, register `rgh`, silently scan for consoles, and offer to run `status` on a detected target.
 
 ## How to Read the Help Tree
 Use the help system in this order:
@@ -50,6 +50,8 @@ EXAMPLES:
     rgh avatar games --search Black Ops
     rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 
 --current-user
+    rgh homebrew install aurora --usb E:
+    rgh homebrew install all --usb E: --auto-confirm
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -64,7 +66,7 @@ COMMANDS:
     reboot          Reboot the console (cold by default)
     shutdown        Power off the console
     launch          Launch a XEX with optional arguments
-    install         Launch the XeCLI installer or manage an existing installation
+    install         Launch the XeCLI installer
     start           Discover consoles and set the default target
     connect         Set or select the default target
     scan            Scan the network for consoles
@@ -92,6 +94,7 @@ COMMANDS:
     ftp             FTP commands (alternate access)
     save            Profile and save-data helpers over FTP
     content         Installed content management over FTP
+    homebrew        Download and stage public homebrew packages
     avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
@@ -496,7 +499,7 @@ OPTIONS:
 ### `rgh install help`
 ```text
 DESCRIPTION:
-Launch the XeCLI installer or manage an existing installation
+Launch the XeCLI installer
 
 USAGE:
     rgh install [OPTIONS]
@@ -514,6 +517,49 @@ OPTIONS:
                           runtime files
         --no-path         Do not add the install directory to PATH
         --quiet           Suppress non-error install output
+```
+
+### `rgh homebrew help`
+```text
+DESCRIPTION:
+Download and stage public homebrew packages to USB or a folder
+
+USAGE:
+    rgh homebrew [OPTIONS] <COMMAND>
+
+EXAMPLES:
+    rgh homebrew list
+    rgh homebrew install aurora --usb E:
+    rgh homebrew install all --usb E: --auto-confirm
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list       List the built-in package catalog
+    install    Download and stage one or more public homebrew packages
+```
+
+### `rgh homebrew install help`
+```text
+DESCRIPTION:
+Download and stage one or more public homebrew packages
+
+USAGE:
+    rgh homebrew install <PACKAGE> [OPTIONS]
+
+ARGUMENTS:
+    <PACKAGE>    Package to stage: aurora, dashlaunch, xexmenu, fsd, or all
+
+OPTIONS:
+    -h, --help            Prints help information
+        --usb <TARGET>    USB drive, drive letter, selection number, or folder
+                          path
+        --cache <DIR>     Package download cache directory
+        --force-download  Redownload archives even when they already exist in
+                          the cache
+        --auto-confirm    Skip confirmation prompts
+        --json            Emit machine-readable output
 ```
 
 ### Discovery Group

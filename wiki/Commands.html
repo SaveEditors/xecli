@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -372,7 +372,7 @@ Target title: Aurora (0xFFFE07D1)
 Arguments: debug=1
 </code></pre>
 <h3 id="rgh-install"><code>rgh install</code></h3>
-<p>Launch the XeCLI installer, choose an install location, and optionally register <code>rgh</code> for new terminals.</p>
+<p><code>rgh install</code> is the XeCLI installer. It chooses an install location and optionally registers <code>rgh</code> for new terminals.</p>
 <p>For a first-time install from the release package, run it from the extracted folder as:</p>
 <pre><code class="language-powershell">.\rgh.exe install
 </code></pre>
@@ -399,6 +399,35 @@ PATH               User PATH updated
 Next Step          Open a new terminal and run rgh --help.
 Jtag at 192.168.1.186 was detected, would you like to connect now? [y/N]:
 </code></pre>
+<p>For dashboard and homebrew package staging, use <code>rgh homebrew install ...</code>. That keeps the installer flow and the USB package workflow separate in both help and docs.</p>
+<h3 id="rgh-homebrew-install"><code>rgh homebrew install</code></h3>
+<p>Download and stage one or more public homebrew packages onto a USB drive or staging folder.</p>
+<pre><code class="language-powershell">rgh homebrew list
+rgh homebrew install aurora --usb E:
+rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install dashlaunch --usb A:\UsbStage --force-download
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Homebrew install complete
+4 package(s) 326 MB -&gt; E:\
+
+Package            Installed To         Files   Size
+Aurora 0.7b.2      E:\Aurora            167     38.69 MB
+DashLaunch 3.21    E:\DashLaunch          8      2.52 MB
+XeXMenu 1.2        E:\XeXMenu             1    203.37 MB
+Freestyle Dash 3   E:\FreestyleDash      26     81.43 MB
+
+Generated E:\launch.ini
+Copied bundled console plugins into E:\Plugins
+</code></pre>
+<p>Important options:</p>
+<ul>
+<li><code>--usb &lt;TARGET&gt;</code> accepts a drive letter, removable-drive selection number, or folder path</li>
+<li><code>--cache &lt;DIR&gt;</code> moves archive and staging storage to a different directory</li>
+<li><code>--force-download</code> refreshes cached archives</li>
+<li><code>--auto-confirm</code> skips the confirmation prompt before staging</li>
+<li><code>--json</code> emits machine-readable package install output</li>
+</ul>
 <h2 id="discovery-commands_1">Discovery Commands</h2>
 <h3 id="rgh-start"><code>rgh start</code></h3>
 <p>rgh start is the manual version of the discovery flow that the installer can launch immediately after setup.</p>

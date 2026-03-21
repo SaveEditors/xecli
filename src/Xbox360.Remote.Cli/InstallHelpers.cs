@@ -55,6 +55,40 @@ internal static class InstallHelpers {
         return File.Exists(ShimPath) && IsDirectoryOnProcessPath(WindowsAppsDir);
     }
 
+    public static string? TryResolveRegisteredCommandPath() {
+        string? env = Environment.GetEnvironmentVariable("PATH");
+        if (!string.IsNullOrWhiteSpace(env)) {
+            foreach (string entry in env.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
+                string candidateExe = Path.Combine(entry, "rgh.exe");
+                if (File.Exists(candidateExe))
+                    return candidateExe;
+
+                string candidateCmd = Path.Combine(entry, "rgh.cmd");
+                if (File.Exists(candidateCmd))
+                    return candidateCmd;
+            }
+        }
+
+        return File.Exists(ShimPath) ? ShimPath : null;
+    }
+
+    public static string? TryResolveInstalledDirectory() {
+        string? commandPath = TryResolveRegisteredCommandPath();
+        if (string.IsNullOrWhiteSpace(commandPath))
+            return null;
+
+        if (commandPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+            return NormalizeDirectory(Path.GetDirectoryName(commandPath)!);
+
+        if (commandPath.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase)) {
+            string? targetExe = TryReadShimTarget(commandPath);
+            if (!string.IsNullOrWhiteSpace(targetExe) && File.Exists(targetExe))
+                return NormalizeDirectory(Path.GetDirectoryName(targetExe)!);
+        }
+
+        return null;
+    }
+
     public static bool IsAdministrator() {
         using WindowsIdentity identity = WindowsIdentity.GetCurrent();
         WindowsPrincipal principal = new WindowsPrincipal(identity);
@@ -242,6 +276,24 @@ internal static class InstallHelpers {
 
         process.WaitForExit();
         return process.ExitCode;
+    }
+
+    private static string? TryReadShimTarget(string shimPath) {
+        try {
+            string content = File.ReadAllText(shimPath).Trim();
+            int firstQuote = content.IndexOf('"');
+            if (firstQuote < 0)
+                return null;
+
+            int secondQuote = content.IndexOf('"', firstQuote + 1);
+            if (secondQuote <= firstQuote)
+                return null;
+
+            return content.Substring(firstQuote + 1, secondQuote - firstQuote - 1);
+        }
+        catch {
+            return null;
+        }
     }
 
     private static void RunDelayedCmd(string arguments) {

@@ -23,6 +23,7 @@ SITE_GROUPS = [
             ("CLI Help Output", "CLI-Help.md"),
             ("Hardware and System Controls", "Hardware-and-System.md"),
             ("XNotify", "XNotify.md"),
+            ("Homebrew and USB", "Homebrew-and-USB.md"),
             ("Avatar Item Collection", "Avatar-Item-Collection.md"),
             ("Troubleshooting", "Troubleshooting.md"),
         ],

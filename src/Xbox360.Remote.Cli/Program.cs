@@ -6,6 +6,7 @@ using Spectre.Console.Cli;
 using Spectre.Console.Cli.Help;
 using Xbox360.Remote.Cli;
 using Xbox360.Remote.Cli.Commands;
+using Xbox360.Remote.Cli.Homebrew;
 using Color = Spectre.Console.Color;
 using Panel = Spectre.Console.Panel;
 
@@ -73,6 +74,8 @@ internal static class Program {
             config.AddExample(new[] { "avatar", "games", "--search", "Black Ops" });
             config.AddExample(new[] { "avatar", "install", "--contentid", "000000080DF3B242CAE65A52415608C3", "--current-user" });
             config.AddExample(new[] { "avatar", "browse", "--remote" });
+            config.AddExample(new[] { "homebrew", "install", "aurora", "--usb", "E:" });
+            config.AddExample(new[] { "homebrew", "install", "all", "--usb", "E:", "--auto-confirm" });
             config.AddExample(new[] { "ghidra", "decompile", "--running", "--out", ".\\decomp" });
 
             config.AddCommand<StatusCommand>("status").WithDescription("Show a compact console status snapshot.");
@@ -83,11 +86,19 @@ internal static class Program {
             config.AddCommand<RebootCommand>("reboot").WithAlias("restart").WithDescription("Reboot the console (cold by default).");
             config.AddCommand<ShutdownCommand>("shutdown").WithAlias("poweroff").WithDescription("Power off the console.");
             config.AddCommand<LaunchCommand>("launch").WithAlias("run").WithDescription("Launch a XEX with optional arguments.");
-            config.AddCommand<InstallCommand>("install").WithDescription("Launch the XeCLI installer or manage an existing installation.");
+            config.AddCommand<InstallCommand>("install").WithDescription("Launch the XeCLI installer.");
             config.AddCommand<StartCommand>("start").WithAlias("s").WithDescription("Discover consoles and set the default target.");
             config.AddCommand<ConnectCommand>("connect").WithAlias("c").WithDescription("Set or select the default target.");
             config.AddCommand<ScanCommand>("scan").WithAlias("discover").WithDescription("Scan the network for consoles.");
             config.AddCommand<XbdmScreenshotCommand>("screenshot").WithAlias("shot").WithDescription("Capture a live screenshot.");
+            config.AddBranch("homebrew", homebrew => {
+                homebrew.SetDescription("Download and stage public homebrew packages to USB or a folder.");
+                homebrew.AddExample(new[] { "homebrew", "list" });
+                homebrew.AddExample(new[] { "homebrew", "install", "aurora", "--usb", "E:" });
+                homebrew.AddExample(new[] { "homebrew", "install", "all", "--usb", "E:", "--auto-confirm" });
+                homebrew.AddCommand<HomebrewListCommand>("list").WithAlias("ls").WithDescription("List the built-in package catalog.");
+                homebrew.AddCommand<HomebrewInstallCommand>("install").WithAlias("stage").WithDescription("Download and stage one or more public homebrew packages.");
+            }).WithAlias("hb");
 
             config.AddBranch("xbdm", xbdm => {
                 xbdm.SetDescription("XBDM commands.");
@@ -516,6 +527,12 @@ internal static class Program {
         if (args.Length == 0)
             return args;
 
+        if (string.Equals(args[0], "install", StringComparison.OrdinalIgnoreCase) &&
+            args.Length > 1 &&
+            HomebrewPackageService.IsKnownPackageId(args[1])) {
+            return new[] { "homebrew", "install" }.Concat(args.Skip(1)).ToArray();
+        }
+
         if (string.Equals(args[0], "spoof", StringComparison.OrdinalIgnoreCase))
             return NormalizeSpoofArgs(args);
 
@@ -640,7 +657,10 @@ internal static class Program {
         if (args.Any(IsHelpToken) || args.Any(arg => arg.Equals("--help", StringComparison.OrdinalIgnoreCase) || arg.Equals("-h", StringComparison.OrdinalIgnoreCase)))
             return false;
 
-        if (args.Length > 0 && args[0].Equals("install", StringComparison.OrdinalIgnoreCase))
+        if (args.Length > 0 &&
+            (args[0].Equals("install", StringComparison.OrdinalIgnoreCase) ||
+             args[0].Equals("homebrew", StringComparison.OrdinalIgnoreCase) ||
+             args[0].Equals("hb", StringComparison.OrdinalIgnoreCase)))
             return false;
 
         return true;

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Homebrew and USB | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Homebrew-and-USB.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
+      <p class="wiki-sidebar__credit">Created by <a href="https://www.se7ensins.com/members/pepe-le-pew.527865/">Pew7s</a></p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link is-current" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="developer-reference" >
+              <summary>Technical Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Internals</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>Homebrew and USB</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli">Repo</a>
+          <a href="https://github.com/SaveEditors/xecli/releases/latest">Releases</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="homebrew-and-usb">Homebrew and USB</h1>
+<p>This page covers the USB-side package workflow in XeCLI.</p>
+<p>Use it when you want to:</p>
+<ul>
+<li>stage Aurora, DashLaunch, XeXMenu, or Freestyle Dash onto a USB drive</li>
+<li>prepare a clean USB layout without manually hunting archives</li>
+<li>reuse the bundled <code>xbdm.xex</code>, <code>JRPC2.xex</code>, and <code>XDRPC.xex</code> files in the same package</li>
+</ul>
+<h2 id="package-mode">Package Mode</h2>
+<p>XeCLI now exposes package staging through the <code>homebrew</code> command group:</p>
+<pre><code class="language-powershell">rgh homebrew list
+rgh homebrew install aurora --usb E:
+rgh homebrew install dashlaunch --usb E:
+rgh homebrew install xexmenu --usb E:
+rgh homebrew install fsd --usb E:
+rgh homebrew install all --usb E: --auto-confirm
+</code></pre>
+<p>If you are still in the extracted release folder and <code>rgh</code> is not registered yet, use:</p>
+<pre><code class="language-powershell">.\rgh.exe homebrew install aurora --usb E:
+</code></pre>
+<p>Supported package IDs:</p>
+<ul>
+<li><code>aurora</code></li>
+<li><code>dashlaunch</code></li>
+<li><code>xexmenu</code></li>
+<li><code>fsd</code></li>
+<li><code>all</code></li>
+</ul>
+<h2 id="usb-target-selection">USB Target Selection</h2>
+<p><code>--usb</code> accepts:</p>
+<ul>
+<li>a drive letter like <code>E:</code></li>
+<li>a drive root like <code>E:\</code></li>
+<li>a removable-drive selection number from the prompt</li>
+<li>a normal folder path for staging or testing</li>
+</ul>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh homebrew install aurora --usb E:
+rgh homebrew install all --usb F: --auto-confirm
+rgh homebrew install dashlaunch --usb A:\Builds\UsbStage
+</code></pre>
+<p>If you omit <code>--usb</code>, XeCLI looks for removable drives and prompts for one. If no removable drives are visible, it stops and asks you to provide <code>--usb &lt;drive-or-path&gt;</code>.</p>
+<h2 id="download-and-cache-behavior">Download and Cache Behavior</h2>
+<p>XeCLI downloads package archives into the local cache:</p>
+<ul>
+<li><code>%LOCALAPPDATA%\XeCLI\cache\packages\archives</code></li>
+</ul>
+<p>It then extracts them into a staging area on the target drive by default, copies the payload into the selected USB or folder target, and reuses cached archives on later installs.</p>
+<p>Useful flags:</p>
+<pre><code class="language-powershell">rgh homebrew install aurora --usb E: --force-download
+rgh homebrew install all --usb E: --cache D:\XeCLI-Cache --auto-confirm
+</code></pre>
+<ul>
+<li><code>--force-download</code> ignores the cached archive and fetches it again</li>
+<li><code>--cache &lt;DIR&gt;</code> moves both the archive cache and staging root to a different location</li>
+<li><code>--auto-confirm</code> skips the confirmation step before package install</li>
+</ul>
+<h2 id="what-xecli-places-on-the-target">What XeCLI Places on the Target</h2>
+<p>For each selected package, XeCLI creates a clean package folder on the target:</p>
+<ul>
+<li><code>Aurora\</code></li>
+<li><code>DashLaunch\</code></li>
+<li><code>XeXMenu\</code></li>
+<li><code>FreestyleDash\</code></li>
+</ul>
+<p>It also copies the bundled console-side plugin files into:</p>
+<ul>
+<li><code>Plugins\</code></li>
+</ul>
+<p>When Aurora is part of the install, XeCLI also writes:</p>
+<ul>
+<li><code>launch.ini</code></li>
+</ul>
+<p>The generated <code>launch.ini</code> sets Aurora as the default path and points the plugin slots at the bundled <code>Plugins\</code> directory.</p>
+<h2 id="example-output">Example Output</h2>
+<pre><code class="language-text">rgh homebrew install all --usb E: --auto-confirm
+Extracting Aurora 0.7b.2...
+Extracting DashLaunch 3.21...
+Download XeXMenu 1.2 downloading: 55%
+Extracting XeXMenu 1.2...
+Extracting Freestyle Dash 3...
+SUCCESS Homebrew install complete
+4 package(s) 326 MB -&gt; E:\
+</code></pre>
+<h2 id="package-sources">Package Sources</h2>
+<p>The current build uses these public sources:</p>
+<ul>
+<li>Aurora 0.7b.2</li>
+<li><code>http://phoenix.xboxunity.net/downloads/Aurora%200.7b.2%20-%20Release%20Package.rar</code></li>
+<li>mirror: <code>https://consolemods.org/wiki/images/d/dd/Aurora_0.7b.2_-_Release_Package.rar</code></li>
+<li>DashLaunch 3.21</li>
+<li><code>https://consolemods.org/wiki/File:DashLaunch_v3.21.7z</code></li>
+<li>XeXMenu 1.2</li>
+<li><code>https://consolemods.org/wiki/images/5/5c/XeXmenu_1.2.7z</code></li>
+<li>Freestyle Dash 3</li>
+<li><code>https://consolemods.org/wiki/images/a/a0/Fsd3.zip</code></li>
+<li>fallback: <code>https://consolemods.org/wiki/images/7/76/TeamFSD.Freestyle3.0.775.7z</code></li>
+</ul>
+<p>XeCLI resolves MediaWiki file pages to the raw archive automatically when a page URL is provided instead of a direct file URL.</p>
+<h2 id="notes">Notes</h2>
+<ul>
+<li><code>rgh install</code> is the XeCLI installer</li>
+<li><code>rgh homebrew install ...</code> is the package staging path</li>
+<li>package-mode is local USB or folder staging only</li>
+<li>package installs do not push these dashboards onto the console HDD yet</li>
+</ul>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+      <section class="wiki-panel wiki-support">
+        <h2>Support XeCLI</h2>
+        <p class="wiki-support__text">Support our work? Buy us a coffee!</p>
+        <p class="wiki-support__button">
+          <a href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">
+            <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" alt="Support XeCLI on Ko-fi" width="180">
+          </a>
+        </p>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

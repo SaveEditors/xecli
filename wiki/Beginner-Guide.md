@@ -136,7 +136,30 @@ List DashLaunch plugins:
 rgh plugin list
 ```
 
-## 8. Launch and Notify
+## 8. Stage Homebrew to USB
+If you want a ready-to-use USB with the common public dashboards and tools, XeCLI can stage them directly:
+
+```powershell
+rgh homebrew install aurora --usb E:
+rgh homebrew install all --usb E: --auto-confirm
+```
+
+That flow:
+
+- downloads the selected public package archives
+- extracts them into clean folders on the USB or staging path
+- copies the bundled `xbdm.xex`, `JRPC2.xex`, and `XDRPC.xex` files into `Plugins\`
+- generates `launch.ini` when Aurora is present
+
+If no removable USB drive is visible, use a normal folder path instead:
+
+```powershell
+rgh homebrew install all --usb A:\UsbStage --auto-confirm
+```
+
+Read [Homebrew-and-USB.md](Homebrew-and-USB.md) for the full package workflow.
+
+## 9. Launch and Notify
 Launch a XEX:
 
 ```powershell
@@ -149,7 +172,7 @@ Send a notification:
 rgh notify "XeCLI connected" 14
 ```
 
-## 9. Check Session and Hardware State
+## 10. Check Session and Hardware State
 Signed-in user:
 
 ```powershell
@@ -165,7 +188,7 @@ rgh led state
 
 If you want the hardware/session details explained in depth, read [Hardware-and-System.md](Hardware-and-System.md).
 
-## 10. Avoid the Common Mistakes
+## 11. Avoid the Common Mistakes
 Do not start with dangerous commands until the basic path is stable.
 
 Start with:
@@ -176,6 +199,7 @@ Start with:
 - `ftp list`
 - `screenshot`
 - `signin state`
+- `install all --usb E: --auto-confirm`
 - `led set --preset quadrant1`
 
 Delay these until you know the target is stable:
@@ -187,8 +211,9 @@ Delay these until you know the target is stable:
 - `fan set`
 - deletion commands
 
-## 11. Know Where to Go Next
+## 12. Know Where to Go Next
 - [Commands Reference](Commands.md) for full command coverage
+- [Homebrew and USB](Homebrew-and-USB.md) for USB-side package staging
 - [Hardware and System Controls](Hardware-and-System.md) for sign-in, LED, fan, and SMC behavior
 - [XNotify](XNotify.md) for icon IDs and notification usage
 - [Advanced Guide](Advanced-Guide.md) for reverse-engineering and automation workflows

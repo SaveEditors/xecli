@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Xbox360.Remote;
+using Xbox360.Remote.Cli.Homebrew;
 using Color = Spectre.Console.Color;
 using Panel = Spectre.Console.Panel;
 
@@ -649,6 +650,9 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
             return 1;
         }
 
+        if (interactiveInstall && !PromptToReinstallIfNeeded(sourceDir))
+            return 0;
+
         if (settings.Uninstall) {
             if (settings.MachinePath) {
                 if (!InstallHelpers.IsAdministrator()) {
@@ -750,7 +754,7 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
                     ("Install Directory", plan.InstallDirectory),
                     ("Command", "rgh"),
                     ("PATH", plan.AddToPath ? "Machine PATH updated" : "Not changed"),
-                    ("Next Step", "Open a new terminal and run `rgh --help`."));
+                    ("Next Step", GetInstallNextStep(plan.InstallDirectory, plan.AddToPath)));
             if (interactiveInstall)
                 PromptToConnectDetectedConsole(plan.InstallDirectory);
             return 0;
@@ -785,10 +789,18 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
                 ("Target EXE", targetExePath),
                 ("Command", "rgh"),
                 ("PATH", plan.AddToPath ? (plan.AllUsers ? "Machine PATH updated" : "User PATH updated") : "Not changed"),
-                ("Next Step", "Open a new terminal and run `rgh --help`."));
+                ("Next Step", GetInstallNextStep(plan.InstallDirectory, plan.AddToPath)));
         if (interactiveInstall)
             PromptToConnectDetectedConsole(plan.InstallDirectory);
         return 0;
+    }
+
+    private static string GetInstallNextStep(string installDirectory, bool addToPath) {
+        if (addToPath)
+            return "Open a new terminal and run `rgh --help`.";
+
+        string exePath = Path.Combine(InstallHelpers.NormalizeDirectory(installDirectory), "rgh.exe");
+        return $"Run `{exePath} --help` or reinstall with PATH enabled.";
     }
 
     private static InstallPlan BuildInstallPlan(Settings settings, string sourceDir) {
@@ -856,6 +868,25 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
                string.IsNullOrWhiteSpace(settings.Path) &&
                !settings.Machine &&
                !settings.NoPath;
+    }
+
+    private static bool PromptToReinstallIfNeeded(string sourceDir) {
+        string? installedDirectory = InstallHelpers.TryResolveInstalledDirectory();
+        if (string.IsNullOrWhiteSpace(installedDirectory))
+            return true;
+
+        string state = InstallHelpers.IsSameDirectory(installedDirectory, sourceDir)
+            ? "[grey]This copy is already the registered XeCLI install.[/]"
+            : "[grey]A registered XeCLI install is already available on this system.[/]";
+
+        AnsiConsole.Write(new Panel(
+                $"[bold white]XeCLI is already installed[/]\n{state}\n\n" +
+                $"[white]Registered location:[/] [springgreen3_1]{Markup.Escape(installedDirectory)}[/]\n" +
+                $"[white]Current source:[/] [deepskyblue1]{Markup.Escape(sourceDir)}[/]")
+            .BorderColor(Color.Silver)
+            .Header("[bold deepskyblue1]Reinstall[/]"));
+
+        return ReadInstallerYesNo("Would you like to reinstall or update it? [y/N]:", false);
     }
 
     private static string ReadInstallerResponse(string prompt, string? defaultValue = null) {

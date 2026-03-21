@@ -33,6 +33,30 @@ It can.
 
 During install, XeCLI asks whether you want `rgh` available in new terminals. You can accept or skip that step.
 
+## Can XeCLI stage dashboards and homebrew to USB
+Yes.
+
+Use the dedicated `homebrew` branch:
+
+```powershell
+rgh homebrew install aurora --usb E:
+rgh homebrew install all --usb E: --auto-confirm
+```
+
+Supported package IDs are:
+
+- `aurora`
+- `dashlaunch`
+- `xexmenu`
+- `fsd`
+- `all`
+
+That flow downloads the public archives, extracts them into clean folders on the selected USB or staging path, copies the bundled console plugins into `Plugins\`, and writes `launch.ini` when Aurora is part of the staged set.
+
+By default, temporary extraction now happens on the target drive instead of `%LOCALAPPDATA%`, which avoids the common "not enough space on disk" failure when staging larger packages.
+
+Read `Homebrew and USB` for the full package workflow.
+
 ## Does XeCLI fetch Title ID metadata from the internet
 No. The bundled Title ID database ships with the repository and with the published release.
 
@@ -154,6 +178,6 @@ No. Ghidra is only required for the `ghidra` and `xex decompile` workflows.
 No single tool replaces every scene workflow perfectly. The goal of XeCLI is to cover the high-value terminal-first workflows cleanly enough that you do not need to bounce between small one-off utilities for status, dumps, memory work, saves, content, notifications, screenshots, and scripted automation.
 
 ## How can I support the project
-Use the Ko-fi link in the README or the support card in the published wiki:
+Use the Ko-fi link in the README or the support button in the published wiki:
 
 - [ko-fi.com/saveeditors](https://ko-fi.com/saveeditors)

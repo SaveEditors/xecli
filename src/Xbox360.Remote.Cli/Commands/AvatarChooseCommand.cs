@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Xbox360.Remote;
 using Xbox360.Remote.Cli.Avatar;
 
 namespace Xbox360.Remote.Cli.Commands;

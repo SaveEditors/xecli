@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link is-current" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link is-current" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -157,14 +157,30 @@ rgh mem peek --addr 0x30000000 --type u32
 <p>List DashLaunch plugins:</p>
 <pre><code class="language-powershell">rgh plugin list
 </code></pre>
-<h2 id="8-launch-and-notify">8. Launch and Notify</h2>
+<h2 id="8-stage-homebrew-to-usb">8. Stage Homebrew to USB</h2>
+<p>If you want a ready-to-use USB with the common public dashboards and tools, XeCLI can stage them directly:</p>
+<pre><code class="language-powershell">rgh homebrew install aurora --usb E:
+rgh homebrew install all --usb E: --auto-confirm
+</code></pre>
+<p>That flow:</p>
+<ul>
+<li>downloads the selected public package archives</li>
+<li>extracts them into clean folders on the USB or staging path</li>
+<li>copies the bundled <code>xbdm.xex</code>, <code>JRPC2.xex</code>, and <code>XDRPC.xex</code> files into <code>Plugins\</code></li>
+<li>generates <code>launch.ini</code> when Aurora is present</li>
+</ul>
+<p>If no removable USB drive is visible, use a normal folder path instead:</p>
+<pre><code class="language-powershell">rgh homebrew install all --usb A:\UsbStage --auto-confirm
+</code></pre>
+<p>Read <a href="Homebrew-and-USB.html">Homebrew-and-USB.md</a> for the full package workflow.</p>
+<h2 id="9-launch-and-notify">9. Launch and Notify</h2>
 <p>Launch a XEX:</p>
 <pre><code class="language-powershell">rgh launch Hdd1:\Aurora\Aurora.xex --titleid FFFE07D1
 </code></pre>
 <p>Send a notification:</p>
 <pre><code class="language-powershell">rgh notify &quot;XeCLI connected&quot; 14
 </code></pre>
-<h2 id="9-check-session-and-hardware-state">9. Check Session and Hardware State</h2>
+<h2 id="10-check-session-and-hardware-state">10. Check Session and Hardware State</h2>
 <p>Signed-in user:</p>
 <pre><code class="language-powershell">rgh signin state
 </code></pre>
@@ -173,7 +189,7 @@ rgh mem peek --addr 0x30000000 --type u32
 rgh led state
 </code></pre>
 <p>If you want the hardware/session details explained in depth, read <a href="Hardware-and-System.html">Hardware-and-System.md</a>.</p>
-<h2 id="10-avoid-the-common-mistakes">10. Avoid the Common Mistakes</h2>
+<h2 id="11-avoid-the-common-mistakes">11. Avoid the Common Mistakes</h2>
 <p>Do not start with dangerous commands until the basic path is stable.</p>
 <p>Start with:</p>
 <ul>
@@ -183,6 +199,7 @@ rgh led state
 <li><code>ftp list</code></li>
 <li><code>screenshot</code></li>
 <li><code>signin state</code></li>
+<li><code>install all --usb E: --auto-confirm</code></li>
 <li><code>led set --preset quadrant1</code></li>
 </ul>
 <p>Delay these until you know the target is stable:</p>
@@ -194,9 +211,10 @@ rgh led state
 <li><code>fan set</code></li>
 <li>deletion commands</li>
 </ul>
-<h2 id="11-know-where-to-go-next">11. Know Where to Go Next</h2>
+<h2 id="12-know-where-to-go-next">12. Know Where to Go Next</h2>
 <ul>
 <li><a href="Commands.html">Commands Reference</a> for full command coverage</li>
+<li><a href="Homebrew-and-USB.html">Homebrew and USB</a> for USB-side package staging</li>
 <li><a href="Hardware-and-System.html">Hardware and System Controls</a> for sign-in, LED, fan, and SMC behavior</li>
 <li><a href="XNotify.html">XNotify</a> for icon IDs and notification usage</li>
 <li><a href="Advanced-Guide.html">Advanced Guide</a> for reverse-engineering and automation workflows</li>

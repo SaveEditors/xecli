@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows.Forms;
+using Xbox360.Remote;
 using Xbox360.Remote.Cli.Avatar;
 using Color = System.Drawing.Color;
 using Timer = System.Windows.Forms.Timer;

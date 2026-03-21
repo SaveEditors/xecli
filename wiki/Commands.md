@@ -241,7 +241,7 @@ Arguments: debug=1
 ```
 
 ### `rgh install`
-Launch the XeCLI installer, choose an install location, and optionally register `rgh` for new terminals.
+`rgh install` is the XeCLI installer. It chooses an install location and optionally registers `rgh` for new terminals.
 
 For a first-time install from the release package, run it from the extracted folder as:
 
@@ -276,6 +276,42 @@ PATH               User PATH updated
 Next Step          Open a new terminal and run rgh --help.
 Jtag at 192.168.1.186 was detected, would you like to connect now? [y/N]:
 ```
+
+For dashboard and homebrew package staging, use `rgh homebrew install ...`. That keeps the installer flow and the USB package workflow separate in both help and docs.
+
+### `rgh homebrew install`
+Download and stage one or more public homebrew packages onto a USB drive or staging folder.
+
+```powershell
+rgh homebrew list
+rgh homebrew install aurora --usb E:
+rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install dashlaunch --usb A:\UsbStage --force-download
+```
+
+Example output:
+
+```text
+SUCCESS Homebrew install complete
+4 package(s) 326 MB -> E:\
+
+Package            Installed To         Files   Size
+Aurora 0.7b.2      E:\Aurora            167     38.69 MB
+DashLaunch 3.21    E:\DashLaunch          8      2.52 MB
+XeXMenu 1.2        E:\XeXMenu             1    203.37 MB
+Freestyle Dash 3   E:\FreestyleDash      26     81.43 MB
+
+Generated E:\launch.ini
+Copied bundled console plugins into E:\Plugins
+```
+
+Important options:
+
+- `--usb <TARGET>` accepts a drive letter, removable-drive selection number, or folder path
+- `--cache <DIR>` moves archive and staging storage to a different directory
+- `--force-download` refreshes cached archives
+- `--auto-confirm` skips the confirmation prompt before staging
+- `--json` emits machine-readable package install output
 
 ## Discovery Commands
 ### `rgh start`

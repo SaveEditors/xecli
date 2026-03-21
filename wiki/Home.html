@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -107,6 +107,10 @@
 <td>Notification usage, icon IDs, and direct integration notes</td>
 </tr>
 <tr>
+<td><a href="Homebrew-and-USB.html">Homebrew and USB</a></td>
+<td>USB-side Aurora, DashLaunch, XeXMenu, and Freestyle Dash package staging</td>
+</tr>
+<tr>
 <td><a href="Avatar-Item-Collection.html">Avatar Item Collection</a></td>
 <td>Local and hosted avatar corpus naming, browser flows, layout, and install model</td>
 </tr>
@@ -175,6 +179,7 @@
 <li><a href="XNotify.html">XNotify</a></li>
 <li><a href="CLI-Help.html">CLI Help Output</a></li>
 <li><a href="Troubleshooting.html">Troubleshooting</a></li>
+<li><a href="Homebrew-and-USB.html">Homebrew and USB</a></li>
 </ol>
 <h3 id="reverse-engineering-path">Reverse-engineering path</h3>
 <ol>
@@ -212,6 +217,7 @@
 <li>FTP-based browsing, transfer, and content discovery</li>
 <li>Save extraction and injection</li>
 <li>DashLaunch plugin slot management</li>
+<li>USB-side homebrew package staging with <code>rgh homebrew install aurora|dashlaunch|xexmenu|fsd|all</code></li>
 <li>Avatar Item Collection cataloging, remote browsing, search, dry-run planning, progress-driven installs, and install execution</li>
 </ul>
 <h3 id="analysis-and-packaging">Analysis and packaging</h3>
@@ -254,6 +260,7 @@
 <pre><code class="language-powershell">.\rgh.exe install
 rgh --help
 rgh start
+rgh homebrew install all --usb E: --auto-confirm
 rgh ping
 rgh status
 rgh title

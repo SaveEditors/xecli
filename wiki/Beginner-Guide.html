@@ -87,14 +87,32 @@
 <li>JRPC2 if you want RPC, temps, CPU key, notifications, or Title ID reads</li>
 <li>FTP service if you want FTP-backed save, content, or file workflows</li>
 </ul>
-<h2 id="2-start-the-cli">2. Start the CLI</h2>
-<p>If you are using a release build:</p>
-<pre><code class="language-powershell">rgh
+<p>Direct plugin downloads from the XeCLI repo:</p>
+<ul>
+<li><a href="https://github.com/SaveEditors/xecli/raw/main/xbdm.xex">Download <code>xbdm.xex</code></a></li>
+<li><a href="https://github.com/SaveEditors/xecli/raw/main/XDRPC.xex">Download <code>XDRPC.xex</code></a></li>
+<li><a href="https://github.com/SaveEditors/xecli/raw/main/JRPC2.xex">Download <code>JRPC2.xex</code></a></li>
+</ul>
+<p>Use these if you want the exact plugin files bundled with XeCLI instead of sourcing them separately.</p>
+<h2 id="2-run-the-installer">2. Run the Installer</h2>
+<p>If you are using the published release build:</p>
+<pre><code class="language-powershell">.\rgh.exe install
 </code></pre>
-<p>The published release is self-contained. Extract it, run <code>rgh.exe</code>, and XeCLI can install the PATH entry for you. You do not need to install .NET separately for that path.</p>
-<p>On first interactive launch, XeCLI can offer to add itself to the machine PATH. Accept that if you want <code>rgh</code> available everywhere.</p>
-<h2 id="3-discover-or-set-a-target">3. Discover or Set a Target</h2>
-<p>Interactive discovery:</p>
+<p>The published release is self-contained. You do not need to install .NET separately for that path.</p>
+<p>Run that command from the extracted release folder that contains <code>rgh.exe</code>.</p>
+<p>The installer now walks through:</p>
+<ul>
+<li>install scope: current user or all users</li>
+<li>install directory selection</li>
+<li>PATH registration for new terminals</li>
+</ul>
+<p>After setup finishes, XeCLI silently scans for consoles. If one console is detected, it can ask whether to connect immediately. If multiple consoles are detected, it lists them and asks you to choose one. When you confirm, XeCLI runs <code>rgh status</code> on the selected console.</p>
+<p>After installation completes, open a new terminal and use:</p>
+<pre><code class="language-powershell">rgh --help
+rgh status
+</code></pre>
+<h2 id="3-discover-or-set-a-target-manually">3. Discover or Set a Target Manually</h2>
+<p>If you skipped the post-install connection prompt, use the manual discovery path:</p>
 <pre><code class="language-powershell">rgh start
 </code></pre>
 <p>Direct targeting:</p>
@@ -108,7 +126,7 @@
 rgh status
 rgh status --quick
 </code></pre>
-<p>Use <code>status --quick</code> when you want a fast response and do not need JRPC-backed fields.</p>
+<p>If you accepted the installer’s connect prompt, XeCLI already ran <code>rgh status</code> for the selected console. Use these commands any time you want to recheck reachability or switch back to a manual verification flow.</p>
 <h2 id="5-resolve-the-active-title">5. Resolve the Active Title</h2>
 <pre><code class="language-powershell">rgh title
 rgh title --json

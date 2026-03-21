@@ -2,9 +2,14 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Xbox360.Remote;
+using Color = Spectre.Console.Color;
+using Panel = Spectre.Console.Panel;
 
 namespace Xbox360.Remote.Cli.Commands;
 
@@ -600,17 +605,29 @@ public sealed class RebootCommand : AsyncCommand<RebootCommand.Settings> {
 
 public sealed class InstallCommand : Command<InstallCommand.Settings> {
     public sealed class Settings : CommandSettings {
+        [CommandOption("--machine")]
+        [Description("Install for all users (administrator approval required).")]
+        public bool Machine { get; init; }
+
         [CommandOption("--uninstall")]
-        [Description("Remove the current-user shim or, with --machine-path, remove the machine PATH entry.")]
+        [Description("Remove the command registration. With --machine, remove the all-users PATH entry.")]
         public bool Uninstall { get; init; }
 
         [CommandOption("--machine-path")]
-        [Description("Add the rgh.exe directory to the machine PATH (admin required).")]
+        [Description("Legacy path-only install for the current executable directory (admin required).")]
         public bool MachinePath { get; init; }
 
         [CommandOption("--path <DIR>")]
-        [Description("Override the rgh.exe directory (defaults to the current executable folder).")]
+        [Description("Install directory for XeCLI.")]
         public string? Path { get; init; }
+
+        [CommandOption("--source <DIR>")]
+        [Description("Source release directory containing rgh.exe and its runtime files.")]
+        public string? Source { get; init; }
+
+        [CommandOption("--no-path")]
+        [Description("Do not add the install directory to PATH.")]
+        public bool NoPath { get; init; }
 
         [CommandOption("--quiet")]
         [Description("Suppress non-error install output.")]
@@ -623,10 +640,12 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
             return 1;
         }
 
-        string exeDir = InstallHelpers.NormalizeDirectory(settings.Path ?? AppContext.BaseDirectory);
-        string exePath = Path.Combine(exeDir, "rgh.exe");
-        if (!File.Exists(exePath)) {
-            AnsiConsole.MarkupLine($"[red]rgh.exe not found at[/] {Markup.Escape(exePath)}");
+        bool interactiveInstall = IsInteractiveInstall(settings);
+
+        string sourceDir = InstallHelpers.NormalizeDirectory(settings.Source ?? AppContext.BaseDirectory);
+        string sourceExePath = Path.Combine(sourceDir, "rgh.exe");
+        if (!File.Exists(sourceExePath)) {
+            AnsiConsole.MarkupLine($"[red]rgh.exe not found at[/] {Markup.Escape(sourceExePath)}");
             return 1;
         }
 
@@ -637,23 +656,51 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
                     return 1;
                 }
 
-                if (!InstallHelpers.RemoveMachinePathEntry(exeDir, out string removeMessage)) {
+                if (!InstallHelpers.RemoveMachinePathEntry(sourceDir, out string removeMessage)) {
                     AnsiConsole.MarkupLine($"[red]{Markup.Escape(removeMessage)}[/]");
                     return 1;
                 }
 
                 if (!settings.Quiet)
-                    AnsiConsole.MarkupLine($"[green]{Markup.Escape(removeMessage)}[/]");
+                    RenderInstallSummary(
+                        "PATH uninstall complete",
+                        ("Scope", "Machine PATH"),
+                        ("Directory", sourceDir),
+                        ("Next Step", "Open a new terminal so the PATH change is picked up."));
+                return 0;
+            }
+
+            string uninstallDir = InstallHelpers.NormalizeDirectory(settings.Path ?? InstallHelpers.DefaultUserInstallDir);
+            if (settings.Machine) {
+                if (!InstallHelpers.IsAdministrator()) {
+                    AnsiConsole.MarkupLine("[red]All-users uninstall requires an elevated terminal.[/]");
+                    return 1;
+                }
+
+                if (!InstallHelpers.RemoveMachinePathEntry(uninstallDir, out string removeMessage)) {
+                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(removeMessage)}[/]");
+                    return 1;
+                }
+
                 if (!settings.Quiet)
-                    AnsiConsole.MarkupLine("[mediumpurple3]Created by Pew - Se7ensins[/]");
+                    RenderInstallSummary(
+                        "Uninstall complete",
+                        ("Scope", "All users"),
+                        ("Install Directory", uninstallDir),
+                        ("Command Access", "Removed from machine PATH"),
+                        ("Next Step", "You can delete the install folder manually if you no longer need it."));
                 return 0;
             }
 
             InstallHelpers.UninstallUserShim();
+            InstallHelpers.RemoveUserPathEntry(uninstallDir, out _);
             if (!settings.Quiet)
-                AnsiConsole.MarkupLine("[green]Uninstalled rgh command shim.[/]");
-            if (!settings.Quiet)
-                AnsiConsole.MarkupLine("[mediumpurple3]Created by Pew - Se7ensins[/]");
+                RenderInstallSummary(
+                    "Uninstall complete",
+                    ("Scope", "Current user"),
+                    ("Install Directory", uninstallDir),
+                    ("Command Access", "Removed from user registration"),
+                    ("Next Step", "You can delete the install folder manually if you no longer need it."));
             return 0;
         }
 
@@ -663,26 +710,369 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
                 return 1;
             }
 
-            if (!InstallHelpers.AddMachinePathEntry(exeDir, out string addMessage)) {
+            if (!InstallHelpers.AddMachinePathEntry(sourceDir, out string addMessage)) {
                 AnsiConsole.MarkupLine($"[red]{Markup.Escape(addMessage)}[/]");
                 return 1;
             }
 
             if (!settings.Quiet)
-                AnsiConsole.MarkupLine($"[green]{Markup.Escape(addMessage)}[/]");
-            if (!settings.Quiet)
-                AnsiConsole.MarkupLine("[mediumpurple3]Created by Pew - Se7ensins[/]");
+                RenderInstallSummary(
+                    "PATH install complete",
+                    ("Scope", "Machine PATH"),
+                    ("Directory", sourceDir),
+                    ("Command", "rgh"),
+                    ("Next Step", "Open a new terminal and run `rgh --help`."));
             return 0;
         }
 
-        InstallHelpers.InstallUserShim(exeDir);
-        if (!settings.Quiet)
-            AnsiConsole.MarkupLine($"[green]Installed rgh command shim:[/] {Markup.Escape(InstallHelpers.ShimPath)}");
-        if (!InstallHelpers.IsDirectoryOnProcessPath(InstallHelpers.WindowsAppsDir) && !settings.Quiet) {
-            AnsiConsole.MarkupLine($"[yellow]Note:[/] {Markup.Escape(InstallHelpers.WindowsAppsDir)} is not on PATH. Add it or use `rgh` from its folder.");
+        InstallPlan plan;
+        try {
+            plan = BuildInstallPlan(settings, sourceDir);
         }
+        catch (OperationCanceledException) {
+            AnsiConsole.MarkupLine("[yellow]Installation cancelled.[/]");
+            return 1;
+        }
+
+        string targetExePath = Path.Combine(plan.InstallDirectory, "rgh.exe");
+
+        if (plan.AllUsers && !InstallHelpers.IsAdministrator()) {
+            int exitCode = InstallHelpers.RunElevatedInstall(sourceExePath, sourceDir, plan.InstallDirectory, plan.AddToPath);
+            if (exitCode != 0) {
+                AnsiConsole.MarkupLine($"[red]Installer exited with code {exitCode}.[/]");
+                return exitCode;
+            }
+
+            if (!settings.Quiet)
+                RenderInstallSummary(
+                    "Install complete",
+                    ("Scope", "All users"),
+                    ("Install Directory", plan.InstallDirectory),
+                    ("Command", "rgh"),
+                    ("PATH", plan.AddToPath ? "Machine PATH updated" : "Not changed"),
+                    ("Next Step", "Open a new terminal and run `rgh --help`."));
+            if (interactiveInstall)
+                PromptToConnectDetectedConsole(plan.InstallDirectory);
+            return 0;
+        }
+
+        InstallHelpers.MirrorDirectory(sourceDir, plan.InstallDirectory);
+
+        if (plan.AllUsers) {
+            if (plan.AddToPath && !InstallHelpers.AddMachinePathEntry(plan.InstallDirectory, out string addMachineMessage)) {
+                AnsiConsole.MarkupLine($"[red]{Markup.Escape(addMachineMessage)}[/]");
+                return 1;
+            }
+        }
+        else {
+            if (plan.AddToPath) {
+                InstallHelpers.UninstallUserShim();
+                if (!InstallHelpers.AddUserPathEntry(plan.InstallDirectory, out string addUserMessage)) {
+                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(addUserMessage)}[/]");
+                    return 1;
+                }
+            }
+            else {
+                InstallHelpers.InstallUserShim(plan.InstallDirectory);
+            }
+        }
+
         if (!settings.Quiet)
-            AnsiConsole.MarkupLine("[mediumpurple3]Created by Pew - Se7ensins[/]");
+            RenderInstallSummary(
+                "Install complete",
+                ("Scope", plan.AllUsers ? "All users" : "Current user"),
+                ("Install Directory", plan.InstallDirectory),
+                ("Target EXE", targetExePath),
+                ("Command", "rgh"),
+                ("PATH", plan.AddToPath ? (plan.AllUsers ? "Machine PATH updated" : "User PATH updated") : "Not changed"),
+                ("Next Step", "Open a new terminal and run `rgh --help`."));
+        if (interactiveInstall)
+            PromptToConnectDetectedConsole(plan.InstallDirectory);
         return 0;
     }
+
+    private static InstallPlan BuildInstallPlan(Settings settings, string sourceDir) {
+        bool interactive = IsInteractiveInstall(settings);
+
+        if (!interactive) {
+            return new InstallPlan(
+                settings.Machine,
+                InstallHelpers.NormalizeDirectory(settings.Path ?? (settings.Machine ? InstallHelpers.DefaultMachineInstallDir : InstallHelpers.DefaultUserInstallDir)),
+                !settings.NoPath);
+        }
+
+        AnsiConsole.Write(new Panel(
+                "[bold white]XeCLI Installer[/]\n" +
+                "[grey]This setup copies the current XeCLI release to an install folder and registers the `rgh` command for terminal use.[/]\n\n" +
+                $"[white]Source:[/] [deepskyblue1]{Markup.Escape(sourceDir)}[/]\n" +
+                $"[white]Recommended user install:[/] [springgreen3_1]{Markup.Escape(InstallHelpers.DefaultUserInstallDir)}[/]\n" +
+                $"[white]Recommended all-users install:[/] [gold1]{Markup.Escape(InstallHelpers.DefaultMachineInstallDir)}[/]\n\n" +
+                "[mediumpurple3]Created by Pew - Se7ensins[/]")
+            .BorderColor(Color.Silver)
+            .Header("[bold deepskyblue1]Setup[/]"));
+
+        AnsiConsole.MarkupLine("[bold white]1.[/] Current user [grey](Recommended)[/]");
+        AnsiConsole.MarkupLine("[bold white]2.[/] All users [grey](Administrator approval required)[/]");
+        string scopeChoice = ReadInstallerResponse("Choose an install scope [1]:", "1");
+        bool allUsers = scopeChoice.Trim() == "2";
+
+        string defaultDirectory = allUsers ? InstallHelpers.DefaultMachineInstallDir : InstallHelpers.DefaultUserInstallDir;
+        string installDirectory = ReadInstallerResponse("Install directory:", defaultDirectory).Trim();
+        if (string.IsNullOrWhiteSpace(installDirectory))
+            installDirectory = defaultDirectory;
+
+        bool addToPath = ReadInstallerYesNo("Add `rgh` to PATH for new terminals? [Y/n]:", true);
+
+        AnsiConsole.Write(new Panel(
+                $"[white]Scope:[/] {(allUsers ? "[gold1]All users[/]" : "[springgreen3_1]Current user[/]")}\n" +
+                $"[white]Install directory:[/] [deepskyblue1]{Markup.Escape(InstallHelpers.NormalizeDirectory(installDirectory))}[/]\n" +
+                $"[white]PATH update:[/] {(addToPath ? "[springgreen3_1]Yes[/]" : "[grey]No[/]")}")
+            .BorderColor(Color.Grey)
+            .Header("[bold deepskyblue1]Plan[/]"));
+
+        if (!ReadInstallerYesNo("Continue with installation? [Y/n]:", true))
+            throw new OperationCanceledException("Installer cancelled by user.");
+
+        return new InstallPlan(allUsers, InstallHelpers.NormalizeDirectory(installDirectory), addToPath);
+    }
+
+    private static void RenderInstallSummary(string title, params (string Label, string Value)[] rows) {
+        OperationFeedback.WriteSuccess(title, "[grey]Created by Pew - Se7ensins[/]");
+        Table table = CliOutput.CreateTable();
+        table.AddColumn(new TableColumn("[bold white]Field[/]"));
+        table.AddColumn(new TableColumn("[bold white]Value[/]"));
+        foreach ((string label, string value) in rows) {
+            table.AddRow(
+                $"[white]{Markup.Escape(label)}[/]",
+                $"[springgreen3_1]{Markup.Escape(value)}[/]");
+        }
+
+        AnsiConsole.Write(table);
+    }
+
+    private static bool IsInteractiveInstall(Settings settings) {
+        return !settings.Quiet &&
+               !Console.IsInputRedirected &&
+               string.IsNullOrWhiteSpace(settings.Path) &&
+               !settings.Machine &&
+               !settings.NoPath;
+    }
+
+    private static string ReadInstallerResponse(string prompt, string? defaultValue = null) {
+        AnsiConsole.Markup($"[white]{Markup.Escape(prompt)}[/] ");
+        string? value = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(value))
+            return defaultValue ?? string.Empty;
+        return value.Trim();
+    }
+
+    private static bool ReadInstallerYesNo(string prompt, bool defaultYes) {
+        string defaultValue = defaultYes ? "y" : "n";
+        while (true) {
+            string answer = ReadInstallerResponse(prompt, defaultValue);
+            if (string.IsNullOrWhiteSpace(answer))
+                return defaultYes;
+
+            answer = answer.Trim().ToLowerInvariant();
+            if (answer is "y" or "yes")
+                return true;
+            if (answer is "n" or "no")
+                return false;
+
+            AnsiConsole.MarkupLine("[red]Please enter Y or N.[/]");
+        }
+    }
+
+    private static void PromptToConnectDetectedConsole(string installDirectory) {
+        IReadOnlyList<DiscoveredConsole> consoles = Array.Empty<DiscoveredConsole>();
+        bool discoveryFailed = false;
+        AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots)
+            .SpinnerStyle(new Style(Color.SpringGreen3_1, decoration: Decoration.Bold))
+            .Start("Searching for consoles on the local network...", _ => {
+                try {
+                    consoles = DiscoverInstallerConsoles()
+                        .GetAwaiter()
+                        .GetResult();
+                }
+                catch {
+                    discoveryFailed = true;
+                }
+            });
+
+        if (discoveryFailed) {
+            AnsiConsole.MarkupLine("[yellow]Console discovery did not complete during setup. You can run `rgh start` later.[/]");
+            return;
+        }
+
+        if (consoles.Count == 0) {
+            AnsiConsole.MarkupLine("[grey]No consoles were detected during setup. Run `rgh start` later if needed.[/]");
+            return;
+        }
+
+        AnsiConsole.MarkupLine(consoles.Count == 1
+            ? "[green]1 console detected.[/]"
+            : $"[green]{consoles.Count} consoles detected.[/]");
+
+        DiscoveredConsole? selected = consoles.Count == 1
+            ? PromptForSingleConsole(consoles[0])
+            : PromptForMultipleConsoles(consoles);
+
+        if (selected == null)
+            return;
+
+        CliConfig config = CliConfig.Load();
+        config.DefaultIp = selected.Ip.ToString();
+        config.DefaultPort = selected.Port > 0 ? selected.Port : 730;
+        config.Save();
+
+        string installedExePath = Path.Combine(InstallHelpers.NormalizeDirectory(installDirectory), "rgh.exe");
+        if (!File.Exists(installedExePath)) {
+            AnsiConsole.MarkupLine("[yellow]Installed console command not found. Skipping automatic connect test.[/]");
+            return;
+        }
+
+        AnsiConsole.MarkupLine("[green]Connecting now and running status...[/]");
+        ProcessStartInfo psi = new ProcessStartInfo(installedExePath) {
+            UseShellExecute = false,
+            WorkingDirectory = InstallHelpers.NormalizeDirectory(installDirectory)
+        };
+        psi.ArgumentList.Add("status");
+        psi.ArgumentList.Add("--ip");
+        psi.ArgumentList.Add(selected.Ip.ToString());
+        psi.ArgumentList.Add("--port");
+        psi.ArgumentList.Add((selected.Port > 0 ? selected.Port : 730).ToString(CultureInfo.InvariantCulture));
+
+        using Process? process = Process.Start(psi);
+        process?.WaitForExit();
+    }
+
+    private static DiscoveredConsole? PromptForSingleConsole(DiscoveredConsole console) {
+        string displayName = GetConsoleDisplayName(console);
+        bool connect = ReadInstallerYesNo(
+            $"{displayName} at {console.Ip} was detected, would you like to connect now? [y/N]:",
+            false);
+        return connect ? console : null;
+    }
+
+    private static DiscoveredConsole? PromptForMultipleConsoles(IReadOnlyList<DiscoveredConsole> consoles) {
+        AnsiConsole.MarkupLine("[bold white]Multiple consoles detected, please choose which one you'd like to connect to.[/]");
+        Table table = CliOutput.CreateTable();
+        table.AddColumn(new TableColumn("[bold white]#[/]"));
+        table.AddColumn(new TableColumn("[bold springgreen3_1]Console[/]"));
+        table.AddColumn(new TableColumn("[bold deepskyblue1]IP[/]"));
+        table.AddColumn(new TableColumn("[bold gold1]Port[/]"));
+
+        for (int i = 0; i < consoles.Count; i++) {
+            DiscoveredConsole console = consoles[i];
+            table.AddRow(
+                $"[white]{i + 1}[/]",
+                $"[springgreen3_1]{Markup.Escape(GetConsoleDisplayName(console))}[/]",
+                $"[deepskyblue1]{Markup.Escape(console.Ip.ToString())}[/]",
+                $"[gold1]{(console.Port > 0 ? console.Port : 730).ToString(CultureInfo.InvariantCulture)}[/]");
+        }
+
+        AnsiConsole.Write(table);
+
+        while (true) {
+            string choice = ReadInstallerResponse("Choose a console number or press Enter to skip:", string.Empty);
+            if (string.IsNullOrWhiteSpace(choice))
+                return null;
+            if (int.TryParse(choice, NumberStyles.Integer, CultureInfo.InvariantCulture, out int index) &&
+                index >= 1 &&
+                index <= consoles.Count) {
+                return consoles[index - 1];
+            }
+
+            AnsiConsole.MarkupLine("[red]Enter a valid console number or press Enter to skip.[/]");
+        }
+    }
+
+    private static string GetConsoleDisplayName(DiscoveredConsole console) {
+        if (!string.IsNullOrWhiteSpace(console.DebugName))
+            return console.DebugName.Trim();
+        if (!string.IsNullOrWhiteSpace(console.ConsoleId))
+            return console.ConsoleId.Trim();
+        return "Xbox 360 console";
+    }
+
+    private static async Task<IReadOnlyList<DiscoveredConsole>> DiscoverInstallerConsoles() {
+        IReadOnlyList<IPNetwork> networks = GetInstallerNetworks();
+        DiscoveryOptions options = new DiscoveryOptions {
+            Ports = new[] { 730, 731 },
+            NapTimeoutMs = 900,
+            TcpTimeoutMs = 175,
+            MaxConcurrency = 96,
+            UseNapDiscovery = true,
+            UseTcpScan = true,
+            Networks = networks
+        };
+
+        using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
+        return await ConsoleDiscovery.DiscoverAsync(options, cts.Token);
+    }
+
+    private static IReadOnlyList<IPNetwork> GetInstallerNetworks() {
+        List<IPNetwork> networks = new List<IPNetwork>();
+        foreach (NetworkInterface iface in NetworkInterface.GetAllNetworkInterfaces()
+                     .Where(i => i.OperationalStatus == OperationalStatus.Up)
+                     .OrderBy(GetInstallerInterfacePriority)
+                     .ThenBy(i => i.Name, StringComparer.OrdinalIgnoreCase)) {
+            IPInterfaceProperties props;
+            try {
+                props = iface.GetIPProperties();
+            }
+            catch {
+                continue;
+            }
+
+            foreach (UnicastIPAddressInformation addr in props.UnicastAddresses) {
+                if (addr.Address.AddressFamily != AddressFamily.InterNetwork || addr.IPv4Mask is null)
+                    continue;
+
+                IPNetwork network;
+                try {
+                    network = ComputeInstallerNetwork(addr.Address, addr.IPv4Mask);
+                    if (network.HostCount > 1024)
+                        network = ComputeInstallerNetwork(addr.Address, IPAddress.Parse("255.255.255.0"));
+                }
+                catch {
+                    continue;
+                }
+
+                if (!networks.Any(existing =>
+                        existing.Network.Equals(network.Network) &&
+                        existing.Mask.Equals(network.Mask))) {
+                    networks.Add(network);
+                }
+            }
+
+            if (networks.Count >= 3)
+                break;
+        }
+
+        return networks;
+    }
+
+    private static int GetInstallerInterfacePriority(NetworkInterface iface) {
+        return iface.NetworkInterfaceType switch {
+            NetworkInterfaceType.Ethernet => 0,
+            NetworkInterfaceType.Wireless80211 => 1,
+            NetworkInterfaceType.GigabitEthernet => 2,
+            _ => 9
+        };
+    }
+
+    private static IPNetwork ComputeInstallerNetwork(IPAddress address, IPAddress mask) {
+        byte[] addrBytes = address.GetAddressBytes();
+        byte[] maskBytes = mask.GetAddressBytes();
+        byte[] netBytes = new byte[4];
+        for (int i = 0; i < 4; i++) {
+            netBytes[i] = (byte)(addrBytes[i] & maskBytes[i]);
+        }
+
+        return new IPNetwork(new IPAddress(netBytes), mask);
+    }
+
+    private sealed record InstallPlan(bool AllUsers, string InstallDirectory, bool AddToPath);
 }

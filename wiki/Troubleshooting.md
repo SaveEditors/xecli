@@ -32,8 +32,8 @@ XeCLI tries to improve that by using the running XEX path as a fallback display 
 Possible reasons:
 
 - you used `status --quick`
-- JRPC2 is not installed
-- JRPC2 is installed but not healthy
+- JRPC2 is not deployed or enabled on the console yet
+- JRPC2 is deployed but not healthy
 
 Useful checks:
 
@@ -111,17 +111,33 @@ If FTP commands fail while XBDM commands succeed:
 - verify username, password, and port
 - verify the path format you are using
 
-## First-run PATH prompt never appeared
-The PATH prompt is only shown for interactive packaged runs. It is intentionally skipped when:
+## The installer did not prompt the way I expected
+Use `rgh install` from a normal interactive terminal.
 
-- output is redirected
-- help is being shown
-- `install` is already the active command
+The full installer wizard is intentionally skipped when:
+
+- input is redirected
+- you passed explicit install flags such as `--path`, `--machine`, or `--no-path`
+- you are running a scripted or quiet install
 
 Manual fallback:
 
 ```powershell
-rgh install --machine-path
+rgh install
+```
+
+If you want a specific location without the wizard:
+
+```powershell
+rgh install --path C:\Tools\XeCLI
+```
+
+If the post-install console prompt did not appear, XeCLI either did not detect a console fast enough or you skipped it. Use:
+
+```powershell
+rgh start
+rgh connect <console-ip>
+rgh status
 ```
 
 ## `rgh.exe` says .NET is missing

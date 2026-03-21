@@ -93,8 +93,8 @@ rgh status --quick
 <p>Possible reasons:</p>
 <ul>
 <li>you used <code>status --quick</code></li>
-<li>JRPC2 is not installed</li>
-<li>JRPC2 is installed but not healthy</li>
+<li>JRPC2 is not deployed or enabled on the console yet</li>
+<li>JRPC2 is deployed but not healthy</li>
 </ul>
 <p>Useful checks:</p>
 <pre><code class="language-powershell">rgh jrpc2 title-id
@@ -147,15 +147,24 @@ rgh content list --titleid 415608C3
 <li>verify username, password, and port</li>
 <li>verify the path format you are using</li>
 </ul>
-<h2 id="first-run-path-prompt-never-appeared">First-run PATH prompt never appeared</h2>
-<p>The PATH prompt is only shown for interactive packaged runs. It is intentionally skipped when:</p>
+<h2 id="the-installer-did-not-prompt-the-way-i-expected">The installer did not prompt the way I expected</h2>
+<p>Use <code>rgh install</code> from a normal interactive terminal.</p>
+<p>The full installer wizard is intentionally skipped when:</p>
 <ul>
-<li>output is redirected</li>
-<li>help is being shown</li>
-<li><code>install</code> is already the active command</li>
+<li>input is redirected</li>
+<li>you passed explicit install flags such as <code>--path</code>, <code>--machine</code>, or <code>--no-path</code></li>
+<li>you are running a scripted or quiet install</li>
 </ul>
 <p>Manual fallback:</p>
-<pre><code class="language-powershell">rgh install --machine-path
+<pre><code class="language-powershell">rgh install
+</code></pre>
+<p>If you want a specific location without the wizard:</p>
+<pre><code class="language-powershell">rgh install --path C:\Tools\XeCLI
+</code></pre>
+<p>If the post-install console prompt did not appear, XeCLI either did not detect a console fast enough or you skipped it. Use:</p>
+<pre><code class="language-powershell">rgh start
+rgh connect &lt;console-ip&gt;
+rgh status
 </code></pre>
 <h2 id="rghexe-says-net-is-missing"><code>rgh.exe</code> says .NET is missing</h2>
 <p>The published <code>win-x64</code> release should not require a separate .NET install. If you see a runtime-missing error:</p>

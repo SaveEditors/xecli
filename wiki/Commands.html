@@ -372,18 +372,36 @@ Target title: Aurora (0xFFFE07D1)
 Arguments: debug=1
 </code></pre>
 <h3 id="rgh-install"><code>rgh install</code></h3>
-<p>Install or remove the command shim, or add/remove the machine PATH entry.</p>
+<p>Launch the XeCLI installer, choose an install location, and optionally register <code>rgh</code> for new terminals.</p>
+<p>For a first-time install from the release package, run it from the extracted folder as:</p>
+<pre><code class="language-powershell">.\rgh.exe install
+</code></pre>
 <pre><code class="language-powershell">rgh install
-rgh install --machine-path
+rgh install --path C:\Tools\XeCLI
+rgh install --machine
 rgh install --uninstall
 </code></pre>
 <p>Example output:</p>
-<pre><code class="language-text">Created by Pew - Se7ensins
+<pre><code class="language-text">XeCLI Installer
+1. Current user
+2. All users
+Choose an install scope [1]:
+Install directory: C:\Users\You\AppData\Local\Programs\XeCLI
+Add rgh to PATH for new terminals? [Y/n]:
+Continue with installation? [Y/n]:
+
+Created by Pew - Se7ensins
 SUCCESS Install complete
-rgh is now available in new terminals
+Scope              Current user
+Install Directory  C:\Users\You\AppData\Local\Programs\XeCLI
+Command            rgh
+PATH               User PATH updated
+Next Step          Open a new terminal and run rgh --help.
+Jtag at 192.168.1.186 was detected, would you like to connect now? [y/N]:
 </code></pre>
 <h2 id="discovery-commands_1">Discovery Commands</h2>
 <h3 id="rgh-start"><code>rgh start</code></h3>
+<p>rgh start is the manual version of the discovery flow that the installer can launch immediately after setup.</p>
 <pre><code class="language-powershell">rgh start
 rgh start --json
 </code></pre>
@@ -393,6 +411,7 @@ rgh start --json
 Default target updated to 192.168.1.186
 </code></pre>
 <h3 id="rgh-connect"><code>rgh connect</code></h3>
+<p>rgh connect is the manual follow-up when you already know the discovery result you want to target.</p>
 <pre><code class="language-powershell">rgh connect 1
 rgh connect &lt;console-ip&gt;
 </code></pre>
@@ -401,6 +420,7 @@ rgh connect &lt;console-ip&gt;
 192.168.1.186:730
 </code></pre>
 <h3 id="rgh-scan"><code>rgh scan</code></h3>
+<p>rgh scan is the discovery-only path. The installer uses a quieter variant of this flow after setup and only prompts when a console is found.</p>
 <pre><code class="language-powershell">rgh scan
 rgh scan --json
 </code></pre>

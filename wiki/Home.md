@@ -16,7 +16,7 @@ Avatar workflows in the shipped release now support both:
 ### Getting Started
 | Page | Purpose |
 | --- | --- |
-| [Beginner Guide](Beginner-Guide.md) | Safe first-run workflow: discovery, connect, status, and basic operations |
+| [Beginner Guide](Beginner-Guide.md) | Safe first-run workflow: install, discovery, connect, status, and basic operations |
 | [Commands Reference](Commands.md) | Full command-by-command reference with examples |
 | [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
 | [Hardware and System Controls](Hardware-and-System.md) | Sign-in state, ring-light LEDs, fan commands, and SMC version notes |
@@ -119,6 +119,8 @@ Current out-of-scope areas:
 
 ## Common Starting Commands
 ```powershell
+.\rgh.exe install
+rgh --help
 rgh start
 rgh ping
 rgh status
@@ -148,5 +150,7 @@ That means:
 - `rgh.exe` runs without a separate .NET install
 - runtime files ship beside the executable in the release folder
 - `ConsoleDependencies/`, `Assets/`, and `ghidra_scripts/` ship in the same release package
+- `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex` are also exposed at the repo root for direct download/reference
+- `rgh install` can copy the release to a chosen install folder, register `rgh`, and offer immediate console discovery after setup
 
 Only source builds require a local .NET 10 SDK/runtime.

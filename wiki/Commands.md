@@ -241,24 +241,46 @@ Arguments: debug=1
 ```
 
 ### `rgh install`
-Install or remove the command shim, or add/remove the machine PATH entry.
+Launch the XeCLI installer, choose an install location, and optionally register `rgh` for new terminals.
+
+For a first-time install from the release package, run it from the extracted folder as:
+
+```powershell
+.\rgh.exe install
+```
 
 ```powershell
 rgh install
-rgh install --machine-path
+rgh install --path C:\Tools\XeCLI
+rgh install --machine
 rgh install --uninstall
 ```
 
 Example output:
 
 ```text
+XeCLI Installer
+1. Current user
+2. All users
+Choose an install scope [1]:
+Install directory: C:\Users\You\AppData\Local\Programs\XeCLI
+Add rgh to PATH for new terminals? [Y/n]:
+Continue with installation? [Y/n]:
+
 Created by Pew - Se7ensins
 SUCCESS Install complete
-rgh is now available in new terminals
+Scope              Current user
+Install Directory  C:\Users\You\AppData\Local\Programs\XeCLI
+Command            rgh
+PATH               User PATH updated
+Next Step          Open a new terminal and run rgh --help.
+Jtag at 192.168.1.186 was detected, would you like to connect now? [y/N]:
 ```
 
 ## Discovery Commands
 ### `rgh start`
+rgh start is the manual version of the discovery flow that the installer can launch immediately after setup.
+
 ```powershell
 rgh start
 rgh start --json
@@ -273,6 +295,8 @@ Default target updated to 192.168.1.186
 ```
 
 ### `rgh connect`
+rgh connect is the manual follow-up when you already know the discovery result you want to target.
+
 ```powershell
 rgh connect 1
 rgh connect <console-ip>
@@ -286,6 +310,8 @@ SUCCESS Target updated
 ```
 
 ### `rgh scan`
+rgh scan is the discovery-only path. The installer uses a quieter variant of this flow after setup and only prompts when a console is found.
+
 ```powershell
 rgh scan
 rgh scan --json

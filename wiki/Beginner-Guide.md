@@ -20,19 +20,42 @@ On the console side:
 - JRPC2 if you want RPC, temps, CPU key, notifications, or Title ID reads
 - FTP service if you want FTP-backed save, content, or file workflows
 
-## 2. Start the CLI
-If you are using a release build:
+Direct plugin downloads from the XeCLI repo:
+
+- [Download `xbdm.xex`](https://github.com/SaveEditors/xecli/raw/main/xbdm.xex)
+- [Download `XDRPC.xex`](https://github.com/SaveEditors/xecli/raw/main/XDRPC.xex)
+- [Download `JRPC2.xex`](https://github.com/SaveEditors/xecli/raw/main/JRPC2.xex)
+
+Use these if you want the exact plugin files bundled with XeCLI instead of sourcing them separately.
+
+## 2. Run the Installer
+If you are using the published release build:
 
 ```powershell
-rgh
+.\rgh.exe install
 ```
 
-The published release is self-contained. Extract it, run `rgh.exe`, and XeCLI can install the PATH entry for you. You do not need to install .NET separately for that path.
+The published release is self-contained. You do not need to install .NET separately for that path.
 
-On first interactive launch, XeCLI can offer to add itself to the machine PATH. Accept that if you want `rgh` available everywhere.
+Run that command from the extracted release folder that contains `rgh.exe`.
 
-## 3. Discover or Set a Target
-Interactive discovery:
+The installer now walks through:
+
+- install scope: current user or all users
+- install directory selection
+- PATH registration for new terminals
+
+After setup finishes, XeCLI silently scans for consoles. If one console is detected, it can ask whether to connect immediately. If multiple consoles are detected, it lists them and asks you to choose one. When you confirm, XeCLI runs `rgh status` on the selected console.
+
+After installation completes, open a new terminal and use:
+
+```powershell
+rgh --help
+rgh status
+```
+
+## 3. Discover or Set a Target Manually
+If you skipped the post-install connection prompt, use the manual discovery path:
 
 ```powershell
 rgh start
@@ -57,7 +80,7 @@ rgh status
 rgh status --quick
 ```
 
-Use `status --quick` when you want a fast response and do not need JRPC-backed fields.
+If you accepted the installer’s connect prompt, XeCLI already ran `rgh status` for the selected console. Use these commands any time you want to recheck reachability or switch back to a manual verification flow.
 
 ## 5. Resolve the Active Title
 ```powershell

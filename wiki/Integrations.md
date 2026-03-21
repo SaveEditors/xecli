@@ -103,7 +103,7 @@ The recommended external-tool pattern is:
 3. download or cache only the packs your workflow needs
 4. hand install or patch data to XeCLI or a companion installer layer
 
-Do not hardcode the old `avataritems_compiled` label. Use `Avatar-Item-Collection` as the public-facing corpus name.
+Use `Avatar-Item-Collection` as the public-facing corpus name in your own tooling and integrations.
 
 Typical CLI entry points:
 

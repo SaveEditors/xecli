@@ -11,6 +11,28 @@ No, not for the published `win-x64` release zip.
 
 The release package is self-contained. Source builds still require the .NET 10 SDK/runtime.
 
+## How should I install XeCLI
+Run:
+
+```powershell
+.\rgh.exe install
+```
+
+Run that from the extracted release folder that contains `rgh.exe`.
+
+The installer can choose the install scope, ask for the install directory, register `rgh` for new terminals, and then offer to connect to a detected console.
+
+After installation, open a new terminal and use:
+
+```powershell
+rgh --help
+```
+
+## Does the installer add `rgh` to PATH
+It can.
+
+During install, XeCLI asks whether you want `rgh` available in new terminals. You can accept or skip that step.
+
 ## Does XeCLI fetch Title ID metadata from the internet
 No. The bundled Title ID database ships with the repository and with the published release.
 
@@ -26,10 +48,26 @@ Use these pages in order:
 4. `CLI Help Output`
 5. `Troubleshooting`
 
-## Does XeCLI include console-side plugins
-Partially. The source tree and release package now ship common console-side `.xex` dependency files in `ConsoleDependencies/`, including `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex`.
+## Why did the installer not offer to connect to my console
+That prompt only appears when XeCLI actually detects a console after install.
 
-That does not mean XeCLI installs or enables them automatically. Console-side services such as XBDM, JRPC2, and FTP still need to be installed and configured on the target console.
+If it does not appear:
+
+- the console may not be reachable yet
+- discovery may not have found a target fast enough
+- or you may have used a scripted install path
+
+Manual fallback:
+
+```powershell
+rgh start
+rgh status
+```
+
+## Does XeCLI include console-side plugins
+Yes. The source tree and release package ship the common console-side `.xex` files XeCLI expects, including `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex`.
+
+Those files are provided so users can deploy the exact plugin versions XeCLI was built and tested against.
 
 ## Why does `rgh title` work with no arguments
 Because the command is designed to resolve the active title by default when no Title ID is supplied.

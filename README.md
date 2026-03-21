@@ -40,6 +40,9 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - Added terminal and Windows picker flows for avatar item selection, with current-user ownership patching, cached downloads, and multi-item progress bars.
 - Added hardware and session controls including sign-in state, LED presets, fan commands, tray control, shutdown, native popup messages, and title-aware spoof helpers.
 - Expanded the wiki with [Hardware and System Controls](wiki/Hardware-and-System.md), [XNotify](wiki/XNotify.md), and [Avatar Item Collection](wiki/Avatar-Item-Collection.md), and cleaned the wording across the public docs.
+- Reworked `rgh install` into a real installer flow with install-path selection, PATH registration, clearer first-time setup, and post-install console discovery prompts.
+- Fixed current-user command registration so PATH-based installs resolve directly to `rgh.exe` instead of relying on a fragile wrapper-first path.
+- Added direct repo-root copies of `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex`, and linked them from the Beginner Guide for separate download/use.
 
 ### v1.0.0 Initial Release
 - Shipped the first public XeCLI release with the `rgh` command, XBDM discovery, console status, module inspection, memory inspection, thread control, and debug helpers.
@@ -77,6 +80,9 @@ The repository and release package include:
 
 Bundled assets:
 
+- `xbdm.xex`
+- `XDRPC.xex`
+- `JRPC2.xex`
 - `src/Xbox360.Remote.Cli/ConsoleDependencies/xbdm.xex`
 - `src/Xbox360.Remote.Cli/ConsoleDependencies/XDRPC.xex`
 - `src/Xbox360.Remote.Cli/ConsoleDependencies/JRPC2.xex`
@@ -87,13 +93,17 @@ Bundled assets:
 At publish time, these assets are copied into the release output so the package remains self-contained. The hosted avatar corpus itself lives separately at [SaveEditors/Avatar-Item-Collection](https://github.com/SaveEditors/Avatar-Item-Collection).
 
 ## What the Console Must Provide
-XeCLI does not replace console-side plugins or services. The target console must already provide the pieces you want to use:
+XeCLI ships the expected console-side plugin payload in the repository and release package so users can deploy the exact versions the tool was built and tested against:
+
+- `xbdm.xex`
+- `JRPC2.xex`
+- `XDRPC.xex`
+
+The target console still needs those services enabled for the related features to work:
 
 - XBDM for console control, module enumeration, memory access, threads, breakpoints, screenshots, and file-system commands.
 - JRPC2 for CPU key, temperatures, Title ID, dashboard version, motherboard type, notifications, sign-in helpers, LED control, and generic RPC.
 - FTP service for FTP-backed file browsing, save management, content management, and DashLaunch plugin edits.
-
-XeCLI is shipped as a self-contained local toolchain and now includes common console-side `.xex` dependency files in `ConsoleDependencies/` for packaging convenience, but those services still have to be installed and enabled on the target console.
 
 ## Feature Summary
 Core console workflows:
@@ -174,13 +184,30 @@ Release contents:
 
 The release package is self-contained for `win-x64`. It does not require a separate .NET runtime install on the target PC.
 
-On first interactive launch from a packaged build, XeCLI offers a one-time prompt to add its directory to the machine PATH. That operation requires administrator approval and makes `rgh` available in new terminals.
+For a first-time install, open a terminal in the extracted release folder and run:
+
+```powershell
+.\rgh.exe install
+```
+
+The installer now walks through:
+
+- install scope: current user or all users
+- install directory selection
+- optional PATH registration for new terminals
+- a silent console discovery pass after setup
+
+If a console is found after installation, XeCLI can immediately ask whether to connect and then run `rgh status` on the detected target.
+
+After installation, open a new terminal and use `rgh` normally.
 
 Manual install commands:
 
 ```powershell
+.\rgh.exe install
 rgh install
-rgh install --machine-path
+rgh install --path C:\Tools\XeCLI
+rgh install --machine
 ```
 
 ### From source
@@ -194,7 +221,15 @@ dotnet run --project src/Xbox360.Remote.Cli -- --help
 Source builds require the .NET 10 SDK/runtime. That requirement does not apply to the published `win-x64` release archive.
 
 ## Quick Start
-Discover and select a console:
+Recommended first run:
+
+```powershell
+.\rgh.exe install
+```
+
+After setup completes, XeCLI can silently discover consoles and offer to connect immediately. If you skip that prompt, use the manual discovery path below.
+
+Manual discovery and selection:
 
 ```powershell
 rgh start

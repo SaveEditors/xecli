@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -82,7 +83,7 @@ internal static class Program {
             config.AddCommand<RebootCommand>("reboot").WithAlias("restart").WithDescription("Reboot the console (cold by default).");
             config.AddCommand<ShutdownCommand>("shutdown").WithAlias("poweroff").WithDescription("Power off the console.");
             config.AddCommand<LaunchCommand>("launch").WithAlias("run").WithDescription("Launch a XEX with optional arguments.");
-            config.AddCommand<InstallCommand>("install").WithDescription("Install rgh or add it to the machine PATH.");
+            config.AddCommand<InstallCommand>("install").WithDescription("Launch the XeCLI installer or manage an existing installation.");
             config.AddCommand<StartCommand>("start").WithAlias("s").WithDescription("Discover consoles and set the default target.");
             config.AddCommand<ConnectCommand>("connect").WithAlias("c").WithDescription("Set or select the default target.");
             config.AddCommand<ScanCommand>("scan").WithAlias("discover").WithDescription("Scan the network for consoles.");
@@ -456,30 +457,43 @@ internal static class Program {
 
         string currentExe = Environment.ProcessPath ?? Path.Combine(exeDir, "rgh.exe");
         Panel panel = new Panel(
-            "Add [green]rgh[/] to the machine PATH so it can be used from any terminal.\n[grey]This triggers a UAC prompt and requires administrator approval.[/]\n\n[mediumpurple3]Created by Pew - Se7ensins[/]")
+            "XeCLI can install itself to a standard folder and register the [green]rgh[/] command for terminal use.\n[grey]You can install for the current user or all users from the installer.[/]\n\n[mediumpurple3]Created by Pew - Se7ensins[/]")
             .Header("[bold deepskyblue1]First-Run Setup[/]")
             .BorderColor(Color.Grey);
         AnsiConsole.Write(panel);
 
         string choice = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
-                .Title("Install global terminal access now?")
+                .Title("Launch the XeCLI installer now?")
                 .AddChoices("Yes", "Not now", "Never ask again"));
 
         if (choice == "Yes") {
             try {
-                int exitCode = InstallHelpers.RunElevatedMachinePathInstall(currentExe, exeDir);
+                ProcessStartInfo psi = new ProcessStartInfo(currentExe) {
+                    UseShellExecute = true,
+                    WorkingDirectory = exeDir
+                };
+                psi.ArgumentList.Add("install");
+                psi.ArgumentList.Add("--source");
+                psi.ArgumentList.Add(exeDir);
+
+                using Process? process = Process.Start(psi);
+                int exitCode = 1;
+                if (process != null) {
+                    process.WaitForExit();
+                    exitCode = process.ExitCode;
+                }
                 if (exitCode == 0) {
                     config.PathPromptHandled = true;
                     config.Save();
-                    AnsiConsole.MarkupLine("[green]Global PATH install completed.[/] Open a new terminal to use `rgh` from anywhere.");
+                    AnsiConsole.MarkupLine("[green]Installer completed.[/] Open a new terminal and run `rgh --help`.");
                 }
                 else {
-                    AnsiConsole.MarkupLine($"[red]PATH install exited with code {exitCode}.[/]");
+                    AnsiConsole.MarkupLine($"[red]Installer exited with code {exitCode}.[/]");
                 }
             }
             catch (Win32Exception ex) when (ex.NativeErrorCode == 1223) {
-                AnsiConsole.MarkupLine("[yellow]PATH install was cancelled at the UAC prompt.[/]");
+                AnsiConsole.MarkupLine("[yellow]Installer was cancelled at the UAC prompt.[/]");
             }
 
             return Task.CompletedTask;
@@ -488,13 +502,13 @@ internal static class Program {
         if (choice == "Not now") {
             config.PathPromptHandled = true;
             config.Save();
-            AnsiConsole.MarkupLine("[grey]Skipped. You can install later with `rgh install --machine-path`.[/]");
+            AnsiConsole.MarkupLine("[grey]Skipped. You can install later with `rgh install`.[/]");
             return Task.CompletedTask;
         }
 
         config.PathPromptHandled = true;
         config.Save();
-        AnsiConsole.MarkupLine("[grey]Path prompt disabled. You can install later with `rgh install --machine-path`.[/]");
+        AnsiConsole.MarkupLine("[grey]First-run installer prompt disabled. You can still install later with `rgh install`.[/]");
         return Task.CompletedTask;
     }
 

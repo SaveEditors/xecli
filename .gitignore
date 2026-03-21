@@ -19,6 +19,9 @@ release/
 *.raw
 *.bin
 *.xex
+!/xbdm.xex
+!/XDRPC.xex
+!/JRPC2.xex
 *.c
 *.i64
 *.idb

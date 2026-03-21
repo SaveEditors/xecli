@@ -77,6 +77,18 @@
 <h2 id="does-the-release-require-net-to-be-installed-separately">Does the release require .NET to be installed separately</h2>
 <p>No, not for the published <code>win-x64</code> release zip.</p>
 <p>The release package is self-contained. Source builds still require the .NET 10 SDK/runtime.</p>
+<h2 id="how-should-i-install-xecli">How should I install XeCLI</h2>
+<p>Run:</p>
+<pre><code class="language-powershell">.\rgh.exe install
+</code></pre>
+<p>Run that from the extracted release folder that contains <code>rgh.exe</code>.</p>
+<p>The installer can choose the install scope, ask for the install directory, register <code>rgh</code> for new terminals, and then offer to connect to a detected console.</p>
+<p>After installation, open a new terminal and use:</p>
+<pre><code class="language-powershell">rgh --help
+</code></pre>
+<h2 id="does-the-installer-add-rgh-to-path">Does the installer add <code>rgh</code> to PATH</h2>
+<p>It can.</p>
+<p>During install, XeCLI asks whether you want <code>rgh</code> available in new terminals. You can accept or skip that step.</p>
 <h2 id="does-xecli-fetch-title-id-metadata-from-the-internet">Does XeCLI fetch Title ID metadata from the internet</h2>
 <p>No. The bundled Title ID database ships with the repository and with the published release.</p>
 <h2 id="can-i-use-the-title-id-database-in-my-own-tools">Can I use the Title ID database in my own tools</h2>
@@ -90,9 +102,21 @@
 <li><code>CLI Help Output</code></li>
 <li><code>Troubleshooting</code></li>
 </ol>
+<h2 id="why-did-the-installer-not-offer-to-connect-to-my-console">Why did the installer not offer to connect to my console</h2>
+<p>That prompt only appears when XeCLI actually detects a console after install.</p>
+<p>If it does not appear:</p>
+<ul>
+<li>the console may not be reachable yet</li>
+<li>discovery may not have found a target fast enough</li>
+<li>or you may have used a scripted install path</li>
+</ul>
+<p>Manual fallback:</p>
+<pre><code class="language-powershell">rgh start
+rgh status
+</code></pre>
 <h2 id="does-xecli-include-console-side-plugins">Does XeCLI include console-side plugins</h2>
-<p>Partially. The source tree and release package now ship common console-side <code>.xex</code> dependency files in <code>ConsoleDependencies/</code>, including <code>xbdm.xex</code>, <code>XDRPC.xex</code>, and <code>JRPC2.xex</code>.</p>
-<p>That does not mean XeCLI installs or enables them automatically. Console-side services such as XBDM, JRPC2, and FTP still need to be installed and configured on the target console.</p>
+<p>Yes. The source tree and release package ship the common console-side <code>.xex</code> files XeCLI expects, including <code>xbdm.xex</code>, <code>XDRPC.xex</code>, and <code>JRPC2.xex</code>.</p>
+<p>Those files are provided so users can deploy the exact plugin versions XeCLI was built and tested against.</p>
 <h2 id="why-does-rgh-title-work-with-no-arguments">Why does <code>rgh title</code> work with no arguments</h2>
 <p>Because the command is designed to resolve the active title by default when no Title ID is supplied.</p>
 <h2 id="how-do-i-send-a-notification-with-a-specific-icon">How do I send a notification with a specific icon</h2>

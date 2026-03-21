@@ -10,6 +10,8 @@ Use this page when you need:
 
 Use [Commands.md](Commands.md) when you need task-oriented examples and expected outputs. Use [XNotify.md](XNotify.md) when you need icon IDs, notification usage, and integration notes.
 
+For first-time setup from the release package, start with `.\rgh.exe install` from the extracted release folder. After installation, use `rgh install` for maintenance or reinstall flows. The installer can copy XeCLI to a chosen folder, register `rgh`, silently scan for consoles, and offer to run `status` on a detected target.
+
 ## How to Read the Help Tree
 Use the help system in this order:
 
@@ -62,7 +64,7 @@ COMMANDS:
     reboot          Reboot the console (cold by default)
     shutdown        Power off the console
     launch          Launch a XEX with optional arguments
-    install         Install rgh for the current user or add it to the machine PATH
+    install         Launch the XeCLI installer or manage an existing installation
     start           Discover consoles and set the default target
     connect         Set or select the default target
     scan            Scan the network for consoles
@@ -494,19 +496,23 @@ OPTIONS:
 ### `rgh install help`
 ```text
 DESCRIPTION:
-Install rgh for the current user or add it to the machine PATH
+Launch the XeCLI installer or manage an existing installation
 
 USAGE:
     rgh install [OPTIONS]
 
 OPTIONS:
     -h, --help            Prints help information
-        --uninstall       Remove the current-user shim or, with --machine-path,
-                          remove the machine PATH entry
-        --machine-path    Add the rgh.exe directory to the machine PATH (admin
+        --machine         Install for all users (administrator approval
                           required)
-        --path <DIR>      Override the rgh.exe directory (defaults to the
-                          current executable folder)
+        --uninstall       Remove the command registration. With --machine,
+                          remove the all-users PATH entry
+        --machine-path    Legacy path-only install for the current executable
+                          directory (admin required)
+        --path <DIR>      Install directory for XeCLI
+        --source <DIR>    Source release directory containing rgh.exe and its
+                          runtime files
+        --no-path         Do not add the install directory to PATH
         --quiet           Suppress non-error install output
 ```
 
@@ -530,6 +536,8 @@ OPTIONS:
 ```
 
 `connect` changes the usage line to `rgh connect [target] [OPTIONS]` and accepts a console IP or discovery index.
+
+The interactive installer uses a quieter discovery pass after setup. If a console is found, it can ask whether to connect now and then run `rgh status` on the selected target.
 
 ### `rgh screenshot help`
 ```text

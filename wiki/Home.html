@@ -88,7 +88,7 @@
 <tbody>
 <tr>
 <td><a href="Beginner-Guide.html">Beginner Guide</a></td>
-<td>Safe first-run workflow: discovery, connect, status, and basic operations</td>
+<td>Safe first-run workflow: install, discovery, connect, status, and basic operations</td>
 </tr>
 <tr>
 <td><a href="Commands.html">Commands Reference</a></td>
@@ -251,7 +251,9 @@
 <li><code>%APPDATA%\XeCLI\titleids.local.csv</code></li>
 </ul>
 <h2 id="common-starting-commands">Common Starting Commands</h2>
-<pre><code class="language-powershell">rgh start
+<pre><code class="language-powershell">.\rgh.exe install
+rgh --help
+rgh start
 rgh ping
 rgh status
 rgh title
@@ -279,6 +281,8 @@ rgh screenshot --out .\screen.bmp
 <li><code>rgh.exe</code> runs without a separate .NET install</li>
 <li>runtime files ship beside the executable in the release folder</li>
 <li><code>ConsoleDependencies/</code>, <code>Assets/</code>, and <code>ghidra_scripts/</code> ship in the same release package</li>
+<li><code>xbdm.xex</code>, <code>XDRPC.xex</code>, and <code>JRPC2.xex</code> are also exposed at the repo root for direct download/reference</li>
+<li><code>rgh install</code> can copy the release to a chosen install folder, register <code>rgh</code>, and offer immediate console discovery after setup</li>
 </ul>
 <p>Only source builds require a local .NET 10 SDK/runtime.</p>
         </article>

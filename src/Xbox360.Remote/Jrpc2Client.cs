@@ -110,6 +110,18 @@ public sealed class Jrpc2Client {
         return xbdm.SendCommandAsync(command, cancellationToken);
     }
 
+    public async Task SetNotificationPositionAsync(int position, CancellationToken cancellationToken) {
+        await DispatchAsync(
+            RpcDataType.Void,
+            null,
+            "xam.xex",
+            0x28C,
+            false,
+            false,
+            new[] { new RpcArgument(RpcArgType.Int, position) },
+            cancellationToken);
+    }
+
     public async Task ShutdownAsync(CancellationToken cancellationToken) {
         const string command = "consolefeatures ver=2 type=11 params=\"A\\0\\A\\0\\\"";
         XbdmResponse response = await xbdm.SendCommandAsync(command, cancellationToken);

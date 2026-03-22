@@ -2,10 +2,13 @@
 
 This page covers the `rgh homebrew install` workflow in XeCLI.
 
+For the separate Original Xbox compatibility workflow that targets `HddX:\Compatibility`, use [Original Xbox Compatibility](Original-Xbox-Compatibility.md).
+
 Use it when you want to:
 
 - stage Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, or XellLaunch onto a USB drive or folder
 - install those packages directly onto `Hdd1`, `Usb0`, `Usb1`, or `Usb2` on the console
+- keep Original Xbox compatibility separate from normal dashboard/homebrew staging so `HddX:\Compatibility` installs are handled through `rgh ogxbox install ...`
 - prepare a clean homebrew layout without manually hunting archives
 - reuse the bundled `xbdm.xex`, `JRPC2.xex`, and `XDRPC.xex` files in the same package
 
@@ -230,6 +233,7 @@ XeCLI resolves MediaWiki file pages to the raw archive automatically when a page
 
 - `rgh install` is the XeCLI installer
 - `rgh homebrew install ...` is the package workflow for both local staging and direct console install
+- `rgh ogxbox install ...` is the Original Xbox compatibility workflow for XeFu packs and the optional HDD Compatibility Partition Fixer
 - use `--usb` for local staging
 - omit `--usb` for direct console install
 - direct console install only targets `Hdd1`, `Usb0`, `Usb1`, or `Usb2`

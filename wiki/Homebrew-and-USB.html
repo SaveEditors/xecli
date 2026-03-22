@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link is-current" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link is-current" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -69,10 +69,12 @@
         <article id="wiki-content" class="markdown-body">
           <h1 id="homebrew-and-usb">Homebrew and USB</h1>
 <p>This page covers the <code>rgh homebrew install</code> workflow in XeCLI.</p>
+<p>For the separate Original Xbox compatibility workflow that targets <code>HddX:\Compatibility</code>, use <a href="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a>.</p>
 <p>Use it when you want to:</p>
 <ul>
 <li>stage Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, or XellLaunch onto a USB drive or folder</li>
 <li>install those packages directly onto <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, or <code>Usb2</code> on the console</li>
+<li>keep Original Xbox compatibility separate from normal dashboard/homebrew staging so <code>HddX:\Compatibility</code> installs are handled through <code>rgh ogxbox install ...</code></li>
 <li>prepare a clean homebrew layout without manually hunting archives</li>
 <li>reuse the bundled <code>xbdm.xex</code>, <code>JRPC2.xex</code>, and <code>XDRPC.xex</code> files in the same package</li>
 </ul>
@@ -259,6 +261,7 @@ Updated existing launch.ini plugin entries /Hdd1/launch.ini
 <ul>
 <li><code>rgh install</code> is the XeCLI installer</li>
 <li><code>rgh homebrew install ...</code> is the package workflow for both local staging and direct console install</li>
+<li><code>rgh ogxbox install ...</code> is the Original Xbox compatibility workflow for XeFu packs and the optional HDD Compatibility Partition Fixer</li>
 <li>use <code>--usb</code> for local staging</li>
 <li>omit <code>--usb</code> for direct console install</li>
 <li>direct console install only targets <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, or <code>Usb2</code></li>

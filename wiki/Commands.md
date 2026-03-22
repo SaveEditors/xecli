@@ -19,6 +19,7 @@ Use this table when you know the job you need done but not the exact command nam
 | Push files to the console | `rgh fs put`, `rgh ftp put`, `rgh save inject`, `rgh plugin enable` |
 | Manage saves | `rgh save list`, `rgh save extract`, `rgh save inject` |
 | Manage title content or DashLaunch plugins | `rgh content ...`, `rgh plugin ...` |
+| Stage Original Xbox compatibility packs | `rgh ogxbox list`, `rgh ogxbox install hacked|hud|retail` |
 | Browse or install avatar items from the local or hosted collection | `rgh avatar library ...`, `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install` |
 | Send visible console messages | `rgh notify`, `rgh notify-icons`, `rgh jrpc2 notify` |
 | Analyze XEX files | `rgh xex strings`, `rgh xex decompile`, `rgh ghidra ...` |
@@ -337,6 +338,57 @@ Important options:
 - `--force-download` refreshes cached archives
 - `--auto-confirm` skips the confirmation prompt before staging or direct console install
 - `--json` emits machine-readable package install output
+
+### `rgh ogxbox install`
+Stage or install one of the public Original Xbox XeFu compatibility sets.
+
+```powershell
+rgh ogxbox list
+rgh ogxbox install hacked --usb E:
+rgh ogxbox install hud --include-fixer --usb E:
+rgh ogxbox install retail
+```
+
+Set choices:
+
+- `hacked`
+  - best default choice for modded consoles
+  - removes stock whitelist/restriction checks and targets wider compatibility
+- `hud`
+  - same hacked base, but keeps the full Xbox 360 guide enabled during original Xbox titles
+  - can cost performance or compatibility in some games
+- `retail`
+  - stock-style emulator files
+  - closest to the original Microsoft behavior
+
+Example output:
+
+```text
+SUCCESS Original Xbox compatibility install complete
+Hacked XeFu Pack -> /HddX/Compatibility
+
+Field                Value
+Mode                 console
+XeFu Set             Hacked XeFu Pack
+Target               192.168.1.186
+Compatibility Path   /HddX/Compatibility
+Compatibility Files  Installed
+Fixer Included       No
+Files                23
+Size                 31.42 MB
+```
+
+Important options:
+
+- `--usb <TARGET>` stages to a removable USB drive or folder instead of installing directly to the console
+- omit `--usb` to connect over FTP and target `HddX:\Compatibility`
+- `--include-fixer` also stages or installs HDD Compatibility Partition Fixer so you can create `HddX` on drives that do not have it yet
+- `--cache <DIR>` moves archive and staging storage to a different directory
+- `--force-download` refreshes cached archives
+- `--auto-confirm` skips the confirmation prompt
+- `--json` emits machine-readable install output
+
+If `HddX` is missing and `--include-fixer` is not used, XeCLI stops before writing anything and tells you to rerun with the fixer included.
 
 ## Discovery Commands
 ### `rgh start`
@@ -1011,13 +1063,18 @@ SUCCESS Popup requested
 Title="XeCLI" Preset=warning Buttons=1
 ```
 
-### `rgh spoof gamertag`
-Reads or writes the current in-game gamertag for supported titles. The simple form is positional.
+### `rgh spoof gt`
+Reads or writes the current in-game gamertag for supported titles. `gamertag` and `name` remain compatibility aliases, but `gt` is the canonical command group.
+
+Spoof confirmation notifications use the bottom position by default when `--notify` is supplied. The command also caches the original gamertag/XUID for the current target and title the first time you spoof, so `rgh spoof reset` can restore it later even if the signed-in user is no longer resolvable.
+
+For BO2, this is the supported local spoof path. XeCLI keeps the visible name, the local XUID surfaces, and the deeper local account block aligned during a gamertag-only spoof.
 
 ```powershell
-rgh spoof gamertag
-rgh spoof gamertag ExampleTag
+rgh spoof gt
+rgh spoof gt ExampleTag
 rgh spoof gt set --value ExampleTag --notify
+rgh spoof gamertag ExampleTag
 ```
 
 Example output:
@@ -1038,6 +1095,8 @@ XeCliTmp
 ### `rgh spoof xuid`
 Reads or writes the current in-game XUID for supported titles.
 
+Spoof confirmation notifications use the bottom position by default when `--notify` is supplied. The original local identity is cached per target and title before the spoof is applied.
+
 ```powershell
 rgh spoof xuid
 rgh spoof xuid 5D83300C00000900
@@ -1054,8 +1113,26 @@ Binary Addr     0x841E1B50
 Text Addr       0x841E1B58
 ```
 
+BO2 is the exception here:
+
+- `rgh spoof xuid show` is supported on BO2
+- `rgh spoof xuid set` is intentionally blocked on BO2
+- use `rgh spoof gt` for the local BO2 player label and `rgh spoof remote` for BO2 lobby slots
+
+BO2 refusal example:
+
+```text
+BO2 XUID spoof is disabled: use `rgh spoof gt` for local-name spoofing and `rgh spoof remote` for lobby-slot spoofing.
+```
+
 ### `rgh spoof remote`
-Overwrites remote-player text slots for supported titles. The simple positional form applies the same text to every supported slot in the current title.
+Overwrites remote-player text slots for supported titles. The simple positional form applies the same text to every supported slot in the current title. This does not change the local in-game gamertag block.
+
+Remote spoof confirmations also use the bottom position by default when `--notify` is supplied. If you later run `rgh spoof reset`, XeCLI will prefer the cached pre-spoof local identity for the same target/title when no explicit override is supplied.
+
+BO2's verified remote layout is exposed as slots 2-12 because the first title-local slot is reserved.
+
+Full feature notes, supported titles, and workflow examples are covered in [Remote-Spoofing.md](Remote-Spoofing.md).
 
 ```powershell
 rgh spoof remote XeCliRemote
@@ -1071,10 +1148,29 @@ SUCCESS Remote spoof applied
 Call of Duty: Black Ops II => XeCliRemote
 
 Slot  Verified       Address
-1     XeCliRemote    0x841E1B3C
 2     XeCliRemote    0x841E7334
 ...
 12    XeCliRemote    0x8421E2E4
+```
+
+### `rgh spoof reset`
+Restores the in-game identity from the signed-in user or explicit values. Use `--clear-remote` if you also want to clear supported remote slot names.
+
+If no explicit `--gamertag` or `--xuid` is provided, XeCLI first tries the cached pre-spoof identity for the same target/title, then falls back to the currently signed-in user when available.
+
+On BO2, `reset` is the supported path for restoring the local GT spoof state and optionally clearing the remote slots. It is not documented as a full BO2 account handoff, and on the live validation box it handed the session back out to Aurora after restoring the identity.
+
+```powershell
+rgh spoof reset --current-user
+rgh spoof reset --gamertag Diamond KSG --xuid 5D83300C00000900
+rgh spoof reset --current-user --clear-remote
+```
+
+Example output:
+
+```text
+SUCCESS Spoof reset applied
+Local identity restored and remote slots cleared
 ```
 
 ## Save Commands

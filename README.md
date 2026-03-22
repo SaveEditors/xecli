@@ -31,17 +31,25 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - [Hardware and System Controls](https://saveeditors.github.io/xecli/wiki/Hardware-and-System.html)
 - [XNotify](https://saveeditors.github.io/xecli/wiki/XNotify.html)
 - [Homebrew and USB](https://saveeditors.github.io/xecli/wiki/Homebrew-and-USB.html)
+- [Original Xbox Compatibility](https://saveeditors.github.io/xecli/wiki/Original-Xbox-Compatibility.html)
 - [Avatar Item Collection](https://saveeditors.github.io/xecli/wiki/Avatar-Item-Collection.html)
 - [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html)
 - [Published Docs Site](https://saveeditors.github.io/xecli/wiki/)
 
 ## Release Changelog
+### v1.0.3 Original Xbox Compatibility Update
+- Added `rgh ogxbox list` and `rgh ogxbox install <hacked|hud|retail>` so XeCLI can stage or install the three public XeFu compatibility packs with user-facing descriptions instead of leaving that setup manual.
+- Added optional HDD Compatibility Partition Fixer staging and direct console deployment support, including `HddX:\Compatibility` targeting for the compatibility files and automatic placement of the fixer on a writable console drive when needed.
+- Added the [Original Xbox Compatibility](https://saveeditors.github.io/xecli/wiki/Original-Xbox-Compatibility.html) wiki page and updated the README, Beginner Guide, Commands Reference, CLI Help, Homebrew and USB guide, Home page, and sidebar so the new workflow is documented consistently.
+- Added a `Known Issues` note in the README to make the current spoofing stability caveat explicit.
+
 ### v1.0.2 Installer and Homebrew Update
 - Split first-time setup and package staging cleanly so `rgh install` remains the XeCLI installer and `rgh homebrew install <package>` handles Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch staging.
+- Added `rgh ogxbox list` and `rgh ogxbox install <hacked|hud|retail>` for Original Xbox compatibility packs, with optional HDD Compatibility Partition Fixer staging and direct `HddX:\Compatibility` install support.
 - Added a dedicated homebrew package catalog with cached downloads, archive extraction, generated `launch.ini`, bundled plugin copies, staging to removable USB drives or normal folders, and an explicit install confirmation prompt unless `--auto-confirm` is supplied.
 - Kept silent backward compatibility for older `rgh install aurora` style calls by redirecting them to the new homebrew path without exposing that legacy syntax in public help.
 - Fixed installer summaries and follow-up instructions so installs without PATH enabled now point users to the installed `rgh.exe` directly instead of telling them to run a missing `rgh` command.
-- Added the [Homebrew and USB](https://saveeditors.github.io/xecli/wiki/Homebrew-and-USB.html) wiki page and updated the README, Beginner Guide, Commands Reference, CLI Help, FAQ, and site navigation to reflect the new split.
+- Added the [Homebrew and USB](https://saveeditors.github.io/xecli/wiki/Homebrew-and-USB.html) and [Original Xbox Compatibility](https://saveeditors.github.io/xecli/wiki/Original-Xbox-Compatibility.html) wiki pages and updated the README, Beginner Guide, Commands Reference, CLI Help, FAQ, and site navigation to reflect the new split.
 
 ### v1.0.1 Avatar Update
 - Added hosted and local `Avatar-Item-Collection` support with `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install`, and `rgh avatar apply`.
@@ -58,6 +66,9 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - Added JRPC2 helpers for Title ID, temperatures, notifications, CPU key, motherboard, and dashboard queries, plus FTP-backed file, save, content, and plugin workflows.
 - Added XEX dumping, string extraction, Ghidra headless integration, ISO to GOD conversion, and the bundled Title ID database in the release package.
 - Published the initial wiki set including [Home](https://saveeditors.github.io/xecli/wiki/Home.html), [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html), [CLI Help Output](https://saveeditors.github.io/xecli/wiki/CLI-Help.html), [Beginner Guide](https://saveeditors.github.io/xecli/wiki/Beginner-Guide.html), [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html), and [Troubleshooting](https://saveeditors.github.io/xecli/wiki/Troubleshooting.html).
+
+## Known Issues
+- Spoofing is still under active work. The current spoofing commands can be unstable or incomplete depending on the title, so expect issues while that feature set is being finished.
 
 ## Interface Preview
 Top-level help:
@@ -138,6 +149,7 @@ File and content workflows:
 - Installed-content inventory and deletion.
 - DashLaunch plugin listing and slot management.
 - Public homebrew package staging for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch through `rgh homebrew install <package>`, either to USB/folder targets or directly onto detected console drives, with a confirmation prompt unless `--auto-confirm` is used.
+- Original Xbox compatibility staging and install through `rgh ogxbox install <hacked|hud|retail>`, with public XeFu pack downloads, optional HDD Compatibility Partition Fixer support, and `HddX:\Compatibility` targeting.
 
 XEX and analysis workflows:
 
@@ -227,6 +239,8 @@ XeCLI also exposes a dedicated `homebrew` group to either stage public homebrew 
 rgh homebrew install aurora --usb E:
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
 rgh homebrew install all --device Hdd1 --ini-mode generated --auto-confirm
+rgh ogxbox install hacked --usb E:
+rgh ogxbox install hud --include-fixer
 rgh homebrew install dashlaunch --usb E:
 rgh homebrew install xexmenu --usb E:
 rgh homebrew install fsd --usb E:
@@ -244,6 +258,22 @@ Console install mode also asks how `launch.ini` should be handled:
 - `skip` installs the homebrew only and leaves `launch.ini` alone
 
 Read [Homebrew and USB](https://saveeditors.github.io/xecli/wiki/Homebrew-and-USB.html) for the full workflow.
+
+### Original Xbox compatibility install and staging
+XeCLI also exposes a dedicated `ogxbox` group for original Xbox backwards-compatibility files:
+
+```powershell
+rgh ogxbox list
+rgh ogxbox install hacked --usb E:
+rgh ogxbox install hud --include-fixer --usb E:
+rgh ogxbox install retail
+```
+
+When `--usb` is present, XeCLI stages a `Compatibility\` folder plus the optional `HddCompatibilityPartitionFixer\` helper to the selected USB drive or folder.
+
+When `--usb` is omitted, XeCLI connects over FTP and targets `HddX:\Compatibility` directly. If `HddX` is missing, rerun with `--include-fixer` so XeCLI also stages the HDD Compatibility Partition Fixer onto a writable console drive.
+
+Read [Original Xbox Compatibility](https://saveeditors.github.io/xecli/wiki/Original-Xbox-Compatibility.html) for the XeFu set differences and the full `HddX` workflow.
 
 ### From source
 ```powershell

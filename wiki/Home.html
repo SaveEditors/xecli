@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -69,6 +69,7 @@
         <article id="wiki-content" class="markdown-body">
           <h1 id="xecli-wiki">XeCLI Wiki</h1>
 <p>XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the <code>rgh</code> CLI, bundled metadata, and release workflows.</p>
+<p>The local source tree is the canonical behavior model for these pages. If a feature is documented here, it should match the shipped release and the current repo state unless a page says otherwise.</p>
 <p>The repository and product name are <code>XeCLI</code>. The installed terminal command is <code>rgh</code>.</p>
 <p>Avatar workflows in the shipped release now support both:</p>
 <ul>
@@ -103,12 +104,20 @@
 <td>Sign-in state, ring-light LEDs, fan commands, and SMC version notes</td>
 </tr>
 <tr>
+<td><a href="Remote-Spoofing.html">Remote Spoofing</a></td>
+<td>In-game gamertag, XUID, and remote-slot spoofing for supported titles; BO2 GT and remote spoofing are supported, BO2 XUID spoof is intentionally blocked</td>
+</tr>
+<tr>
 <td><a href="XNotify.html">XNotify</a></td>
 <td>Notification usage, icon IDs, and direct integration notes</td>
 </tr>
 <tr>
 <td><a href="Homebrew-and-USB.html">Homebrew and USB</a></td>
 <td>USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch</td>
+</tr>
+<tr>
+<td><a href="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a></td>
+<td>XeFu pack selection, HddX targeting, and optional HDD Compatibility Partition Fixer staging</td>
 </tr>
 <tr>
 <td><a href="Avatar-Item-Collection.html">Avatar Item Collection</a></td>
@@ -176,10 +185,12 @@
 <li><a href="Beginner-Guide.html">Beginner Guide</a></li>
 <li><a href="Commands.html">Commands Reference</a></li>
 <li><a href="Hardware-and-System.html">Hardware and System Controls</a></li>
+<li><a href="Remote-Spoofing.html">Remote Spoofing</a></li>
 <li><a href="XNotify.html">XNotify</a></li>
 <li><a href="CLI-Help.html">CLI Help Output</a></li>
 <li><a href="Troubleshooting.html">Troubleshooting</a></li>
 <li><a href="Homebrew-and-USB.html">Homebrew and USB</a></li>
+<li><a href="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a></li>
 </ol>
 <h3 id="reverse-engineering-path">Reverse-engineering path</h3>
 <ol>
@@ -202,6 +213,7 @@
 <li>Status, title resolution, and profile visibility</li>
 <li>Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing</li>
 <li>Launch, reboot, and console notification workflows</li>
+<li>Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 limited to GT + remote spoofing</li>
 <li>Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs</li>
 </ul>
 <h3 id="live-inspection-and-debugging">Live inspection and debugging</h3>
@@ -218,6 +230,7 @@
 <li>Save extraction and injection</li>
 <li>DashLaunch plugin slot management</li>
 <li>USB/folder staging or direct console installs with <code>rgh homebrew install aurora|dashlaunch|xexmenu|fsd|xm360|timefixer|simple360|xelllaunch|all</code></li>
+<li>Original Xbox compatibility staging or direct <code>HddX:\Compatibility</code> installs with <code>rgh ogxbox install hacked|hud|retail</code>, plus optional HDD Compatibility Partition Fixer staging</li>
 <li>Avatar Item Collection cataloging, remote browsing, search, dry-run planning, progress-driven installs, and install execution</li>
 </ul>
 <h3 id="analysis-and-packaging">Analysis and packaging</h3>
@@ -262,6 +275,8 @@ rgh --help
 rgh start
 rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
+rgh ogxbox list
+rgh ogxbox install hacked --include-fixer --usb E:
 rgh ping
 rgh status
 rgh title

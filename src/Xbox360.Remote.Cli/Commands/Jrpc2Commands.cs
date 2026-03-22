@@ -145,6 +145,10 @@ public sealed class Jrpc2NotifyCommand : AsyncCommand<Jrpc2NotifyCommand.Setting
         [CommandOption("--message <TEXT>")]
         [Description("Notification text.")]
         public string? Message { get; init; }
+
+        [CommandOption("--position <POS>")]
+        [Description("Notification position (top|bottom|center|left|right|top-left|top-right|bottom-left|bottom-right).")]
+        public string? Position { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
@@ -160,10 +164,20 @@ public sealed class Jrpc2NotifyCommand : AsyncCommand<Jrpc2NotifyCommand.Setting
             return 1;
         }
 
+        if (!NotifyHelpers.TryResolvePosition(settings.Position, out int position, out error)) {
+            AnsiConsole.MarkupLine($"[red]{Markup.Escape(error ?? "Invalid notify options.")}[/]");
+            return 1;
+        }
+
         return await CliHelpers.WithClientAsync(settings, async client => {
             Jrpc2Client jrpc = new Jrpc2Client(client);
+            if (!string.IsNullOrWhiteSpace(settings.Position))
+                await jrpc.SetNotificationPositionAsync(position, CancellationToken.None);
             await jrpc.ShowNotificationAsync(logo, message, CancellationToken.None);
-            AnsiConsole.MarkupLine($"[green]Notification sent.[/] [grey]Icon:[/] [aqua]{Markup.Escape(NotifyHelpers.DescribeLogo(logo))}[/]");
+            string positionText = string.IsNullOrWhiteSpace(settings.Position)
+                ? "[grey]default[/]"
+                : $"[aqua]{Markup.Escape(settings.Position.Trim())}[/]";
+            AnsiConsole.MarkupLine($"[green]Notification sent.[/] [grey]Icon:[/] [aqua]{Markup.Escape(NotifyHelpers.DescribeLogo(logo))}[/] [grey]Position:[/] {positionText}");
             return 0;
         }, CancellationToken.None);
     }

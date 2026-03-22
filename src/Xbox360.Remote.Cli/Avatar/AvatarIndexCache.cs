@@ -13,11 +13,11 @@ internal static class AvatarIndexCache {
 
     public static string GetCachePath(string? explicitCachePath) {
         if (string.IsNullOrWhiteSpace(explicitCachePath))
-            return Path.Combine(CliPaths.ConfigDirectory, "avatar-index.v4.json");
+            return Path.Combine(CliPaths.ConfigDirectory, "avatar-index.v5.json");
 
         string fullPath = Path.GetFullPath(explicitCachePath);
         if (string.IsNullOrWhiteSpace(Path.GetExtension(fullPath)))
-            return Path.Combine(fullPath, "avatar-index.v4.json");
+            return Path.Combine(fullPath, "avatar-index.v5.json");
 
         return fullPath;
     }

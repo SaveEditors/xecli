@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link is-current" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link is-current" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -187,6 +187,14 @@ rgh homebrew install xelllaunch --usb E:
 <li>uploads the selected dashboards/tools and bundled plugins directly onto the selected console drive</li>
 </ul>
 <p>Read <a href="Homebrew-and-USB.html">Homebrew-and-USB.md</a> for the full package workflow.</p>
+<h3 id="original-xbox-compatibility">Original Xbox compatibility</h3>
+<p>If you want original Xbox backwards compatibility on a modded console, use the dedicated <code>ogxbox</code> workflow instead of the normal homebrew installer:</p>
+<pre><code class="language-powershell">rgh ogxbox list
+rgh ogxbox install hacked --usb E:
+rgh ogxbox install hud --include-fixer
+</code></pre>
+<p>Use <code>hacked</code> as the default choice for the widest compatibility on an exploited console. Use <code>hud</code> only if you specifically want the 360 guide available inside original Xbox titles and can accept the extra performance cost. Use <code>retail</code> when you want the stock Microsoft emulator behavior.</p>
+<p>Read <a href="Original-Xbox-Compatibility.html">Original-Xbox-Compatibility.md</a> for the XeFu set differences and <code>HddX:\Compatibility</code> workflow.</p>
 <h2 id="9-launch-and-notify">9. Launch and Notify</h2>
 <p>Launch a XEX:</p>
 <pre><code class="language-powershell">rgh launch Hdd1:\Aurora\Aurora.xex --titleid FFFE07D1
@@ -214,6 +222,7 @@ rgh led state
 <li><code>screenshot</code></li>
 <li><code>signin state</code></li>
 <li><code>homebrew install all --usb E: --auto-confirm</code></li>
+<li><code>ogxbox install hacked --include-fixer --usb E:</code></li>
 <li><code>led set --preset quadrant1</code></li>
 </ul>
 <p>Delay these until you know the target is stable:</p>
@@ -229,6 +238,7 @@ rgh led state
 <ul>
 <li><a href="Commands.html">Commands Reference</a> for full command coverage</li>
 <li><a href="Homebrew-and-USB.html">Homebrew and USB</a> for USB/folder staging and direct console installs</li>
+<li><a href="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a> for XeFu pack installs and HddX setup</li>
 <li><a href="Hardware-and-System.html">Hardware and System Controls</a> for sign-in, LED, fan, and SMC behavior</li>
 <li><a href="XNotify.html">XNotify</a> for icon IDs and notification usage</li>
 <li><a href="Advanced-Guide.html">Advanced Guide</a> for reverse-engineering and automation workflows</li>

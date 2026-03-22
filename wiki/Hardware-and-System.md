@@ -283,6 +283,7 @@ Operational notes:
 - `notify` sends a toast in the XNotify queue
 - `popup show` blocks the foreground UI until the user dismisses it
 - use `--preset none` when you want the cleaner look without the red error icon
+- XeCLI documents only the verified popup presets and the raw `--style` pass-through; bottom-placement or other layout claims are not advertised unless they are proven on hardware
 
 ## Status Integration
 

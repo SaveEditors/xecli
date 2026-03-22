@@ -7,6 +7,66 @@ using Xbox360.Remote;
 namespace Xbox360.Remote.Cli.Commands;
 
 internal static class NotifyHelpers {
+    public static bool TryResolvePosition(string? positionValue, out int position, out string? error) {
+        error = null;
+        position = 0;
+
+        if (string.IsNullOrWhiteSpace(positionValue))
+            return true;
+
+        switch (positionValue.Trim().ToLowerInvariant()) {
+            case "center":
+            case "middle":
+            case "hc":
+            case "vc":
+                position = 0;
+                return true;
+            case "top":
+            case "top-center":
+            case "topcenter":
+                position = 1;
+                return true;
+            case "bottom":
+            case "bottom-center":
+            case "bottomcenter":
+                position = 2;
+                return true;
+            case "left":
+            case "center-left":
+            case "centerleft":
+                position = 4;
+                return true;
+            case "top-left":
+            case "topleft":
+                position = 5;
+                return true;
+            case "bottom-left":
+            case "bottomleft":
+                position = 6;
+                return true;
+            case "right":
+            case "center-right":
+            case "centerright":
+                position = 8;
+                return true;
+            case "top-right":
+            case "topright":
+                position = 9;
+                return true;
+            case "bottom-right":
+            case "bottomright":
+                position = 10;
+                return true;
+            default:
+                if (int.TryParse(positionValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out position))
+                    return true;
+                if (NotifyCatalog.TryParseInt(positionValue, out position))
+                    return true;
+                error = "Invalid position. Use top, bottom, center, left, right, top-left, top-right, bottom-left, bottom-right, or a numeric value.";
+                return false;
+        }
+    }
+
     public static bool TryResolveLogo(string? iconName, string? logoValue, out int logo, out string? error) {
         error = null;
         logo = 0;
@@ -53,7 +113,8 @@ internal static class NotifyHelpers {
         string? iconName,
         string? logoValue,
         string message,
-        CancellationToken cancellationToken) {
+        CancellationToken cancellationToken,
+        bool useBottomPosition = false) {
         if (!enabled)
             return;
 
@@ -62,6 +123,14 @@ internal static class NotifyHelpers {
 
         try {
             Jrpc2Client jrpc = new Jrpc2Client(client);
+            if (useBottomPosition) {
+                try {
+                    await jrpc.SetNotificationPositionAsync(2, cancellationToken);
+                }
+                catch {
+                    // ignored
+                }
+            }
             await jrpc.ShowNotificationAsync(logo, message, cancellationToken);
         }
         catch {
@@ -91,6 +160,10 @@ public sealed class NotifySendCommand : AsyncCommand<NotifySendCommand.Settings>
         [CommandOption("--icon <NAME>")]
         [Description("Notification icon preset name from config.")]
         public string? Icon { get; init; }
+
+        [CommandOption("--position <POS>")]
+        [Description("Notification position (top|bottom|center|left|right|top-left|top-right|bottom-left|bottom-right).")]
+        public string? Position { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
@@ -106,10 +179,20 @@ public sealed class NotifySendCommand : AsyncCommand<NotifySendCommand.Settings>
             return 1;
         }
 
+        if (!NotifyHelpers.TryResolvePosition(settings.Position, out int position, out error)) {
+            AnsiConsole.MarkupLine($"[red]{Markup.Escape(error ?? "Invalid notify options.")}[/]");
+            return 1;
+        }
+
         return await CliHelpers.WithClientAsync(settings, async client => {
             Jrpc2Client jrpc = new Jrpc2Client(client);
+            if (!string.IsNullOrWhiteSpace(settings.Position))
+                await jrpc.SetNotificationPositionAsync(position, CancellationToken.None);
             await jrpc.ShowNotificationAsync(logo, message, CancellationToken.None);
-            AnsiConsole.MarkupLine($"[green]Notification sent.[/] [grey]Icon:[/] [aqua]{Markup.Escape(NotifyHelpers.DescribeLogo(logo))}[/]");
+            string positionText = string.IsNullOrWhiteSpace(settings.Position)
+                ? "[grey]default[/]"
+                : $"[aqua]{Markup.Escape(settings.Position.Trim())}[/]";
+            AnsiConsole.MarkupLine($"[green]Notification sent.[/] [grey]Icon:[/] [aqua]{Markup.Escape(NotifyHelpers.DescribeLogo(logo))}[/] [grey]Position:[/] {positionText}");
             return 0;
         }, CancellationToken.None);
     }

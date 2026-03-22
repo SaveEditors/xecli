@@ -7,7 +7,10 @@
 - [Commands Reference](Commands)
 - [CLI Help Output](CLI-Help)
 - [Hardware and System Controls](Hardware-and-System)
+- [Remote Spoofing](Remote-Spoofing)
 - [XNotify](XNotify)
+- [Homebrew and USB](Homebrew-and-USB)
+- [Original Xbox Compatibility](Original-Xbox-Compatibility)
 
 ## Technical Reference
 - [Advanced Guide](Advanced-Guide)

@@ -26,6 +26,14 @@ internal sealed class CliConfig {
         public DateTimeOffset UpdatedUtc { get; set; }
     }
 
+    public sealed class SpoofIdentityCacheInfo {
+        public string? TargetKey { get; set; }
+        public uint TitleId { get; set; }
+        public string? Gamertag { get; set; }
+        public string? Xuid { get; set; }
+        public DateTimeOffset CapturedUtc { get; set; }
+    }
+
     public string? DefaultIp { get; set; }
     public int? DefaultPort { get; set; }
     public int? DefaultFtpPort { get; set; }
@@ -33,6 +41,7 @@ internal sealed class CliConfig {
     public string? DefaultFtpPassword { get; set; }
     public Dictionary<string, int>? NotifyIcons { get; set; }
     public Dictionary<string, string>? ModuleHandles { get; set; }
+    public Dictionary<string, SpoofIdentityCacheInfo>? SpoofIdentityCache { get; set; }
     public string? GhidraPath { get; set; }
     public string? GhidraJavaPath { get; set; }
     public string? GhidraProjectsPath { get; set; }
@@ -56,6 +65,7 @@ internal sealed class CliConfig {
         CliConfig cfg = JsonSerializer.Deserialize<CliConfig>(json) ?? new CliConfig();
         cfg.NotifyIcons = new Dictionary<string, int>(cfg.NotifyIcons ?? new Dictionary<string, int>(), StringComparer.OrdinalIgnoreCase);
         cfg.ModuleHandles = new Dictionary<string, string>(cfg.ModuleHandles ?? new Dictionary<string, string>(), StringComparer.OrdinalIgnoreCase);
+        cfg.SpoofIdentityCache = new Dictionary<string, SpoofIdentityCacheInfo>(cfg.SpoofIdentityCache ?? new Dictionary<string, SpoofIdentityCacheInfo>(), StringComparer.OrdinalIgnoreCase);
         return cfg;
     }
 

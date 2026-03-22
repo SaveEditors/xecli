@@ -10,7 +10,7 @@ Use this page when you need:
 
 Use [Commands.md](Commands.md) when you need task-oriented examples and expected outputs. Use [XNotify.md](XNotify.md) when you need icon IDs, notification usage, and integration notes.
 
-For first-time setup from the release package, start with `.\rgh.exe install` from the extracted release folder. After installation, use `rgh install` for maintenance or reinstall flows, and use `rgh homebrew install ...` for USB/folder staging or direct console installs. The installer can copy XeCLI to a chosen folder, register `rgh`, silently scan for consoles, and offer to run `status` on a detected target.
+For first-time setup from the release package, start with `.\rgh.exe install` from the extracted release folder. After installation, use `rgh install` for maintenance or reinstall flows, `rgh homebrew install ...` for normal dashboard/homebrew staging, and `rgh ogxbox install ...` for Original Xbox compatibility files that belong on `HddX:\Compatibility`. The installer can copy XeCLI to a chosen folder, register `rgh`, silently scan for consoles, and offer to run `status` on a detected target.
 
 ## How to Read the Help Tree
 Use the help system in this order:
@@ -52,6 +52,7 @@ EXAMPLES:
 --current-user
     rgh homebrew install aurora --usb E:
     rgh homebrew install all --usb E: --auto-confirm
+    rgh ogxbox install hacked --include-fixer --usb E:
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -95,6 +96,7 @@ COMMANDS:
     save            Profile and save-data helpers over FTP
     content         Installed content management over FTP
     homebrew        Download public homebrew packages to USB, a folder, or the console
+    ogxbox          Original Xbox compatibility pack installer for HddX:\Compatibility
     avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
@@ -102,6 +104,8 @@ COMMANDS:
 ```
 
 Avatar browsing in the shipped build now has both a terminal path and a Windows picker. Use `rgh avatar choose` for terminal selection, `rgh avatar browse` for the Windows picker, and `rgh avatar install` for direct one-item or full-title installs. Add `--remote` to use the hosted `Avatar-Item-Collection` repo with local caching and progress bars.
+
+Original Xbox compatibility is intentionally separate from normal homebrew installs. Use `rgh ogxbox install hacked|hud|retail` for the three public XeFu sets, and add `--include-fixer` when you also want the HDD Compatibility Partition Fixer staged.
 
 ## Shortcut Map
 These shortcut groups are not separate implementations. They are direct shortcuts for the canonical XBDM branches.
@@ -222,15 +226,20 @@ Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox 
 SUCCESS Avatar install complete
 1 item(s)  112 KB -> /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
 
-rgh spoof gamertag
+rgh spoof gt
 Game            Call of Duty: Black Ops II
 Gamertag        Diamond KSG
 Address         0x841E1B30
+
+gamertag remains a compatibility alias for `gt`.
 
 rgh spoof xuid
 Game            Call of Duty: Black Ops II
 XUID            5D83300C00000900
 Stored          000900000C30835D
+
+rgh spoof xuid set --value 1111111111111111
+BO2 XUID spoof is disabled: use `rgh spoof gt` for local-name spoofing and `rgh spoof remote` for lobby-slot spoofing.
 
 rgh ghidra decompile --running --out .\decomp
 SUCCESS Ghidra decompile complete
@@ -562,6 +571,54 @@ OPTIONS:
                           the cache
         --auto-confirm    Skip confirmation prompts
         --json            Emit machine-readable output
+```
+
+### `rgh ogxbox help`
+```text
+DESCRIPTION:
+Original Xbox compatibility pack installer for HddX:\Compatibility
+
+USAGE:
+    rgh ogxbox [OPTIONS] <COMMAND>
+
+EXAMPLES:
+    rgh ogxbox list
+    rgh ogxbox install hacked --usb E:
+    rgh ogxbox install hud --include-fixer
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list       List the built-in XeFu compatibility sets and partition fixer
+    install    Stage or install an Original Xbox compatibility set
+```
+
+### `rgh ogxbox install help`
+```text
+DESCRIPTION:
+Stage or install an Original Xbox compatibility set
+
+USAGE:
+    rgh ogxbox install <SET> [OPTIONS]
+
+ARGUMENTS:
+    <SET>    Compatibility set to install: hacked, hud, or retail
+
+OPTIONS:
+    -h, --help             Prints help information
+        --ip <IP>          Console IP address. If omitted, uses the last target
+        --port <PORT>      FTP port (default: 21)
+        --user <USER>      FTP username (default: xboxftp)
+        --pass <PASS>      FTP password (default: xboxftp)
+        --timeout <MS>     FTP timeout in milliseconds
+        --usb <TARGET>     Stage to a removable USB drive or folder instead of
+                           installing directly to the console
+        --include-fixer    Also stage or install HDD Compatibility Partition Fixer
+        --cache <DIR>      Download cache directory
+        --force-download   Redownload archives even when cached
+        --auto-confirm     Skip confirmation prompts
+        --json             Emit machine-readable output
 ```
 
 ### Discovery Group
@@ -999,7 +1056,16 @@ COMMANDS:
     gt        Spoof the current in-game gamertag for supported titles
     xuid      Spoof the current in-game XUID for supported titles
     remote    Remote-player text spoofing for supported titles
+    reset     Restore the in-game identity from the signed-in user or explicit values
 ```
+
+BO2 remote spoof slots are documented as 2-12 in the wiki because the first lobby slot is reserved in the current supported profile.
+
+Current BO2 behavior is intentionally split:
+- `rgh spoof gt` is stable and keeps BO2's local name and XUID state aligned.
+- `rgh spoof remote` is stable for BO2 slots 2-12.
+- `rgh spoof xuid show` can read BO2's visible XUID surfaces.
+- `rgh spoof xuid set` exits safely on BO2 because the deeper account/profile spoof path is still disabled.
 
 ### `rgh ftp help`
 ```text

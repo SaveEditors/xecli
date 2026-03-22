@@ -275,7 +275,7 @@ internal static class HomebrewPackageService {
         return builder.ToString();
     }
 
-    private static async Task<string> EnsureArchiveAsync(
+    internal static async Task<string> EnsureArchiveAsync(
         HomebrewPackageDefinition definition,
         string archiveRoot,
         bool forceDownload,
@@ -331,7 +331,7 @@ internal static class HomebrewPackageService {
         throw new InvalidOperationException($"Failed to download {definition.DisplayName}: {lastError?.Message}", lastError);
     }
 
-    private static void ExtractArchive(string archivePath, string extractRoot) {
+    internal static void ExtractArchive(string archivePath, string extractRoot) {
         if (Directory.Exists(extractRoot))
             Directory.Delete(extractRoot, recursive: true);
         Directory.CreateDirectory(extractRoot);
@@ -369,7 +369,7 @@ internal static class HomebrewPackageService {
         }
     }
 
-    private static string CollapseRootDirectory(string extractRoot) {
+    internal static string CollapseRootDirectory(string extractRoot) {
         string[] directories = Directory.GetDirectories(extractRoot, "*", SearchOption.TopDirectoryOnly);
         string[] files = Directory.GetFiles(extractRoot, "*", SearchOption.TopDirectoryOnly);
         if (directories.Length == 1 && files.Length == 0)
@@ -377,7 +377,7 @@ internal static class HomebrewPackageService {
         return extractRoot;
     }
 
-    private static async Task<(int FileCount, long TotalBytes)> CopyDirectoryAsync(
+    internal static async Task<(int FileCount, long TotalBytes)> CopyDirectoryAsync(
         string sourceRoot,
         string targetRoot,
         string title,
@@ -439,7 +439,7 @@ internal static class HomebrewPackageService {
         return true;
     }
 
-    private static string GetArchiveExtension(string primaryUrl, string? mirrorUrl) {
+    internal static string GetArchiveExtension(string primaryUrl, string? mirrorUrl) {
         foreach (string? candidate in new[] { primaryUrl, mirrorUrl }) {
             if (string.IsNullOrWhiteSpace(candidate))
                 continue;
@@ -456,7 +456,7 @@ internal static class HomebrewPackageService {
         return ".pkg";
     }
 
-    private static string ResolveStagingRoot(string targetRoot, string? explicitCacheDirectory) {
+    internal static string ResolveStagingRoot(string targetRoot, string? explicitCacheDirectory) {
         string stamp = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}-{Guid.NewGuid():N}";
         if (!string.IsNullOrWhiteSpace(explicitCacheDirectory))
             return Path.Combine(GetPackageCacheRoot(explicitCacheDirectory), "staging", stamp);
@@ -465,7 +465,7 @@ internal static class HomebrewPackageService {
         return Path.Combine(targetVolumeRoot, "XeCLI-Staging", stamp);
     }
 
-    private static void TryDeleteDirectory(string path) {
+    internal static void TryDeleteDirectory(string path) {
         try {
             if (Directory.Exists(path))
                 Directory.Delete(path, recursive: true);
@@ -483,14 +483,14 @@ internal static class HomebrewPackageService {
         }
     }
 
-    private static HttpClient CreateHttpClient() {
+    internal static HttpClient CreateHttpClient() {
         HttpClient client = new HttpClient();
         client.Timeout = TimeSpan.FromMinutes(15);
         client.DefaultRequestHeaders.UserAgent.ParseAdd("XeCLI/1.0.2");
         return client;
     }
 
-    private static async Task<string> ResolveDownloadUrlAsync(HttpClient client, string url, CancellationToken cancellationToken) {
+    internal static async Task<string> ResolveDownloadUrlAsync(HttpClient client, string url, CancellationToken cancellationToken) {
         if (!url.Contains("/wiki/File:", StringComparison.OrdinalIgnoreCase))
             return url;
 
@@ -506,7 +506,7 @@ internal static class HomebrewPackageService {
         return new Uri(baseUri, match.Groups["path"].Value).AbsoluteUri;
     }
 
-    private static string FormatBytes(long bytes) {
+    internal static string FormatBytes(long bytes) {
         string[] units = { "B", "KB", "MB", "GB", "TB" };
         double value = bytes;
         int unit = 0;
@@ -520,7 +520,7 @@ internal static class HomebrewPackageService {
             : $"{value:0.##} {units[unit]}";
     }
 
-    private static bool IsRecognizedArchive(string archivePath) {
+    internal static bool IsRecognizedArchive(string archivePath) {
         string extension = Path.GetExtension(archivePath);
         byte[] header = new byte[8];
         using FileStream stream = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -558,7 +558,7 @@ internal static class HomebrewPackageService {
         return true;
     }
 
-    private static string GetSourceLabel(string url) {
+    internal static string GetSourceLabel(string url) {
         Uri uri = new Uri(url);
         return uri.Host switch {
             "consolemods.org" => "ConsoleMods",

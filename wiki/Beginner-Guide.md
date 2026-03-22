@@ -173,6 +173,19 @@ Direct console install:
 
 Read [Homebrew-and-USB.md](Homebrew-and-USB.md) for the full package workflow.
 
+### Original Xbox compatibility
+If you want original Xbox backwards compatibility on a modded console, use the dedicated `ogxbox` workflow instead of the normal homebrew installer:
+
+```powershell
+rgh ogxbox list
+rgh ogxbox install hacked --usb E:
+rgh ogxbox install hud --include-fixer
+```
+
+Use `hacked` as the default choice for the widest compatibility on an exploited console. Use `hud` only if you specifically want the 360 guide available inside original Xbox titles and can accept the extra performance cost. Use `retail` when you want the stock Microsoft emulator behavior.
+
+Read [Original-Xbox-Compatibility.md](Original-Xbox-Compatibility.md) for the XeFu set differences and `HddX:\Compatibility` workflow.
+
 ## 9. Launch and Notify
 Launch a XEX:
 
@@ -214,6 +227,7 @@ Start with:
 - `screenshot`
 - `signin state`
 - `homebrew install all --usb E: --auto-confirm`
+- `ogxbox install hacked --include-fixer --usb E:`
 - `led set --preset quadrant1`
 
 Delay these until you know the target is stable:
@@ -228,6 +242,7 @@ Delay these until you know the target is stable:
 ## 12. Know Where to Go Next
 - [Commands Reference](Commands.md) for full command coverage
 - [Homebrew and USB](Homebrew-and-USB.md) for USB/folder staging and direct console installs
+- [Original Xbox Compatibility](Original-Xbox-Compatibility.md) for XeFu pack installs and HddX setup
 - [Hardware and System Controls](Hardware-and-System.md) for sign-in, LED, fan, and SMC behavior
 - [XNotify](XNotify.md) for icon IDs and notification usage
 - [Advanced Guide](Advanced-Guide.md) for reverse-engineering and automation workflows

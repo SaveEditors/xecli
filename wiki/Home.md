@@ -2,6 +2,8 @@
 
 XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
 
+The local source tree is the canonical behavior model for these pages. If a feature is documented here, it should match the shipped release and the current repo state unless a page says otherwise.
+
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
 Avatar workflows in the shipped release now support both:
@@ -20,8 +22,10 @@ Avatar workflows in the shipped release now support both:
 | [Commands Reference](Commands.md) | Full command-by-command reference with examples |
 | [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
 | [Hardware and System Controls](Hardware-and-System.md) | Sign-in state, ring-light LEDs, fan commands, and SMC version notes |
+| [Remote Spoofing](Remote-Spoofing.md) | In-game gamertag, XUID, and remote-slot spoofing for supported titles; BO2 GT and remote spoofing are supported, BO2 XUID spoof is intentionally blocked |
 | [XNotify](XNotify.md) | Notification usage, icon IDs, and direct integration notes |
 | [Homebrew and USB](Homebrew-and-USB.md) | USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch |
+| [Original Xbox Compatibility](Original-Xbox-Compatibility.md) | XeFu pack selection, HddX targeting, and optional HDD Compatibility Partition Fixer staging |
 | [Avatar Item Collection](Avatar-Item-Collection.md) | Local and hosted avatar corpus naming, browser flows, layout, and install model |
 | [Troubleshooting](Troubleshooting.md) | Failure cases, common console/plugin issues, and recovery paths |
 
@@ -46,10 +50,12 @@ Avatar workflows in the shipped release now support both:
 1. [Beginner Guide](Beginner-Guide.md)
 2. [Commands Reference](Commands.md)
 3. [Hardware and System Controls](Hardware-and-System.md)
-4. [XNotify](XNotify.md)
-5. [CLI Help Output](CLI-Help.md)
-6. [Troubleshooting](Troubleshooting.md)
-7. [Homebrew and USB](Homebrew-and-USB.md)
+4. [Remote Spoofing](Remote-Spoofing.md)
+5. [XNotify](XNotify.md)
+6. [CLI Help Output](CLI-Help.md)
+7. [Troubleshooting](Troubleshooting.md)
+8. [Homebrew and USB](Homebrew-and-USB.md)
+9. [Original Xbox Compatibility](Original-Xbox-Compatibility.md)
 
 ### Reverse-engineering path
 1. [Advanced Guide](Advanced-Guide.md)
@@ -70,6 +76,7 @@ Avatar workflows in the shipped release now support both:
 - Status, title resolution, and profile visibility
 - Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing
 - Launch, reboot, and console notification workflows
+- Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 limited to GT + remote spoofing
 - Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs
 
 ### Live inspection and debugging
@@ -84,6 +91,7 @@ Avatar workflows in the shipped release now support both:
 - Save extraction and injection
 - DashLaunch plugin slot management
 - USB/folder staging or direct console installs with `rgh homebrew install aurora|dashlaunch|xexmenu|fsd|xm360|timefixer|simple360|xelllaunch|all`
+- Original Xbox compatibility staging or direct `HddX:\Compatibility` installs with `rgh ogxbox install hacked|hud|retail`, plus optional HDD Compatibility Partition Fixer staging
 - Avatar Item Collection cataloging, remote browsing, search, dry-run planning, progress-driven installs, and install execution
 
 ### Analysis and packaging
@@ -127,6 +135,8 @@ rgh --help
 rgh start
 rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
+rgh ogxbox list
+rgh ogxbox install hacked --include-fixer --usb E:
 rgh ping
 rgh status
 rgh title

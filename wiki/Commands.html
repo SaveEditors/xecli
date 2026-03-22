@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -119,6 +119,10 @@
 <tr>
 <td>Manage title content or DashLaunch plugins</td>
 <td><code>rgh content ...</code>, <code>rgh plugin ...</code></td>
+</tr>
+<tr>
+<td>Stage Original Xbox compatibility packs</td>
+<td><code>rgh ogxbox list</code>, <code>rgh ogxbox install hacked|hud|retail</code></td>
 </tr>
 <tr>
 <td>Browse or install avatar items from the local or hosted collection</td>
@@ -449,6 +453,50 @@ Updated existing launch.ini plugin entries /Hdd1/launch.ini
 <li><code>--auto-confirm</code> skips the confirmation prompt before staging or direct console install</li>
 <li><code>--json</code> emits machine-readable package install output</li>
 </ul>
+<h3 id="rgh-ogxbox-install"><code>rgh ogxbox install</code></h3>
+<p>Stage or install one of the public Original Xbox XeFu compatibility sets.</p>
+<pre><code class="language-powershell">rgh ogxbox list
+rgh ogxbox install hacked --usb E:
+rgh ogxbox install hud --include-fixer --usb E:
+rgh ogxbox install retail
+</code></pre>
+<p>Set choices:</p>
+<ul>
+<li><code>hacked</code></li>
+<li>best default choice for modded consoles</li>
+<li>removes stock whitelist/restriction checks and targets wider compatibility</li>
+<li><code>hud</code></li>
+<li>same hacked base, but keeps the full Xbox 360 guide enabled during original Xbox titles</li>
+<li>can cost performance or compatibility in some games</li>
+<li><code>retail</code></li>
+<li>stock-style emulator files</li>
+<li>closest to the original Microsoft behavior</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Original Xbox compatibility install complete
+Hacked XeFu Pack -&gt; /HddX/Compatibility
+
+Field                Value
+Mode                 console
+XeFu Set             Hacked XeFu Pack
+Target               192.168.1.186
+Compatibility Path   /HddX/Compatibility
+Compatibility Files  Installed
+Fixer Included       No
+Files                23
+Size                 31.42 MB
+</code></pre>
+<p>Important options:</p>
+<ul>
+<li><code>--usb &lt;TARGET&gt;</code> stages to a removable USB drive or folder instead of installing directly to the console</li>
+<li>omit <code>--usb</code> to connect over FTP and target <code>HddX:\Compatibility</code></li>
+<li><code>--include-fixer</code> also stages or installs HDD Compatibility Partition Fixer so you can create <code>HddX</code> on drives that do not have it yet</li>
+<li><code>--cache &lt;DIR&gt;</code> moves archive and staging storage to a different directory</li>
+<li><code>--force-download</code> refreshes cached archives</li>
+<li><code>--auto-confirm</code> skips the confirmation prompt</li>
+<li><code>--json</code> emits machine-readable install output</li>
+</ul>
+<p>If <code>HddX</code> is missing and <code>--include-fixer</code> is not used, XeCLI stops before writing anything and tells you to rerun with the fixer included.</p>
 <h2 id="discovery-commands_1">Discovery Commands</h2>
 <h3 id="rgh-start"><code>rgh start</code></h3>
 <p>rgh start is the manual version of the discovery flow that the installer can launch immediately after setup.</p>
@@ -897,11 +945,14 @@ rgh popup show --title &quot;Raw Style&quot; --body &quot;Testing&quot; --style 
 <pre><code class="language-text">SUCCESS Popup requested
 Title=&quot;XeCLI&quot; Preset=warning Buttons=1
 </code></pre>
-<h3 id="rgh-spoof-gamertag"><code>rgh spoof gamertag</code></h3>
-<p>Reads or writes the current in-game gamertag for supported titles. The simple form is positional.</p>
-<pre><code class="language-powershell">rgh spoof gamertag
-rgh spoof gamertag ExampleTag
+<h3 id="rgh-spoof-gt"><code>rgh spoof gt</code></h3>
+<p>Reads or writes the current in-game gamertag for supported titles. <code>gamertag</code> and <code>name</code> remain compatibility aliases, but <code>gt</code> is the canonical command group.</p>
+<p>Spoof confirmation notifications use the bottom position by default when <code>--notify</code> is supplied. The command also caches the original gamertag/XUID for the current target and title the first time you spoof, so <code>rgh spoof reset</code> can restore it later even if the signed-in user is no longer resolvable.</p>
+<p>For BO2, this is the supported local spoof path. XeCLI keeps the visible name, the local XUID surfaces, and the deeper local account block aligned during a gamertag-only spoof.</p>
+<pre><code class="language-powershell">rgh spoof gt
+rgh spoof gt ExampleTag
 rgh spoof gt set --value ExampleTag --notify
+rgh spoof gamertag ExampleTag
 </code></pre>
 <p>Example output:</p>
 <pre><code class="language-text">Game            Call of Duty: Black Ops II
@@ -914,6 +965,7 @@ XeCliTmp
 </code></pre>
 <h3 id="rgh-spoof-xuid"><code>rgh spoof xuid</code></h3>
 <p>Reads or writes the current in-game XUID for supported titles.</p>
+<p>Spoof confirmation notifications use the bottom position by default when <code>--notify</code> is supplied. The original local identity is cached per target and title before the spoof is applied.</p>
 <pre><code class="language-powershell">rgh spoof xuid
 rgh spoof xuid 5D83300C00000900
 rgh spoof xuid set --value 5D83300C00000900
@@ -925,8 +977,20 @@ Stored          000900000C30835D
 Binary Addr     0x841E1B50
 Text Addr       0x841E1B58
 </code></pre>
+<p>BO2 is the exception here:</p>
+<ul>
+<li><code>rgh spoof xuid show</code> is supported on BO2</li>
+<li><code>rgh spoof xuid set</code> is intentionally blocked on BO2</li>
+<li>use <code>rgh spoof gt</code> for the local BO2 player label and <code>rgh spoof remote</code> for BO2 lobby slots</li>
+</ul>
+<p>BO2 refusal example:</p>
+<pre><code class="language-text">BO2 XUID spoof is disabled: use `rgh spoof gt` for local-name spoofing and `rgh spoof remote` for lobby-slot spoofing.
+</code></pre>
 <h3 id="rgh-spoof-remote"><code>rgh spoof remote</code></h3>
-<p>Overwrites remote-player text slots for supported titles. The simple positional form applies the same text to every supported slot in the current title.</p>
+<p>Overwrites remote-player text slots for supported titles. The simple positional form applies the same text to every supported slot in the current title. This does not change the local in-game gamertag block.</p>
+<p>Remote spoof confirmations also use the bottom position by default when <code>--notify</code> is supplied. If you later run <code>rgh spoof reset</code>, XeCLI will prefer the cached pre-spoof local identity for the same target/title when no explicit override is supplied.</p>
+<p>BO2's verified remote layout is exposed as slots 2-12 because the first title-local slot is reserved.</p>
+<p>Full feature notes, supported titles, and workflow examples are covered in <a href="Remote-Spoofing.html">Remote-Spoofing.md</a>.</p>
 <pre><code class="language-powershell">rgh spoof remote XeCliRemote
 rgh spoof remote list
 rgh spoof remote apply --slot 1 --text HostName
@@ -937,10 +1001,21 @@ rgh spoof remote apply --all --text XeCLI-{slot}
 Call of Duty: Black Ops II =&gt; XeCliRemote
 
 Slot  Verified       Address
-1     XeCliRemote    0x841E1B3C
 2     XeCliRemote    0x841E7334
 ...
 12    XeCliRemote    0x8421E2E4
+</code></pre>
+<h3 id="rgh-spoof-reset"><code>rgh spoof reset</code></h3>
+<p>Restores the in-game identity from the signed-in user or explicit values. Use <code>--clear-remote</code> if you also want to clear supported remote slot names.</p>
+<p>If no explicit <code>--gamertag</code> or <code>--xuid</code> is provided, XeCLI first tries the cached pre-spoof identity for the same target/title, then falls back to the currently signed-in user when available.</p>
+<p>On BO2, <code>reset</code> is the supported path for restoring the local GT spoof state and optionally clearing the remote slots. It is not documented as a full BO2 account handoff, and on the live validation box it handed the session back out to Aurora after restoring the identity.</p>
+<pre><code class="language-powershell">rgh spoof reset --current-user
+rgh spoof reset --gamertag Diamond KSG --xuid 5D83300C00000900
+rgh spoof reset --current-user --clear-remote
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Spoof reset applied
+Local identity restored and remote slots cleared
 </code></pre>
 <h2 id="save-commands">Save Commands</h2>
 <h3 id="rgh-save-list"><code>rgh save list</code></h3>

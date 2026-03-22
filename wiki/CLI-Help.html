@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -76,7 +76,7 @@
 <li>a quick reminder of what each top-level branch exposes</li>
 </ul>
 <p>Use <a href="Commands.html">Commands.md</a> when you need task-oriented examples and expected outputs. Use <a href="XNotify.html">XNotify.md</a> when you need icon IDs, notification usage, and integration notes.</p>
-<p>For first-time setup from the release package, start with <code>.\rgh.exe install</code> from the extracted release folder. After installation, use <code>rgh install</code> for maintenance or reinstall flows, and use <code>rgh homebrew install ...</code> for USB/folder staging or direct console installs. The installer can copy XeCLI to a chosen folder, register <code>rgh</code>, silently scan for consoles, and offer to run <code>status</code> on a detected target.</p>
+<p>For first-time setup from the release package, start with <code>.\rgh.exe install</code> from the extracted release folder. After installation, use <code>rgh install</code> for maintenance or reinstall flows, <code>rgh homebrew install ...</code> for normal dashboard/homebrew staging, and <code>rgh ogxbox install ...</code> for Original Xbox compatibility files that belong on <code>HddX:\Compatibility</code>. The installer can copy XeCLI to a chosen folder, register <code>rgh</code>, silently scan for consoles, and offer to run <code>status</code> on a detected target.</p>
 <h2 id="how-to-read-the-help-tree">How to Read the Help Tree</h2>
 <p>Use the help system in this order:</p>
 <ol>
@@ -112,6 +112,7 @@ EXAMPLES:
 --current-user
     rgh homebrew install aurora --usb E:
     rgh homebrew install all --usb E: --auto-confirm
+    rgh ogxbox install hacked --include-fixer --usb E:
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -155,12 +156,14 @@ COMMANDS:
     save            Profile and save-data helpers over FTP
     content         Installed content management over FTP
     homebrew        Download public homebrew packages to USB, a folder, or the console
+    ogxbox          Original Xbox compatibility pack installer for HddX:\Compatibility
     avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
     ghidra          Ghidra headless helpers
 </code></pre>
 <p>Avatar browsing in the shipped build now has both a terminal path and a Windows picker. Use <code>rgh avatar choose</code> for terminal selection, <code>rgh avatar browse</code> for the Windows picker, and <code>rgh avatar install</code> for direct one-item or full-title installs. Add <code>--remote</code> to use the hosted <code>Avatar-Item-Collection</code> repo with local caching and progress bars.</p>
+<p>Original Xbox compatibility is intentionally separate from normal homebrew installs. Use <code>rgh ogxbox install hacked|hud|retail</code> for the three public XeFu sets, and add <code>--include-fixer</code> when you also want the HDD Compatibility Partition Fixer staged.</p>
 <h2 id="shortcut-map">Shortcut Map</h2>
 <p>These shortcut groups are not separate implementations. They are direct shortcuts for the canonical XBDM branches.</p>
 <table>
@@ -390,15 +393,20 @@ Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox 
 SUCCESS Avatar install complete
 1 item(s)  112 KB -&gt; /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
 
-rgh spoof gamertag
+rgh spoof gt
 Game            Call of Duty: Black Ops II
 Gamertag        Diamond KSG
 Address         0x841E1B30
+
+gamertag remains a compatibility alias for `gt`.
 
 rgh spoof xuid
 Game            Call of Duty: Black Ops II
 XUID            5D83300C00000900
 Stored          000900000C30835D
+
+rgh spoof xuid set --value 1111111111111111
+BO2 XUID spoof is disabled: use `rgh spoof gt` for local-name spoofing and `rgh spoof remote` for lobby-slot spoofing.
 
 rgh ghidra decompile --running --out .\decomp
 SUCCESS Ghidra decompile complete
@@ -701,6 +709,50 @@ OPTIONS:
                           the cache
         --auto-confirm    Skip confirmation prompts
         --json            Emit machine-readable output
+</code></pre>
+<h3 id="rgh-ogxbox-help"><code>rgh ogxbox help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Original Xbox compatibility pack installer for HddX:\Compatibility
+
+USAGE:
+    rgh ogxbox [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh ogxbox list
+    rgh ogxbox install hacked --usb E:
+    rgh ogxbox install hud --include-fixer
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    list       List the built-in XeFu compatibility sets and partition fixer
+    install    Stage or install an Original Xbox compatibility set
+</code></pre>
+<h3 id="rgh-ogxbox-install-help"><code>rgh ogxbox install help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Stage or install an Original Xbox compatibility set
+
+USAGE:
+    rgh ogxbox install &lt;SET&gt; [OPTIONS]
+
+ARGUMENTS:
+    &lt;SET&gt;    Compatibility set to install: hacked, hud, or retail
+
+OPTIONS:
+    -h, --help             Prints help information
+        --ip &lt;IP&gt;          Console IP address. If omitted, uses the last target
+        --port &lt;PORT&gt;      FTP port (default: 21)
+        --user &lt;USER&gt;      FTP username (default: xboxftp)
+        --pass &lt;PASS&gt;      FTP password (default: xboxftp)
+        --timeout &lt;MS&gt;     FTP timeout in milliseconds
+        --usb &lt;TARGET&gt;     Stage to a removable USB drive or folder instead of
+                           installing directly to the console
+        --include-fixer    Also stage or install HDD Compatibility Partition Fixer
+        --cache &lt;DIR&gt;      Download cache directory
+        --force-download   Redownload archives even when cached
+        --auto-confirm     Skip confirmation prompts
+        --json             Emit machine-readable output
 </code></pre>
 <h3 id="discovery-group">Discovery Group</h3>
 <p><code>rgh start help</code>, <code>rgh connect help</code>, and <code>rgh scan help</code>:</p>
@@ -1095,7 +1147,14 @@ COMMANDS:
     gt        Spoof the current in-game gamertag for supported titles
     xuid      Spoof the current in-game XUID for supported titles
     remote    Remote-player text spoofing for supported titles
+    reset     Restore the in-game identity from the signed-in user or explicit values
 </code></pre>
+<p>BO2 remote spoof slots are documented as 2-12 in the wiki because the first lobby slot is reserved in the current supported profile.</p>
+<p>Current BO2 behavior is intentionally split:
+- <code>rgh spoof gt</code> is stable and keeps BO2's local name and XUID state aligned.
+- <code>rgh spoof remote</code> is stable for BO2 slots 2-12.
+- <code>rgh spoof xuid show</code> can read BO2's visible XUID surfaces.
+- <code>rgh spoof xuid set</code> exits safely on BO2 because the deeper account/profile spoof path is still disabled.</p>
 <h3 id="rgh-ftp-help"><code>rgh ftp help</code></h3>
 <pre><code class="language-text">DESCRIPTION:
 FTP commands (alternate access)

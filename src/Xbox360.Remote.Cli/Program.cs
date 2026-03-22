@@ -76,6 +76,7 @@ internal static class Program {
             config.AddExample(new[] { "avatar", "browse", "--remote" });
             config.AddExample(new[] { "homebrew", "install", "aurora", "--usb", "E:" });
             config.AddExample(new[] { "homebrew", "install", "all", "--usb", "E:", "--auto-confirm" });
+            config.AddExample(new[] { "ogxbox", "install", "hacked", "--include-fixer", "--usb", "E:" });
             config.AddExample(new[] { "ghidra", "decompile", "--running", "--out", ".\\decomp" });
 
             config.AddCommand<StatusCommand>("status").WithDescription("Show a compact console status snapshot.");
@@ -100,6 +101,15 @@ internal static class Program {
                 homebrew.AddCommand<HomebrewListCommand>("list").WithAlias("ls").WithDescription("List the built-in package catalog.");
                 homebrew.AddCommand<HomebrewInstallCommand>("install").WithAlias("stage").WithDescription("Download one or more public homebrew packages to USB, a folder, or the console.");
             }).WithAlias("hb");
+
+            config.AddBranch("ogxbox", ogxbox => {
+                ogxbox.SetDescription("Original Xbox compatibility pack installer for HddX:\\Compatibility.");
+                ogxbox.AddExample(new[] { "ogxbox", "list" });
+                ogxbox.AddExample(new[] { "ogxbox", "install", "hacked", "--usb", "E:" });
+                ogxbox.AddExample(new[] { "ogxbox", "install", "hud", "--include-fixer" });
+                ogxbox.AddCommand<OriginalXboxCompatibilityListCommand>("list").WithAlias("ls").WithDescription("List the built-in XeFu compatibility sets and partition fixer.");
+                ogxbox.AddCommand<OriginalXboxCompatibilityInstallCommand>("install").WithAlias("stage").WithDescription("Stage or install an Original Xbox compatibility set.");
+            }).WithAlias("xefu");
 
             config.AddBranch("xbdm", xbdm => {
                 xbdm.SetDescription("XBDM commands.");
@@ -333,11 +343,13 @@ internal static class Program {
             });
 
             config.AddBranch("spoof", spoof => {
-                spoof.SetDescription("Private title-aware spoof helpers.");
+                spoof.SetDescription("Private title-aware spoof helpers. BO2 supports local GT and remote spoofing; BO2 XUID/account spoof is intentionally disabled.");
+                spoof.AddExample(new[] { "spoof", "reset", "--current-user", "--clear-remote" });
 
                 spoof.AddBranch("gt", gt => {
-                    gt.SetDescription("Spoof the current in-game gamertag for supported titles.");
+                    gt.SetDescription("Spoof the current in-game gamertag for supported titles. BO2 GT spoof is supported.");
                     gt.AddExample(new[] { "spoof", "gt", "show" });
+                    gt.AddExample(new[] { "spoof", "gt", "set", "--value", "NobodyEpic", "--notify" });
                     gt.AddExample(new[] { "spoof", "gt", "set", "--current-user" });
                     gt.AddExample(new[] { "spoof", "gt", "set", "--value", "ExampleTag" });
                     gt.AddCommand<GamertagSpoofShowCommand>("show").WithAlias("state").WithDescription("Show the current in-game gamertag.");
@@ -345,7 +357,7 @@ internal static class Program {
                 });
 
                 spoof.AddBranch("xuid", xuid => {
-                    xuid.SetDescription("Spoof the current in-game XUID for supported titles.");
+                    xuid.SetDescription("Spoof the current in-game XUID for supported titles. BO2 XUID/account spoof is intentionally disabled.");
                     xuid.AddExample(new[] { "spoof", "xuid", "show" });
                     xuid.AddExample(new[] { "spoof", "xuid", "set", "--current-user" });
                     xuid.AddExample(new[] { "spoof", "xuid", "set", "--value", "5D83300C00000900" });
@@ -354,13 +366,16 @@ internal static class Program {
                 });
 
                 spoof.AddBranch("remote", remote => {
-                    remote.SetDescription("Remote-player text spoofing for supported titles.");
+                    remote.SetDescription("Remote-player text spoofing for supported titles. BO2 remote slots are exposed as 2-12.");
                     remote.AddExample(new[] { "spoof", "remote", "list" });
                     remote.AddExample(new[] { "spoof", "remote", "apply", "--slot", "1", "--text", "XeCLI" });
+                    remote.AddExample(new[] { "spoof", "remote", "apply", "--all", "--text", "NobodyEpic", "--notify" });
                     remote.AddExample(new[] { "spoof", "remote", "apply", "--all", "--text", "XeCLI-{slot}" });
                     remote.AddCommand<RemoteSpoofListCommand>("list").WithAlias("show").WithDescription("List spoofable remote slots for the current title.");
                     remote.AddCommand<RemoteSpoofApplyCommand>("apply").WithAlias("set").WithDescription("Overwrite one or more remote slot names.");
                 });
+
+                spoof.AddCommand<SpoofResetCommand>("reset").WithAlias("restore").WithDescription("Restore the in-game identity from the signed-in user or explicit values.");
             });
 
             config.AddBranch("ftp", ftp => {

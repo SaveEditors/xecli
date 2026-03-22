@@ -18,7 +18,14 @@ internal static class AvatarPackageReader {
         using FileStream stream = File.OpenRead(filePath);
         int readLength = (int)Math.Min(HeaderReadLength, stream.Length);
         byte[] buffer = new byte[readLength];
-        int read = stream.Read(buffer, 0, buffer.Length);
+        int read = 0;
+        while (read < buffer.Length) {
+            int bytesRead = stream.Read(buffer, read, buffer.Length - read);
+            if (bytesRead == 0)
+                break;
+            read += bytesRead;
+        }
+
         if (read < 4)
             return new AvatarPackageMetadata(AvatarPackageMagic.Unknown, 0, null, null, null);
 

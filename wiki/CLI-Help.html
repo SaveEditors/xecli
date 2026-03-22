@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -113,6 +113,8 @@ EXAMPLES:
     rgh homebrew install aurora --usb E:
     rgh homebrew install all --usb E: --auto-confirm
     rgh ogxbox install hacked --include-fixer --usb E:
+    rgh fatman devices
+    rgh fatx dump --image .\Hdd1.img --out .\recovery
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -157,6 +159,8 @@ COMMANDS:
     content         Installed content management over FTP
     homebrew        Download public homebrew packages to USB, a folder, or the console
     ogxbox          Original Xbox compatibility pack installer for HddX:\Compatibility
+    fatman          Read-only FATX manager for local disks and images
+    fatx            Alias of `rgh fatman`
     avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
@@ -164,6 +168,56 @@ COMMANDS:
 </code></pre>
 <p>Avatar browsing in the shipped build now has both a terminal path and a Windows picker. Use <code>rgh avatar choose</code> for terminal selection, <code>rgh avatar browse</code> for the Windows picker, and <code>rgh avatar install</code> for direct one-item or full-title installs. Add <code>--remote</code> to use the hosted <code>Avatar-Item-Collection</code> repo with local caching and progress bars.</p>
 <p>Original Xbox compatibility is intentionally separate from normal homebrew installs. Use <code>rgh ogxbox install hacked|hud|retail</code> for the three public XeFu sets, and add <code>--include-fixer</code> when you also want the HDD Compatibility Partition Fixer staged.</p>
+<h2 id="fatman">Fatman</h2>
+<p>Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.</p>
+<p>Current command surface:</p>
+<pre><code class="language-text">rgh fatman devices
+rgh fatman partitions
+rgh fatman scan
+rgh fatman info
+rgh fatman list
+rgh fatman find
+rgh fatman cat
+rgh fatman get
+rgh fatman extract
+rgh fatman dump
+</code></pre>
+<p><code>rgh fatx</code> is the documented alias for the same command group.</p>
+<p>Manual-open workflow:</p>
+<ul>
+<li>use <code>--offset</code> to open a FATX/XTAF volume directly from a byte offset</li>
+<li>use <code>--length</code> with <code>--offset</code> when you want to clamp the manual partition size</li>
+<li>both values accept decimal bytes or <code>0x</code>-prefixed hex</li>
+<li>use <code>rgh fatman scan</code> first when you need candidate offsets for a nonstandard image</li>
+</ul>
+<pre><code class="language-powershell">rgh fatman scan --image .\Unknown.img
+rgh fatman info --image .\Unknown.img --offset 0xB6600000
+rgh fatman list --image .\Unknown.img --offset 0xB6600000 --path /
+rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --out .\partition-dump
+</code></pre>
+<p>What it does:</p>
+<ul>
+<li>detect FATX-capable disks or image sources</li>
+<li>inspect partitions and volume details</li>
+<li>browse directories and locate entries</li>
+<li>search by name or path</li>
+<li>print small files in the terminal</li>
+<li>export selected files or directory trees to the host</li>
+<li>recover data from <code>.img</code> and <code>.bin</code> sources</li>
+</ul>
+<p>Validation note:</p>
+<ul>
+<li>the runtime has been verified against a synthetic FATX fixture image</li>
+<li>manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real <code>XTAF</code> offsets and opened the compatibility volume by bounded offset</li>
+</ul>
+<p>What it does not do in the first cut:</p>
+<ul>
+<li>write files back to FATX volumes</li>
+<li>format or repartition disks</li>
+<li>mount a virtual filesystem</li>
+<li>repair damaged volumes</li>
+<li>modify security sectors or low-level disk metadata</li>
+</ul>
 <h2 id="shortcut-map">Shortcut Map</h2>
 <p>These shortcut groups are not separate implementations. They are direct shortcuts for the canonical XBDM branches.</p>
 <table>
@@ -359,8 +413,8 @@ message=&quot;XeCLI connected&quot; logo=14 (Flashing happy face)
 rgh signin state
 Signed In   Yes
 State       Signed in locally
-Gamertag    Diamond KSG
-XUID        0x5D83300C00000900
+Gamertag    ExampleUser
+XUID        0x&lt;xuid&gt;
 
 rgh led set --preset quadrant1
 SUCCESS Ring light updated
@@ -379,34 +433,37 @@ Title=&quot;XeCLI&quot; Preset=question Buttons=1
 
 rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite
 Avatar download 3 item(s) file 2/3 | Destination Arcade - 0000020800069131C14650A158410A5D: 21%
-Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+Current user: ExampleUser | XUID: 0x&lt;xuid&gt; | State: Signed in to Xbox Live
 SUCCESS Avatar install complete
 3 item(s)  512 KB -&gt; /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
 
 rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
-Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+Current user: ExampleUser | XUID: 0x&lt;xuid&gt; | State: Signed in to Xbox Live
 SUCCESS Avatar install complete
 1 item(s)  116 KB -&gt; /Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3 via XBDM
 
 rgh avatar install --contentid 0000020800060102C383304058410A5D --current-user
-Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+Current user: ExampleUser | XUID: 0x&lt;xuid&gt; | State: Signed in to Xbox Live
 SUCCESS Avatar install complete
 1 item(s)  112 KB -&gt; /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
 
 rgh spoof gt
 Game            Call of Duty: Black Ops II
-Gamertag        Diamond KSG
+Gamertag        ExampleTag
 Address         0x841E1B30
 
 gamertag remains a compatibility alias for `gt`.
 
 rgh spoof xuid
 Game            Call of Duty: Black Ops II
-XUID            5D83300C00000900
-Stored          000900000C30835D
+XUID            &lt;xuid&gt;
+Stored          &lt;stored-xuid&gt;
 
-rgh spoof xuid set --value 1111111111111111
-BO2 XUID spoof is disabled: use `rgh spoof gt` for local-name spoofing and `rgh spoof remote` for lobby-slot spoofing.
+rgh spoof xuid set --value &lt;xuid&gt;
+SUCCESS XUID spoof applied
+Game            Call of Duty: Black Ops II
+XUID            &lt;xuid&gt;
+Stored          &lt;stored-xuid&gt;
 
 rgh ghidra decompile --running --out .\decomp
 SUCCESS Ghidra decompile complete

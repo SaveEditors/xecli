@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link is-current" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link is-current" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -91,26 +91,26 @@
 <tr>
 <td><code>rgh spoof gt</code></td>
 <td>Supported</td>
-<td>Verified live. Updates the visible local name surfaces and keeps BO2's local XUID surfaces intact.</td>
+<td>Verified live. Updates the visible local name surfaces and the known BO2 local account/persona caches while keeping the title's local XUID surfaces aligned.</td>
 </tr>
 <tr>
 <td><code>rgh spoof remote</code></td>
 <td>Supported</td>
-<td>Verified live. Writes BO2 remote/lobby slots 2-12 only.</td>
+<td>Verified live. Writes BO2 remote/lobby slots 2-12 using the current live slot layout.</td>
 </tr>
 <tr>
 <td><code>rgh spoof reset</code></td>
-<td>Supported for GT/remote restore</td>
-<td>Restores the cached or explicit local identity and can clear BO2 remote slots, but can also hand the session back out of BO2 while the title rebinds identity state.</td>
+<td>Supported</td>
+<td>Restores the cached or explicit local identity, reapplies the supported BO2 local cache set, and can clear BO2 remote slots.</td>
 </tr>
 <tr>
 <td><code>rgh spoof xuid set</code></td>
-<td>Intentionally blocked</td>
-<td>Full BO2 XUID/account spoof is not exposed because the deeper account/profile path is not safe enough yet.</td>
+<td>Supported with BO2 readiness gating</td>
+<td>Verified live once BO2's multiplayer/profile path is active. Updates the local XUID surfaces and the known BO2 account/persona caches, but it is still only a title-local memory spoof.</td>
 </tr>
 </tbody>
 </table>
-<p>If you are in BO2 and need a stable spoof workflow today, use <code>rgh spoof gt</code> for the local player label and <code>rgh spoof remote</code> for lobby-slot text.</p>
+<p>If you are in BO2, let the game reach the multiplayer front-end or a live lobby before using <code>rgh spoof xuid set</code> or <code>rgh spoof reset</code>. These commands only change BO2's in-title identity state. They do not replace the signed-in console profile or Xbox Live account.</p>
 <h2 id="command-surface">Command Surface</h2>
 <table>
 <thead>
@@ -175,7 +175,7 @@
 <td>Call of Duty: Black Ops II</td>
 <td><code>0x415608C3</code></td>
 <td>Yes</td>
-<td>Disabled</td>
+<td>Yes</td>
 <td>Yes, slots 2-12</td>
 </tr>
 <tr>
@@ -251,32 +251,30 @@ ExampleTag
 rgh spoof xuid show
 </code></pre>
 <p>Apply a new value:</p>
-<pre><code class="language-powershell">rgh spoof xuid 5D83300C00000900
-rgh spoof xuid set --value 5D83300C00000900
+<pre><code class="language-powershell">rgh spoof xuid &lt;xuid&gt;
+rgh spoof xuid set --value &lt;xuid&gt;
 </code></pre>
 <p>Use the currently signed-in user XUID:</p>
 <pre><code class="language-powershell">rgh spoof xuid set --current-user
 </code></pre>
 <p>Send a success notification after the write:</p>
-<pre><code class="language-powershell">rgh spoof xuid set --value 5D83300C00000900 --notify
+<pre><code class="language-powershell">rgh spoof xuid set --value &lt;xuid&gt; --notify
 </code></pre>
 <p>Example output:</p>
 <pre><code class="language-text">Game            Call of Duty: Black Ops II
-XUID            5D83300C00000900
-Stored          000900000C30835D
+XUID            &lt;xuid&gt;
+Stored          &lt;stored-xuid&gt;
 Binary Addr     0x841E1B50
 Text Addr       0x841E1B58
 </code></pre>
 <h3 id="verified-limitations_1">Verified limitations</h3>
 <ul>
 <li>The XUID path is title-specific.</li>
-<li>BO2 <code>show</code> is supported, but BO2 <code>set</code> is intentionally blocked because the deeper account/profile path is not yet safe enough for release use.</li>
-<li>BO2 still preserves the local binary and text XUID surfaces during a gamertag-only spoof.</li>
+<li>On BO2, both <code>show</code> and <code>set</code> are supported once the title has bound its multiplayer/profile path.</li>
+<li>BO2 updates the local binary and text XUID surfaces plus the known local account/persona blocks used by the title.</li>
+<li>This is still a title-local memory spoof. It does not replace the signed-in console profile, Xbox Live auth state, or multiplayer entitlement checks.</li>
 <li><code>--current-user</code> requires a signed-in user to be available.</li>
 </ul>
-<p>Example BO2 refusal:</p>
-<pre><code class="language-text">BO2 XUID spoof is disabled: use `rgh spoof gt` for local-name spoofing and `rgh spoof remote` for lobby-slot spoofing.
-</code></pre>
 <h2 id="rgh-spoof-remote"><code>rgh spoof remote</code></h2>
 <p>Use this command to overwrite the remote/lobby player text slots exposed by supported titles.</p>
 <p>This is not the same thing as changing the local player label in the running game.</p>
@@ -319,7 +317,7 @@ Slot  Verified       Address
 <pre><code class="language-powershell">rgh spoof reset --current-user
 </code></pre>
 <p>Restore from explicit values:</p>
-<pre><code class="language-powershell">rgh spoof reset --gamertag Diamond KSG --xuid 5D83300C00000900
+<pre><code class="language-powershell">rgh spoof reset --gamertag &lt;gamertag&gt; --xuid &lt;xuid&gt;
 </code></pre>
 <p>Restore the local identity and clear the supported remote slots:</p>
 <pre><code class="language-powershell">rgh spoof reset --current-user --clear-remote
@@ -332,8 +330,8 @@ Local identity restored and remote slots cleared
 <ul>
 <li><code>--clear-remote</code> only clears the supported remote slots for the current title.</li>
 <li><code>--current-user</code> requires a signed-in user to be available.</li>
-<li>On BO2, <code>reset</code> is for restoring the supported GT/remote spoof state. It is not a full account handoff feature.</li>
-<li>On the live validation box, BO2 <code>reset --clear-remote</code> restored the local identity but handed the session back out to Aurora instead of keeping BO2 in-place.</li>
+<li>On BO2, <code>reset</code> restores the supported local GT/XUID/cache spoof state and can also clear the remote slots.</li>
+<li>BO2 <code>reset</code> is not a full account handoff or Xbox Live sign-in change.</li>
 </ul>
 <h2 id="bo2-address-map">BO2 Address Map</h2>
 <p>Black Ops II is the most complete spoof target and uses multiple local memory paths:</p>
@@ -366,6 +364,22 @@ Local identity restored and remote slots cleared
 <td><code>0x81AA2DDC</code></td>
 </tr>
 <tr>
+<td>Account/persona wide name</td>
+<td><code>0x81AA28FC</code></td>
+</tr>
+<tr>
+<td>Account/persona wide XUID</td>
+<td><code>0x81AA291C</code></td>
+</tr>
+<tr>
+<td>Account/persona text XUID</td>
+<td><code>0x81AEE9EC</code></td>
+</tr>
+<tr>
+<td>Account/persona text name</td>
+<td><code>0x81AEE9FC</code></td>
+</tr>
+<tr>
 <td>Refresh patch</td>
 <td><code>0x825DE240</code> (<code>60 00 00 00</code>)</td>
 </tr>
@@ -387,11 +401,19 @@ Local identity restored and remote slots cleared
 </tr>
 <tr>
 <td>Remote display offset</td>
-<td><code>21676</code> bytes</td>
+<td><code>0</code> bytes</td>
+</tr>
+<tr>
+<td>Remote XUID binary offset</td>
+<td><code>32</code> bytes</td>
+</tr>
+<tr>
+<td>Remote XUID text offset</td>
+<td><code>40</code> bytes</td>
 </tr>
 <tr>
 <td>Remote mirror offset</td>
-<td><code>21812</code> bytes</td>
+<td><code>136</code> bytes</td>
 </tr>
 <tr>
 <td>Remote slot count</td>
@@ -405,10 +427,10 @@ Local identity restored and remote slots cleared
 </table>
 <p>What this BO2 map is for:</p>
 <ul>
-<li><code>rgh spoof gt</code> changes the local in-game BO2 name surfaces.</li>
+<li><code>rgh spoof gt</code> changes the local in-game BO2 name surfaces and known local persona caches.</li>
+<li><code>rgh spoof xuid show</code> and <code>rgh spoof xuid set</code> read or write BO2's visible XUID surfaces and known local account/persona caches once the title is ready.</li>
 <li><code>rgh spoof remote</code> changes the remote/lobby slot text only.</li>
-<li><code>rgh spoof xuid show</code> can read BO2's visible XUID surfaces.</li>
-<li><code>rgh spoof xuid set</code> remains intentionally blocked on BO2.</li>
+<li><code>rgh spoof reset</code> restores the supported local spoof state and can optionally clear the remote slots.</li>
 </ul>
 <h2 id="live-validation-notes">Live Validation Notes</h2>
 <p>XeCLI verifies the write path by reading the same memory back after the write.</p>
@@ -420,12 +442,12 @@ Local identity restored and remote slots cleared
 </ul>
 <p>Example BO2 validation flow:</p>
 <pre><code class="language-powershell">rgh launch &quot;Hdd1:\Games\Call of Duty Black Ops II\default_mp.xex&quot; --titleid 415608C3
-rgh spoof gt NobodyEpic --notify
+rgh spoof gt ExampleTag --notify
 rgh spoof xuid show
-rgh spoof xuid 1111111111111111
-rgh spoof remote NobodyEpic --notify
+rgh spoof xuid set --value &lt;xuid&gt; --notify
+rgh spoof remote ExampleRemote --notify
 rgh spoof remote list
-rgh spoof reset --clear-remote
+rgh spoof reset --current-user --clear-remote
 </code></pre>
 <h2 id="related-pages">Related Pages</h2>
 <ul>

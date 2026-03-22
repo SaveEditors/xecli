@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -121,6 +121,10 @@
 <td><code>rgh content ...</code>, <code>rgh plugin ...</code></td>
 </tr>
 <tr>
+<td>Inspect local Fatman disks or images</td>
+<td><code>rgh fatman devices</code>, <code>rgh fatman partitions</code>, <code>rgh fatman scan</code>, <code>rgh fatman info</code>, <code>rgh fatman list</code>, <code>rgh fatman find</code>, <code>rgh fatman cat</code>, <code>rgh fatman get</code>, <code>rgh fatman extract</code>, <code>rgh fatman dump</code></td>
+</tr>
+<tr>
 <td>Stage Original Xbox compatibility packs</td>
 <td><code>rgh ogxbox list</code>, <code>rgh ogxbox install hacked|hud|retail</code></td>
 </tr>
@@ -149,6 +153,7 @@
 <li>XBDM-backed commands: modules, memory, threads, debug, screenshot, file system</li>
 <li>JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC</li>
 <li>FTP-backed commands: file access, saves, content, and plugin management</li>
+<li>Fatman manager: read-only local disk or image inspection and export</li>
 <li>Analysis commands: XEX, Ghidra, metadata</li>
 <li>Packaging commands: Games on Demand conversion and watchdog mode</li>
 </ul>
@@ -161,6 +166,8 @@
 <li><code>rgh fs</code> = <code>rgh xbdm fs</code></li>
 <li><code>rgh threads</code> = <code>rgh xbdm threads</code></li>
 <li><code>rgh debug</code> = <code>rgh xbdm debug</code></li>
+<li><code>rgh fatman</code> = local FATX manager for disks and images</li>
+<li><code>rgh fatx</code> = alias of <code>rgh fatman</code></li>
 </ul>
 <p>High-traffic aliases:</p>
 <ul>
@@ -176,6 +183,7 @@
 <li><code>rgh module remove</code> = <code>rgh modules unload</code></li>
 <li><code>rgh module verify</code> = <code>rgh modules pending</code></li>
 <li><code>rgh avatar apply</code> = <code>rgh avatar install</code></li>
+<li><code>rgh fatx</code> = alias of <code>rgh fatman</code></li>
 </ul>
 <p>For the exact top-level help screen and the exact help output of every top-level command group, see <a href="CLI-Help.html">CLI-Help.md</a>.</p>
 <h2 id="common-options">Common Options</h2>
@@ -293,7 +301,7 @@ Execution State  start
 Title ID         0xFFFE07D1
 Title Name       Aurora
 Signed In        Yes
-Gamertag         Diamond KSG
+Gamertag         ExampleUser
 </code></pre>
 <h3 id="rgh-profiles"><code>rgh profiles</code></h3>
 <p>Enumerates sign-in and profile information gathered from XBDM, JRPC/XAM, FTP, and F3 when available.</p>
@@ -304,7 +312,7 @@ rgh profiles --no-f3
 </code></pre>
 <p>Example output:</p>
 <pre><code class="language-text">Signed-In Users
-User 0   Diamond KSG   state=SignedInToLive   xuid=0x5D83300C00000900
+User 0   ExampleUser   state=SignedInToLive   xuid=0x&lt;xuid&gt;
 
 Profiles (FTP)
 72 profile containers found across Hdd1 and Usb devices
@@ -497,6 +505,66 @@ Size                 31.42 MB
 <li><code>--json</code> emits machine-readable install output</li>
 </ul>
 <p>If <code>HddX</code> is missing and <code>--include-fixer</code> is not used, XeCLI stops before writing anything and tells you to rerun with the fixer included.</p>
+<h2 id="fatman">Fatman</h2>
+<p>Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.</p>
+<h3 id="current-command-surface">Current command surface</h3>
+<pre><code class="language-powershell">rgh fatman devices
+rgh fatman partitions
+rgh fatman scan
+rgh fatman info
+rgh fatman list
+rgh fatman find
+rgh fatman cat
+rgh fatman get
+rgh fatman extract
+rgh fatman dump
+</code></pre>
+<h3 id="manual-open-by-offset">Manual open by offset</h3>
+<ul>
+<li>use <code>--offset</code> to open a FATX/XTAF volume directly from a byte offset</li>
+<li>use <code>--length</code> with <code>--offset</code> when you want to clamp the manual partition size</li>
+<li>both values accept decimal bytes or <code>0x</code>-prefixed hex</li>
+<li>use <code>rgh fatman scan</code> first when you need candidate offsets for a nonstandard image</li>
+</ul>
+<pre><code class="language-powershell">rgh fatman scan --image .\Unknown.img
+rgh fatman info --image .\Unknown.img --offset 0xB6600000
+rgh fatman list --image .\Unknown.img --offset 0xB6600000 --path /
+rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --out .\partition-dump
+</code></pre>
+<h3 id="what-it-will-do">What it will do</h3>
+<ul>
+<li>detect FATX-capable disks or image sources</li>
+<li>inspect partitions and volume details</li>
+<li>browse directories and locate entries</li>
+<li>search by name or path</li>
+<li>recover data from <code>.img</code> and <code>.bin</code> sources</li>
+<li>print small files in the terminal</li>
+<li>dump partitions to a host directory</li>
+<li>export selected files or directory trees to the host</li>
+</ul>
+<h3 id="validation-note">Validation note</h3>
+<ul>
+<li>the runtime has been verified against a synthetic FATX fixture image</li>
+<li>manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real <code>XTAF</code> offsets and opened the compatibility volume by bounded offset</li>
+</ul>
+<h3 id="what-it-does-not-do-in-the-first-cut">What it does not do in the first cut</h3>
+<ul>
+<li>write files back to FATX volumes</li>
+<li>format or repartition disks</li>
+<li>mount a virtual filesystem</li>
+<li>repair damaged volumes</li>
+<li>modify security sectors or low-level disk metadata</li>
+</ul>
+<h3 id="example-output">Example output</h3>
+<pre><code class="language-text">Fatman Sources
+0  Disk 0  932.51 GB  Xbox 360 HDD
+1  Disk 1   32.00 GB  USB Flash Drive
+
+Selected source: Disk 0 / Hdd1
+Partitions:
+Hdd1  419.41 GB  FATX
+HddX    1.00 GB  FATX
+</code></pre>
 <h2 id="discovery-commands_1">Discovery Commands</h2>
 <h3 id="rgh-start"><code>rgh start</code></h3>
 <p>rgh start is the manual version of the discovery flow that the installer can launch immediately after setup.</p>
@@ -865,8 +933,8 @@ rgh signin state --json
 <p>Example output:</p>
 <pre><code class="language-text">Signed In   Yes
 State       Signed in locally
-Gamertag    Diamond KSG
-XUID        0x5D83300C00000900
+Gamertag    ExampleUser
+XUID        0x&lt;xuid&gt;
 Slot        0
 </code></pre>
 <h3 id="rgh-led-set"><code>rgh led set</code></h3>
@@ -956,7 +1024,7 @@ rgh spoof gamertag ExampleTag
 </code></pre>
 <p>Example output:</p>
 <pre><code class="language-text">Game            Call of Duty: Black Ops II
-Gamertag        Diamond KSG
+Gamertag        ExampleTag
 Address         0x841E1B30
 </code></pre>
 <p>Write example:</p>
@@ -967,25 +1035,23 @@ XeCliTmp
 <p>Reads or writes the current in-game XUID for supported titles.</p>
 <p>Spoof confirmation notifications use the bottom position by default when <code>--notify</code> is supplied. The original local identity is cached per target and title before the spoof is applied.</p>
 <pre><code class="language-powershell">rgh spoof xuid
-rgh spoof xuid 5D83300C00000900
-rgh spoof xuid set --value 5D83300C00000900
+rgh spoof xuid &lt;xuid&gt;
+rgh spoof xuid set --value &lt;xuid&gt;
 </code></pre>
 <p>Example output:</p>
 <pre><code class="language-text">Game            Call of Duty: Black Ops II
-XUID            5D83300C00000900
-Stored          000900000C30835D
+XUID            &lt;xuid&gt;
+Stored          &lt;stored-xuid&gt;
 Binary Addr     0x841E1B50
 Text Addr       0x841E1B58
 </code></pre>
-<p>BO2 is the exception here:</p>
+<p>BO2 notes:</p>
 <ul>
-<li><code>rgh spoof xuid show</code> is supported on BO2</li>
-<li><code>rgh spoof xuid set</code> is intentionally blocked on BO2</li>
-<li>use <code>rgh spoof gt</code> for the local BO2 player label and <code>rgh spoof remote</code> for BO2 lobby slots</li>
+<li><code>rgh spoof xuid show</code> and <code>rgh spoof xuid set</code> are supported on BO2</li>
+<li>run them after BO2 has reached the multiplayer front-end or a live lobby</li>
+<li>XeCLI updates the visible local XUID surfaces plus the known BO2 account/persona caches</li>
+<li>this remains an in-title memory spoof, not a real signed-in Xbox Live account swap or entitlement change</li>
 </ul>
-<p>BO2 refusal example:</p>
-<pre><code class="language-text">BO2 XUID spoof is disabled: use `rgh spoof gt` for local-name spoofing and `rgh spoof remote` for lobby-slot spoofing.
-</code></pre>
 <h3 id="rgh-spoof-remote"><code>rgh spoof remote</code></h3>
 <p>Overwrites remote-player text slots for supported titles. The simple positional form applies the same text to every supported slot in the current title. This does not change the local in-game gamertag block.</p>
 <p>Remote spoof confirmations also use the bottom position by default when <code>--notify</code> is supplied. If you later run <code>rgh spoof reset</code>, XeCLI will prefer the cached pre-spoof local identity for the same target/title when no explicit override is supplied.</p>
@@ -1010,7 +1076,7 @@ Slot  Verified       Address
 <p>If no explicit <code>--gamertag</code> or <code>--xuid</code> is provided, XeCLI first tries the cached pre-spoof identity for the same target/title, then falls back to the currently signed-in user when available.</p>
 <p>On BO2, <code>reset</code> is the supported path for restoring the local GT spoof state and optionally clearing the remote slots. It is not documented as a full BO2 account handoff, and on the live validation box it handed the session back out to Aurora after restoring the identity.</p>
 <pre><code class="language-powershell">rgh spoof reset --current-user
-rgh spoof reset --gamertag Diamond KSG --xuid 5D83300C00000900
+rgh spoof reset --gamertag &lt;gamertag&gt; --xuid &lt;xuid&gt;
 rgh spoof reset --current-user --clear-remote
 </code></pre>
 <p>Example output:</p>
@@ -1136,7 +1202,7 @@ rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite
 </ul>
 <p>Example output:</p>
 <pre><code class="language-text">Avatar download 3 item(s) file 2/3 | Destination Arcade - 0000020800069131C14650A158410A5D: 21%
-Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+Current user: ExampleUser | XUID: 0x&lt;xuid&gt; | State: Signed in to Xbox Live
 SUCCESS Avatar install complete
 3 item(s)  512 KB -&gt; /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
 </code></pre>
@@ -1195,7 +1261,7 @@ rgh avatar install --remote --titleid 415608C3 --all --current-user
 </li>
 </ul>
 <p>Example output:</p>
-<pre><code class="language-text">Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+<pre><code class="language-text">Current user: ExampleUser | XUID: 0x&lt;xuid&gt; | State: Signed in to Xbox Live
 SUCCESS Avatar install complete
 1 item(s)  116 KB -&gt; /Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3 via XBDM
 </code></pre>

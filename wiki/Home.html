@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -68,7 +68,7 @@
       <section class="wiki-content-card">
         <article id="wiki-content" class="markdown-body">
           <h1 id="xecli-wiki">XeCLI Wiki</h1>
-<p>XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the <code>rgh</code> CLI, bundled metadata, and release workflows.</p>
+<p>XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, Fatman, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the <code>rgh</code> CLI, bundled metadata, and release workflows.</p>
 <p>The local source tree is the canonical behavior model for these pages. If a feature is documented here, it should match the shipped release and the current repo state unless a page says otherwise.</p>
 <p>The repository and product name are <code>XeCLI</code>. The installed terminal command is <code>rgh</code>.</p>
 <p>Avatar workflows in the shipped release now support both:</p>
@@ -122,7 +122,7 @@
 </tr>
 <tr>
 <td><a href="Remote-Spoofing.html">Remote Spoofing</a></td>
-<td>In-game gamertag, XUID, and remote-slot spoofing for supported titles; BO2 GT and remote spoofing are supported, BO2 XUID spoof is intentionally blocked</td>
+<td>In-game gamertag, XUID, and remote-slot spoofing for supported titles; BO2 local GT, local XUID, and remote spoofing are supported as in-title memory writes</td>
 </tr>
 <tr>
 <td><a href="XNotify.html">XNotify</a></td>
@@ -135,6 +135,10 @@
 <tr>
 <td><a href="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a></td>
 <td>XeFu pack selection, HddX targeting, and optional HDD Compatibility Partition Fixer staging</td>
+</tr>
+<tr>
+<td><a href="FATX-Manager.html">Fatman</a></td>
+<td>Read-only FATX image and storage recovery with <code>rgh fatman</code> or the <code>rgh fatx</code> alias</td>
 </tr>
 <tr>
 <td><a href="Avatar-Item-Collection.html">Avatar Item Collection</a></td>
@@ -201,14 +205,15 @@
 <ol>
 <li><a href="Beginner-Guide.html">Beginner Guide</a></li>
 <li><a href="Latest-Features.html">Latest Features</a></li>
-<li><a href="FTP-and-File-Transfer.html">FTP and File Transfer</a></li>
 <li><a href="Commands.html">Commands Reference</a></li>
 <li><a href="Hardware-and-System.html">Hardware and System Controls</a></li>
+<li><a href="Remote-Spoofing.html">Remote Spoofing</a></li>
 <li><a href="XNotify.html">XNotify</a></li>
 <li><a href="CLI-Help.html">CLI Help Output</a></li>
 <li><a href="Troubleshooting.html">Troubleshooting</a></li>
 <li><a href="Homebrew-and-USB.html">Homebrew and USB</a></li>
 <li><a href="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a></li>
+<li><a href="FATX-Manager.html">Fatman</a></li>
 </ol>
 <h3 id="reverse-engineering-path">Reverse-engineering path</h3>
 <ol>
@@ -231,7 +236,7 @@
 <li>Status, title resolution, and profile visibility</li>
 <li>Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing</li>
 <li>Launch, reboot, and console notification workflows</li>
-<li>Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 limited to GT + remote spoofing</li>
+<li>Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 documented as a title-local spoof flow rather than a signed-in account change</li>
 <li>Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs</li>
 </ul>
 <h3 id="live-inspection-and-debugging">Live inspection and debugging</h3>
@@ -245,6 +250,7 @@
 <ul>
 <li>XBDM file-system operations</li>
 <li>FTP-based browsing, transfer, search, and content discovery</li>
+<li>Fatman device discovery, partition inspection, directory browsing, read-only search, and file export</li>
 <li>Save extraction and injection</li>
 <li>DashLaunch plugin slot management</li>
 <li>USB/folder staging or direct console installs with <code>rgh homebrew install aurora|dashlaunch|xexmenu|fsd|xm360|timefixer|simple360|xelllaunch|all</code></li>
@@ -274,6 +280,7 @@
 <li>image building or dashboard patching</li>
 <li>glitch timing programming</li>
 <li>trace/step debugging</li>
+<li>Fatman write, format, mount, repartition, or repair workflows</li>
 </ul>
 <h2 id="important-paths">Important Paths</h2>
 <h3 id="bundled-assets">Bundled assets</h3>
@@ -296,6 +303,12 @@ rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
 rgh ogxbox list
 rgh ogxbox install hacked --include-fixer --usb E:
+rgh fatman devices
+rgh fatman partitions --image .\hdd.img
+rgh fatman scan --image .\hdd.img
+rgh fatman list --image .\hdd.img --partition Content --path /
+rgh fatman get --image .\hdd.img --partition Content --path /launch.ini --out .\launch.ini
+rgh fatman cat --image .\hdd.img --partition Content --path /launch.ini
 rgh ping
 rgh status
 rgh title

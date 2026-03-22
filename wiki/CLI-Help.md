@@ -192,8 +192,8 @@ message="XeCLI connected" logo=14 (Flashing happy face)
 rgh signin state
 Signed In   Yes
 State       Signed in locally
-Gamertag    Diamond KSG
-XUID        0x5D83300C00000900
+Gamertag    ExampleUser
+XUID        0x<xuid>
 
 rgh led set --preset quadrant1
 SUCCESS Ring light updated
@@ -212,34 +212,37 @@ Title="XeCLI" Preset=question Buttons=1
 
 rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite
 Avatar download 3 item(s) file 2/3 | Destination Arcade - 0000020800069131C14650A158410A5D: 21%
-Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+Current user: ExampleUser | XUID: 0x<xuid> | State: Signed in to Xbox Live
 SUCCESS Avatar install complete
 3 item(s)  512 KB -> /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
 
 rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
-Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+Current user: ExampleUser | XUID: 0x<xuid> | State: Signed in to Xbox Live
 SUCCESS Avatar install complete
 1 item(s)  116 KB -> /Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3 via XBDM
 
 rgh avatar install --contentid 0000020800060102C383304058410A5D --current-user
-Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+Current user: ExampleUser | XUID: 0x<xuid> | State: Signed in to Xbox Live
 SUCCESS Avatar install complete
 1 item(s)  112 KB -> /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
 
 rgh spoof gt
 Game            Call of Duty: Black Ops II
-Gamertag        Diamond KSG
+Gamertag        ExampleTag
 Address         0x841E1B30
 
 gamertag remains a compatibility alias for `gt`.
 
 rgh spoof xuid
 Game            Call of Duty: Black Ops II
-XUID            5D83300C00000900
-Stored          000900000C30835D
+XUID            <xuid>
+Stored          <stored-xuid>
 
-rgh spoof xuid set --value 1111111111111111
-BO2 XUID spoof is disabled: use `rgh spoof gt` for local-name spoofing and `rgh spoof remote` for lobby-slot spoofing.
+rgh spoof xuid set --value <xuid>
+SUCCESS XUID spoof applied
+Game            Call of Duty: Black Ops II
+XUID            <xuid>
+Stored          <stored-xuid>
 
 rgh ghidra decompile --running --out .\decomp
 SUCCESS Ghidra decompile complete

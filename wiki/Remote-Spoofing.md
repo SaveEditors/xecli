@@ -17,12 +17,12 @@ Black Ops II is the title most people ask about, so its current state should be 
 
 | BO2 operation | Status | Notes |
 | --- | --- | --- |
-| `rgh spoof gt` | Supported | Verified live. Updates the visible local name surfaces and keeps BO2's local XUID surfaces intact. |
-| `rgh spoof remote` | Supported | Verified live. Writes BO2 remote/lobby slots 2-12 only. |
-| `rgh spoof reset` | Supported for GT/remote restore | Restores the cached or explicit local identity and can clear BO2 remote slots, but can also hand the session back out of BO2 while the title rebinds identity state. |
-| `rgh spoof xuid set` | Intentionally blocked | Full BO2 XUID/account spoof is not exposed because the deeper account/profile path is not safe enough yet. |
+| `rgh spoof gt` | Supported | Verified live. Updates the visible local name surfaces and the known BO2 local account/persona caches while keeping the title's local XUID surfaces aligned. |
+| `rgh spoof remote` | Supported | Verified live. Writes BO2 remote/lobby slots 2-12 using the current live slot layout. |
+| `rgh spoof reset` | Supported | Restores the cached or explicit local identity, reapplies the supported BO2 local cache set, and can clear BO2 remote slots. |
+| `rgh spoof xuid set` | Supported with BO2 readiness gating | Verified live once BO2's multiplayer/profile path is active. Updates the local XUID surfaces and the known BO2 account/persona caches, but it is still only a title-local memory spoof. |
 
-If you are in BO2 and need a stable spoof workflow today, use `rgh spoof gt` for the local player label and `rgh spoof remote` for lobby-slot text.
+If you are in BO2, let the game reach the multiplayer front-end or a live lobby before using `rgh spoof xuid set` or `rgh spoof reset`. These commands only change BO2's in-title identity state. They do not replace the signed-in console profile or Xbox Live account.
 
 ## Command Surface
 
@@ -43,7 +43,7 @@ Current spoof profiles are title-aware and limited to the following games:
 | --- | --- | --- | --- | --- |
 | Call of Duty: Black Ops | `0x41560855` | Yes | Yes | Yes |
 | Call of Duty: Modern Warfare 3 | `0x415608CB` | Yes | Yes | Yes |
-| Call of Duty: Black Ops II | `0x415608C3` | Yes | Disabled | Yes, slots 2-12 |
+| Call of Duty: Black Ops II | `0x415608C3` | Yes | Yes | Yes, slots 2-12 |
 | Call of Duty 4: Modern Warfare | `0x415607E6` | Yes | Yes | No |
 | Call of Duty: World at War | `0x4156081C` | Yes | Yes | No |
 | Call of Duty: Modern Warfare 2 | `0x41560817` | Yes | Yes | No |
@@ -111,8 +111,8 @@ rgh spoof xuid show
 Apply a new value:
 
 ```powershell
-rgh spoof xuid 5D83300C00000900
-rgh spoof xuid set --value 5D83300C00000900
+rgh spoof xuid <xuid>
+rgh spoof xuid set --value <xuid>
 ```
 
 Use the currently signed-in user XUID:
@@ -124,15 +124,15 @@ rgh spoof xuid set --current-user
 Send a success notification after the write:
 
 ```powershell
-rgh spoof xuid set --value 5D83300C00000900 --notify
+rgh spoof xuid set --value <xuid> --notify
 ```
 
 Example output:
 
 ```text
 Game            Call of Duty: Black Ops II
-XUID            5D83300C00000900
-Stored          000900000C30835D
+XUID            <xuid>
+Stored          <stored-xuid>
 Binary Addr     0x841E1B50
 Text Addr       0x841E1B58
 ```
@@ -140,15 +140,10 @@ Text Addr       0x841E1B58
 ### Verified limitations
 
 - The XUID path is title-specific.
-- BO2 `show` is supported, but BO2 `set` is intentionally blocked because the deeper account/profile path is not yet safe enough for release use.
-- BO2 still preserves the local binary and text XUID surfaces during a gamertag-only spoof.
+- On BO2, both `show` and `set` are supported once the title has bound its multiplayer/profile path.
+- BO2 updates the local binary and text XUID surfaces plus the known local account/persona blocks used by the title.
+- This is still a title-local memory spoof. It does not replace the signed-in console profile, Xbox Live auth state, or multiplayer entitlement checks.
 - `--current-user` requires a signed-in user to be available.
-
-Example BO2 refusal:
-
-```text
-BO2 XUID spoof is disabled: use `rgh spoof gt` for local-name spoofing and `rgh spoof remote` for lobby-slot spoofing.
-```
 
 ## `rgh spoof remote`
 
@@ -220,7 +215,7 @@ rgh spoof reset --current-user
 Restore from explicit values:
 
 ```powershell
-rgh spoof reset --gamertag Diamond KSG --xuid 5D83300C00000900
+rgh spoof reset --gamertag <gamertag> --xuid <xuid>
 ```
 
 Restore the local identity and clear the supported remote slots:
@@ -240,8 +235,8 @@ Local identity restored and remote slots cleared
 
 - `--clear-remote` only clears the supported remote slots for the current title.
 - `--current-user` requires a signed-in user to be available.
-- On BO2, `reset` is for restoring the supported GT/remote spoof state. It is not a full account handoff feature.
-- On the live validation box, BO2 `reset --clear-remote` restored the local identity but handed the session back out to Aurora instead of keeping BO2 in-place.
+- On BO2, `reset` restores the supported local GT/XUID/cache spoof state and can also clear the remote slots.
+- BO2 `reset` is not a full account handoff or Xbox Live sign-in change.
 
 ## BO2 Address Map
 
@@ -254,22 +249,28 @@ Black Ops II is the most complete spoof target and uses multiple local memory pa
 | Local XUID text | `0x841E1B58` |
 | Secondary local name | `0x81B69E94` |
 | Unicode name block | `0x81AA2DDC` |
+| Account/persona wide name | `0x81AA28FC` |
+| Account/persona wide XUID | `0x81AA291C` |
+| Account/persona text XUID | `0x81AEE9EC` |
+| Account/persona text name | `0x81AEE9FC` |
 | Refresh patch | `0x825DE240` (`60 00 00 00`) |
 | Primary BO2 stub | `0x81B69F80` |
 | Secondary BO2 stub | `0x816DD040` |
 | Remote player base | `0x841DC690` |
 | Remote player stride | `22520` bytes |
-| Remote display offset | `21676` bytes |
-| Remote mirror offset | `21812` bytes |
+| Remote display offset | `0` bytes |
+| Remote XUID binary offset | `32` bytes |
+| Remote XUID text offset | `40` bytes |
+| Remote mirror offset | `136` bytes |
 | Remote slot count | `11` |
 | Remote start slot | `1` |
 
 What this BO2 map is for:
 
-- `rgh spoof gt` changes the local in-game BO2 name surfaces.
+- `rgh spoof gt` changes the local in-game BO2 name surfaces and known local persona caches.
+- `rgh spoof xuid show` and `rgh spoof xuid set` read or write BO2's visible XUID surfaces and known local account/persona caches once the title is ready.
 - `rgh spoof remote` changes the remote/lobby slot text only.
-- `rgh spoof xuid show` can read BO2's visible XUID surfaces.
-- `rgh spoof xuid set` remains intentionally blocked on BO2.
+- `rgh spoof reset` restores the supported local spoof state and can optionally clear the remote slots.
 
 ## Live Validation Notes
 
@@ -285,12 +286,12 @@ Example BO2 validation flow:
 
 ```powershell
 rgh launch "Hdd1:\Games\Call of Duty Black Ops II\default_mp.xex" --titleid 415608C3
-rgh spoof gt NobodyEpic --notify
+rgh spoof gt ExampleTag --notify
 rgh spoof xuid show
-rgh spoof xuid 1111111111111111
-rgh spoof remote NobodyEpic --notify
+rgh spoof xuid set --value <xuid> --notify
+rgh spoof remote ExampleRemote --notify
 rgh spoof remote list
-rgh spoof reset --clear-remote
+rgh spoof reset --current-user --clear-remote
 ```
 
 ## Related Pages

@@ -343,13 +343,13 @@ internal static class Program {
             });
 
             config.AddBranch("spoof", spoof => {
-                spoof.SetDescription("Private title-aware spoof helpers. BO2 supports local GT and remote spoofing; BO2 XUID/account spoof is intentionally disabled.");
+                spoof.SetDescription("Private title-aware spoof helpers. BO2 supports local GT, local XUID, and remote spoofing.");
                 spoof.AddExample(new[] { "spoof", "reset", "--current-user", "--clear-remote" });
 
                 spoof.AddBranch("gt", gt => {
                     gt.SetDescription("Spoof the current in-game gamertag for supported titles. BO2 GT spoof is supported.");
                     gt.AddExample(new[] { "spoof", "gt", "show" });
-                    gt.AddExample(new[] { "spoof", "gt", "set", "--value", "NobodyEpic", "--notify" });
+                    gt.AddExample(new[] { "spoof", "gt", "set", "--value", "ExampleTag", "--notify" });
                     gt.AddExample(new[] { "spoof", "gt", "set", "--current-user" });
                     gt.AddExample(new[] { "spoof", "gt", "set", "--value", "ExampleTag" });
                     gt.AddCommand<GamertagSpoofShowCommand>("show").WithAlias("state").WithDescription("Show the current in-game gamertag.");
@@ -357,10 +357,10 @@ internal static class Program {
                 });
 
                 spoof.AddBranch("xuid", xuid => {
-                    xuid.SetDescription("Spoof the current in-game XUID for supported titles. BO2 XUID/account spoof is intentionally disabled.");
+                    xuid.SetDescription("Spoof the current in-game XUID for supported titles. BO2 XUID spoof is supported once the title is ready.");
                     xuid.AddExample(new[] { "spoof", "xuid", "show" });
                     xuid.AddExample(new[] { "spoof", "xuid", "set", "--current-user" });
-                    xuid.AddExample(new[] { "spoof", "xuid", "set", "--value", "5D83300C00000900" });
+                    xuid.AddExample(new[] { "spoof", "xuid", "set", "--value", "<xuid>" });
                     xuid.AddCommand<XuidSpoofShowCommand>("show").WithAlias("state").WithDescription("Show the current in-game XUID.");
                     xuid.AddCommand<XuidSpoofSetCommand>("set").WithAlias("apply").WithDescription("Apply an XUID spoof to the running title.");
                 });
@@ -369,7 +369,7 @@ internal static class Program {
                     remote.SetDescription("Remote-player text spoofing for supported titles. BO2 remote slots are exposed as 2-12.");
                     remote.AddExample(new[] { "spoof", "remote", "list" });
                     remote.AddExample(new[] { "spoof", "remote", "apply", "--slot", "1", "--text", "XeCLI" });
-                    remote.AddExample(new[] { "spoof", "remote", "apply", "--all", "--text", "NobodyEpic", "--notify" });
+                    remote.AddExample(new[] { "spoof", "remote", "apply", "--all", "--text", "ExampleRemote", "--notify" });
                     remote.AddExample(new[] { "spoof", "remote", "apply", "--all", "--text", "XeCLI-{slot}" });
                     remote.AddCommand<RemoteSpoofListCommand>("list").WithAlias("show").WithDescription("List spoofable remote slots for the current title.");
                     remote.AddCommand<RemoteSpoofApplyCommand>("apply").WithAlias("set").WithDescription("Overwrite one or more remote slot names.");
@@ -543,14 +543,6 @@ internal static class Program {
         if (args.Length == 0)
             return args;
 
-        if (string.Equals(args[0], "spoof", StringComparison.OrdinalIgnoreCase))
-            return NormalizeSpoofArgs(args);
-
-        if (string.Equals(args[0], "title", StringComparison.OrdinalIgnoreCase) &&
-            args.Skip(1).All(a => a.StartsWith("-", StringComparison.Ordinal))) {
-            return new[] { "title", "active" }.Concat(args.Skip(1)).ToArray();
-        }
-
         if (IsHelpToken(args[0])) {
             if (args.Length == 1)
                 return new[] { "--help" };
@@ -560,6 +552,14 @@ internal static class Program {
         int last = args.Length - 1;
         if (IsHelpToken(args[last]))
             return args.Take(last).Concat(new[] { "--help" }).ToArray();
+
+        if (string.Equals(args[0], "spoof", StringComparison.OrdinalIgnoreCase))
+            return NormalizeSpoofArgs(args);
+
+        if (string.Equals(args[0], "title", StringComparison.OrdinalIgnoreCase) &&
+            args.Skip(1).All(a => a.StartsWith("-", StringComparison.Ordinal))) {
+            return new[] { "title", "active" }.Concat(args.Skip(1)).ToArray();
+        }
 
         return args;
     }
@@ -589,6 +589,9 @@ internal static class Program {
             return new[] { "spoof", canonicalTopic, "show" };
 
         string action = args[2];
+        if (args.Length == 3 && IsDirectHelpOption(action))
+            return args;
+
         if (action.StartsWith("-", StringComparison.Ordinal)) {
             bool isWrite = args.Skip(2).Any(arg =>
                 arg.Equals("--value", StringComparison.OrdinalIgnoreCase) ||
@@ -612,6 +615,9 @@ internal static class Program {
             return new[] { "spoof", "remote", "list" };
 
         string action = args[2];
+        if (args.Length == 3 && IsDirectHelpOption(action))
+            return args;
+
         if (action.StartsWith("-", StringComparison.Ordinal)) {
             bool isWrite = args.Skip(2).Any(arg =>
                 arg.Equals("--slot", StringComparison.OrdinalIgnoreCase) ||
@@ -638,6 +644,12 @@ internal static class Program {
     private static bool IsHelpToken(string arg) {
         return arg.Equals("help", StringComparison.OrdinalIgnoreCase) ||
                arg.Equals("?", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsDirectHelpOption(string arg) {
+        return IsHelpToken(arg) ||
+               arg.Equals("-h", StringComparison.OrdinalIgnoreCase) ||
+               arg.Equals("--help", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsVersionRequest(string[] args) {

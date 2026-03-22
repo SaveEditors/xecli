@@ -34,7 +34,7 @@ The current features worth surfacing first are:
 | [Commands Reference](Commands.md) | Full command-by-command reference with examples |
 | [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
 | [Hardware and System Controls](Hardware-and-System.md) | Sign-in state, ring-light LEDs, fan commands, and SMC version notes |
-| [Remote Spoofing](Remote-Spoofing.md) | In-game gamertag, XUID, and remote-slot spoofing for supported titles; BO2 GT and remote spoofing are supported, BO2 XUID spoof is intentionally blocked |
+| [Remote Spoofing](Remote-Spoofing.md) | In-game gamertag, XUID, and remote-slot spoofing for supported titles; BO2 local GT, local XUID, and remote spoofing are supported as in-title memory writes |
 | [XNotify](XNotify.md) | Notification usage, icon IDs, and direct integration notes |
 | [Homebrew and USB](Homebrew-and-USB.md) | USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch |
 | [Original Xbox Compatibility](Original-Xbox-Compatibility.md) | XeFu pack selection, HddX targeting, and optional HDD Compatibility Partition Fixer staging |
@@ -89,7 +89,7 @@ The current features worth surfacing first are:
 - Status, title resolution, and profile visibility
 - Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing
 - Launch, reboot, and console notification workflows
-- Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 limited to GT + remote spoofing
+- Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 documented as a title-local spoof flow rather than a signed-in account change
 - Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs
 
 ### Live inspection and debugging

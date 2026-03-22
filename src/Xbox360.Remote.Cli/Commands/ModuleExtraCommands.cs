@@ -664,8 +664,12 @@ internal static class ModuleCommandHelpers {
 }
 
 internal static class OperationFeedback {
-    public static void WriteSuccess(string title, string detail) {
+    public static void WriteSuccess(string title) {
         AnsiConsole.MarkupLine($"[bold springgreen3_1]SUCCESS[/] [grey]{Markup.Escape(title)}[/]");
+    }
+
+    public static void WriteSuccess(string title, string detail) {
+        WriteSuccess(title);
         AnsiConsole.MarkupLine(detail);
     }
 

@@ -116,7 +116,7 @@ Execution State  start
 Title ID         0xFFFE07D1
 Title Name       Aurora
 Signed In        Yes
-Gamertag         Diamond KSG
+Gamertag         ExampleUser
 ```
 
 ### `rgh profiles`
@@ -133,7 +133,7 @@ Example output:
 
 ```text
 Signed-In Users
-User 0   Diamond KSG   state=SignedInToLive   xuid=0x5D83300C00000900
+User 0   ExampleUser   state=SignedInToLive   xuid=0x<xuid>
 
 Profiles (FTP)
 72 profile containers found across Hdd1 and Usb devices
@@ -942,8 +942,8 @@ Example output:
 ```text
 Signed In   Yes
 State       Signed in locally
-Gamertag    Diamond KSG
-XUID        0x5D83300C00000900
+Gamertag    ExampleUser
+XUID        0x<xuid>
 Slot        0
 ```
 
@@ -1081,7 +1081,7 @@ Example output:
 
 ```text
 Game            Call of Duty: Black Ops II
-Gamertag        Diamond KSG
+Gamertag        ExampleTag
 Address         0x841E1B30
 ```
 
@@ -1099,31 +1099,26 @@ Spoof confirmation notifications use the bottom position by default when `--noti
 
 ```powershell
 rgh spoof xuid
-rgh spoof xuid 5D83300C00000900
-rgh spoof xuid set --value 5D83300C00000900
+rgh spoof xuid <xuid>
+rgh spoof xuid set --value <xuid>
 ```
 
 Example output:
 
 ```text
 Game            Call of Duty: Black Ops II
-XUID            5D83300C00000900
-Stored          000900000C30835D
+XUID            <xuid>
+Stored          <stored-xuid>
 Binary Addr     0x841E1B50
 Text Addr       0x841E1B58
 ```
 
-BO2 is the exception here:
+BO2 notes:
 
-- `rgh spoof xuid show` is supported on BO2
-- `rgh spoof xuid set` is intentionally blocked on BO2
-- use `rgh spoof gt` for the local BO2 player label and `rgh spoof remote` for BO2 lobby slots
-
-BO2 refusal example:
-
-```text
-BO2 XUID spoof is disabled: use `rgh spoof gt` for local-name spoofing and `rgh spoof remote` for lobby-slot spoofing.
-```
+- `rgh spoof xuid show` and `rgh spoof xuid set` are supported on BO2
+- run them after BO2 has reached the multiplayer front-end or a live lobby
+- XeCLI updates the visible local XUID surfaces plus the known BO2 account/persona caches
+- this remains an in-title memory spoof, not a real signed-in Xbox Live account swap or entitlement change
 
 ### `rgh spoof remote`
 Overwrites remote-player text slots for supported titles. The simple positional form applies the same text to every supported slot in the current title. This does not change the local in-game gamertag block.
@@ -1162,7 +1157,7 @@ On BO2, `reset` is the supported path for restoring the local GT spoof state and
 
 ```powershell
 rgh spoof reset --current-user
-rgh spoof reset --gamertag Diamond KSG --xuid 5D83300C00000900
+rgh spoof reset --gamertag <gamertag> --xuid <xuid>
 rgh spoof reset --current-user --clear-remote
 ```
 
@@ -1343,7 +1338,7 @@ Example output:
 
 ```text
 Avatar download 3 item(s) file 2/3 | Destination Arcade - 0000020800069131C14650A158410A5D: 21%
-Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+Current user: ExampleUser | XUID: 0x<xuid> | State: Signed in to Xbox Live
 SUCCESS Avatar install complete
 3 item(s)  512 KB -> /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
 ```
@@ -1401,7 +1396,7 @@ Validated install proofs:
 Example output:
 
 ```text
-Current user: Diamond KSG | XUID: 0x5D83300C00000900 | State: Signed in to Xbox Live
+Current user: ExampleUser | XUID: 0x<xuid> | State: Signed in to Xbox Live
 SUCCESS Avatar install complete
 1 item(s)  116 KB -> /Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3 via XBDM
 ```

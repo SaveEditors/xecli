@@ -47,8 +47,8 @@ Representative output:
 ```text
 Signed In   Yes
 State       Signed in locally
-Gamertag    Diamond KSG
-XUID        0x5D83300C00000900
+Gamertag    ExampleUser
+XUID        0x<xuid>
 Slot        0
 ```
 

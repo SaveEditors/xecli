@@ -589,9 +589,7 @@ public sealed class RebootCommand : AsyncCommand<RebootCommand.Settings> {
         string mode = settings.Title ? "title" : "cold";
         return await CliHelpers.WithClientOnceAsync(settings, async client => {
             await client.SendCommandAsync($"magicboot {mode}", CancellationToken.None);
-            OperationFeedback.WriteSuccess(
-                settings.Title ? "Title reboot requested" : "Cold reboot requested",
-                settings.Title ? "[cyan]Current title restart requested.[/]" : "[cyan]Full console reboot requested.[/]");
+            OperationFeedback.WriteSuccess(settings.Title ? "Title reboot requested" : "Cold reboot requested");
             await NotifyHelpers.TrySendOperationNotificationAsync(
                 client,
                 settings.Notify,

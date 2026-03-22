@@ -1,9 +1,11 @@
 ## XeCLI Wiki
 
 - [Home](Home)
+- [Latest Features](Latest-Features)
 
 ## Getting Started
 - [Beginner Guide](Beginner-Guide)
+- [FTP and File Transfer](FTP-and-File-Transfer)
 - [Commands Reference](Commands)
 - [CLI Help Output](CLI-Help)
 - [Hardware and System Controls](Hardware-and-System)

@@ -8,7 +8,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-blueviolet)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/Platform-Xbox%20360%20RGH%2FJTAG-orange)](https://github.com/SaveEditors/xecli)
 
-XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit built for live console work. It combines XBDM, JRPC2, FTP, XEX tooling, memory inspection, module control, screenshot capture, Ghidra headless automation, and Games on Demand conversion in one CLI and one release package.
+XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit built for live console work. It combines XBDM, JRPC2, FTP, avatar browsing and remote avatar downloads, XEX tooling, memory inspection, module control, screenshot capture, Ghidra headless automation, and Games on Demand conversion in one CLI and one release package. The same command surface also works cleanly from terminal agents such as Claude and Codex when you want repeatable console automation instead of a GUI-only workflow.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
@@ -25,6 +25,8 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 
 ## Documentation
 - [Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)
+- [Latest Features](https://saveeditors.github.io/xecli/wiki/Latest-Features.html)
+- [FTP and File Transfer](https://saveeditors.github.io/xecli/wiki/FTP-and-File-Transfer.html)
 - [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html)
 - [CLI Help Output](https://saveeditors.github.io/xecli/wiki/CLI-Help.html)
 - [Beginner Guide](https://saveeditors.github.io/xecli/wiki/Beginner-Guide.html)
@@ -34,7 +36,14 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - [Original Xbox Compatibility](https://saveeditors.github.io/xecli/wiki/Original-Xbox-Compatibility.html)
 - [Avatar Item Collection](https://saveeditors.github.io/xecli/wiki/Avatar-Item-Collection.html)
 - [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html)
+- [Integrations](https://saveeditors.github.io/xecli/wiki/Integrations.html)
 - [Published Docs Site](https://saveeditors.github.io/xecli/wiki/)
+
+## High-Value Workflows
+- FTP and file work: save a target once, then browse, search, pull, push, rename, and delete directly from `rgh`.
+- Avatar downloader and installer: use the local or hosted `Avatar-Item-Collection`, browse by game or item, cache remote packages, patch ownership, and install to the console.
+- Claude/Codex-friendly automation: drive `rgh` from terminal agents, shell scripts, or companion tools with explicit commands and `--json` output where supported.
+- Live debugging and reverse engineering: inspect modules, memory, threads, breakpoints, screenshots, XEX dumps, and Ghidra output without switching tools.
 
 ## Release Changelog
 ### v1.0.3 Original Xbox Compatibility Update
@@ -144,10 +153,12 @@ Live inspection and debugging:
 
 File and content workflows:
 
-- XBDM file-system access and FTP access.
+- XBDM file-system access and saved-target FTP workflows.
+- FTP list, find, get, put, cat, mkdir, move, and delete operations through `rgh ftp ...`.
 - Save listing, extraction, and injection.
 - Installed-content inventory and deletion.
 - DashLaunch plugin listing and slot management.
+- Avatar library browsing, hosted remote downloads, ownership patching, and console-side installs.
 - Public homebrew package staging for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch through `rgh homebrew install <package>`, either to USB/folder targets or directly onto detected console drives, with a confirmation prompt unless `--auto-confirm` is used.
 - Original Xbox compatibility staging and install through `rgh ogxbox install <hacked|hud|retail>`, with public XeFu pack downloads, optional HDD Compatibility Partition Fixer support, and `HddX:\Compatibility` targeting.
 
@@ -163,6 +174,7 @@ Packaging and automation:
 - ISO to Games on Demand conversion.
 - Folder watchdog for unattended ISO processing.
 - JSON output on automation-friendly commands.
+- Command-based orchestration from scripts, Claude, Codex, or companion tools.
 - Command-based avatar browsing, remote-hosted downloads, and console-side avatar item installs.
 - A bundled Title ID database that other tools can consume directly.
 

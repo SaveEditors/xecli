@@ -11,6 +11,30 @@ There are three useful ways to integrate with XeCLI:
 
 Use the smallest integration surface that solves the problem.
 
+## Claude, Codex, and Terminal Agents
+XeCLI fits Claude, Codex, and other terminal agents because the command surface is explicit, copy-paste friendly, and often exposes `--json` for structured output.
+
+Good agent tasks:
+
+- connect to the saved console target and verify live state
+- capture screenshots or pull files for local analysis
+- run repeatable FTP-backed maintenance steps
+- dump the running XEX and feed it into a Ghidra workflow
+- collect sign-in, title, module, or content snapshots for another tool
+
+Recommended pattern:
+
+```powershell
+rgh connect <console-ip>
+rgh ftp target --set <console-ip> --user <ftp-user> --pass <ftp-pass>
+rgh status --json
+rgh title --json
+rgh screenshot --out .\screen.bmp
+rgh ftp list --path /Hdd1/
+```
+
+Avoid interactive flows such as `rgh start`, `rgh avatar choose`, or confirmation-gated destructive commands when the caller is an unattended agent. Prefer explicit arguments and JSON output where available.
+
 ## Use the CLI Directly
 XeCLI is useful as an orchestration backend when your tool needs live console interaction but you do not want to duplicate transport code.
 
@@ -200,6 +224,7 @@ Reimplement only if:
 | Notification banner on console | `rgh notify` |
 | Session/hardware indicator | `rgh led set` |
 | File pull/push | `rgh ftp ...` or `rgh fs ...` |
+| Claude/Codex automation | `rgh status --json`, `rgh title --json`, `rgh ftp ...`, `rgh screenshot` |
 | Running-XEX acquisition | `rgh xex dump` |
 | Decompile pipeline | `rgh ghidra decompile` + `rgh ghidra verify --json` |
 | Save backup/import | `rgh save extract` / `rgh save inject` |

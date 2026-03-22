@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" >
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -77,6 +77,25 @@
 <li>Read the bundled metadata files directly.</li>
 </ol>
 <p>Use the smallest integration surface that solves the problem.</p>
+<h2 id="claude-codex-and-terminal-agents">Claude, Codex, and Terminal Agents</h2>
+<p>XeCLI fits Claude, Codex, and other terminal agents because the command surface is explicit, copy-paste friendly, and often exposes <code>--json</code> for structured output.</p>
+<p>Good agent tasks:</p>
+<ul>
+<li>connect to the saved console target and verify live state</li>
+<li>capture screenshots or pull files for local analysis</li>
+<li>run repeatable FTP-backed maintenance steps</li>
+<li>dump the running XEX and feed it into a Ghidra workflow</li>
+<li>collect sign-in, title, module, or content snapshots for another tool</li>
+</ul>
+<p>Recommended pattern:</p>
+<pre><code class="language-powershell">rgh connect &lt;console-ip&gt;
+rgh ftp target --set &lt;console-ip&gt; --user &lt;ftp-user&gt; --pass &lt;ftp-pass&gt;
+rgh status --json
+rgh title --json
+rgh screenshot --out .\screen.bmp
+rgh ftp list --path /Hdd1/
+</code></pre>
+<p>Avoid interactive flows such as <code>rgh start</code>, <code>rgh avatar choose</code>, or confirmation-gated destructive commands when the caller is an unattended agent. Prefer explicit arguments and JSON output where available.</p>
 <h2 id="use-the-cli-directly">Use the CLI Directly</h2>
 <p>XeCLI is useful as an orchestration backend when your tool needs live console interaction but you do not want to duplicate transport code.</p>
 <p>Good examples:</p>
@@ -257,6 +276,10 @@ rgh led set --preset quadrant1
 <tr>
 <td>File pull/push</td>
 <td><code>rgh ftp ...</code> or <code>rgh fs ...</code></td>
+</tr>
+<tr>
+<td>Claude/Codex automation</td>
+<td><code>rgh status --json</code>, <code>rgh title --json</code>, <code>rgh ftp ...</code>, <code>rgh screenshot</code></td>
 </tr>
 <tr>
 <td>Running-XEX acquisition</td>

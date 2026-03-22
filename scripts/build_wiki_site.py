@@ -18,7 +18,9 @@ SITE_GROUPS = [
         "title": "Getting Started",
         "pages": [
             ("Home", "Home.md"),
+            ("Latest Features", "Latest-Features.md"),
             ("Beginner Guide", "Beginner-Guide.md"),
+            ("FTP and File Transfer", "FTP-and-File-Transfer.md"),
             ("Commands Reference", "Commands.md"),
             ("CLI Help Output", "CLI-Help.md"),
             ("Hardware and System Controls", "Hardware-and-System.md"),

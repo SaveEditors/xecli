@@ -73,6 +73,8 @@ If you use FTP features, set that target too:
 rgh ftp target --set <console-ip> --user <ftp-user> --pass <ftp-pass>
 ```
 
+Read [FTP-and-File-Transfer.md](FTP-and-File-Transfer.md) if you want the full FTP command set and the guidance on when to use FTP instead of `rgh fs`.
+
 ## 4. Confirm the Console Is Reachable
 ```powershell
 rgh ping
@@ -135,6 +137,8 @@ List DashLaunch plugins:
 ```powershell
 rgh plugin list
 ```
+
+Read [FTP-and-File-Transfer.md](FTP-and-File-Transfer.md) for the broader file and storage workflow.
 
 ## 8. Install or Stage Homebrew
 XeCLI can either stage the common public dashboards and tools to a USB drive or folder, or install them directly onto a detected console drive.

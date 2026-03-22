@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -77,6 +77,15 @@
 <li><code>rgh avatar browse</code> for a Windows picker with search, filters, multi-select, and install</li>
 </ul>
 <p><code>rgh avatar install</code> remains the direct path for explicit one-item or full-title installs. <code>--remote</code> switches the same workflow to the hosted <code>Avatar-Item-Collection</code> repository with local caching.</p>
+<h2 id="latest-features">Latest Features</h2>
+<p>The current features worth surfacing first are:</p>
+<ul>
+<li><a href="FTP-and-File-Transfer.html">FTP and File Transfer</a> for saved FTP targets and the full <code>rgh ftp ...</code> workflow.</li>
+<li><a href="Avatar-Item-Collection.html">Avatar Item Collection</a> for local or hosted avatar downloads, browsing, and install planning.</li>
+<li><a href="Integrations.html">Integrations</a> for Claude, Codex, and other terminal-agent or script-driven workflows.</li>
+<li><a href="Advanced-Guide.html">Advanced Guide</a> for live debugging, memory inspection, XEX dumping, and Ghidra usage.</li>
+<li><a href="Latest-Features.html">Latest Features</a> for a concise overview page that links these workflows together.</li>
+</ul>
 <h2 id="documentation-index">Documentation Index</h2>
 <h3 id="getting-started">Getting Started</h3>
 <table>
@@ -88,8 +97,16 @@
 </thead>
 <tbody>
 <tr>
+<td><a href="Latest-Features.html">Latest Features</a></td>
+<td>Current standout workflows to surface in the README, sidebar, and docs landing pages</td>
+</tr>
+<tr>
 <td><a href="Beginner-Guide.html">Beginner Guide</a></td>
 <td>Safe first-run workflow: install, discovery, connect, status, and basic operations</td>
+</tr>
+<tr>
+<td><a href="FTP-and-File-Transfer.html">FTP and File Transfer</a></td>
+<td>Saved FTP targets, browse/find/get/put workflows, and when to use FTP instead of <code>rgh fs</code></td>
 </tr>
 <tr>
 <td><a href="Commands.html">Commands Reference</a></td>
@@ -167,7 +184,7 @@
 <tbody>
 <tr>
 <td><a href="Integrations.html">Integrations</a></td>
-<td>Reusing XeCLI from scripts and external tools</td>
+<td>Reusing XeCLI from scripts, Claude/Codex sessions, and external tools</td>
 </tr>
 <tr>
 <td><a href="Title-ID-Database.html">Title ID Database</a></td>
@@ -183,9 +200,10 @@
 <h3 id="new-user-path">New user path</h3>
 <ol>
 <li><a href="Beginner-Guide.html">Beginner Guide</a></li>
+<li><a href="Latest-Features.html">Latest Features</a></li>
+<li><a href="FTP-and-File-Transfer.html">FTP and File Transfer</a></li>
 <li><a href="Commands.html">Commands Reference</a></li>
 <li><a href="Hardware-and-System.html">Hardware and System Controls</a></li>
-<li><a href="Remote-Spoofing.html">Remote Spoofing</a></li>
 <li><a href="XNotify.html">XNotify</a></li>
 <li><a href="CLI-Help.html">CLI Help Output</a></li>
 <li><a href="Troubleshooting.html">Troubleshooting</a></li>
@@ -226,7 +244,7 @@
 <h3 id="storage-and-content">Storage and content</h3>
 <ul>
 <li>XBDM file-system operations</li>
-<li>FTP-based browsing, transfer, and content discovery</li>
+<li>FTP-based browsing, transfer, search, and content discovery</li>
 <li>Save extraction and injection</li>
 <li>DashLaunch plugin slot management</li>
 <li>USB/folder staging or direct console installs with <code>rgh homebrew install aurora|dashlaunch|xexmenu|fsd|xm360|timefixer|simple360|xelllaunch|all</code></li>
@@ -239,6 +257,7 @@
 <li>Ghidra headless analysis and decompile export</li>
 <li>ISO to Games on Demand conversion with watchdog mode</li>
 <li>Bundled Title ID metadata for richer output and external tool reuse</li>
+<li>Command-based reuse from scripts, Claude/Codex, and companion tools</li>
 <li>Avatar item catalog reuse for external launchers, installers, and companion tools</li>
 </ul>
 <h2 id="scope-boundaries">Scope Boundaries</h2>

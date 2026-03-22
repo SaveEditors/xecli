@@ -13,12 +13,24 @@ Avatar workflows in the shipped release now support both:
 
 `rgh avatar install` remains the direct path for explicit one-item or full-title installs. `--remote` switches the same workflow to the hosted `Avatar-Item-Collection` repository with local caching.
 
+## Latest Features
+
+The current features worth surfacing first are:
+
+- [FTP and File Transfer](FTP-and-File-Transfer.md) for saved FTP targets and the full `rgh ftp ...` workflow.
+- [Avatar Item Collection](Avatar-Item-Collection.md) for local or hosted avatar downloads, browsing, and install planning.
+- [Integrations](Integrations.md) for Claude, Codex, and other terminal-agent or script-driven workflows.
+- [Advanced Guide](Advanced-Guide.md) for live debugging, memory inspection, XEX dumping, and Ghidra usage.
+- [Latest Features](Latest-Features.md) for a concise overview page that links these workflows together.
+
 ## Documentation Index
 
 ### Getting Started
 | Page | Purpose |
 | --- | --- |
+| [Latest Features](Latest-Features.md) | Current standout workflows to surface in the README, sidebar, and docs landing pages |
 | [Beginner Guide](Beginner-Guide.md) | Safe first-run workflow: install, discovery, connect, status, and basic operations |
+| [FTP and File Transfer](FTP-and-File-Transfer.md) | Saved FTP targets, browse/find/get/put workflows, and when to use FTP instead of `rgh fs` |
 | [Commands Reference](Commands.md) | Full command-by-command reference with examples |
 | [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
 | [Hardware and System Controls](Hardware-and-System.md) | Sign-in state, ring-light LEDs, fan commands, and SMC version notes |
@@ -40,7 +52,7 @@ Avatar workflows in the shipped release now support both:
 ### Data and Integrations
 | Page | Purpose |
 | --- | --- |
-| [Integrations](Integrations.md) | Reusing XeCLI from scripts and external tools |
+| [Integrations](Integrations.md) | Reusing XeCLI from scripts, Claude/Codex sessions, and external tools |
 | [Title ID Database](Title-ID-Database.md) | Bundled metadata files and how other tools can consume them |
 | [FAQ](FAQ.md) | Short answers to common setup and usage questions |
 
@@ -48,14 +60,15 @@ Avatar workflows in the shipped release now support both:
 
 ### New user path
 1. [Beginner Guide](Beginner-Guide.md)
-2. [Commands Reference](Commands.md)
-3. [Hardware and System Controls](Hardware-and-System.md)
-4. [Remote Spoofing](Remote-Spoofing.md)
-5. [XNotify](XNotify.md)
-6. [CLI Help Output](CLI-Help.md)
-7. [Troubleshooting](Troubleshooting.md)
-8. [Homebrew and USB](Homebrew-and-USB.md)
-9. [Original Xbox Compatibility](Original-Xbox-Compatibility.md)
+2. [Latest Features](Latest-Features.md)
+3. [FTP and File Transfer](FTP-and-File-Transfer.md)
+4. [Commands Reference](Commands.md)
+5. [Hardware and System Controls](Hardware-and-System.md)
+6. [XNotify](XNotify.md)
+7. [CLI Help Output](CLI-Help.md)
+8. [Troubleshooting](Troubleshooting.md)
+9. [Homebrew and USB](Homebrew-and-USB.md)
+10. [Original Xbox Compatibility](Original-Xbox-Compatibility.md)
 
 ### Reverse-engineering path
 1. [Advanced Guide](Advanced-Guide.md)
@@ -87,7 +100,7 @@ Avatar workflows in the shipped release now support both:
 
 ### Storage and content
 - XBDM file-system operations
-- FTP-based browsing, transfer, and content discovery
+- FTP-based browsing, transfer, search, and content discovery
 - Save extraction and injection
 - DashLaunch plugin slot management
 - USB/folder staging or direct console installs with `rgh homebrew install aurora|dashlaunch|xexmenu|fsd|xm360|timefixer|simple360|xelllaunch|all`
@@ -99,6 +112,7 @@ Avatar workflows in the shipped release now support both:
 - Ghidra headless analysis and decompile export
 - ISO to Games on Demand conversion with watchdog mode
 - Bundled Title ID metadata for richer output and external tool reuse
+- Command-based reuse from scripts, Claude/Codex, and companion tools
 - Avatar item catalog reuse for external launchers, installers, and companion tools
 
 ## Scope Boundaries

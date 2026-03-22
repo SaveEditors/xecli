@@ -34,6 +34,7 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - [XNotify](https://saveeditors.github.io/xecli/wiki/XNotify.html)
 - [Homebrew and USB](https://saveeditors.github.io/xecli/wiki/Homebrew-and-USB.html)
 - [Original Xbox Compatibility](https://saveeditors.github.io/xecli/wiki/Original-Xbox-Compatibility.html)
+- [Fatman](https://saveeditors.github.io/xecli/wiki/FATX-Manager.html)
 - [Avatar Item Collection](https://saveeditors.github.io/xecli/wiki/Avatar-Item-Collection.html)
 - [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html)
 - [Integrations](https://saveeditors.github.io/xecli/wiki/Integrations.html)
@@ -46,6 +47,13 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - Live debugging and reverse engineering: inspect modules, memory, threads, breakpoints, screenshots, XEX dumps, and Ghidra output without switching tools.
 
 ## Release Changelog
+### v1.0.4 Fatman Update
+- Added `rgh fatman` as XeCLI's integrated FATX image and storage manager, with `rgh fatx` kept as the documented alias for users who prefer the filesystem term directly.
+- Added read-only FATX/XTAF image recovery commands for `devices`, `partitions`, `scan`, `info`, `list`, `find`, `cat`, `get`, `extract`, and `dump`.
+- Added manual-open support with `--offset` and `--length` so nonstandard, partial, or dev HDD images can be inspected directly by byte range instead of relying only on the retail partition map.
+- Added `rgh fatman scan` to surface plausible FATX/XTAF header offsets before manual-open workflows.
+- Added the [Fatman](https://saveeditors.github.io/xecli/wiki/FATX-Manager.html) wiki page and updated the README, Home, Commands Reference, CLI Help, and sidebar so the new image-recovery workflow is documented consistently.
+
 ### v1.0.3 Original Xbox Compatibility Update
 - Added `rgh ogxbox list` and `rgh ogxbox install <hacked|hud|retail>` so XeCLI can stage or install the three public XeFu compatibility packs with user-facing descriptions instead of leaving that setup manual.
 - Added optional HDD Compatibility Partition Fixer staging and direct console deployment support, including `HddX:\Compatibility` targeting for the compatibility files and automatic placement of the fixer on a writable console drive when needed.
@@ -119,7 +127,7 @@ Bundled assets:
 - `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
 - `src/Xbox360.Remote.Cli/ghidra_scripts/DecompileAllToC.java`
 
-At publish time, these assets are copied into the release output so the package remains self-contained. The hosted avatar corpus itself lives separately at [SaveEditors/Avatar-Item-Collection](https://github.com/SaveEditors/Avatar-Item-Collection).
+Published releases include these assets so the package stays self-contained. The hosted avatar corpus itself lives separately at [SaveEditors/Avatar-Item-Collection](https://github.com/SaveEditors/Avatar-Item-Collection).
 
 ## What the Console Must Provide
 XeCLI ships the expected console-side plugin payload in the repository and release package so users can deploy the exact versions the tool was built and tested against:
@@ -296,6 +304,60 @@ dotnet run --project src/Xbox360.Remote.Cli -- --help
 ```
 
 Source builds require the .NET 10 SDK/runtime. That requirement does not apply to the published `win-x64` release archive.
+
+## Fatman
+Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on inspection, image recovery, partition dumping, search, and export, not on write, mount, or repair operations.
+
+Current workflow:
+
+- detect FATX-capable disks or image sources
+- inspect partitions and volume details
+- browse directories and locate entries
+- search by name or path
+- recover data from `.img` and `.bin` sources
+- print small files in the terminal
+- dump partitions to a host directory
+- export selected files or directory trees to the host
+
+Current command surface:
+
+```powershell
+rgh fatman devices
+rgh fatman partitions
+rgh fatman scan
+rgh fatman info
+rgh fatman list
+rgh fatman find
+rgh fatman cat
+rgh fatman get
+rgh fatman extract
+rgh fatman dump
+```
+
+`rgh fatx` remains a supported alias for the same command group.
+
+Manual-open workflow:
+
+- use `--offset` to open a FATX/XTAF volume directly from a byte offset
+- use `--length` with `--offset` when you want to clamp the manual partition range
+- offsets and lengths accept decimal bytes or `0x`-prefixed hex
+- use `rgh fatman scan` first when you need help finding plausible FATX/XTAF header offsets
+
+Examples:
+
+```powershell
+rgh fatman scan --image .\hdd.img
+rgh fatman info --image .\hdd.img --offset 0xB6600000
+rgh fatman list --image .\hdd.img --offset 0xB6600000 --path /
+rgh fatman dump --image .\hdd.img --offset 0xB6600000 --length 0x10000000 --out .\partition-dump
+```
+
+Read [Fatman](https://saveeditors.github.io/xecli/wiki/FATX-Manager.html) for the read-only scope and the current documentation shell.
+
+Validation note:
+
+- the runtime has been verified against a synthetic FATX fixture image
+- manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where `Fatman` surfaced real `XTAF` offsets and opened the compatibility volume by bounded offset
 
 ## Quick Start
 Recommended first run:

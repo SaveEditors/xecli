@@ -19,6 +19,7 @@ Use this table when you know the job you need done but not the exact command nam
 | Push files to the console | `rgh fs put`, `rgh ftp put`, `rgh save inject`, `rgh plugin enable` |
 | Manage saves | `rgh save list`, `rgh save extract`, `rgh save inject` |
 | Manage title content or DashLaunch plugins | `rgh content ...`, `rgh plugin ...` |
+| Inspect local Fatman disks or images | `rgh fatman devices`, `rgh fatman partitions`, `rgh fatman scan`, `rgh fatman info`, `rgh fatman list`, `rgh fatman find`, `rgh fatman cat`, `rgh fatman get`, `rgh fatman extract`, `rgh fatman dump` |
 | Stage Original Xbox compatibility packs | `rgh ogxbox list`, `rgh ogxbox install hacked|hud|retail` |
 | Browse or install avatar items from the local or hosted collection | `rgh avatar library ...`, `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install` |
 | Send visible console messages | `rgh notify`, `rgh notify-icons`, `rgh jrpc2 notify` |
@@ -32,6 +33,7 @@ XeCLI is organized into a few major namespaces:
 - XBDM-backed commands: modules, memory, threads, debug, screenshot, file system
 - JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC
 - FTP-backed commands: file access, saves, content, and plugin management
+- Fatman manager: read-only local disk or image inspection and export
 - Analysis commands: XEX, Ghidra, metadata
 - Packaging commands: Games on Demand conversion and watchdog mode
 
@@ -44,6 +46,8 @@ Shortcut equivalence:
 - `rgh fs` = `rgh xbdm fs`
 - `rgh threads` = `rgh xbdm threads`
 - `rgh debug` = `rgh xbdm debug`
+- `rgh fatman` = local FATX manager for disks and images
+- `rgh fatx` = alias of `rgh fatman`
 
 High-traffic aliases:
 
@@ -59,6 +63,7 @@ High-traffic aliases:
 - `rgh module remove` = `rgh modules unload`
 - `rgh module verify` = `rgh modules pending`
 - `rgh avatar apply` = `rgh avatar install`
+- `rgh fatx` = alias of `rgh fatman`
 
 For the exact top-level help screen and the exact help output of every top-level command group, see [CLI-Help.md](CLI-Help.md).
 
@@ -389,6 +394,69 @@ Important options:
 - `--json` emits machine-readable install output
 
 If `HddX` is missing and `--include-fixer` is not used, XeCLI stops before writing anything and tells you to rerun with the fixer included.
+
+## Fatman
+Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.
+
+### Current command surface
+```powershell
+rgh fatman devices
+rgh fatman partitions
+rgh fatman scan
+rgh fatman info
+rgh fatman list
+rgh fatman find
+rgh fatman cat
+rgh fatman get
+rgh fatman extract
+rgh fatman dump
+```
+
+### Manual open by offset
+- use `--offset` to open a FATX/XTAF volume directly from a byte offset
+- use `--length` with `--offset` when you want to clamp the manual partition size
+- both values accept decimal bytes or `0x`-prefixed hex
+- use `rgh fatman scan` first when you need candidate offsets for a nonstandard image
+
+```powershell
+rgh fatman scan --image .\Unknown.img
+rgh fatman info --image .\Unknown.img --offset 0xB6600000
+rgh fatman list --image .\Unknown.img --offset 0xB6600000 --path /
+rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --out .\partition-dump
+```
+
+### What it will do
+- detect FATX-capable disks or image sources
+- inspect partitions and volume details
+- browse directories and locate entries
+- search by name or path
+- recover data from `.img` and `.bin` sources
+- print small files in the terminal
+- dump partitions to a host directory
+- export selected files or directory trees to the host
+
+### Validation note
+- the runtime has been verified against a synthetic FATX fixture image
+- manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real `XTAF` offsets and opened the compatibility volume by bounded offset
+
+### What it does not do in the first cut
+- write files back to FATX volumes
+- format or repartition disks
+- mount a virtual filesystem
+- repair damaged volumes
+- modify security sectors or low-level disk metadata
+
+### Example output
+```text
+Fatman Sources
+0  Disk 0  932.51 GB  Xbox 360 HDD
+1  Disk 1   32.00 GB  USB Flash Drive
+
+Selected source: Disk 0 / Hdd1
+Partitions:
+Hdd1  419.41 GB  FATX
+HddX    1.00 GB  FATX
+```
 
 ## Discovery Commands
 ### `rgh start`

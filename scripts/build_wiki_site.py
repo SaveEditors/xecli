@@ -28,6 +28,7 @@ SITE_GROUPS = [
             ("XNotify", "XNotify.md"),
             ("Homebrew and USB", "Homebrew-and-USB.md"),
             ("Original Xbox Compatibility", "Original-Xbox-Compatibility.md"),
+            ("Fatman", "FATX-Manager.md"),
             ("Avatar Item Collection", "Avatar-Item-Collection.md"),
             ("Troubleshooting", "Troubleshooting.md"),
         ],

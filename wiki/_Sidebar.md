@@ -13,6 +13,7 @@
 - [XNotify](XNotify)
 - [Homebrew and USB](Homebrew-and-USB)
 - [Original Xbox Compatibility](Original-Xbox-Compatibility)
+- [Fatman](FATX-Manager)
 
 ## Technical Reference
 - [Advanced Guide](Advanced-Guide)

@@ -53,6 +53,8 @@ EXAMPLES:
     rgh homebrew install aurora --usb E:
     rgh homebrew install all --usb E: --auto-confirm
     rgh ogxbox install hacked --include-fixer --usb E:
+    rgh fatman devices
+    rgh fatx dump --image .\Hdd1.img --out .\recovery
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -97,6 +99,8 @@ COMMANDS:
     content         Installed content management over FTP
     homebrew        Download public homebrew packages to USB, a folder, or the console
     ogxbox          Original Xbox compatibility pack installer for HddX:\Compatibility
+    fatman          Read-only FATX manager for local disks and images
+    fatx            Alias of `rgh fatman`
     avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
@@ -106,6 +110,63 @@ COMMANDS:
 Avatar browsing in the shipped build now has both a terminal path and a Windows picker. Use `rgh avatar choose` for terminal selection, `rgh avatar browse` for the Windows picker, and `rgh avatar install` for direct one-item or full-title installs. Add `--remote` to use the hosted `Avatar-Item-Collection` repo with local caching and progress bars.
 
 Original Xbox compatibility is intentionally separate from normal homebrew installs. Use `rgh ogxbox install hacked|hud|retail` for the three public XeFu sets, and add `--include-fixer` when you also want the HDD Compatibility Partition Fixer staged.
+
+## Fatman
+Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.
+
+Current command surface:
+
+```text
+rgh fatman devices
+rgh fatman partitions
+rgh fatman scan
+rgh fatman info
+rgh fatman list
+rgh fatman find
+rgh fatman cat
+rgh fatman get
+rgh fatman extract
+rgh fatman dump
+```
+
+`rgh fatx` is the documented alias for the same command group.
+
+Manual-open workflow:
+
+- use `--offset` to open a FATX/XTAF volume directly from a byte offset
+- use `--length` with `--offset` when you want to clamp the manual partition size
+- both values accept decimal bytes or `0x`-prefixed hex
+- use `rgh fatman scan` first when you need candidate offsets for a nonstandard image
+
+```powershell
+rgh fatman scan --image .\Unknown.img
+rgh fatman info --image .\Unknown.img --offset 0xB6600000
+rgh fatman list --image .\Unknown.img --offset 0xB6600000 --path /
+rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --out .\partition-dump
+```
+
+What it does:
+
+- detect FATX-capable disks or image sources
+- inspect partitions and volume details
+- browse directories and locate entries
+- search by name or path
+- print small files in the terminal
+- export selected files or directory trees to the host
+- recover data from `.img` and `.bin` sources
+
+Validation note:
+
+- the runtime has been verified against a synthetic FATX fixture image
+- manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real `XTAF` offsets and opened the compatibility volume by bounded offset
+
+What it does not do in the first cut:
+
+- write files back to FATX volumes
+- format or repartition disks
+- mount a virtual filesystem
+- repair damaged volumes
+- modify security sectors or low-level disk metadata
 
 ## Shortcut Map
 These shortcut groups are not separate implementations. They are direct shortcuts for the canonical XBDM branches.

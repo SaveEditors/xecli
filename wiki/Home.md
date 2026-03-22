@@ -1,6 +1,6 @@
 # XeCLI Wiki
 
-XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
+XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, Fatman, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
 
 The local source tree is the canonical behavior model for these pages. If a feature is documented here, it should match the shipped release and the current repo state unless a page says otherwise.
 
@@ -38,6 +38,7 @@ The current features worth surfacing first are:
 | [XNotify](XNotify.md) | Notification usage, icon IDs, and direct integration notes |
 | [Homebrew and USB](Homebrew-and-USB.md) | USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch |
 | [Original Xbox Compatibility](Original-Xbox-Compatibility.md) | XeFu pack selection, HddX targeting, and optional HDD Compatibility Partition Fixer staging |
+| [Fatman](FATX-Manager.md) | Read-only FATX image and storage recovery with `rgh fatman` or the `rgh fatx` alias |
 | [Avatar Item Collection](Avatar-Item-Collection.md) | Local and hosted avatar corpus naming, browser flows, layout, and install model |
 | [Troubleshooting](Troubleshooting.md) | Failure cases, common console/plugin issues, and recovery paths |
 
@@ -61,14 +62,15 @@ The current features worth surfacing first are:
 ### New user path
 1. [Beginner Guide](Beginner-Guide.md)
 2. [Latest Features](Latest-Features.md)
-3. [FTP and File Transfer](FTP-and-File-Transfer.md)
-4. [Commands Reference](Commands.md)
-5. [Hardware and System Controls](Hardware-and-System.md)
+3. [Commands Reference](Commands.md)
+4. [Hardware and System Controls](Hardware-and-System.md)
+5. [Remote Spoofing](Remote-Spoofing.md)
 6. [XNotify](XNotify.md)
 7. [CLI Help Output](CLI-Help.md)
 8. [Troubleshooting](Troubleshooting.md)
 9. [Homebrew and USB](Homebrew-and-USB.md)
 10. [Original Xbox Compatibility](Original-Xbox-Compatibility.md)
+11. [Fatman](FATX-Manager.md)
 
 ### Reverse-engineering path
 1. [Advanced Guide](Advanced-Guide.md)
@@ -101,6 +103,7 @@ The current features worth surfacing first are:
 ### Storage and content
 - XBDM file-system operations
 - FTP-based browsing, transfer, search, and content discovery
+- Fatman device discovery, partition inspection, directory browsing, read-only search, and file export
 - Save extraction and injection
 - DashLaunch plugin slot management
 - USB/folder staging or direct console installs with `rgh homebrew install aurora|dashlaunch|xexmenu|fsd|xm360|timefixer|simple360|xelllaunch|all`
@@ -129,6 +132,7 @@ Current out-of-scope areas:
 - image building or dashboard patching
 - glitch timing programming
 - trace/step debugging
+- Fatman write, format, mount, repartition, or repair workflows
 
 ## Important Paths
 
@@ -151,6 +155,12 @@ rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
 rgh ogxbox list
 rgh ogxbox install hacked --include-fixer --usb E:
+rgh fatman devices
+rgh fatman partitions --image .\hdd.img
+rgh fatman scan --image .\hdd.img
+rgh fatman list --image .\hdd.img --partition Content --path /
+rgh fatman get --image .\hdd.img --partition Content --path /launch.ini --out .\launch.ini
+rgh fatman cat --image .\hdd.img --partition Content --path /launch.ini
 rgh ping
 rgh status
 rgh title

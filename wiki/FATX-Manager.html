@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fatman | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="FATX-Manager.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
+      <p class="wiki-sidebar__credit">Created by <a href="https://www.se7ensins.com/members/pepe-le-pew.527865/">Pew7s</a></p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link is-current" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="architecture-reference" >
+              <summary>Technical Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>Fatman</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli">Repo</a>
+          <a href="https://github.com/SaveEditors/xecli/releases/latest">Releases</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="fatman">Fatman</h1>
+<p>Fatman is XeCLI's read-only FATX recovery and extraction manager for local Xbox 360 disks and images. The first release cut focuses on image recovery, partition dumping, inspection, and export, not on write, mount, format, or repair operations.</p>
+<p>Use it when you want to:</p>
+<ul>
+<li>detect FATX-capable disks or image sources</li>
+<li>inspect partitions and volume details</li>
+<li>browse directories and locate entries</li>
+<li>search by name or path</li>
+<li>recover data from <code>.img</code> and <code>.bin</code> sources</li>
+<li>dump partitions to a host directory</li>
+<li>print small files in the terminal</li>
+<li>export selected files or directory trees to the host</li>
+</ul>
+<h2 id="planned-command-surface">Planned Command Surface</h2>
+<pre><code class="language-powershell">rgh fatman devices
+rgh fatman partitions
+rgh fatman scan
+rgh fatman info
+rgh fatman list
+rgh fatman find
+rgh fatman cat
+rgh fatman get
+rgh fatman extract
+rgh fatman dump
+</code></pre>
+<p><code>rgh fatx</code> is the documented alias for the same command group.</p>
+<h2 id="manual-open-by-offset">Manual Open by Offset</h2>
+<p>For nonstandard, partial, or dev images, Fatman can open a volume directly from a byte offset instead of relying on the normal layout detector.</p>
+<ul>
+<li><code>--offset &lt;VALUE&gt;</code> opens a FATX/XTAF volume at a manual byte offset</li>
+<li><code>--length &lt;VALUE&gt;</code> limits that manual open to a specific byte range</li>
+<li>both values accept decimal bytes or <code>0x</code>-prefixed hex</li>
+<li><code>--length</code> only works when <code>--offset</code> is also supplied</li>
+<li><code>rgh fatman scan</code> finds plausible FATX/XTAF header offsets before you open one manually</li>
+</ul>
+<p>This is the right workflow when you already know a likely FATX/XTAF header location and want to inspect it directly.</p>
+<h2 id="read-only-scope">Read-Only Scope</h2>
+<p>This first cut is intentionally narrow:</p>
+<ul>
+<li>read local Xbox 360 FATX images or disks</li>
+<li>show partition and volume metadata</li>
+<li>list directories and find entries</li>
+<li>recover and dump <code>.img</code> / <code>.bin</code> sources</li>
+<li>export files or directory trees to the host</li>
+</ul>
+<p>It does not claim to:</p>
+<ul>
+<li>write files back to FATX volumes</li>
+<li>format or repartition disks</li>
+<li>mount a virtual filesystem</li>
+<li>repair damaged volumes</li>
+<li>modify security sectors or low-level disk metadata</li>
+</ul>
+<h2 id="example-workflows">Example Workflows</h2>
+<h3 id="inspect-a-disk">Inspect a disk</h3>
+<pre><code class="language-powershell">rgh fatman devices
+rgh fatman partitions --image .\Hdd1.img
+rgh fatman info --image .\Hdd1.img --partition Hdd1
+</code></pre>
+<h3 id="probe-a-nonstandard-image-by-offset">Probe a nonstandard image by offset</h3>
+<pre><code class="language-powershell">rgh fatman scan --image .\Unknown.img
+rgh fatman info --image .\Unknown.img --offset 0xB6600000
+rgh fatman list --image .\Unknown.img --offset 0xB6600000 --path /
+rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --out .\partition-dump
+</code></pre>
+<h3 id="browse-a-path">Browse a path</h3>
+<pre><code class="language-powershell">rgh fatman list --image .\Hdd1.img --partition Hdd1 --path Content\0000000000000000
+rgh fatman find --image .\Hdd1.img --partition Hdd1 --query launch.ini
+</code></pre>
+<h3 id="export-a-file-or-folder">Export a file or folder</h3>
+<pre><code class="language-powershell">rgh fatman cat --image .\Hdd1.img --partition Hdd1 --path launch.ini
+rgh fatman get --image .\Hdd1.img --partition Hdd1 --path launch.ini --out .\launch.ini
+rgh fatman extract --image .\Hdd1.img --partition Hdd1 --path Content\0000000000000000 --out .\content
+rgh fatman dump --image .\Hdd1.img --out .\recovery
+</code></pre>
+<h2 id="notes">Notes</h2>
+<p>Fatman is separate from the live-console <code>fs</code>, <code>ftp</code>, <code>save</code>, and <code>content</code> workflows.
+Those branches operate on the console over XBDM or FTP. FATX is for local disks and images.</p>
+<p>Validation note:</p>
+<ul>
+<li>the runtime has been verified against a synthetic FATX fixture image</li>
+<li>manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real <code>XTAF</code> offsets and opened the compatibility volume by bounded offset</li>
+</ul>
+<h2 id="related-pages">Related Pages</h2>
+<ul>
+<li><a href="Commands.html">Commands Reference</a></li>
+<li><a href="CLI-Help.html">CLI Help Output</a></li>
+<li><a href="Home.html">Home</a></li>
+<li><a href="Standards.html">Documentation Standards</a></li>
+</ul>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+      <section class="wiki-panel wiki-support">
+        <h2>Support XeCLI</h2>
+        <p class="wiki-support__text">Support our work? Buy us a coffee!</p>
+        <p class="wiki-support__button">
+          <a href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">
+            <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" alt="Support XeCLI on Ko-fi" width="180">
+          </a>
+        </p>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

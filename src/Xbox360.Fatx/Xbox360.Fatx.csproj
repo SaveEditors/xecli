@@ -11,9 +11,4 @@
     <InformationalVersion>1.0.4</InformationalVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
-
 </Project>

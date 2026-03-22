@@ -177,7 +177,6 @@ internal static class Program {
                     xex.AddCommand<LaunchCommand>("launch").WithAlias("run").WithDescription("Launch a XEX with optional arguments.");
                     xex.AddCommand<XexStringsCommand>("strings").WithDescription("Extract strings from a XEX (local/FTP/running).");
                     xex.AddCommand<GhidraDecompileCommand>("decompile").WithAlias("decode").WithDescription("Decompile a XEX to C via Ghidra.");
-                    xex.AddCommand<IdaDecompileCommand>("ida-decompile").WithDescription("Decompile a XEX to C via IDA Pro 9.1 headless.");
                 });
 
                 xbdm.AddBranch("fs", fs => {
@@ -259,13 +258,11 @@ internal static class Program {
                 xex.SetDescription("Shortcut for `rgh xbdm xex`.");
                 xex.AddExample(new[] { "xex", "dump", "--out", ".\\title.xex" });
                 xex.AddExample(new[] { "xex", "strings", "--running", "--unicode", "--min", "6" });
-                xex.AddExample(new[] { "xex", "ida-decompile", "--running", "--out", ".\\ida-decomp", "--max", "25" });
                 xex.AddCommand<XbdmXexDumpCommand>("dump").WithDescription("Dump the active XEX image.");
                 xex.AddCommand<LaunchCommand>("launch").WithAlias("run").WithDescription("Launch a XEX with optional arguments.");
                 xex.AddCommand<XexStringsCommand>("strings").WithDescription("Extract strings from a XEX (local/FTP/running).");
                 xex.AddCommand<GhidraDecompileCommand>("decompile").WithAlias("decode").WithDescription("Decompile a XEX to C via Ghidra.");
-                xex.AddCommand<IdaDecompileCommand>("ida-decompile").WithDescription("Decompile a XEX to C via IDA Pro 9.1 headless.");
-            });
+                });
 
             config.AddBranch("fs", fs => {
                 fs.SetDescription("Shortcut for `rgh xbdm fs`.");
@@ -490,25 +487,9 @@ internal static class Program {
                 ghidra.AddExample(new[] { "ghidra", "config", "--path", "C:\\Tools\\ghidra", "--java", "C:\\Java" });
                 ghidra.AddExample(new[] { "ghidra", "decompile", "--running", "--out", ".\\decomp" });
                 ghidra.AddCommand<GhidraConfigCommand>("config").WithDescription("Configure Ghidra paths.");
-                ghidra.AddCommand<GhidraInstallLoaderCommand>("install-loader").WithDescription("Download and install the XEXLoaderWV helper into Ghidra.");
                 ghidra.AddCommand<GhidraAnalyzeCommand>("analyze").WithDescription("Run headless analysis.");
                 ghidra.AddCommand<GhidraDecompileCommand>("decompile").WithDescription("Decompile a module or XEX.");
                 ghidra.AddCommand<GhidraVerifyCommand>("verify").WithDescription("Verify decompiler output for bad-instruction placeholders.");
-            });
-
-            config.AddBranch("ida", ida => {
-                ida.SetDescription("IDA Pro 9.1.250226 headless helpers (external install required).");
-                ida.AddExample(new[] { "ida", "config", "--path", "C:\\Program Files\\IDA Professional 9.1", "--python", "python" });
-                ida.AddExample(new[] { "ida", "check" });
-                ida.AddExample(new[] { "ida", "install-loader" });
-                ida.AddExample(new[] { "ida", "analyze", "--ftp-path", "/Hdd1/Aurora/Aurora.xex", "--out-db", ".\\Aurora.i64" });
-                ida.AddExample(new[] { "ida", "decompile", "--running", "--out", ".\\ida-decomp", "--max", "25" });
-                ida.AddCommand<IdaConfigCommand>("config").WithDescription("Configure IDA Pro 9.1 paths.");
-                ida.AddCommand<IdaCheckCommand>("check").WithAlias("doctor").WithDescription("Verify the configured IDA, idaxex, and idalib setup.");
-                ida.AddCommand<IdaInstallLoaderCommand>("install-loader").WithDescription("Download and install idaxex 0.42b for IDA Pro 9.1.");
-                ida.AddCommand<IdaAnalyzeCommand>("analyze").WithDescription("Run headless IDA analysis and produce a database.");
-                ida.AddCommand<IdaDecompileCommand>("decompile").WithDescription("Decompile a XEX or IDA database to C.");
-                ida.AddCommand<IdaVerifyCommand>("verify").WithDescription("Verify decompiler output for placeholder failures.");
             });
         });
 

@@ -25,6 +25,7 @@ SITE_GROUPS = [
             ("Remote Spoofing", "Remote-Spoofing.md"),
             ("XNotify", "XNotify.md"),
             ("Homebrew and USB", "Homebrew-and-USB.md"),
+            ("Original Xbox Compatibility", "Original-Xbox-Compatibility.md"),
             ("Avatar Item Collection", "Avatar-Item-Collection.md"),
             ("Troubleshooting", "Troubleshooting.md"),
         ],

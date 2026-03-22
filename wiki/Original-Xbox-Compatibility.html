@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Original Xbox Compatibility | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Original-Xbox-Compatibility.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
+      <p class="wiki-sidebar__credit">Created by <a href="https://www.se7ensins.com/members/pepe-le-pew.527865/">Pew7s</a></p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link is-current" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="architecture-reference" >
+              <summary>Technical Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>Original Xbox Compatibility</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli">Repo</a>
+          <a href="https://github.com/SaveEditors/xecli/releases/latest">Releases</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="original-xbox-compatibility">Original Xbox Compatibility</h1>
+<p>This page documents the <code>rgh ogxbox</code> workflow for installing original Xbox backwards-compatibility files onto an Xbox 360 hard drive or staging them to USB/a folder first.</p>
+<p>Use it when you want to:</p>
+<ul>
+<li>prepare one of the three public XeFu compatibility sets</li>
+<li>install the compatibility files directly to <code>HddX:\Compatibility</code></li>
+<li>stage the files to a USB drive or folder before copying them manually</li>
+<li>optionally stage the HDD Compatibility Partition Fixer when <code>HddX</code> does not exist yet</li>
+</ul>
+<h2 id="command-surface">Command Surface</h2>
+<pre><code class="language-powershell">rgh ogxbox list
+rgh ogxbox install hacked --usb E:
+rgh ogxbox install hud --include-fixer --usb E:
+rgh ogxbox install retail
+</code></pre>
+<p>If <code>rgh</code> is not registered yet and you are still in the extracted release folder:</p>
+<pre><code class="language-powershell">.\rgh.exe ogxbox install hacked --usb E:
+</code></pre>
+<h2 id="xefu-set-choices">XeFu Set Choices</h2>
+<h3 id="hacked"><code>hacked</code></h3>
+<ul>
+<li>best default choice for a modded console</li>
+<li>removes the stock whitelist and restriction checks</li>
+<li>includes the standard emulator files plus extra compatibility-oriented files</li>
+<li>requires an exploited console</li>
+</ul>
+<p>Direct link:
+- <a href="https://consolemods.org/wiki/images/9/9d/Hacked_Xefu_Pack.zip">Hacked XeFu Pack</a></p>
+<h3 id="hud"><code>hud</code></h3>
+<ul>
+<li>same hacked compatibility pack, but keeps the full Xbox 360 guide available while you are inside original Xbox titles</li>
+<li>useful if you want guide access or game chat while playing</li>
+<li>uses more resources, so some games may run worse or behave less reliably than the standard hacked pack</li>
+<li>requires an exploited console</li>
+</ul>
+<p>Direct link:
+- <a href="https://consolemods.org/wiki/images/c/c4/Hacked_Xefu_Pack_with_HUD.zip">Hacked XeFu Pack with HUD</a></p>
+<h3 id="retail"><code>retail</code></h3>
+<ul>
+<li>closest to stock Microsoft behavior</li>
+<li>keeps the official compatibility restrictions and whitelist behavior</li>
+<li>useful if you want the original retail emulator files without the hacked compatibility changes</li>
+</ul>
+<p>Direct link:
+- <a href="https://consolemods.org/wiki/images/2/28/Unmodified_Retail_Xefu_Pack.zip">Unmodified Retail XeFu Pack</a></p>
+<h2 id="hdd-compatibility-partition-fixer">HDD Compatibility Partition Fixer</h2>
+<p>Some third-party or manually prepared hard drives do not have the <code>HddX</code> partition required for original Xbox compatibility files.</p>
+<p>XeCLI can also stage or install the public partition fixer:</p>
+<ul>
+<li><a href="https://consolemods.org/wiki/images/b/b2/Hdd_compat_partition_fixer_v1.zip">HDD Compatibility Partition Fixer</a></li>
+</ul>
+<p>Use <code>--include-fixer</code> when:</p>
+<ul>
+<li><code>HddX</code> is missing</li>
+<li>you are preparing a clean USB/folder package for someone else</li>
+<li>you want the fixer staged beside the chosen XeFu set for convenience</li>
+</ul>
+<p>The fixer still needs to be run on the console. XeCLI does not create <code>HddX</code> remotely by itself.</p>
+<h2 id="local-staging">Local Staging</h2>
+<p>Use <code>--usb</code> when you want a host-side staging target instead of an immediate console install.</p>
+<p>Accepted targets:</p>
+<ul>
+<li>removable USB drive letter like <code>E:</code></li>
+<li>removable-drive selection number from the prompt</li>
+<li>normal folder path</li>
+</ul>
+<p>Examples:</p>
+<pre><code class="language-powershell">rgh ogxbox install hacked --usb E:
+rgh ogxbox install hud --include-fixer --usb F:
+rgh ogxbox install retail --usb A:\Builds\OGXbox
+</code></pre>
+<p>XeCLI stages:</p>
+<ul>
+<li><code>Compatibility\</code></li>
+<li><code>HddCompatibilityPartitionFixer\</code> when <code>--include-fixer</code> is used</li>
+<li><code>XeCLI-OriginalXbox-Compatibility.txt</code> with the next-step instructions</li>
+</ul>
+<h2 id="direct-console-install">Direct Console Install</h2>
+<p>If you omit <code>--usb</code>, XeCLI installs straight to the console over FTP.</p>
+<p>Direct console behavior:</p>
+<ul>
+<li>XeCLI checks for <code>/HddX</code></li>
+<li>if <code>HddX</code> exists, XeCLI uploads the selected XeFu set to <code>/HddX/Compatibility</code></li>
+<li>if <code>HddX</code> is missing and <code>--include-fixer</code> is not used, XeCLI stops and tells you to rerun with <code>--include-fixer</code></li>
+<li>if <code>HddX</code> is missing and <code>--include-fixer</code> is used, XeCLI stages the fixer to <code>Hdd1</code> when available, otherwise to <code>Usb0</code>, <code>Usb1</code>, or <code>Usb2</code></li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-powershell">rgh ogxbox install hacked
+rgh ogxbox install hacked --include-fixer
+</code></pre>
+<h2 id="example-output">Example Output</h2>
+<h3 id="local-staging_1">Local staging</h3>
+<pre><code class="language-text">SUCCESS Original Xbox compatibility install complete
+Hacked XeFu Pack -&gt; E:\Compatibility
+
+Field                Value
+Mode                 host
+XeFu Set             Hacked XeFu Pack
+Target               E:\
+Compatibility Path   E:\Compatibility
+Compatibility Files  Installed
+Fixer Included       Yes
+Fixer Path           E:\HddCompatibilityPartitionFixer
+Files                23
+Size                 31.42 MB
+</code></pre>
+<h3 id="direct-console-install_1">Direct console install</h3>
+<pre><code class="language-text">SUCCESS Original Xbox compatibility install complete
+Hacked XeFu Pack -&gt; /HddX/Compatibility
+
+Field                Value
+Mode                 console
+XeFu Set             Hacked XeFu Pack
+Target               192.168.1.186
+Compatibility Path   /HddX/Compatibility
+Compatibility Files  Installed
+Fixer Included       No
+Files                23
+Size                 31.42 MB
+</code></pre>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>The official ConsoleMods guidance still recommends creating <code>HddX</code> first, then copying the emulator files into <code>HddX:\Compatibility</code>.</li>
+<li>Stealth-server plugins can interfere with original Xbox game startup. If a game fails to boot, temporarily disable those plugins and test again.</li>
+<li>Some original Xbox titles run better with the console output set to <code>480p</code> instead of <code>720p</code>.</li>
+</ul>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+      <section class="wiki-panel wiki-support">
+        <h2>Support XeCLI</h2>
+        <p class="wiki-support__text">Support our work? Buy us a coffee!</p>
+        <p class="wiki-support__button">
+          <a href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">
+            <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" alt="Support XeCLI on Ko-fi" width="180">
+          </a>
+        </p>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

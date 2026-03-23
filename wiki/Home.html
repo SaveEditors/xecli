@@ -83,7 +83,8 @@
 <li><a href="FTP-and-File-Transfer.html">FTP and File Transfer</a> for saved FTP targets and the full <code>rgh ftp ...</code> workflow.</li>
 <li><a href="Avatar-Item-Collection.html">Avatar Item Collection</a> for local or hosted avatar downloads, browsing, and install planning.</li>
 <li><a href="Integrations.html">Integrations</a> for Claude, Codex, and other terminal-agent or script-driven workflows.</li>
-<li><a href="Advanced-Guide.html">Advanced Guide</a> for live debugging, memory inspection, XEX dumping, and Ghidra usage.</li>
+<li><a href="Advanced-Guide.html">Advanced Guide</a> for live debugging, memory inspection, XEX dumping, and reverse-engineering workflows.</li>
+<li><a href="Reverse-Engineering.html">Reverse Engineering</a> for Ghidra and IDA headless support, requirements, and helper-loader install notes.</li>
 <li><a href="Latest-Features.html">Latest Features</a> for a concise overview page that links these workflows together.</li>
 </ul>
 <h2 id="documentation-index">Documentation Index</h2>
@@ -138,7 +139,7 @@
 </tr>
 <tr>
 <td><a href="FATX-Manager.html">Fatman</a></td>
-<td>Read-only FATX image and storage recovery with <code>rgh fatman</code> or the <code>rgh fatx</code> alias</td>
+<td>FATX image recovery and image-backed file operations with <code>rgh fatman</code> or the <code>rgh fatx</code> alias</td>
 </tr>
 <tr>
 <td><a href="Avatar-Item-Collection.html">Avatar Item Collection</a></td>
@@ -161,7 +162,11 @@
 <tbody>
 <tr>
 <td><a href="Advanced-Guide.html">Advanced Guide</a></td>
-<td>Reverse engineering, memory workflows, Ghidra flows, and automation usage</td>
+<td>Reverse engineering, memory workflows, debugger control, and automation usage</td>
+</tr>
+<tr>
+<td><a href="Reverse-Engineering.html">Reverse Engineering</a></td>
+<td>Ghidra and IDA headless support, external requirements, and helper-loader install flows</td>
 </tr>
 <tr>
 <td><a href="Frameworks.html">Frameworks and Architecture</a></td>
@@ -261,6 +266,7 @@
 <ul>
 <li>Running XEX dump and string extraction</li>
 <li>Ghidra headless analysis and decompile export</li>
+<li>IDA Pro 9.1.250226 headless import, decompile, and verification workflows</li>
 <li>ISO to Games on Demand conversion with watchdog mode</li>
 <li>Bundled Title ID metadata for richer output and external tool reuse</li>
 <li>Command-based reuse from scripts, Claude/Codex, and companion tools</li>
@@ -288,6 +294,7 @@
 <li><code>src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv</code></li>
 <li><code>src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt</code></li>
 <li><code>src/Xbox360.Remote.Cli/ghidra_scripts/DecompileAllToC.java</code></li>
+<li><code>src/Xbox360.Remote.Cli/ida_scripts/</code></li>
 </ul>
 <h3 id="runtime-state">Runtime state</h3>
 <ul>
@@ -335,7 +342,7 @@ rgh screenshot --out .\screen.bmp
 <ul>
 <li><code>rgh.exe</code> runs without a separate .NET install</li>
 <li>runtime files ship beside the executable in the release folder</li>
-<li><code>ConsoleDependencies/</code>, <code>Assets/</code>, and <code>ghidra_scripts/</code> ship in the same release package</li>
+<li><code>ConsoleDependencies/</code>, <code>Assets/</code>, <code>ghidra_scripts/</code>, and <code>ida_scripts/</code> ship in the same release package</li>
 <li><code>xbdm.xex</code>, <code>XDRPC.xex</code>, and <code>JRPC2.xex</code> are also exposed at the repo root for direct download/reference</li>
 <li><code>rgh install</code> can copy the release to a chosen install folder, register <code>rgh</code>, and offer immediate console discovery after setup</li>
 </ul>

@@ -193,8 +193,15 @@ rgh fan show
 <ul>
 <li><code>%APPDATA%\XeCLI\titleids.local.csv</code></li>
 </ul>
-<h2 id="does-xecli-require-ghidra">Does XeCLI require Ghidra</h2>
-<p>No. Ghidra is only required for the <code>ghidra</code> and <code>xex decompile</code> workflows.</p>
+<h2 id="does-xecli-require-ghidra-or-ida">Does XeCLI require Ghidra or IDA</h2>
+<p>No. Reverse-engineering tooling is optional.</p>
+<ul>
+<li>Ghidra is only required for the <code>ghidra</code> and <code>xex decompile</code> workflows.</li>
+<li>IDA Pro is only required for the <code>ida</code> and <code>xex ida-decompile</code> workflows.</li>
+<li>XeCLI does not bundle either tool.</li>
+<li>Ghidra is documented in the CLI as <code>(Free)</code>.</li>
+<li>IDA support is pinned to <code>IDA Pro 9.1.250226</code> with <code>idaxex 0.42b</code>.</li>
+</ul>
 <h2 id="does-xecli-replace-aurora-neighborhood-or-xexmenu-completely">Does XeCLI replace Aurora, Neighborhood, or XeXMenu completely</h2>
 <p>No single tool replaces every scene workflow perfectly. The goal of XeCLI is to cover the high-value terminal-first workflows cleanly enough that you do not need to bounce between small one-off utilities for status, dumps, memory work, saves, content, notifications, screenshots, and scripted automation.</p>
 <h2 id="how-can-i-support-the-project">How can I support the project</h2>

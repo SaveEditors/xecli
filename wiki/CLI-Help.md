@@ -100,7 +100,7 @@ COMMANDS:
     content         Installed content management over FTP
     homebrew        Download public homebrew packages to USB, a folder, or the console
     ogxbox          Original Xbox compatibility pack installer for HddX:\Compatibility
-    fatman          Read-only FATX manager for local disks and images
+    fatman          FATX manager for local disks and images
     fatx            Alias of `rgh fatman`
     avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
@@ -114,7 +114,7 @@ Avatar browsing in the shipped build now has both a terminal path and a Windows 
 Original Xbox compatibility is intentionally separate from normal homebrew installs. Use `rgh ogxbox install hacked|hud|retail` for the three public XeFu sets, and add `--include-fixer` when you also want the HDD Compatibility Partition Fixer staged.
 
 ## Fatman
-Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.
+Fatman is XeCLI's FATX manager for local Xbox 360 disks and images. The current implementation supports image recovery, partition dumping, inspection, search, export, and image-backed FATX mutations.
 
 Current command surface:
 
@@ -127,6 +127,10 @@ rgh fatman list
 rgh fatman find
 rgh fatman cat
 rgh fatman get
+rgh fatman mkdir
+rgh fatman put
+rgh fatman mv
+rgh fatman rm
 rgh fatman extract
 rgh fatman dump
 ```
@@ -156,15 +160,19 @@ What it does:
 - print small files in the terminal
 - export selected files or directory trees to the host
 - recover data from `.img` and `.bin` sources
+- create FATX directories in an image
+- write host files into a FATX image
+- rename or move FATX entries in an image
+- remove FATX files or directories in an image
 
 Validation note:
 
 - the runtime has been verified against a synthetic FATX fixture image
 - manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real `XTAF` offsets and opened the compatibility volume by bounded offset
+- image-backed `mkdir`, `put`, `mv`, `rm`, `list`, and `cat` were also validated against a synthetic FATX image in local testing
 
-What it does not do in the first cut:
+What it does not do yet:
 
-- write files back to FATX volumes
 - format or repartition disks
 - mount a virtual filesystem
 - repair damaged volumes

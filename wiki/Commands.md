@@ -19,7 +19,7 @@ Use this table when you know the job you need done but not the exact command nam
 | Push files to the console | `rgh fs put`, `rgh ftp put`, `rgh save inject`, `rgh plugin enable` |
 | Manage saves | `rgh save list`, `rgh save extract`, `rgh save inject` |
 | Manage title content or DashLaunch plugins | `rgh content ...`, `rgh plugin ...` |
-| Inspect local Fatman disks or images | `rgh fatman devices`, `rgh fatman partitions`, `rgh fatman scan`, `rgh fatman info`, `rgh fatman list`, `rgh fatman find`, `rgh fatman cat`, `rgh fatman get`, `rgh fatman extract`, `rgh fatman dump` |
+| Inspect or manage local Fatman disks or images | `rgh fatman devices`, `rgh fatman disks`, `rgh fatman partitions`, `rgh fatman scan`, `rgh fatman info`, `rgh fatman list`, `rgh fatman find`, `rgh fatman cat`, `rgh fatman get`, `rgh fatman extract`, `rgh fatman dump`, `rgh fatman format`, `rgh fatman check`, `rgh fatman repair`, `rgh fatman metadata ...` |
 | Stage Original Xbox compatibility packs | `rgh ogxbox list`, `rgh ogxbox install hacked|hud|retail` |
 | Browse or install avatar items from the local or hosted collection | `rgh avatar library ...`, `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install` |
 | Send visible console messages | `rgh notify`, `rgh notify-icons`, `rgh jrpc2 notify` |
@@ -33,7 +33,7 @@ XeCLI is organized into a few major namespaces:
 - XBDM-backed commands: modules, memory, threads, debug, screenshot, file system
 - JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC
 - FTP-backed commands: file access, saves, content, and plugin management
-- Fatman manager: read-only local disk or image inspection and export
+- Fatman manager: local FATX image and Windows disk inspection, extraction, formatting, metadata backup, and safe repair
 - Analysis commands: XEX, Ghidra, IDA, metadata
 - Packaging commands: Games on Demand conversion and watchdog mode
 
@@ -396,7 +396,7 @@ Important options:
 If `HddX` is missing and `--include-fixer` is not used, XeCLI stops before writing anything and tells you to rerun with the fixer included.
 
 ## Fatman
-Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.
+Fatman is XeCLI's FATX manager for local Xbox 360 disks and images. The current implementation supports image recovery, partition dumping, inspection, search, export, and image-backed FATX mutations.
 
 ### Current command surface
 ```powershell
@@ -408,6 +408,10 @@ rgh fatman list
 rgh fatman find
 rgh fatman cat
 rgh fatman get
+rgh fatman mkdir
+rgh fatman put
+rgh fatman mv
+rgh fatman rm
 rgh fatman extract
 rgh fatman dump
 ```
@@ -431,6 +435,10 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 - browse directories and locate entries
 - search by name or path
 - recover data from `.img` and `.bin` sources
+- create FATX directories in an image
+- write host files into a FATX image
+- rename or move FATX entries in an image
+- remove FATX files or directories in an image
 - print small files in the terminal
 - dump partitions to a host directory
 - export selected files or directory trees to the host
@@ -439,12 +447,19 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 - the runtime has been verified against a synthetic FATX fixture image
 - manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real `XTAF` offsets and opened the compatibility volume by bounded offset
 
-### What it does not do in the first cut
-- write files back to FATX volumes
+### What it does not do yet
 - format or repartition disks
 - mount a virtual filesystem
 - repair damaged volumes
 - modify security sectors or low-level disk metadata
+
+### Image-backed FATX writes
+```powershell
+rgh fatman mkdir --image .\Hdd1.img --path \XeCLI
+rgh fatman put --image .\Hdd1.img --path \XeCLI\readme.txt --in .\readme.txt --overwrite
+rgh fatman mv --image .\Hdd1.img --path \XeCLI\readme.txt --to \XeCLI\readme-old.txt
+rgh fatman rm --image .\Hdd1.img --path \XeCLI --recursive
+```
 
 ### Example output
 ```text

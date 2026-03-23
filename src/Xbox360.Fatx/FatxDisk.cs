@@ -21,7 +21,10 @@ public sealed class FatxDisk : IAsyncDisposable, IDisposable
 
     public IReadOnlyList<FatxPartition> Partitions { get; }
 
-    public static async Task<FatxDisk> OpenReadAsync(string sourcePath, FatxOpenOptions? options = null, CancellationToken cancellationToken = default)
+    public static Task<FatxDisk> OpenReadAsync(string sourcePath, FatxOpenOptions? options = null, CancellationToken cancellationToken = default)
+        => OpenAsync(sourcePath, options ?? new FatxOpenOptions(), cancellationToken);
+
+    public static async Task<FatxDisk> OpenAsync(string sourcePath, FatxOpenOptions? options = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
         options ??= new FatxOpenOptions();
@@ -29,8 +32,8 @@ public sealed class FatxDisk : IAsyncDisposable, IDisposable
         var stream = new FileStream(
             sourcePath,
             FileMode.Open,
-            FileAccess.Read,
-            FileShare.ReadWrite,
+            options.ReadOnly ? FileAccess.Read : FileAccess.ReadWrite,
+            options.ReadOnly ? FileShare.ReadWrite : FileShare.Read,
             4096,
             FileOptions.Asynchronous | FileOptions.SequentialScan);
 

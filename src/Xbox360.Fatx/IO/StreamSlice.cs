@@ -24,7 +24,7 @@ public sealed class StreamSlice : Stream
 
     public override bool CanSeek => _baseStream.CanSeek;
 
-    public override bool CanWrite => false;
+    public override bool CanWrite => _baseStream.CanWrite;
 
     public override long Length => _length;
 
@@ -36,6 +36,10 @@ public sealed class StreamSlice : Stream
 
     public override void Flush()
     {
+        if (_baseStream.CanWrite)
+        {
+            _baseStream.Flush();
+        }
     }
 
     public override int Read(byte[] buffer, int offset, int count)
@@ -93,7 +97,45 @@ public sealed class StreamSlice : Stream
 
     public override void SetLength(long value) => throw new NotSupportedException();
 
-    public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    public override void Write(byte[] buffer, int offset, int count)
+        => Write(buffer.AsSpan(offset, count));
+
+    public override void Write(ReadOnlySpan<byte> buffer)
+    {
+        if (!CanWrite)
+        {
+            throw new NotSupportedException();
+        }
+
+        if (_position + buffer.Length > _length)
+        {
+            throw new IOException("Attempted to write beyond the end of the slice.");
+        }
+
+        lock (_baseStream)
+        {
+            _baseStream.Position = _start + _position;
+            _baseStream.Write(buffer);
+            _position += buffer.Length;
+        }
+    }
+
+    public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+    {
+        if (!CanWrite)
+        {
+            throw new NotSupportedException();
+        }
+
+        if (_position + buffer.Length > _length)
+        {
+            throw new IOException("Attempted to write beyond the end of the slice.");
+        }
+
+        _baseStream.Position = _start + _position;
+        await _baseStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+        _position += buffer.Length;
+    }
 
     protected override void Dispose(bool disposing)
     {

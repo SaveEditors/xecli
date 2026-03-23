@@ -68,20 +68,30 @@
       <section class="wiki-content-card">
         <article id="wiki-content" class="markdown-body">
           <h1 id="fatman">Fatman</h1>
-<p>Fatman is XeCLI's read-only FATX recovery and extraction manager for local Xbox 360 disks and images. The first release cut focuses on image recovery, partition dumping, inspection, and export, not on write, mount, format, or repair operations.</p>
+<p>Fatman is XeCLI's FATX recovery, extraction, repair, and Windows-first disk-management layer for local Xbox 360 disks and images. It supports image-backed and raw-disk reads, exports, directory creation, file injection, rename/move, delete operations, retail-layout FATX formatting, low-level metadata backup/restore, and safe chain-map repair.</p>
 <p>Use it when you want to:</p>
 <ul>
 <li>detect FATX-capable disks or image sources</li>
+<li>inspect Windows physical disks directly</li>
 <li>inspect partitions and volume details</li>
 <li>browse directories and locate entries</li>
 <li>search by name or path</li>
 <li>recover data from <code>.img</code> and <code>.bin</code> sources</li>
+<li>create FATX directories inside an image</li>
+<li>write host files into a FATX image</li>
+<li>rename or move FATX entries inside an image</li>
+<li>remove FATX files or directories inside an image</li>
+<li>format one partition or a full Xbox 360 retail layout</li>
+<li>back up and restore low-level metadata regions</li>
+<li>check for orphaned or invalid FATX chain-map state</li>
+<li>repair safe FATX allocation issues</li>
 <li>dump partitions to a host directory</li>
 <li>print small files in the terminal</li>
 <li>export selected files or directory trees to the host</li>
 </ul>
-<h2 id="planned-command-surface">Planned Command Surface</h2>
+<h2 id="current-command-surface">Current Command Surface</h2>
 <pre><code class="language-powershell">rgh fatman devices
+rgh fatman disks
 rgh fatman partitions
 rgh fatman scan
 rgh fatman info
@@ -89,6 +99,15 @@ rgh fatman list
 rgh fatman find
 rgh fatman cat
 rgh fatman get
+rgh fatman mkdir
+rgh fatman put
+rgh fatman mv
+rgh fatman rm
+rgh fatman format
+rgh fatman check
+rgh fatman repair
+rgh fatman metadata backup
+rgh fatman metadata restore
 rgh fatman extract
 rgh fatman dump
 </code></pre>
@@ -103,25 +122,41 @@ rgh fatman dump
 <li><code>rgh fatman scan</code> finds plausible FATX/XTAF header offsets before you open one manually</li>
 </ul>
 <p>This is the right workflow when you already know a likely FATX/XTAF header location and want to inspect it directly.</p>
-<h2 id="read-only-scope">Read-Only Scope</h2>
-<p>This first cut is intentionally narrow:</p>
+<h2 id="current-scope">Current Scope</h2>
+<p>Today Fatman can:</p>
 <ul>
 <li>read local Xbox 360 FATX images or disks</li>
+<li>enumerate Windows physical disks for direct <code>--disk</code> access</li>
 <li>show partition and volume metadata</li>
 <li>list directories and find entries</li>
 <li>recover and dump <code>.img</code> / <code>.bin</code> sources</li>
 <li>export files or directory trees to the host</li>
+<li>create FATX directories in an image</li>
+<li>write host files into a FATX image</li>
+<li>rename or move FATX entries in an image</li>
+<li>remove FATX files or directories in an image</li>
+<li>format individual FATX partitions or a retail Xbox 360 layout</li>
+<li>back up disk-prefix and partition-header metadata regions</li>
+<li>restore low-level metadata regions from a Fatman manifest</li>
+<li>scan and repair safe chain-map issues such as orphaned allocations</li>
 </ul>
 <p>It does not claim to:</p>
 <ul>
-<li>write files back to FATX volumes</li>
-<li>format or repartition disks</li>
 <li>mount a virtual filesystem</li>
-<li>repair damaged volumes</li>
-<li>modify security sectors or low-level disk metadata</li>
+<li>expose a true driver-backed Windows mount</li>
+<li>rewrite arbitrary security sectors beyond the metadata regions Fatman explicitly backs up and restores</li>
 </ul>
 <h2 id="example-workflows">Example Workflows</h2>
 <h3 id="inspect-a-disk">Inspect a disk</h3>
+<pre><code class="language-powershell">rgh fatman disks
+rgh fatman partitions --disk 2
+rgh fatman info --disk 2 --partition Content
+rgh fatman metadata backup --disk 2 --out .\fatman-meta
+rgh fatman check --disk 2 --partition Content
+rgh fatman repair --disk 2 --partition Content --auto-confirm
+rgh fatman format --disk 2 --auto-confirm
+</code></pre>
+<h3 id="inspect-a-disk-image">Inspect a disk image</h3>
 <pre><code class="language-powershell">rgh fatman devices
 rgh fatman partitions --image .\Hdd1.img
 rgh fatman info --image .\Hdd1.img --partition Hdd1
@@ -136,6 +171,19 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 <pre><code class="language-powershell">rgh fatman list --image .\Hdd1.img --partition Hdd1 --path Content\0000000000000000
 rgh fatman find --image .\Hdd1.img --partition Hdd1 --query launch.ini
 </code></pre>
+<h3 id="mutate-an-image">Mutate an image</h3>
+<pre><code class="language-powershell">rgh fatman mkdir --image .\Hdd1.img --path \XeCLI
+rgh fatman put --image .\Hdd1.img --path \XeCLI\readme.txt --in .\readme.txt --overwrite
+rgh fatman mv --image .\Hdd1.img --path \XeCLI\readme.txt --to \XeCLI\readme-old.txt
+rgh fatman rm --image .\Hdd1.img --path \XeCLI --recursive
+</code></pre>
+<h3 id="format-and-repair">Format and repair</h3>
+<pre><code class="language-powershell">rgh fatman format --image .\blank-hdd.img --auto-confirm
+rgh fatman check --image .\Hdd1.img --partition Content
+rgh fatman repair --image .\Hdd1.img --partition Content --auto-confirm
+rgh fatman metadata backup --image .\Hdd1.img --out .\fatman-meta
+rgh fatman metadata restore --image .\Hdd1.img --manifest .\fatman-meta\fatman-metadata.json --auto-confirm
+</code></pre>
 <h3 id="export-a-file-or-folder">Export a file or folder</h3>
 <pre><code class="language-powershell">rgh fatman cat --image .\Hdd1.img --partition Hdd1 --path launch.ini
 rgh fatman get --image .\Hdd1.img --partition Hdd1 --path launch.ini --out .\launch.ini
@@ -148,7 +196,9 @@ Those branches operate on the console over XBDM or FTP. FATX is for local disks 
 <p>Validation note:</p>
 <ul>
 <li>the runtime has been verified against a synthetic FATX fixture image</li>
+<li>the retail-layout formatter path has been verified against a large sparse 20 GB test image, including <code>partitions</code>, <code>list</code>, <code>mkdir</code>, <code>put</code>, <code>cat</code>, <code>check</code>, <code>repair</code>, and metadata backup/restore</li>
 <li>manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real <code>XTAF</code> offsets and opened the compatibility volume by bounded offset</li>
+<li>image-backed <code>mkdir</code>, <code>put</code>, <code>mv</code>, <code>rm</code>, <code>list</code>, and <code>cat</code> were also validated against a synthetic FATX image in local testing</li>
 </ul>
 <h2 id="related-pages">Related Pages</h2>
 <ul>

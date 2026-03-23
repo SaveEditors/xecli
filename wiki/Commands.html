@@ -121,8 +121,8 @@
 <td><code>rgh content ...</code>, <code>rgh plugin ...</code></td>
 </tr>
 <tr>
-<td>Inspect local Fatman disks or images</td>
-<td><code>rgh fatman devices</code>, <code>rgh fatman partitions</code>, <code>rgh fatman scan</code>, <code>rgh fatman info</code>, <code>rgh fatman list</code>, <code>rgh fatman find</code>, <code>rgh fatman cat</code>, <code>rgh fatman get</code>, <code>rgh fatman extract</code>, <code>rgh fatman dump</code></td>
+<td>Inspect or manage local Fatman disks or images</td>
+<td><code>rgh fatman devices</code>, <code>rgh fatman disks</code>, <code>rgh fatman partitions</code>, <code>rgh fatman scan</code>, <code>rgh fatman info</code>, <code>rgh fatman list</code>, <code>rgh fatman find</code>, <code>rgh fatman cat</code>, <code>rgh fatman get</code>, <code>rgh fatman extract</code>, <code>rgh fatman dump</code>, <code>rgh fatman format</code>, <code>rgh fatman check</code>, <code>rgh fatman repair</code>, <code>rgh fatman metadata ...</code></td>
 </tr>
 <tr>
 <td>Stage Original Xbox compatibility packs</td>
@@ -138,7 +138,7 @@
 </tr>
 <tr>
 <td>Analyze XEX files</td>
-<td><code>rgh xex strings</code>, <code>rgh xex decompile</code>, <code>rgh ghidra ...</code></td>
+<td><code>rgh xex strings</code>, <code>rgh xex decompile</code>, <code>rgh xex ida-decompile</code>, <code>rgh ghidra ...</code>, <code>rgh ida ...</code></td>
 </tr>
 <tr>
 <td>Convert retail ISOs</td>
@@ -153,8 +153,8 @@
 <li>XBDM-backed commands: modules, memory, threads, debug, screenshot, file system</li>
 <li>JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC</li>
 <li>FTP-backed commands: file access, saves, content, and plugin management</li>
-<li>Fatman manager: read-only local disk or image inspection and export</li>
-<li>Analysis commands: XEX, Ghidra, metadata</li>
+<li>Fatman manager: local FATX image and Windows disk inspection, extraction, formatting, metadata backup, and safe repair</li>
+<li>Analysis commands: XEX, Ghidra, IDA, metadata</li>
 <li>Packaging commands: Games on Demand conversion and watchdog mode</li>
 </ul>
 <p>Shortcut equivalence:</p>
@@ -506,7 +506,7 @@ Size                 31.42 MB
 </ul>
 <p>If <code>HddX</code> is missing and <code>--include-fixer</code> is not used, XeCLI stops before writing anything and tells you to rerun with the fixer included.</p>
 <h2 id="fatman">Fatman</h2>
-<p>Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.</p>
+<p>Fatman is XeCLI's FATX manager for local Xbox 360 disks and images. The current implementation supports image recovery, partition dumping, inspection, search, export, and image-backed FATX mutations.</p>
 <h3 id="current-command-surface">Current command surface</h3>
 <pre><code class="language-powershell">rgh fatman devices
 rgh fatman partitions
@@ -516,6 +516,10 @@ rgh fatman list
 rgh fatman find
 rgh fatman cat
 rgh fatman get
+rgh fatman mkdir
+rgh fatman put
+rgh fatman mv
+rgh fatman rm
 rgh fatman extract
 rgh fatman dump
 </code></pre>
@@ -538,6 +542,10 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 <li>browse directories and locate entries</li>
 <li>search by name or path</li>
 <li>recover data from <code>.img</code> and <code>.bin</code> sources</li>
+<li>create FATX directories in an image</li>
+<li>write host files into a FATX image</li>
+<li>rename or move FATX entries in an image</li>
+<li>remove FATX files or directories in an image</li>
 <li>print small files in the terminal</li>
 <li>dump partitions to a host directory</li>
 <li>export selected files or directory trees to the host</li>
@@ -547,14 +555,19 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 <li>the runtime has been verified against a synthetic FATX fixture image</li>
 <li>manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real <code>XTAF</code> offsets and opened the compatibility volume by bounded offset</li>
 </ul>
-<h3 id="what-it-does-not-do-in-the-first-cut">What it does not do in the first cut</h3>
+<h3 id="what-it-does-not-do-yet">What it does not do yet</h3>
 <ul>
-<li>write files back to FATX volumes</li>
 <li>format or repartition disks</li>
 <li>mount a virtual filesystem</li>
 <li>repair damaged volumes</li>
 <li>modify security sectors or low-level disk metadata</li>
 </ul>
+<h3 id="image-backed-fatx-writes">Image-backed FATX writes</h3>
+<pre><code class="language-powershell">rgh fatman mkdir --image .\Hdd1.img --path \XeCLI
+rgh fatman put --image .\Hdd1.img --path \XeCLI\readme.txt --in .\readme.txt --overwrite
+rgh fatman mv --image .\Hdd1.img --path \XeCLI\readme.txt --to \XeCLI\readme-old.txt
+rgh fatman rm --image .\Hdd1.img --path \XeCLI --recursive
+</code></pre>
 <h3 id="example-output">Example output</h3>
 <pre><code class="language-text">Fatman Sources
 0  Disk 0  932.51 GB  Xbox 360 HDD
@@ -1325,6 +1338,7 @@ queued   game.iso
 done     game.iso -&gt; .\god\415608C3
 </code></pre>
 <h2 id="ghidra-commands">Ghidra Commands</h2>
+<p>Ghidra is external and documented in the CLI as <code>(Free)</code>. XeCLI does not bundle Ghidra or Java. After <code>rgh ghidra config --path &lt;dir&gt;</code>, XeCLI can install <code>XEXLoaderWV</code> into that Ghidra install with <code>rgh ghidra install-loader</code>.</p>
 <h3 id="rgh-ghidra-config"><code>rgh ghidra config</code></h3>
 <pre><code class="language-powershell">rgh ghidra config --path &quot;C:\Tools\ghidra&quot; --java &quot;C:\Java&quot;
 </code></pre>
@@ -1332,6 +1346,14 @@ done     game.iso -&gt; .\god\415608C3
 <pre><code class="language-text">SUCCESS Ghidra config updated
 path=C:\Tools\ghidra
 java=C:\Java
+</code></pre>
+<h3 id="rgh-ghidra-install-loader"><code>rgh ghidra install-loader</code></h3>
+<pre><code class="language-powershell">rgh ghidra install-loader
+rgh ghidra install-loader --archive .\ghidra_12.0_PUBLIC_20251209_XEXLoaderWV.zip
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Ghidra XEX loader installed
+XEXLoaderWV -&gt; C:\Tools\ghidra\Ghidra\Extensions\XEXLoaderWV\lib\XEXLoaderWV.jar
 </code></pre>
 <h3 id="rgh-ghidra-analyze"><code>rgh ghidra analyze</code></h3>
 <pre><code class="language-powershell">rgh ghidra analyze --in .\title.xex
@@ -1357,6 +1379,62 @@ rgh ghidra verify --dir .\decomp --json
 <p>Example output:</p>
 <pre><code class="language-text">No flagged files found.
 </code></pre>
+<h2 id="ida-commands">IDA Commands</h2>
+<p>IDA is external and not bundled by XeCLI. The supported XeCLI baseline is pinned to <code>IDA Pro 9.1.250226</code> with <code>idaxex 0.42b</code>. Do not broaden that claim to <code>idaxex 0.43</code> or <code>IDA 9.2</code> until that exact combination is validated.</p>
+<h3 id="rgh-ida-config"><code>rgh ida config</code></h3>
+<pre><code class="language-powershell">rgh ida config --path &quot;C:\Program Files\IDA Professional 9.1&quot; --python python
+rgh ida config
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS IDA settings updated
+Stored IDA install, python, and backend settings were saved.
+</code></pre>
+<h3 id="rgh-ida-check"><code>rgh ida check</code></h3>
+<pre><code class="language-powershell">rgh ida check
+rgh ida check --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Install              C:\Program Files\IDA Professional 9.1
+Batch EXE            C:\Program Files\IDA Professional 9.1\idat.exe
+IDA build            9.1.25.0226 (supported)
+idaxex               0.42b (supported)
+TIL files            present
+idalib import        ok
+</code></pre>
+<h3 id="rgh-ida-install-loader"><code>rgh ida install-loader</code></h3>
+<pre><code class="language-powershell">rgh ida install-loader
+rgh ida install-loader --archive .\idaxex-0.42b.zip
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS IDA loader installed
+idaxex 0.42b -&gt; C:\Program Files\IDA Professional 9.1\loaders\idaxex.dll
+</code></pre>
+<h3 id="rgh-ida-analyze"><code>rgh ida analyze</code></h3>
+<pre><code class="language-powershell">rgh ida analyze --in .\title.xex --out-db .\title.i64 --overwrite
+rgh ida analyze --ftp-path /Hdd1/Aurora/Aurora.xex --out-db .\Aurora.i64 --overwrite
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS IDA analysis complete
+.\Aurora.i64 segments 7 functions 40129
+</code></pre>
+<h3 id="rgh-ida-decompile"><code>rgh ida decompile</code></h3>
+<pre><code class="language-powershell">rgh ida decompile --in .\Aurora.i64 --out .\ida-decomp --backend idalib --max 50
+rgh ida decompile --running --out .\ida-decomp --out-db .\Aurora.i64 --keep-db
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS IDA decompile complete
+1 file(s) backend idalib output .\ida-decomp
+</code></pre>
+<h3 id="rgh-ida-verify"><code>rgh ida verify</code></h3>
+<pre><code class="language-powershell">rgh ida verify --dir .\ida-decomp
+rgh ida verify --dir .\ida-decomp --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">No flagged files found.
+</code></pre>
+<h3 id="rgh-xex-ida-decompile"><code>rgh xex ida-decompile</code></h3>
+<pre><code class="language-powershell">rgh xex ida-decompile --ftp-path /Hdd1/Aurora/Aurora.xex --out .\ida-decomp --max 50 --out-db .\Aurora.i64 --keep-db
+</code></pre>
 <h2 id="practical-workflows">Practical Workflows</h2>
 <h3 id="fast-console-health-check">Fast console health check</h3>
 <pre><code class="language-powershell">rgh ping
@@ -1367,6 +1445,7 @@ rgh title
 <pre><code class="language-powershell">rgh xex dump --out .\title.xex
 rgh xex strings --in .\title.xex --unicode --min 6
 rgh ghidra decompile --in .\title.xex --out .\decomp
+rgh xex ida-decompile --in .\title.xex --out .\ida-decomp --max 50 --out-db .\title.i64 --keep-db
 </code></pre>
 <h3 id="verify-a-reboot-expected-module-load">Verify a reboot-expected module load</h3>
 <pre><code class="language-powershell">rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected

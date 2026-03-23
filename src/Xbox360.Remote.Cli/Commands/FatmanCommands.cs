@@ -7,7 +7,10 @@ using Spectre.Console.Cli;
 using Xbox360.Fatx;
 using Xbox360.Fatx.Entries;
 using Xbox360.Fatx.Exceptions;
+using Xbox360.Fatx.Formatting;
 using Xbox360.Fatx.Reading;
+using Xbox360.Fatx.Writing;
+using Xbox360.Remote.Cli.Fatman;
 
 namespace Xbox360.Remote.Cli.Commands;
 
@@ -23,6 +26,10 @@ public class FatmanImageSettings : FatmanBaseSettings
     [CommandOption("--image <FILE>")]
     [Description("Path to a raw Xbox 360 HDD image (.img / .bin).")]
     public string? ImagePath { get; init; }
+
+    [CommandOption("--disk <NUMBER|PATH>")]
+    [Description("Windows physical disk number or device path (for example 2 or \\\\.\\PhysicalDrive2).")]
+    public string? Disk { get; init; }
 
     [CommandOption("--offset <VALUE>")]
     [Description("Open a partition manually at a byte offset (decimal or 0x hex).")]
@@ -109,12 +116,8 @@ public sealed class FatmanDevicesCommand : Command<FatmanDevicesCommand.Settings
 
 public sealed class FatmanScanCommand : AsyncCommand<FatmanScanCommand.Settings>
 {
-    public sealed class Settings : FatmanBaseSettings
+    public sealed class Settings : FatmanImageSettings
     {
-        [CommandOption("--image <FILE>")]
-        [Description("Path to a raw Xbox 360 HDD image (.img / .bin).")]
-        public string? ImagePath { get; init; }
-
         [CommandOption("--limit <COUNT>")]
         [Description("Maximum number of plausible FATX/XTAF header candidates to return.")]
         [DefaultValue(32)]
@@ -123,11 +126,11 @@ public sealed class FatmanScanCommand : AsyncCommand<FatmanScanCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        string imagePath = FatmanCommandHelpers.RequireImagePath(settings.ImagePath);
-        IReadOnlyList<FatmanVolumeCandidateInfo> candidates = await FatmanCommandHelpers.ScanVolumeCandidatesAsync(imagePath, settings.Limit);
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings);
+        IReadOnlyList<FatmanVolumeCandidateInfo> candidates = await FatmanCommandHelpers.ScanVolumeCandidatesAsync(source.SourcePath, settings.Limit);
         if (settings.Json)
         {
-            CliOutput.EmitJson(new { Image = imagePath, Candidates = candidates });
+            CliOutput.EmitJson(new { Source = FatmanCommandHelpers.DescribeSource(source), Candidates = candidates });
             return 0;
         }
 
@@ -166,13 +169,13 @@ public sealed class FatmanPartitionsCommand : AsyncCommand<FatmanPartitionsComma
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        string imagePath = FatmanCommandHelpers.RequireImagePath(settings.ImagePath);
-        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(imagePath, settings);
-        await using FatxDisk disk = await FatxDisk.OpenReadAsync(imagePath, openOptions);
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings);
+        await using FatxDisk disk = await FatxDisk.OpenReadAsync(source.SourcePath, openOptions);
         IReadOnlyList<FatmanPartitionInfo> rows = await FatmanCommandHelpers.DescribePartitionsAsync(disk);
         if (settings.Json)
         {
-            CliOutput.EmitJson(new { Image = imagePath, Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partitions = rows });
+            CliOutput.EmitJson(new { Source = FatmanCommandHelpers.DescribeSource(source), Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partitions = rows });
             return 0;
         }
 
@@ -205,9 +208,9 @@ public sealed class FatmanInfoCommand : AsyncCommand<FatmanInfoCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        string imagePath = FatmanCommandHelpers.RequireImagePath(settings.ImagePath);
-        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(imagePath, settings);
-        await using FatxDisk disk = await FatxDisk.OpenReadAsync(imagePath, openOptions);
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings);
+        await using FatxDisk disk = await FatxDisk.OpenReadAsync(source.SourcePath, openOptions);
         FatxPartition partition = await FatmanCommandHelpers.ResolvePartitionAsync(disk, settings.Partition);
         try
         {
@@ -215,7 +218,7 @@ public sealed class FatmanInfoCommand : AsyncCommand<FatmanInfoCommand.Settings>
             if (settings.Json)
             {
                 CliOutput.EmitJson(new {
-                    Image = imagePath,
+                    Source = FatmanCommandHelpers.DescribeSource(source),
                     Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions),
                     Partition = new {
                         partition.Index,
@@ -232,7 +235,7 @@ public sealed class FatmanInfoCommand : AsyncCommand<FatmanInfoCommand.Settings>
             Table table = CliOutput.CreateTable();
             table.AddColumn(new TableColumn("[bold white]Field[/]"));
             table.AddColumn(new TableColumn("[bold white]Value[/]"));
-            table.AddRow("[white]Image[/]", $"[deepskyblue1]{Markup.Escape(imagePath)}[/]");
+            table.AddRow("[white]Source[/]", $"[deepskyblue1]{Markup.Escape(source.DisplayName)}[/]");
             if (openOptions.PartitionOffset.HasValue)
             {
                 table.AddRow("[white]Manual Offset[/]", $"[cyan1]0x{openOptions.PartitionOffset.Value:X}[/]");
@@ -264,12 +267,12 @@ public sealed class FatmanDumpCommand : AsyncCommand<FatmanDumpCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        string imagePath = FatmanCommandHelpers.RequireImagePath(settings.ImagePath);
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings);
         string outputDirectory = FatmanCommandHelpers.RequireOutputPath(settings.OutputDirectory);
         Directory.CreateDirectory(outputDirectory);
 
-        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(imagePath, settings);
-        await using FatxDisk disk = await FatxDisk.OpenReadAsync(imagePath, openOptions);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings);
+        await using FatxDisk disk = await FatxDisk.OpenReadAsync(source.SourcePath, openOptions);
         IReadOnlyList<FatxPartition> selected = await FatmanCommandHelpers.ResolvePartitionsAsync(disk, settings.Partition);
         IReadOnlyList<CliOutput.TransferBatchItem> items = selected
             .Select(partition => new CliOutput.TransferBatchItem(partition.Name, partition.Length))
@@ -303,7 +306,7 @@ public sealed class FatmanDumpCommand : AsyncCommand<FatmanDumpCommand.Settings>
         if (settings.Json)
         {
             CliOutput.EmitJson(new {
-                Image = imagePath,
+                Source = FatmanCommandHelpers.DescribeSource(source),
                 Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions),
                 OutputDirectory = outputDirectory,
                 Dumped = selected.Select(partition => new {
@@ -331,9 +334,9 @@ public sealed class FatmanListCommand : AsyncCommand<FatmanListCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        string imagePath = FatmanCommandHelpers.RequireImagePath(settings.ImagePath);
-        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(imagePath, settings);
-        await using FatxDisk disk = await FatxDisk.OpenReadAsync(imagePath, openOptions);
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings);
+        await using FatxDisk disk = await FatxDisk.OpenReadAsync(source.SourcePath, openOptions);
         FatxPartition partition = await FatmanCommandHelpers.ResolvePartitionAsync(disk, settings.Partition);
         await using FatxVolume volume = await disk.OpenVolumeAsync(partition);
         string fatxPath = FatmanCommandHelpers.NormalizeFatxPath(settings.Path);
@@ -342,7 +345,7 @@ public sealed class FatmanListCommand : AsyncCommand<FatmanListCommand.Settings>
 
         if (settings.Json)
         {
-            CliOutput.EmitJson(new { Image = imagePath, Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partition = partition.Name, Path = fatxPath, Entries = rows });
+            CliOutput.EmitJson(new { Source = FatmanCommandHelpers.DescribeSource(source), Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partition = partition.Name, Path = fatxPath, Entries = rows });
             return 0;
         }
 
@@ -381,9 +384,9 @@ public sealed class FatmanFindCommand : AsyncCommand<FatmanFindCommand.Settings>
         if (string.IsNullOrWhiteSpace(settings.Query))
             throw new InvalidOperationException("Provide a search string with --query.");
 
-        string imagePath = FatmanCommandHelpers.RequireImagePath(settings.ImagePath);
-        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(imagePath, settings);
-        await using FatxDisk disk = await FatxDisk.OpenReadAsync(imagePath, openOptions);
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings);
+        await using FatxDisk disk = await FatxDisk.OpenReadAsync(source.SourcePath, openOptions);
         FatxPartition partition = await FatmanCommandHelpers.ResolvePartitionAsync(disk, settings.Partition);
         await using FatxVolume volume = await disk.OpenVolumeAsync(partition);
         string rootPath = FatmanCommandHelpers.NormalizeFatxPath(settings.Path);
@@ -392,7 +395,7 @@ public sealed class FatmanFindCommand : AsyncCommand<FatmanFindCommand.Settings>
 
         if (settings.Json)
         {
-            CliOutput.EmitJson(new { Image = imagePath, Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partition = partition.Name, Root = rootPath, Query = settings.Query, Matches = matches });
+            CliOutput.EmitJson(new { Source = FatmanCommandHelpers.DescribeSource(source), Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partition = partition.Name, Root = rootPath, Query = settings.Query, Matches = matches });
             return 0;
         }
 
@@ -421,10 +424,10 @@ public sealed class FatmanGetCommand : AsyncCommand<FatmanGetCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        string imagePath = FatmanCommandHelpers.RequireImagePath(settings.ImagePath);
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings);
         string fatxPath = FatmanCommandHelpers.RequireFatxPath(settings.Path);
-        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(imagePath, settings);
-        await using FatxDisk disk = await FatxDisk.OpenReadAsync(imagePath, openOptions);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings);
+        await using FatxDisk disk = await FatxDisk.OpenReadAsync(source.SourcePath, openOptions);
         FatxPartition partition = await FatmanCommandHelpers.ResolvePartitionAsync(disk, settings.Partition);
         await using FatxVolume volume = await disk.OpenVolumeAsync(partition);
         FatxEntry entry = await volume.ResolvePathAsync(fatxPath);
@@ -443,7 +446,7 @@ public sealed class FatmanGetCommand : AsyncCommand<FatmanGetCommand.Settings>
 
         if (settings.Json)
         {
-            CliOutput.EmitJson(new { Image = imagePath, Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partition = partition.Name, Path = fatxPath, Output = outputPath, Size = entry.Size });
+            CliOutput.EmitJson(new { Source = FatmanCommandHelpers.DescribeSource(source), Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partition = partition.Name, Path = fatxPath, Output = outputPath, Size = entry.Size });
         }
         else
         {
@@ -460,10 +463,10 @@ public sealed class FatmanCatCommand : AsyncCommand<FatmanCatCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        string imagePath = FatmanCommandHelpers.RequireImagePath(settings.ImagePath);
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings);
         string fatxPath = FatmanCommandHelpers.RequireFatxPath(settings.Path);
-        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(imagePath, settings);
-        await using FatxDisk disk = await FatxDisk.OpenReadAsync(imagePath, openOptions);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings);
+        await using FatxDisk disk = await FatxDisk.OpenReadAsync(source.SourcePath, openOptions);
         FatxPartition partition = await FatmanCommandHelpers.ResolvePartitionAsync(disk, settings.Partition);
         await using FatxVolume volume = await disk.OpenVolumeAsync(partition);
         byte[] payload = await volume.ReadFileAsync(fatxPath);
@@ -471,7 +474,7 @@ public sealed class FatmanCatCommand : AsyncCommand<FatmanCatCommand.Settings>
 
         if (settings.Json)
         {
-            CliOutput.EmitJson(new { Image = imagePath, Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partition = partition.Name, Path = fatxPath, Text = text });
+            CliOutput.EmitJson(new { Source = FatmanCommandHelpers.DescribeSource(source), Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partition = partition.Name, Path = fatxPath, Text = text });
             return 0;
         }
 
@@ -488,11 +491,11 @@ public sealed class FatmanExtractCommand : AsyncCommand<FatmanExtractCommand.Set
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        string imagePath = FatmanCommandHelpers.RequireImagePath(settings.ImagePath);
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings);
         string fatxPath = FatmanCommandHelpers.RequireFatxPath(settings.Path);
         string outputPath = FatmanCommandHelpers.RequireOutputPath(settings.OutputPath);
-        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(imagePath, settings);
-        await using FatxDisk disk = await FatxDisk.OpenReadAsync(imagePath, openOptions);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings);
+        await using FatxDisk disk = await FatxDisk.OpenReadAsync(source.SourcePath, openOptions);
         FatxPartition partition = await FatmanCommandHelpers.ResolvePartitionAsync(disk, settings.Partition);
         await using FatxVolume volume = await disk.OpenVolumeAsync(partition);
         FatxEntry entry = await volume.ResolvePathAsync(fatxPath);
@@ -513,11 +516,187 @@ public sealed class FatmanExtractCommand : AsyncCommand<FatmanExtractCommand.Set
 
         if (settings.Json)
         {
-            CliOutput.EmitJson(new { Image = imagePath, Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partition = partition.Name, Path = fatxPath, Output = outputPath, Entry = FatmanCommandHelpers.ToEntryInfo(entry) });
+            CliOutput.EmitJson(new { Source = FatmanCommandHelpers.DescribeSource(source), Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions), Partition = partition.Name, Path = fatxPath, Output = outputPath, Entry = FatmanCommandHelpers.ToEntryInfo(entry) });
         }
         else
         {
             AnsiConsole.MarkupLine($"[green]Extraction complete.[/] [grey]{Markup.Escape(outputPath)}[/]");
+        }
+
+        return 0;
+    }
+}
+
+public sealed class FatmanPutCommand : AsyncCommand<FatmanPutCommand.Settings>
+{
+    public sealed class Settings : FatmanPathExportSettings
+    {
+        [CommandOption("--in <FILE>")]
+        [Description("Host file to write into the FATX image.")]
+        public string? InputPath { get; init; }
+
+        [CommandOption("--overwrite")]
+        [Description("Replace an existing FATX file at the target path.")]
+        public bool Overwrite { get; init; }
+    }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    {
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings, readOnly: false);
+        string fatxPath = FatmanCommandHelpers.RequireFatxPath(settings.Path);
+        if (string.IsNullOrWhiteSpace(settings.InputPath))
+            throw new InvalidOperationException("Provide a host file with --in.");
+
+        string inputPath = Path.GetFullPath(settings.InputPath);
+        if (!File.Exists(inputPath))
+            throw new FileNotFoundException("Host file not found.", inputPath);
+
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings, readOnly: false);
+        await using FatxDisk disk = await FatxDisk.OpenAsync(source.SourcePath, openOptions);
+        FatxPartition partition = await FatmanCommandHelpers.ResolvePartitionAsync(disk, settings.Partition);
+        await using FatxVolume volume = await disk.OpenVolumeAsync(partition);
+        FatxMutationService mutation = new(volume);
+        long length = new FileInfo(inputPath).Length;
+
+        await CliOutput.RunWithProgressAsync($"Writing {Path.GetFileName(inputPath)}", length, async progress => {
+            await mutation.PutFileAsync(inputPath, fatxPath, settings.Overwrite);
+            progress.Report(new CliOutput.TransferProgressUpdate(length, "written"));
+        });
+
+        if (settings.Json)
+        {
+            CliOutput.EmitJson(new {
+                Source = FatmanCommandHelpers.DescribeSource(source),
+                Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions),
+                Partition = partition.Name,
+                Input = inputPath,
+                Path = fatxPath,
+                Overwrite = settings.Overwrite
+            });
+        }
+        else
+        {
+            AnsiConsole.MarkupLine($"[green]File written.[/] [grey]{Markup.Escape(fatxPath)}[/]");
+        }
+
+        return 0;
+    }
+}
+
+public sealed class FatmanMkdirCommand : AsyncCommand<FatmanMkdirCommand.Settings>
+{
+    public sealed class Settings : FatmanPathSettings { }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    {
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings, readOnly: false);
+        string fatxPath = FatmanCommandHelpers.RequireFatxPath(settings.Path);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings, readOnly: false);
+        await using FatxDisk disk = await FatxDisk.OpenAsync(source.SourcePath, openOptions);
+        FatxPartition partition = await FatmanCommandHelpers.ResolvePartitionAsync(disk, settings.Partition);
+        await using FatxVolume volume = await disk.OpenVolumeAsync(partition);
+        FatxMutationService mutation = new(volume);
+        await mutation.CreateDirectoryAsync(fatxPath);
+
+        if (settings.Json)
+        {
+            CliOutput.EmitJson(new {
+                Source = FatmanCommandHelpers.DescribeSource(source),
+                Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions),
+                Partition = partition.Name,
+                Path = fatxPath
+            });
+        }
+        else
+        {
+            AnsiConsole.MarkupLine($"[green]Directory created.[/] [grey]{Markup.Escape(fatxPath)}[/]");
+        }
+
+        return 0;
+    }
+}
+
+public sealed class FatmanMoveCommand : AsyncCommand<FatmanMoveCommand.Settings>
+{
+    public sealed class Settings : FatmanPathSettings
+    {
+        [CommandOption("--to <FATXPATH>")]
+        [Description("Destination FATX path.")]
+        public string? DestinationPath { get; init; }
+
+        [CommandOption("--overwrite")]
+        [Description("Replace an existing destination file if it already exists.")]
+        public bool Overwrite { get; init; }
+    }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    {
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings, readOnly: false);
+        string sourcePath = FatmanCommandHelpers.RequireFatxPath(settings.Path);
+        if (string.IsNullOrWhiteSpace(settings.DestinationPath))
+            throw new InvalidOperationException("Provide a destination FATX path with --to.");
+
+        string destinationPath = FatmanCommandHelpers.NormalizeFatxPath(settings.DestinationPath);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings, readOnly: false);
+        await using FatxDisk disk = await FatxDisk.OpenAsync(source.SourcePath, openOptions);
+        FatxPartition partition = await FatmanCommandHelpers.ResolvePartitionAsync(disk, settings.Partition);
+        await using FatxVolume volume = await disk.OpenVolumeAsync(partition);
+        FatxMutationService mutation = new(volume);
+        await mutation.MoveAsync(sourcePath, destinationPath, settings.Overwrite);
+
+        if (settings.Json)
+        {
+            CliOutput.EmitJson(new {
+                Source = FatmanCommandHelpers.DescribeSource(source),
+                Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions),
+                Partition = partition.Name,
+                Path = sourcePath,
+                Destination = destinationPath,
+                Overwrite = settings.Overwrite
+            });
+        }
+        else
+        {
+            AnsiConsole.MarkupLine($"[green]Move complete.[/] [grey]{Markup.Escape(sourcePath)}[/] [white]->[/] [grey]{Markup.Escape(destinationPath)}[/]");
+        }
+
+        return 0;
+    }
+}
+
+public sealed class FatmanDeleteCommand : AsyncCommand<FatmanDeleteCommand.Settings>
+{
+    public sealed class Settings : FatmanPathSettings
+    {
+        [CommandOption("--recursive")]
+        [Description("Delete directory contents recursively.")]
+        public bool Recursive { get; init; }
+    }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    {
+        FatmanSourceInfo source = FatmanCommandHelpers.ResolveSource(settings, readOnly: false);
+        string fatxPath = FatmanCommandHelpers.RequireFatxPath(settings.Path);
+        FatxOpenOptions openOptions = FatmanCommandHelpers.CreateOpenOptions(source, settings, readOnly: false);
+        await using FatxDisk disk = await FatxDisk.OpenAsync(source.SourcePath, openOptions);
+        FatxPartition partition = await FatmanCommandHelpers.ResolvePartitionAsync(disk, settings.Partition);
+        await using FatxVolume volume = await disk.OpenVolumeAsync(partition);
+        FatxMutationService mutation = new(volume);
+        await mutation.DeleteAsync(fatxPath, settings.Recursive);
+
+        if (settings.Json)
+        {
+            CliOutput.EmitJson(new {
+                Source = FatmanCommandHelpers.DescribeSource(source),
+                Open = FatmanCommandHelpers.DescribeOpenOptions(openOptions),
+                Partition = partition.Name,
+                Path = fatxPath,
+                Recursive = settings.Recursive
+            });
+        }
+        else
+        {
+            AnsiConsole.MarkupLine($"[green]Entry removed.[/] [grey]{Markup.Escape(fatxPath)}[/]");
         }
 
         return 0;
@@ -550,23 +729,17 @@ internal static class FatmanCommandHelpers
     private static readonly byte[] FatxMagic = Encoding.ASCII.GetBytes("FATX");
     private static readonly byte[] XtafMagic = Encoding.ASCII.GetBytes("XTAF");
 
-    public static string RequireImagePath(string? imagePath)
-    {
-        if (string.IsNullOrWhiteSpace(imagePath))
-            throw new InvalidOperationException("Provide a raw HDD image with --image.");
-        if (!File.Exists(imagePath))
-            throw new FileNotFoundException("Image file not found.", imagePath);
-        return Path.GetFullPath(imagePath);
-    }
+    public static FatmanSourceInfo ResolveSource(FatmanImageSettings settings, bool readOnly = true)
+        => FatmanWindowsStorage.ResolveSource(settings.ImagePath, settings.Disk, requireWritable: !readOnly);
 
-    public static FatxOpenOptions CreateOpenOptions(string imagePath, FatmanImageSettings settings)
+    public static FatxOpenOptions CreateOpenOptions(FatmanSourceInfo source, FatmanImageSettings settings, bool readOnly = true)
     {
         long? offset = ParseOptionalLong(settings.Offset, "--offset");
         long? length = ParseOptionalLong(settings.Length, "--length");
         if (!offset.HasValue && length.HasValue)
             throw new InvalidOperationException("--length requires --offset.");
 
-        long fileLength = new FileInfo(imagePath).Length;
+        long fileLength = source.Length;
         if (offset.HasValue)
         {
             if (offset.Value < 0)
@@ -585,6 +758,7 @@ internal static class FatmanCommandHelpers
 
         return new FatxOpenOptions
         {
+            ReadOnly = readOnly,
             PartitionOffset = offset,
             PartitionLength = length
         };
@@ -596,6 +770,27 @@ internal static class FatmanCommandHelpers
         {
             ManualOffset = options.PartitionOffset,
             ManualLength = options.PartitionLength
+        };
+    }
+
+    public static object DescribeSource(FatmanSourceInfo source)
+    {
+        return new
+        {
+            source.DisplayName,
+            source.SourcePath,
+            source.Length,
+            source.IsPhysicalDisk,
+            Disk = source.Disk is null ? null : new
+            {
+                source.Disk.Number,
+                source.Disk.DevicePath,
+                source.Disk.FriendlyName,
+                source.Disk.SizeBytes,
+                source.Disk.InterfaceType,
+                source.Disk.MediaType,
+                source.Disk.MountedVolumes
+            }
         };
     }
 

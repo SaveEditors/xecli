@@ -29,6 +29,7 @@
     <PackageReference Include="Spectre.Console" Version="0.50.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.50.0" />
     <PackageReference Include="FluentFTP" Version="52.1.0" />
+    <PackageReference Include="System.Management" Version="10.0.0-preview.3.25171.5" />
   </ItemGroup>
 
   <ItemGroup>

@@ -56,7 +56,9 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - Clarified the Ghidra workflow as an external `(Free)` dependency and added helper-loader install flows through `rgh ghidra install-loader`.
 - Added the [Reverse Engineering](https://saveeditors.github.io/xecli/wiki/Reverse-Engineering.html) wiki page and updated the README, CLI help, commands reference, advanced guide, and FAQ to document the external tool requirements and supported loader versions.
 - Added `rgh fatman` as XeCLI's integrated FATX image and storage manager, with `rgh fatx` kept as the documented alias for users who prefer the filesystem term directly.
-- Added read-only FATX/XTAF image recovery commands for `devices`, `partitions`, `scan`, `info`, `list`, `find`, `cat`, `get`, `extract`, and `dump`.
+- Added FATX/XTAF image recovery commands for `devices`, `partitions`, `scan`, `info`, `list`, `find`, `cat`, `get`, `extract`, and `dump`.
+- Added FATX image mutation commands for `mkdir`, `put`, `mv`, and `rm`.
+- Added Windows-first physical disk support with `rgh fatman disks`, `--disk`, retail-layout FATX formatting, low-level metadata backup/restore, and safe chain-map `check` / `repair` workflows.
 - Added manual-open support with `--offset` and `--length` so nonstandard, partial, or dev HDD images can be inspected directly by byte range instead of relying only on the retail partition map.
 - Added `rgh fatman scan` to surface plausible FATX/XTAF header offsets before manual-open workflows.
 - Added the [Fatman](https://saveeditors.github.io/xecli/wiki/FATX-Manager.html) wiki page and updated the README, Home, Commands Reference, CLI Help, and sidebar so the new image-recovery workflow is documented consistently.
@@ -178,6 +180,7 @@ File and content workflows:
 - Avatar library browsing, hosted remote downloads, ownership patching, and console-side installs.
 - Public homebrew package staging for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch through `rgh homebrew install <package>`, either to USB/folder targets or directly onto detected console drives, with a confirmation prompt unless `--auto-confirm` is used.
 - Original Xbox compatibility staging and install through `rgh ogxbox install <hacked|hud|retail>`, with public XeFu pack downloads, optional HDD Compatibility Partition Fixer support, and `HddX:\Compatibility` targeting.
+- Fatman image and Windows disk workflows for scan, manual-open, extraction, mutation, FATX formatting, metadata backup/restore, and safe chain-map repair.
 
 XEX and analysis workflows:
 
@@ -316,7 +319,7 @@ dotnet run --project src/Xbox360.Remote.Cli -- --help
 Source builds require the .NET 10 SDK/runtime. That requirement does not apply to the published `win-x64` release archive.
 
 ## Fatman
-Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on inspection, image recovery, partition dumping, search, and export, not on write, mount, or repair operations.
+Fatman is XeCLI's FATX manager for local Xbox 360 disks and images. The current implementation supports image-backed inspection, recovery, partition dumping, search, export, and direct FATX file-system mutations inside an image. Windows-only mount, format, repartition, repair, and low-level metadata work remain separate layers.
 
 Current workflow:
 
@@ -325,6 +328,10 @@ Current workflow:
 - browse directories and locate entries
 - search by name or path
 - recover data from `.img` and `.bin` sources
+- create FATX directories inside an image
+- write host files into a FATX image
+- rename or move FATX entries inside an image
+- remove FATX files or directories inside an image
 - print small files in the terminal
 - dump partitions to a host directory
 - export selected files or directory trees to the host
@@ -340,6 +347,10 @@ rgh fatman list
 rgh fatman find
 rgh fatman cat
 rgh fatman get
+rgh fatman mkdir
+rgh fatman put
+rgh fatman mv
+rgh fatman rm
 rgh fatman extract
 rgh fatman dump
 ```
@@ -359,6 +370,10 @@ Examples:
 rgh fatman scan --image .\hdd.img
 rgh fatman info --image .\hdd.img --offset 0xB6600000
 rgh fatman list --image .\hdd.img --offset 0xB6600000 --path /
+rgh fatman mkdir --image .\hdd.img --path /XeCLI
+rgh fatman put --image .\hdd.img --path /XeCLI/readme.txt --in .\readme.txt --overwrite
+rgh fatman mv --image .\hdd.img --path /XeCLI/readme.txt --to /XeCLI/readme-old.txt
+rgh fatman rm --image .\hdd.img --path /XeCLI --recursive
 rgh fatman dump --image .\hdd.img --offset 0xB6600000 --length 0x10000000 --out .\partition-dump
 ```
 

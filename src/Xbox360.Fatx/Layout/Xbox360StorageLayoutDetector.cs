@@ -2,9 +2,7 @@ namespace Xbox360.Fatx.Layout;
 
 public static class Xbox360StorageLayoutDetector
 {
-    private const long SectorSize = 0x200;
-
-    public static Task<IReadOnlyList<FatxPartition>> DetectAsync(Stream stream, FatxOpenOptions options, CancellationToken cancellationToken = default)
+    public static async Task<IReadOnlyList<FatxPartition>> DetectAsync(Stream stream, FatxOpenOptions options, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentNullException.ThrowIfNull(options);
@@ -13,7 +11,7 @@ public static class Xbox360StorageLayoutDetector
         if (options.PartitionOffset is long offset)
         {
             var length = options.PartitionLength ?? Math.Max(0, stream.Length - offset);
-            return Task.FromResult<IReadOnlyList<FatxPartition>>(new[] {
+            return new[] {
                 new FatxPartition {
                     Index = 0,
                     Name = "Custom",
@@ -21,19 +19,43 @@ public static class Xbox360StorageLayoutDetector
                     Offset = offset,
                     Length = length,
                 }
-            });
+            };
         }
 
-        List<Xbox360PartitionDefinition> definitions = DetectRetailLayout(stream.Length);
+        List<Xbox360PartitionDefinition> definitions = new();
+        IReadOnlyList<Xbox360PartitionDefinition> retailPlan = Xbox360RetailLayoutPlanner.Create(stream.Length);
+        foreach (Xbox360PartitionDefinition definition in retailPlan)
+        {
+            if (await LooksLikeFatxVolumeAsync(stream, definition.Offset, definition.Length, cancellationToken).ConfigureAwait(false))
+            {
+                definitions.Add(definition);
+            }
+        }
+
         if (definitions.Count == 0)
         {
-            definitions.Add(new Xbox360PartitionDefinition {
-                Index = 0,
-                Name = "WholeDisk",
-                Kind = FatxPartitionKind.WholeDisk,
-                Offset = 0,
-                Length = stream.Length,
-            });
+            if (await LooksLikeFatxVolumeAsync(stream, 0, stream.Length, cancellationToken).ConfigureAwait(false))
+            {
+                definitions.Add(new Xbox360PartitionDefinition
+                {
+                    Index = 0,
+                    Name = "WholeDisk",
+                    Kind = FatxPartitionKind.WholeDisk,
+                    Offset = 0,
+                    Length = stream.Length,
+                });
+            }
+            else
+            {
+                definitions.Add(new Xbox360PartitionDefinition
+                {
+                    Index = 0,
+                    Name = "WholeDisk",
+                    Kind = FatxPartitionKind.WholeDisk,
+                    Offset = 0,
+                    Length = stream.Length,
+                });
+            }
         }
 
         IReadOnlyList<FatxPartition> partitions = definitions
@@ -47,59 +69,21 @@ public static class Xbox360StorageLayoutDetector
             })
             .ToArray();
 
-        return Task.FromResult(partitions);
+        return partitions;
     }
 
-    private static List<Xbox360PartitionDefinition> DetectRetailLayout(long streamLength)
+    private static async Task<bool> LooksLikeFatxVolumeAsync(Stream stream, long offset, long length, CancellationToken cancellationToken)
     {
-        List<Xbox360PartitionDefinition> definitions = new List<Xbox360PartitionDefinition>();
-        if (streamLength < 0x01180000L * SectorSize)
-            return definitions;
+        if (offset < 0 || length < 0x10 || offset > stream.Length - 0x10)
+            return false;
 
-        AddIfWithinBounds(definitions, streamLength, 0, "System Extended", FatxPartitionKind.SystemExtended, 0x00080000L, 0x00020000L);
-        AddIfWithinBounds(definitions, streamLength, 1, "System Auxiliary", FatxPartitionKind.SystemAuxiliary, 0x000A0000L, 0x00020000L);
-        AddIfWithinBounds(definitions, streamLength, 2, "Compatibility", FatxPartitionKind.Compatibility, 0x00120000L, 0x00FE0000L);
+        byte[] header = new byte[4];
+        stream.Position = offset;
+        int read = await stream.ReadAsync(header.AsMemory(0, header.Length), cancellationToken).ConfigureAwait(false);
+        if (read < 4)
+            return false;
 
-        long contentOffsetSectors = 0x01180000L;
-        long contentOffset = contentOffsetSectors * SectorSize;
-        if (streamLength > contentOffset)
-        {
-            definitions.Add(new Xbox360PartitionDefinition {
-                Index = definitions.Count,
-                Name = "Content",
-                Kind = FatxPartitionKind.Content,
-                Offset = contentOffset,
-                Length = streamLength - contentOffset,
-            });
-        }
-
-        return definitions;
-    }
-
-    private static void AddIfWithinBounds(
-        List<Xbox360PartitionDefinition> definitions,
-        long streamLength,
-        int index,
-        string name,
-        FatxPartitionKind kind,
-        long offsetSectors,
-        long lengthSectors)
-    {
-        long offset = offsetSectors * SectorSize;
-        long length = lengthSectors * SectorSize;
-        if (offset >= streamLength)
-            return;
-
-        long boundedLength = Math.Min(length, streamLength - offset);
-        if (boundedLength <= 0)
-            return;
-
-        definitions.Add(new Xbox360PartitionDefinition {
-            Index = index,
-            Name = name,
-            Kind = kind,
-            Offset = offset,
-            Length = boundedLength,
-        });
+        return header[0] == (byte)'F' && header[1] == (byte)'A' && header[2] == (byte)'T' && header[3] == (byte)'X'
+            || header[0] == (byte)'X' && header[1] == (byte)'T' && header[2] == (byte)'A' && header[3] == (byte)'F';
     }
 }

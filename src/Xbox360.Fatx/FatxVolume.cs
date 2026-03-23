@@ -145,6 +145,38 @@ public sealed class FatxVolume : IAsyncDisposable, IDisposable
     internal Task<byte[]> ReadClusterBytesAsync(uint cluster, CancellationToken cancellationToken = default)
         => ReadBytesAtAsync(GetClusterOffset(cluster), ClusterSizeBytes, cancellationToken);
 
+    internal async Task WriteBytesAtAsync(long offset, ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (!_stream.CanWrite)
+        {
+            throw new FatxException("This FATX volume was opened read-only.");
+        }
+
+        await _ioLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            _stream.Position = offset;
+            await _stream.WriteAsync(data, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _ioLock.Release();
+        }
+    }
+
+    internal Task WriteClusterAsync(uint cluster, ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
+    {
+        if (data.Length > ClusterSizeBytes)
+        {
+            throw new FatxException($"Cluster payload exceeds FATX cluster size ({ClusterSizeBytes} bytes).");
+        }
+
+        byte[] buffer = new byte[ClusterSizeBytes];
+        data.CopyTo(buffer);
+        return WriteBytesAtAsync(GetClusterOffset(cluster), buffer, cancellationToken);
+    }
+
     public void Dispose()
     {
         if (_disposed)

@@ -151,7 +151,7 @@ rgh debug watch
 rgh debug databreak add --addr 0x82100000 --size 4 --type write
 </code></pre>
 <p>Use code breakpoints to catch known execution sites and data breakpoints to identify writers to hot structures.</p>
-<h2 id="xex-and-ghidra-work">XEX and Ghidra Work</h2>
+<h2 id="xex-ghidra-and-ida-work">XEX, Ghidra, and IDA Work</h2>
 <h3 id="dump-the-actual-executable">Dump the actual executable</h3>
 <p>Use <code>xex dump</code> for a real XEX image, not a raw module dump:</p>
 <pre><code class="language-powershell">rgh xex dump --out .\title.xex
@@ -159,13 +159,29 @@ rgh debug databreak add --addr 0x82100000 --size 4 --type write
 <h3 id="string-triage">String triage</h3>
 <pre><code class="language-powershell">rgh xex strings --running --unicode --min 6
 </code></pre>
-<h3 id="full-headless-pipeline">Full headless pipeline</h3>
+<h3 id="ghidra-headless-pipeline">Ghidra headless pipeline</h3>
+<p>Ghidra is external and documented in the CLI as <code>(Free)</code>. XeCLI does not currently pin a supported Ghidra version in the docs, but it can install the <code>XEXLoaderWV</code> helper after you configure the tool path.</p>
 <pre><code class="language-powershell">rgh ghidra config --path &quot;C:\Tools\ghidra&quot; --java &quot;C:\Java&quot;
+rgh ghidra install-loader
 rgh ghidra analyze --in .\title.xex
 rgh ghidra decompile --in .\title.xex --out .\decomp
 rgh ghidra verify --dir .\decomp
 </code></pre>
 <p><code>ghidra verify</code> exists because a decompile folder full of placeholder stubs is worse than no result at all if you do not catch it.</p>
+<h3 id="ida-headless-pipeline">IDA headless pipeline</h3>
+<p>IDA support is pinned to <code>IDA Pro 9.1.250226</code> with <code>idaxex 0.42b</code>. XeCLI does not bundle IDA Pro, but it can install the pinned loader helper after you configure the tool path.</p>
+<pre><code class="language-powershell">rgh ida config --path &quot;C:\Program Files\IDA Professional 9.1&quot; --python python
+rgh ida install-loader
+rgh ida check
+rgh ida analyze --ftp-path /Hdd1/Aurora/Aurora.xex --out-db .\Aurora.i64 --overwrite
+rgh ida decompile --in .\Aurora.i64 --out .\ida-decomp --backend idalib --max 50
+rgh ida verify --dir .\ida-decomp
+</code></pre>
+<h3 id="one-shot-live-console-path">One-shot live console path</h3>
+<p>If you want a single command that pulls the running or remote XEX, builds a database, and exports C:</p>
+<pre><code class="language-powershell">rgh xex ida-decompile --ftp-path /Hdd1/Aurora/Aurora.xex --out .\ida-decomp --max 50 --out-db .\Aurora.i64 --keep-db
+</code></pre>
+<p>Read <a href="Reverse-Engineering.html">Reverse-Engineering.md</a> for the current support matrix, official download links, helper-loader install notes, and the pinned IDA baseline.</p>
 <h2 id="save-content-and-plugin-operations">Save, Content, and Plugin Operations</h2>
 <p>Use FTP-backed commands when the job is about the storage layout instead of the live memory image:</p>
 <pre><code class="language-powershell">rgh save extract --titleid 415608C3 --out .\saves

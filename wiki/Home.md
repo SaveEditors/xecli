@@ -39,7 +39,7 @@ The current features worth surfacing first are:
 | [XNotify](XNotify.md) | Notification usage, icon IDs, and direct integration notes |
 | [Homebrew and USB](Homebrew-and-USB.md) | USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch |
 | [Original Xbox Compatibility](Original-Xbox-Compatibility.md) | XeFu pack selection, HddX targeting, and optional HDD Compatibility Partition Fixer staging |
-| [Fatman](FATX-Manager.md) | Read-only FATX image and storage recovery with `rgh fatman` or the `rgh fatx` alias |
+| [Fatman](FATX-Manager.md) | FATX image recovery and image-backed file operations with `rgh fatman` or the `rgh fatx` alias |
 | [Avatar Item Collection](Avatar-Item-Collection.md) | Local and hosted avatar corpus naming, browser flows, layout, and install model |
 | [Troubleshooting](Troubleshooting.md) | Failure cases, common console/plugin issues, and recovery paths |
 

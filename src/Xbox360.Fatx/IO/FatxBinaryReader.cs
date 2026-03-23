@@ -34,6 +34,28 @@ public static class FatxBinaryReader
     public static ushort ReadUInt16(ReadOnlySpan<byte> data, FatxEndian endian = FatxEndian.Little)
         => endian == FatxEndian.Big ? BinaryPrimitives.ReadUInt16BigEndian(data) : BinaryPrimitives.ReadUInt16LittleEndian(data);
 
+    public static void WriteUInt32(Span<byte> data, uint value, FatxEndian endian = FatxEndian.Little)
+    {
+        if (endian == FatxEndian.Big)
+        {
+            BinaryPrimitives.WriteUInt32BigEndian(data, value);
+            return;
+        }
+
+        BinaryPrimitives.WriteUInt32LittleEndian(data, value);
+    }
+
+    public static void WriteUInt16(Span<byte> data, ushort value, FatxEndian endian = FatxEndian.Little)
+    {
+        if (endian == FatxEndian.Big)
+        {
+            BinaryPrimitives.WriteUInt16BigEndian(data, value);
+            return;
+        }
+
+        BinaryPrimitives.WriteUInt16LittleEndian(data, value);
+    }
+
     public static string ReadAscii(ReadOnlySpan<byte> data)
         => Encoding.ASCII.GetString(data).TrimEnd('\0', ' ');
 }

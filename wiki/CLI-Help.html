@@ -116,6 +116,7 @@ EXAMPLES:
     rgh fatman devices
     rgh fatx dump --image .\Hdd1.img --out .\recovery
     rgh ghidra decompile --running --out .\decomp
+    rgh ida decompile --running --out .\ida-decomp --max 25
 
 OPTIONS:
     -h, --help    Prints help information
@@ -159,17 +160,18 @@ COMMANDS:
     content         Installed content management over FTP
     homebrew        Download public homebrew packages to USB, a folder, or the console
     ogxbox          Original Xbox compatibility pack installer for HddX:\Compatibility
-    fatman          Read-only FATX manager for local disks and images
+    fatman          FATX manager for local disks and images
     fatx            Alias of `rgh fatman`
     avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
-    ghidra          Ghidra headless helpers
+    ghidra          Ghidra headless helpers (Free, external install required)
+    ida             IDA Pro headless helpers (IDA Pro 9.1.250226 required, external install required)
 </code></pre>
 <p>Avatar browsing in the shipped build now has both a terminal path and a Windows picker. Use <code>rgh avatar choose</code> for terminal selection, <code>rgh avatar browse</code> for the Windows picker, and <code>rgh avatar install</code> for direct one-item or full-title installs. Add <code>--remote</code> to use the hosted <code>Avatar-Item-Collection</code> repo with local caching and progress bars.</p>
 <p>Original Xbox compatibility is intentionally separate from normal homebrew installs. Use <code>rgh ogxbox install hacked|hud|retail</code> for the three public XeFu sets, and add <code>--include-fixer</code> when you also want the HDD Compatibility Partition Fixer staged.</p>
 <h2 id="fatman">Fatman</h2>
-<p>Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.</p>
+<p>Fatman is XeCLI's FATX manager for local Xbox 360 disks and images. The current implementation supports image recovery, partition dumping, inspection, search, export, and image-backed FATX mutations.</p>
 <p>Current command surface:</p>
 <pre><code class="language-text">rgh fatman devices
 rgh fatman partitions
@@ -179,6 +181,10 @@ rgh fatman list
 rgh fatman find
 rgh fatman cat
 rgh fatman get
+rgh fatman mkdir
+rgh fatman put
+rgh fatman mv
+rgh fatman rm
 rgh fatman extract
 rgh fatman dump
 </code></pre>
@@ -204,15 +210,19 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 <li>print small files in the terminal</li>
 <li>export selected files or directory trees to the host</li>
 <li>recover data from <code>.img</code> and <code>.bin</code> sources</li>
+<li>create FATX directories in an image</li>
+<li>write host files into a FATX image</li>
+<li>rename or move FATX entries in an image</li>
+<li>remove FATX files or directories in an image</li>
 </ul>
 <p>Validation note:</p>
 <ul>
 <li>the runtime has been verified against a synthetic FATX fixture image</li>
 <li>manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real <code>XTAF</code> offsets and opened the compatibility volume by bounded offset</li>
+<li>image-backed <code>mkdir</code>, <code>put</code>, <code>mv</code>, <code>rm</code>, <code>list</code>, and <code>cat</code> were also validated against a synthetic FATX image in local testing</li>
 </ul>
-<p>What it does not do in the first cut:</p>
+<p>What it does not do yet:</p>
 <ul>
-<li>write files back to FATX volumes</li>
 <li>format or repartition disks</li>
 <li>mount a virtual filesystem</li>
 <li>repair damaged volumes</li>
@@ -247,7 +257,7 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 <tr>
 <td><code>rgh xex ...</code></td>
 <td><code>rgh xbdm xex ...</code></td>
-<td>Running-XEX dump, launch, strings, and Ghidra-backed decompile</td>
+<td>Running-XEX dump, launch, strings, and Ghidra/IDA-backed decompile</td>
 </tr>
 <tr>
 <td><code>rgh fs ...</code></td>
@@ -371,6 +381,11 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 <td><code>rgh xex decompile</code></td>
 <td><code>rgh xex decode</code></td>
 <td>Same Ghidra-backed export</td>
+</tr>
+<tr>
+<td><code>rgh xex ida-decompile</code></td>
+<td><code>rgh xbdm xex ida-decompile</code></td>
+<td>Same IDA-backed export</td>
 </tr>
 </tbody>
 </table>
@@ -963,6 +978,7 @@ USAGE:
 EXAMPLES:
     rgh xex dump --out .\title.xex
     rgh xex strings --running --unicode --min 6
+    rgh xex ida-decompile --running --out .\ida-decomp --max 10
 
 OPTIONS:
     -h, --help    Prints help information
@@ -972,6 +988,7 @@ COMMANDS:
     launch       Launch a XEX with optional arguments
     strings      Extract strings from a XEX (local/FTP/running)
     decompile    Decompile a XEX to C via Ghidra
+    ida-decompile    Decompile a XEX to C via IDA Pro
 </code></pre>
 <h3 id="rgh-fs-help"><code>rgh fs help</code></h3>
 <pre><code class="language-text">DESCRIPTION:
@@ -1313,13 +1330,14 @@ COMMANDS:
 </code></pre>
 <h3 id="rgh-ghidra-help"><code>rgh ghidra help</code></h3>
 <pre><code class="language-text">DESCRIPTION:
-Ghidra headless helpers
+Ghidra headless helpers (Free, external install required)
 
 USAGE:
     rgh ghidra [OPTIONS] &lt;COMMAND&gt;
 
 EXAMPLES:
     rgh ghidra config --path C:\Tools\ghidra --java C:\Java
+    rgh ghidra install-loader
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -1327,9 +1345,33 @@ OPTIONS:
 
 COMMANDS:
     config       Configure Ghidra paths
+    install-loader    Download or install XEXLoaderWV into the configured Ghidra install
     analyze      Run headless analysis
     decompile    Decompile a module or XEX
     verify       Verify decompiler output for bad-instruction placeholders
+</code></pre>
+<h3 id="rgh-ida-help"><code>rgh ida help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+IDA Pro headless helpers (IDA Pro 9.1.250226 required, external install required)
+
+USAGE:
+    rgh ida [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh ida config --path C:\Program Files\IDA Professional 9.1 --python python
+    rgh ida install-loader
+    rgh ida decompile --running --out .\ida-decomp --max 25
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    config            Configure IDA install, python, and backend paths
+    check             Verify the configured IDA 9.1 + idaxex 0.42b environment
+    install-loader    Download or install the supported idaxex 0.42b loader set into IDA
+    analyze           Import a XEX into an IDA database headlessly
+    decompile         Decompile a XEX or IDA database to C
+    verify            Verify IDA decompiler output for obvious failures
 </code></pre>
 <h2 id="where-the-full-examples-live">Where the Full Examples Live</h2>
 <p>Use this page for the real help screens. Use <a href="Commands.html">Commands.md</a> for task-oriented examples and command-by-command usage patterns.</p>

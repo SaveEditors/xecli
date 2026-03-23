@@ -1,13 +1,13 @@
 <p align="center">
   <img src="assets/readme/xecli-logo.jpg" alt="XeCLI logo" width="320">
-</p>
+
 
 # XeCLI
 [![GitHub stars](https://img.shields.io/github/stars/SaveEditors/xecli)](https://github.com/SaveEditors/xecli)
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![.NET](https://img.shields.io/badge/.NET-10.0-blueviolet)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/Platform-Xbox%20360%20RGH%2FJTAG-orange)](https://github.com/SaveEditors/xecli)
-
+</p>
 XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit built for live console work. It combines XBDM, JRPC2, FTP, avatar browsing and remote avatar downloads, XEX tooling, memory inspection, module control, screenshot capture, Ghidra headless automation, pinned IDA Pro 9.1 headless reverse-engineering helpers, and Games on Demand conversion in one CLI and one release package. The same command surface also works cleanly from terminal agents such as Claude and Codex when you want repeatable console automation instead of a GUI-only workflow.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.

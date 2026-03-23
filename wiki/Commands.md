@@ -23,7 +23,7 @@ Use this table when you know the job you need done but not the exact command nam
 | Stage Original Xbox compatibility packs | `rgh ogxbox list`, `rgh ogxbox install hacked|hud|retail` |
 | Browse or install avatar items from the local or hosted collection | `rgh avatar library ...`, `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install` |
 | Send visible console messages | `rgh notify`, `rgh notify-icons`, `rgh jrpc2 notify` |
-| Analyze XEX files | `rgh xex strings`, `rgh xex decompile`, `rgh ghidra ...` |
+| Analyze XEX files | `rgh xex strings`, `rgh xex decompile`, `rgh xex ida-decompile`, `rgh ghidra ...`, `rgh ida ...` |
 | Convert retail ISOs | `rgh god info`, `rgh god build`, `rgh god watch` |
 
 ## Command Model
@@ -34,7 +34,7 @@ XeCLI is organized into a few major namespaces:
 - JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC
 - FTP-backed commands: file access, saves, content, and plugin management
 - Fatman manager: read-only local disk or image inspection and export
-- Analysis commands: XEX, Ghidra, metadata
+- Analysis commands: XEX, Ghidra, IDA, metadata
 - Packaging commands: Games on Demand conversion and watchdog mode
 
 Shortcut equivalence:
@@ -1564,6 +1564,8 @@ done     game.iso -> .\god\415608C3
 ```
 
 ## Ghidra Commands
+Ghidra is external and documented in the CLI as `(Free)`. XeCLI does not bundle Ghidra or Java. After `rgh ghidra config --path <dir>`, XeCLI can install `XEXLoaderWV` into that Ghidra install with `rgh ghidra install-loader`.
+
 ### `rgh ghidra config`
 ```powershell
 rgh ghidra config --path "C:\Tools\ghidra" --java "C:\Java"
@@ -1575,6 +1577,19 @@ Example output:
 SUCCESS Ghidra config updated
 path=C:\Tools\ghidra
 java=C:\Java
+```
+
+### `rgh ghidra install-loader`
+```powershell
+rgh ghidra install-loader
+rgh ghidra install-loader --archive .\ghidra_12.0_PUBLIC_20251209_XEXLoaderWV.zip
+```
+
+Example output:
+
+```text
+SUCCESS Ghidra XEX loader installed
+XEXLoaderWV -> C:\Tools\ghidra\Ghidra\Extensions\XEXLoaderWV\lib\XEXLoaderWV.jar
 ```
 
 ### `rgh ghidra analyze`
@@ -1616,6 +1631,95 @@ Example output:
 No flagged files found.
 ```
 
+## IDA Commands
+IDA is external and not bundled by XeCLI. The supported XeCLI baseline is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`. Do not broaden that claim to `idaxex 0.43` or `IDA 9.2` until that exact combination is validated.
+
+### `rgh ida config`
+```powershell
+rgh ida config --path "C:\Program Files\IDA Professional 9.1" --python python
+rgh ida config
+```
+
+Example output:
+
+```text
+SUCCESS IDA settings updated
+Stored IDA install, python, and backend settings were saved.
+```
+
+### `rgh ida check`
+```powershell
+rgh ida check
+rgh ida check --json
+```
+
+Example output:
+
+```text
+Install              C:\Program Files\IDA Professional 9.1
+Batch EXE            C:\Program Files\IDA Professional 9.1\idat.exe
+IDA build            9.1.25.0226 (supported)
+idaxex               0.42b (supported)
+TIL files            present
+idalib import        ok
+```
+
+### `rgh ida install-loader`
+```powershell
+rgh ida install-loader
+rgh ida install-loader --archive .\idaxex-0.42b.zip
+```
+
+Example output:
+
+```text
+SUCCESS IDA loader installed
+idaxex 0.42b -> C:\Program Files\IDA Professional 9.1\loaders\idaxex.dll
+```
+
+### `rgh ida analyze`
+```powershell
+rgh ida analyze --in .\title.xex --out-db .\title.i64 --overwrite
+rgh ida analyze --ftp-path /Hdd1/Aurora/Aurora.xex --out-db .\Aurora.i64 --overwrite
+```
+
+Example output:
+
+```text
+SUCCESS IDA analysis complete
+.\Aurora.i64 segments 7 functions 40129
+```
+
+### `rgh ida decompile`
+```powershell
+rgh ida decompile --in .\Aurora.i64 --out .\ida-decomp --backend idalib --max 50
+rgh ida decompile --running --out .\ida-decomp --out-db .\Aurora.i64 --keep-db
+```
+
+Example output:
+
+```text
+SUCCESS IDA decompile complete
+1 file(s) backend idalib output .\ida-decomp
+```
+
+### `rgh ida verify`
+```powershell
+rgh ida verify --dir .\ida-decomp
+rgh ida verify --dir .\ida-decomp --json
+```
+
+Example output:
+
+```text
+No flagged files found.
+```
+
+### `rgh xex ida-decompile`
+```powershell
+rgh xex ida-decompile --ftp-path /Hdd1/Aurora/Aurora.xex --out .\ida-decomp --max 50 --out-db .\Aurora.i64 --keep-db
+```
+
 ## Practical Workflows
 ### Fast console health check
 ```powershell
@@ -1629,6 +1733,7 @@ rgh title
 rgh xex dump --out .\title.xex
 rgh xex strings --in .\title.xex --unicode --min 6
 rgh ghidra decompile --in .\title.xex --out .\decomp
+rgh xex ida-decompile --in .\title.xex --out .\ida-decomp --max 50 --out-db .\title.i64 --keep-db
 ```
 
 ### Verify a reboot-expected module load

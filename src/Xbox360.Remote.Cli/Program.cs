@@ -86,6 +86,7 @@ internal static class Program {
             config.AddExample(new[] { "fatman", "dump", "--image", ".\\hdd.img", "--out", ".\\fatman-dump" });
             config.AddExample(new[] { "ghidra", "decompile", "--running", "--out", ".\\decomp" });
             config.AddExample(new[] { "ida", "decompile", "--running", "--out", ".\\ida-decomp", "--max", "25" });
+            config.AddExample(new[] { "ida", "decompile", "--running", "--out", ".\\ida-decomp", "--max", "25" });
 
             config.AddCommand<StatusCommand>("status").WithDescription("Show a compact console status snapshot.");
             config.AddCommand<ProfilesCommand>("profiles").WithAlias("users").WithDescription("List profiles and signed-in users.");
@@ -177,6 +178,7 @@ internal static class Program {
                     xex.AddCommand<LaunchCommand>("launch").WithAlias("run").WithDescription("Launch a XEX with optional arguments.");
                     xex.AddCommand<XexStringsCommand>("strings").WithDescription("Extract strings from a XEX (local/FTP/running).");
                     xex.AddCommand<GhidraDecompileCommand>("decompile").WithAlias("decode").WithDescription("Decompile a XEX to C via Ghidra.");
+                    xex.AddCommand<IdaDecompileCommand>("ida-decompile").WithDescription("Decompile a XEX to C via IDA Pro.");
                 });
 
                 xbdm.AddBranch("fs", fs => {
@@ -258,11 +260,13 @@ internal static class Program {
                 xex.SetDescription("Shortcut for `rgh xbdm xex`.");
                 xex.AddExample(new[] { "xex", "dump", "--out", ".\\title.xex" });
                 xex.AddExample(new[] { "xex", "strings", "--running", "--unicode", "--min", "6" });
+                xex.AddExample(new[] { "xex", "ida-decompile", "--running", "--out", ".\\ida-decomp", "--max", "10" });
                 xex.AddCommand<XbdmXexDumpCommand>("dump").WithDescription("Dump the active XEX image.");
                 xex.AddCommand<LaunchCommand>("launch").WithAlias("run").WithDescription("Launch a XEX with optional arguments.");
                 xex.AddCommand<XexStringsCommand>("strings").WithDescription("Extract strings from a XEX (local/FTP/running).");
                 xex.AddCommand<GhidraDecompileCommand>("decompile").WithAlias("decode").WithDescription("Decompile a XEX to C via Ghidra.");
-                });
+                xex.AddCommand<IdaDecompileCommand>("ida-decompile").WithDescription("Decompile a XEX to C via IDA Pro.");
+            });
 
             config.AddBranch("fs", fs => {
                 fs.SetDescription("Shortcut for `rgh xbdm fs`.");
@@ -485,11 +489,26 @@ internal static class Program {
             config.AddBranch("ghidra", ghidra => {
                 ghidra.SetDescription("Ghidra headless helpers (Free, external install required).");
                 ghidra.AddExample(new[] { "ghidra", "config", "--path", "C:\\Tools\\ghidra", "--java", "C:\\Java" });
+                ghidra.AddExample(new[] { "ghidra", "install-loader" });
                 ghidra.AddExample(new[] { "ghidra", "decompile", "--running", "--out", ".\\decomp" });
                 ghidra.AddCommand<GhidraConfigCommand>("config").WithDescription("Configure Ghidra paths.");
+                ghidra.AddCommand<GhidraInstallLoaderCommand>("install-loader").WithDescription("Download or install XEXLoaderWV into the configured Ghidra install.");
                 ghidra.AddCommand<GhidraAnalyzeCommand>("analyze").WithDescription("Run headless analysis.");
                 ghidra.AddCommand<GhidraDecompileCommand>("decompile").WithDescription("Decompile a module or XEX.");
                 ghidra.AddCommand<GhidraVerifyCommand>("verify").WithDescription("Verify decompiler output for bad-instruction placeholders.");
+            });
+
+            config.AddBranch("ida", ida => {
+                ida.SetDescription("IDA Pro headless helpers (IDA Pro 9.1.250226 required, external install required).");
+                ida.AddExample(new[] { "ida", "config", "--path", "C:\\Program Files\\IDA Professional 9.1", "--python", "python" });
+                ida.AddExample(new[] { "ida", "install-loader" });
+                ida.AddExample(new[] { "ida", "decompile", "--running", "--out", ".\\ida-decomp", "--max", "25" });
+                ida.AddCommand<IdaConfigCommand>("config").WithDescription("Configure IDA install, python, and backend paths.");
+                ida.AddCommand<IdaCheckCommand>("check").WithAlias("doctor").WithDescription("Verify the configured IDA 9.1 + idaxex 0.42b environment.");
+                ida.AddCommand<IdaInstallLoaderCommand>("install-loader").WithDescription("Download or install the supported idaxex 0.42b loader set into IDA.");
+                ida.AddCommand<IdaAnalyzeCommand>("analyze").WithDescription("Import a XEX into an IDA database headlessly.");
+                ida.AddCommand<IdaDecompileCommand>("decompile").WithDescription("Decompile a XEX or IDA database to C.");
+                ida.AddCommand<IdaVerifyCommand>("verify").WithDescription("Verify IDA decompiler output for obvious failures.");
             });
         });
 

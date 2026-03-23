@@ -20,7 +20,8 @@ The current features worth surfacing first are:
 - [FTP and File Transfer](FTP-and-File-Transfer.md) for saved FTP targets and the full `rgh ftp ...` workflow.
 - [Avatar Item Collection](Avatar-Item-Collection.md) for local or hosted avatar downloads, browsing, and install planning.
 - [Integrations](Integrations.md) for Claude, Codex, and other terminal-agent or script-driven workflows.
-- [Advanced Guide](Advanced-Guide.md) for live debugging, memory inspection, XEX dumping, and Ghidra usage.
+- [Advanced Guide](Advanced-Guide.md) for live debugging, memory inspection, XEX dumping, and reverse-engineering workflows.
+- [Reverse Engineering](Reverse-Engineering.md) for Ghidra and IDA headless support, requirements, and helper-loader install notes.
 - [Latest Features](Latest-Features.md) for a concise overview page that links these workflows together.
 
 ## Documentation Index
@@ -45,7 +46,8 @@ The current features worth surfacing first are:
 ### Technical Reference
 | Page | Purpose |
 | --- | --- |
-| [Advanced Guide](Advanced-Guide.md) | Reverse engineering, memory workflows, Ghidra flows, and automation usage |
+| [Advanced Guide](Advanced-Guide.md) | Reverse engineering, memory workflows, debugger control, and automation usage |
+| [Reverse Engineering](Reverse-Engineering.md) | Ghidra and IDA headless support, external requirements, and helper-loader install flows |
 | [Frameworks and Architecture](Frameworks.md) | Command architecture, transport layers, and design decisions |
 | [Documentation Standards](Standards.md) | Structure, conventions, and maintenance rules for this wiki |
 | [Contributing](Contributing.md) | Contribution expectations for code, docs, validation, and release prep |
@@ -113,6 +115,7 @@ The current features worth surfacing first are:
 ### Analysis and packaging
 - Running XEX dump and string extraction
 - Ghidra headless analysis and decompile export
+- IDA Pro 9.1.250226 headless import, decompile, and verification workflows
 - ISO to Games on Demand conversion with watchdog mode
 - Bundled Title ID metadata for richer output and external tool reuse
 - Command-based reuse from scripts, Claude/Codex, and companion tools
@@ -140,6 +143,7 @@ Current out-of-scope areas:
 - `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
 - `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
 - `src/Xbox360.Remote.Cli/ghidra_scripts/DecompileAllToC.java`
+- `src/Xbox360.Remote.Cli/ida_scripts/`
 
 ### Runtime state
 - `%APPDATA%\XeCLI\config.json`
@@ -188,7 +192,7 @@ That means:
 
 - `rgh.exe` runs without a separate .NET install
 - runtime files ship beside the executable in the release folder
-- `ConsoleDependencies/`, `Assets/`, and `ghidra_scripts/` ship in the same release package
+- `ConsoleDependencies/`, `Assets/`, `ghidra_scripts/`, and `ida_scripts/` ship in the same release package
 - `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex` are also exposed at the repo root for direct download/reference
 - `rgh install` can copy the release to a chosen install folder, register `rgh`, and offer immediate console discovery after setup
 

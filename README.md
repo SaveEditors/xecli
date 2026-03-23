@@ -8,9 +8,11 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-blueviolet)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/Platform-Xbox%20360%20RGH%2FJTAG-orange)](https://github.com/SaveEditors/xecli)
 
-XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit built for live console work. It combines XBDM, JRPC2, FTP, avatar browsing and remote avatar downloads, XEX tooling, memory inspection, module control, screenshot capture, Ghidra headless automation, and Games on Demand conversion in one CLI and one release package. The same command surface also works cleanly from terminal agents such as Claude and Codex when you want repeatable console automation instead of a GUI-only workflow.
+XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit built for live console work. It combines XBDM, JRPC2, FTP, avatar browsing and remote avatar downloads, XEX tooling, memory inspection, module control, screenshot capture, Ghidra headless automation, pinned IDA Pro 9.1 headless reverse-engineering helpers, and Games on Demand conversion in one CLI and one release package. The same command surface also works cleanly from terminal agents such as Claude and Codex when you want repeatable console automation instead of a GUI-only workflow.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
+
+Ghidra remains an external `(Free)` dependency. The IDA workflow is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`, and IDA Pro is required if you want the IDA debugger/decompiler workflow.
 
 Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 
@@ -37,6 +39,7 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - [Fatman](https://saveeditors.github.io/xecli/wiki/FATX-Manager.html)
 - [Avatar Item Collection](https://saveeditors.github.io/xecli/wiki/Avatar-Item-Collection.html)
 - [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html)
+- [Reverse Engineering](https://saveeditors.github.io/xecli/wiki/Reverse-Engineering.html)
 - [Integrations](https://saveeditors.github.io/xecli/wiki/Integrations.html)
 - [Published Docs Site](https://saveeditors.github.io/xecli/wiki/)
 
@@ -44,10 +47,14 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 - FTP and file work: save a target once, then browse, search, pull, push, rename, and delete directly from `rgh`.
 - Avatar downloader and installer: use the local or hosted `Avatar-Item-Collection`, browse by game or item, cache remote packages, patch ownership, and install to the console.
 - Claude/Codex-friendly automation: drive `rgh` from terminal agents, shell scripts, or companion tools with explicit commands and `--json` output where supported.
-- Live debugging and reverse engineering: inspect modules, memory, threads, breakpoints, screenshots, XEX dumps, and Ghidra output without switching tools.
+- Live debugging and reverse engineering: inspect modules, memory, threads, breakpoints, screenshots, XEX dumps, and both Ghidra and IDA output without switching tools.
 
 ## Release Changelog
-### v1.0.4 Fatman Update
+### v1.0.4 IDA Debugger Support
+- Added headless IDA Pro 9.1.250226 support with `rgh ida config`, `rgh ida check`, `rgh ida install-loader`, `rgh ida analyze`, `rgh ida decompile`, `rgh ida verify`, and the `rgh xex ida-decompile` shortcut for live-console XEX workflows.
+- Pinned the supported IDA environment to `IDA Pro 9.1.250226` with `idaxex 0.42b`. IDA Pro is required to use the IDA debugger/decompiler workflow.
+- Clarified the Ghidra workflow as an external `(Free)` dependency and added helper-loader install flows through `rgh ghidra install-loader`.
+- Added the [Reverse Engineering](https://saveeditors.github.io/xecli/wiki/Reverse-Engineering.html) wiki page and updated the README, CLI help, commands reference, advanced guide, and FAQ to document the external tool requirements and supported loader versions.
 - Added `rgh fatman` as XeCLI's integrated FATX image and storage manager, with `rgh fatx` kept as the documented alias for users who prefer the filesystem term directly.
 - Added read-only FATX/XTAF image recovery commands for `devices`, `partitions`, `scan`, `info`, `list`, `find`, `cat`, `get`, `extract`, and `dump`.
 - Added manual-open support with `--offset` and `--length` so nonstandard, partial, or dev HDD images can be inspected directly by byte range instead of relying only on the retail partition map.
@@ -100,7 +107,7 @@ Live status:
 XeCLI is designed for three kinds of work:
 
 - Daily console workflows: discovery, connection management, status, FTP, plugin control, and title launching.
-- Reverse engineering workflows: module listing, memory reads and writes, thread context, breakpoints, XEX dumping, strings, and Ghidra export.
+- Reverse engineering workflows: module listing, memory reads and writes, thread context, breakpoints, XEX dumping, strings, Ghidra export, and IDA Pro 9.1 headless import/decompile flows.
 - Tool integration workflows: JSON output, bundled metadata, and stable command-based orchestration from scripts or companion apps.
 
 It is intended to replace scattered one-off console utilities with a consistent command surface that can be used interactively or scripted.
@@ -112,7 +119,7 @@ The repository and release package include:
 - Common console-side `.xex` dependency files used with XeCLI workflows.
 - A bundled Title ID database.
 - Avatar item browsing and install workflows from either a local `Avatar-Item-Collection` corpus or the hosted GitHub-backed collection, with cached downloads, progress bars, and metadata-first item names instead of raw content-ID labels.
-- Ghidra helper scripts.
+- Ghidra and IDA helper scripts.
 - Wiki documentation and release-facing README content.
 
 Bundled assets:
@@ -126,8 +133,10 @@ Bundled assets:
 - `src/Xbox360.Remote.Cli/Assets/xbox360_gamelist.csv`
 - `src/Xbox360.Remote.Cli/Assets/xbox360_titleids.txt`
 - `src/Xbox360.Remote.Cli/ghidra_scripts/DecompileAllToC.java`
+- `src/Xbox360.Remote.Cli/ida_scripts/*.py`
 
 Published releases include these assets so the package stays self-contained. The hosted avatar corpus itself lives separately at [SaveEditors/Avatar-Item-Collection](https://github.com/SaveEditors/Avatar-Item-Collection).
+XeCLI does not bundle Ghidra or IDA Pro themselves. Ghidra is `(Free)`. IDA Pro `9.1.250226` is required for the IDA debugger/decompiler workflow. After you configure each tool path, XeCLI can install the supported XEX loader helpers with `rgh ghidra install-loader` and `rgh ida install-loader`.
 
 ## What the Console Must Provide
 XeCLI ships the expected console-side plugin payload in the repository and release package so users can deploy the exact versions the tool was built and tested against:
@@ -175,6 +184,7 @@ XEX and analysis workflows:
 - Dump the active XEX.
 - Extract XEX strings from local files, FTP, or the running title.
 - Run Ghidra headless analysis and decompile exports.
+- Run IDA Pro 9.1.250226 headless import, decompile, and verify workflows.
 - Verify decompile output for bad-instruction placeholders.
 
 Packaging and automation:

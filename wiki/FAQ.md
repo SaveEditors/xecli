@@ -176,8 +176,14 @@ Yes. Add entries to:
 
 - `%APPDATA%\XeCLI\titleids.local.csv`
 
-## Does XeCLI require Ghidra
-No. Ghidra is only required for the `ghidra` and `xex decompile` workflows.
+## Does XeCLI require Ghidra or IDA
+No. Reverse-engineering tooling is optional.
+
+- Ghidra is only required for the `ghidra` and `xex decompile` workflows.
+- IDA Pro is only required for the `ida` and `xex ida-decompile` workflows.
+- XeCLI does not bundle either tool.
+- Ghidra is documented in the CLI as `(Free)`.
+- IDA support is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`.
 
 ## Does XeCLI replace Aurora, Neighborhood, or XeXMenu completely
 No single tool replaces every scene workflow perfectly. The goal of XeCLI is to cover the high-value terminal-first workflows cleanly enough that you do not need to bounce between small one-off utilities for status, dumps, memory work, saves, content, notifications, screenshots, and scripted automation.

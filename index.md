@@ -1,8 +1,10 @@
 # XeCLI
 
-XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with XBDM, JRPC2, FTP, avatar browsing and remote avatar downloads, XEX dumping, memory inspection, module control, screenshot capture, Ghidra headless automation, and Games on Demand conversion. It also works cleanly from terminal agents such as Claude and Codex when you want scripted or AI-assisted console automation.
+XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with XBDM, JRPC2, FTP, avatar browsing and remote avatar downloads, XEX dumping, memory inspection, module control, screenshot capture, Ghidra headless automation, pinned IDA Pro 9.1 headless reverse-engineering helpers, and Games on Demand conversion. It also works cleanly from terminal agents such as Claude and Codex when you want scripted or AI-assisted console automation.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
+
+Ghidra is an external `(Free)` dependency. The IDA workflow is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`, and IDA Pro is required for the IDA debugger/decompiler workflow.
 
 ## Start Here
 - [Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)
@@ -12,6 +14,7 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 - [CLI Help Output](https://saveeditors.github.io/xecli/wiki/CLI-Help.html)
 - [Beginner Guide](https://saveeditors.github.io/xecli/wiki/Beginner-Guide.html)
 - [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html)
+- [Reverse Engineering](https://saveeditors.github.io/xecli/wiki/Reverse-Engineering.html)
 - [Frameworks and Architecture](https://saveeditors.github.io/xecli/wiki/Frameworks.html)
 - [Integrations](https://saveeditors.github.io/xecli/wiki/Integrations.html)
 - [Title ID Database](https://saveeditors.github.io/xecli/wiki/Title-ID-Database.html)

@@ -49,7 +49,7 @@ Read [Integrations.md](Integrations.md) for guidance on agent and external-tool 
 
 ## Live Debugging and Reverse Engineering
 
-XeCLI remains strongest in live console inspection:
+XeCLI remains strongest in live console inspection and reverse-engineering handoff:
 
 - modules
 - memory reads, writes, and freeze-assisted searches
@@ -57,6 +57,7 @@ XeCLI remains strongest in live console inspection:
 - screenshots
 - XEX dump and strings
 - Ghidra headless analysis and verification
+- IDA Pro 9.1.250226 headless import, decompile, and verification
 
 Use:
 
@@ -65,6 +66,9 @@ rgh modules list
 rgh mem hexdump --addr 0x30000000 --size 0x40
 rgh debug watch
 rgh ghidra decompile --running --out .\decomp
+rgh xex ida-decompile --running --out .\ida-decomp --max 10
 ```
+
+Ghidra is external and `(Free)`. IDA Pro `9.1.250226` is external and required for the IDA debugger/decompiler path. After you configure the tool path, XeCLI can install the supported XEX loader helpers with `rgh ghidra install-loader` and `rgh ida install-loader`.
 
 Read [Advanced-Guide.md](Advanced-Guide.md) for the broader workflow guidance.

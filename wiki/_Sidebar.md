@@ -17,6 +17,7 @@
 
 ## Technical Reference
 - [Advanced Guide](Advanced-Guide)
+- [Reverse Engineering](Reverse-Engineering)
 - [Frameworks and Architecture](Frameworks)
 - [Documentation Standards](Standards)
 - [Contributing](Contributing)

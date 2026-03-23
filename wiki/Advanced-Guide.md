@@ -122,7 +122,7 @@ rgh debug databreak add --addr 0x82100000 --size 4 --type write
 
 Use code breakpoints to catch known execution sites and data breakpoints to identify writers to hot structures.
 
-## XEX and Ghidra Work
+## XEX, Ghidra, and IDA Work
 ### Dump the actual executable
 Use `xex dump` for a real XEX image, not a raw module dump:
 
@@ -135,15 +135,39 @@ rgh xex dump --out .\title.xex
 rgh xex strings --running --unicode --min 6
 ```
 
-### Full headless pipeline
+### Ghidra headless pipeline
+Ghidra is external and documented in the CLI as `(Free)`. XeCLI does not currently pin a supported Ghidra version in the docs, but it can install the `XEXLoaderWV` helper after you configure the tool path.
+
 ```powershell
 rgh ghidra config --path "C:\Tools\ghidra" --java "C:\Java"
+rgh ghidra install-loader
 rgh ghidra analyze --in .\title.xex
 rgh ghidra decompile --in .\title.xex --out .\decomp
 rgh ghidra verify --dir .\decomp
 ```
 
 `ghidra verify` exists because a decompile folder full of placeholder stubs is worse than no result at all if you do not catch it.
+
+### IDA headless pipeline
+IDA support is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`. XeCLI does not bundle IDA Pro, but it can install the pinned loader helper after you configure the tool path.
+
+```powershell
+rgh ida config --path "C:\Program Files\IDA Professional 9.1" --python python
+rgh ida install-loader
+rgh ida check
+rgh ida analyze --ftp-path /Hdd1/Aurora/Aurora.xex --out-db .\Aurora.i64 --overwrite
+rgh ida decompile --in .\Aurora.i64 --out .\ida-decomp --backend idalib --max 50
+rgh ida verify --dir .\ida-decomp
+```
+
+### One-shot live console path
+If you want a single command that pulls the running or remote XEX, builds a database, and exports C:
+
+```powershell
+rgh xex ida-decompile --ftp-path /Hdd1/Aurora/Aurora.xex --out .\ida-decomp --max 50 --out-db .\Aurora.i64 --keep-db
+```
+
+Read [Reverse-Engineering.md](Reverse-Engineering.md) for the current support matrix, official download links, helper-loader install notes, and the pinned IDA baseline.
 
 ## Save, Content, and Plugin Operations
 Use FTP-backed commands when the job is about the storage layout instead of the live memory image:

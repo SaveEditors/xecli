@@ -92,21 +92,24 @@ Tracked fields include:
 
 `rgh modules pending` and `rgh status` can then verify the post-reboot state instead of guessing.
 
-## Ghidra Integration
-XeCLI uses Ghidra headless as an external analysis backend.
+## Reverse-Engineering Integration
+XeCLI uses Ghidra and IDA Pro as external headless analysis backends.
 
 What XeCLI adds:
 
 - consistent command-line entry points
 - running-title and FTP-backed source acquisition
+- helper-loader installation
 - decompile export orchestration
 - verification of output quality
 
 What XeCLI does not do:
 
 - replace Ghidra
+- replace IDA Pro
 - provide its own decompiler
 - ship Ghidra itself
+- ship IDA Pro itself
 
 ## Release Layout
 A clean release should contain:
@@ -114,6 +117,7 @@ A clean release should contain:
 - `rgh.exe`
 - `Assets/`
 - `ghidra_scripts/`
+- `ida_scripts/`
 
 The source repo should not contain:
 

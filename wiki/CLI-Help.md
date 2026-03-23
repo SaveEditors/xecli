@@ -56,6 +56,7 @@ EXAMPLES:
     rgh fatman devices
     rgh fatx dump --image .\Hdd1.img --out .\recovery
     rgh ghidra decompile --running --out .\decomp
+    rgh ida decompile --running --out .\ida-decomp --max 25
 
 OPTIONS:
     -h, --help    Prints help information
@@ -104,7 +105,8 @@ COMMANDS:
     avatar          Avatar item library and install helpers
     plugin          DashLaunch plugin management
     god             ISO to Games on Demand conversion
-    ghidra          Ghidra headless helpers
+    ghidra          Ghidra headless helpers (Free, external install required)
+    ida             IDA Pro headless helpers (IDA Pro 9.1.250226 required, external install required)
 ```
 
 Avatar browsing in the shipped build now has both a terminal path and a Windows picker. Use `rgh avatar choose` for terminal selection, `rgh avatar browse` for the Windows picker, and `rgh avatar install` for direct one-item or full-title installs. Add `--remote` to use the hosted `Avatar-Item-Collection` repo with local caching and progress bars.
@@ -176,7 +178,7 @@ These shortcut groups are not separate implementations. They are direct shortcut
 | `rgh modules ...` | `rgh xbdm modules ...` | Loaded module list, info, dump, load, unload, and pending verification |
 | `rgh module ...` | `rgh modules ...` | Singular alias for the same module branch |
 | `rgh mem ...` | `rgh xbdm mem ...` | Memory dump, hexdump, peek, poke, watch, strings, and search |
-| `rgh xex ...` | `rgh xbdm xex ...` | Running-XEX dump, launch, strings, and Ghidra-backed decompile |
+| `rgh xex ...` | `rgh xbdm xex ...` | Running-XEX dump, launch, strings, and Ghidra/IDA-backed decompile |
 | `rgh fs ...` | `rgh xbdm fs ...` | XBDM file-system list, get, put, cat, remove, mkdir, and move |
 | `rgh threads ...` | `rgh xbdm threads ...` | Thread list, context, suspend, and resume |
 | `rgh debug ...` | `rgh xbdm debug ...` | Break, go, watch, code breakpoints, and data breakpoints |
@@ -205,6 +207,7 @@ Several commands also expose quality-of-life aliases. The important ones are:
 | `rgh save inject` | `rgh save push` / `rgh save put` | Same save-upload workflow |
 | `rgh avatar install` | `rgh avatar apply` | Same avatar patch-and-install workflow |
 | `rgh xex decompile` | `rgh xex decode` | Same Ghidra-backed export |
+| `rgh xex ida-decompile` | `rgh xbdm xex ida-decompile` | Same IDA-backed export |
 
 ## Representative Runtime Results
 The built-in help screens tell you how to call a command. They do not show what success or failure usually looks like in terminal use. The examples below are representative results from the shipped CLI.
@@ -853,6 +856,7 @@ USAGE:
 EXAMPLES:
     rgh xex dump --out .\title.xex
     rgh xex strings --running --unicode --min 6
+    rgh xex ida-decompile --running --out .\ida-decomp --max 10
 
 OPTIONS:
     -h, --help    Prints help information
@@ -862,6 +866,7 @@ COMMANDS:
     launch       Launch a XEX with optional arguments
     strings      Extract strings from a XEX (local/FTP/running)
     decompile    Decompile a XEX to C via Ghidra
+    ida-decompile    Decompile a XEX to C via IDA Pro
 ```
 
 ### `rgh fs help`
@@ -1243,13 +1248,14 @@ COMMANDS:
 ### `rgh ghidra help`
 ```text
 DESCRIPTION:
-Ghidra headless helpers
+Ghidra headless helpers (Free, external install required)
 
 USAGE:
     rgh ghidra [OPTIONS] <COMMAND>
 
 EXAMPLES:
     rgh ghidra config --path C:\Tools\ghidra --java C:\Java
+    rgh ghidra install-loader
     rgh ghidra decompile --running --out .\decomp
 
 OPTIONS:
@@ -1257,9 +1263,35 @@ OPTIONS:
 
 COMMANDS:
     config       Configure Ghidra paths
+    install-loader    Download or install XEXLoaderWV into the configured Ghidra install
     analyze      Run headless analysis
     decompile    Decompile a module or XEX
     verify       Verify decompiler output for bad-instruction placeholders
+```
+
+### `rgh ida help`
+```text
+DESCRIPTION:
+IDA Pro headless helpers (IDA Pro 9.1.250226 required, external install required)
+
+USAGE:
+    rgh ida [OPTIONS] <COMMAND>
+
+EXAMPLES:
+    rgh ida config --path C:\Program Files\IDA Professional 9.1 --python python
+    rgh ida install-loader
+    rgh ida decompile --running --out .\ida-decomp --max 25
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    config            Configure IDA install, python, and backend paths
+    check             Verify the configured IDA 9.1 + idaxex 0.42b environment
+    install-loader    Download or install the supported idaxex 0.42b loader set into IDA
+    analyze           Import a XEX into an IDA database headlessly
+    decompile         Decompile a XEX or IDA database to C
+    verify            Verify IDA decompiler output for obvious failures
 ```
 
 ## Where the Full Examples Live

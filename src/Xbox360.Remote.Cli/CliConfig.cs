@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Xbox360.Remote.Cli;
 
@@ -45,6 +46,10 @@ internal sealed class CliConfig {
     public string? GhidraPath { get; set; }
     public string? GhidraJavaPath { get; set; }
     public string? GhidraProjectsPath { get; set; }
+    public string? IdaPath { get; set; }
+    public string? IdaPythonPath { get; set; }
+    public string? IdaUserPath { get; set; }
+    public string? IdaPreferredBackend { get; set; }
     public string? AvatarLibraryRoot { get; set; }
     public string? AvatarCachePath { get; set; }
     public string? AvatarManifestUrl { get; set; }
@@ -55,6 +60,8 @@ internal sealed class CliConfig {
     public PendingModuleOperationInfo? PendingModuleOperation { get; set; }
     public LedStateInfo? LastLedState { get; set; }
     public FanStateInfo? LastFanState { get; set; }
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? ExtraData { get; set; }
 
     public static CliConfig Load() {
         string path = CliPaths.ConfigPath;

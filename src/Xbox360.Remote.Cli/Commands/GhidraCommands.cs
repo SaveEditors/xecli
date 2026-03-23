@@ -28,6 +28,7 @@ public sealed class GhidraConfigCommand : Command<GhidraConfigCommand.Settings> 
     }
 
     public override int Execute(CommandContext context, Settings settings) {
+        ReverseEngineeringNoticeHelpers.WriteGhidraNotice();
         CliConfig config = CliConfig.Load();
         if (settings.Clear) {
             config.GhidraPath = null;
@@ -116,6 +117,7 @@ public sealed class GhidraAnalyzeCommand : AsyncCommand<GhidraAnalyzeCommand.Set
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
+        ReverseEngineeringNoticeHelpers.WriteGhidraNotice();
         string? inputPath = await ResolveInputAsync(settings.Input, settings.FtpPath, settings.Running);
         if (string.IsNullOrWhiteSpace(inputPath))
             return 1;
@@ -154,8 +156,11 @@ public sealed class GhidraAnalyzeCommand : AsyncCommand<GhidraAnalyzeCommand.Set
             args.Add("-loader");
             args.Add(settings.Loader!);
         }
-        else if (GhidraLoaderHelpers.IsXexFile(inputPath) && GhidraLoaderHelpers.HasXexLoader(ghidraHome)) {
-            AnsiConsole.MarkupLine("[grey]XEX loader detected; using auto-detect.[/]");
+        else if (GhidraLoaderHelpers.IsXexFile(inputPath)) {
+            if (GhidraLoaderHelpers.HasXexLoader(ghidraHome))
+                AnsiConsole.MarkupLine("[grey]XEX loader detected; using auto-detect.[/]");
+            else
+                OperationFeedback.WriteWarning("XEX loader not detected", "[grey]Install XEXLoaderWV with `rgh ghidra install-loader` after configuring the Ghidra path.[/]");
         }
 
         if (settings.TimeoutSeconds.HasValue) {
@@ -297,6 +302,7 @@ public sealed class GhidraDecompileCommand : AsyncCommand<GhidraDecompileCommand
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
+        ReverseEngineeringNoticeHelpers.WriteGhidraNotice();
         if (string.IsNullOrWhiteSpace(settings.Output)) {
             AnsiConsole.MarkupLine("[red]--out is required.[/]");
             return 1;
@@ -347,8 +353,11 @@ public sealed class GhidraDecompileCommand : AsyncCommand<GhidraDecompileCommand
             args.Add("-loader");
             args.Add(settings.Loader!);
         }
-        else if (GhidraLoaderHelpers.IsXexFile(inputPath) && GhidraLoaderHelpers.HasXexLoader(ghidraHome)) {
-            AnsiConsole.MarkupLine("[grey]XEX loader detected; using auto-detect.[/]");
+        else if (GhidraLoaderHelpers.IsXexFile(inputPath)) {
+            if (GhidraLoaderHelpers.HasXexLoader(ghidraHome))
+                AnsiConsole.MarkupLine("[grey]XEX loader detected; using auto-detect.[/]");
+            else
+                OperationFeedback.WriteWarning("XEX loader not detected", "[grey]Install XEXLoaderWV with `rgh ghidra install-loader` after configuring the Ghidra path.[/]");
         }
 
         if (settings.TimeoutSeconds.HasValue) {
@@ -464,6 +473,7 @@ public sealed class GhidraVerifyCommand : Command<GhidraVerifyCommand.Settings> 
     }
 
     public override int Execute(CommandContext context, Settings settings) {
+        ReverseEngineeringNoticeHelpers.WriteGhidraNotice();
         if (string.IsNullOrWhiteSpace(settings.Directory)) {
             AnsiConsole.MarkupLine("[red]--dir is required.[/]");
             return 1;

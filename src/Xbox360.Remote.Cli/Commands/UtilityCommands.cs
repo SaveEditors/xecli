@@ -644,6 +644,17 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
             return 1;
         }
 
+        if (!settings.Uninstall) {
+            InstallSourceValidation sourceValidation = InstallHelpers.InspectInstallSource(sourceDir);
+            if (!sourceValidation.IsValid) {
+                AnsiConsole.MarkupLine("[red]The selected install source is not a published self-contained XeCLI release.[/]");
+                AnsiConsole.MarkupLine($"[grey]{Markup.Escape(sourceValidation.Message)}[/]");
+                if (!string.IsNullOrWhiteSpace(sourceValidation.PublishCommandHint))
+                    AnsiConsole.MarkupLine($"[grey]Publish a release first:[/] [white]{Markup.Escape(sourceValidation.PublishCommandHint)}[/]");
+                return 1;
+            }
+        }
+
         if (interactiveInstall && !PromptToReinstallIfNeeded(sourceDir))
             return 0;
 

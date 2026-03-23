@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Security.Principal;
+using System.Text.Json;
 using Microsoft.Win32;
 
 namespace Xbox360.Remote.Cli;
@@ -52,7 +53,8 @@ internal static class InstallHelpers {
         if (IsDirectoryOnProcessPath(executableDirectory))
             return true;
 
-        return File.Exists(ShimPath) && IsDirectoryOnProcessPath(WindowsAppsDir);
+        string? commandPath = TryResolveRegisteredCommandPath();
+        return !string.IsNullOrWhiteSpace(commandPath) && File.Exists(commandPath);
     }
 
     public static string? TryResolveRegisteredCommandPath() {
@@ -154,6 +156,60 @@ internal static class InstallHelpers {
             NormalizeDirectory(left),
             NormalizeDirectory(right),
             StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static InstallSourceValidation InspectInstallSource(string sourceDirectory) {
+        string source = NormalizeDirectory(sourceDirectory);
+        string exePath = Path.Combine(source, "rgh.exe");
+        if (!File.Exists(exePath)) {
+            return new InstallSourceValidation(
+                false,
+                "rgh.exe was not found in the selected source directory.",
+                CreatePublishCommandHint());
+        }
+
+        string runtimeConfigPath = Path.Combine(source, "rgh.runtimeconfig.json");
+        if (!File.Exists(runtimeConfigPath)) {
+            return new InstallSourceValidation(
+                true,
+                "Detected a single-file self-contained publish.",
+                null);
+        }
+
+        try {
+            using JsonDocument document = JsonDocument.Parse(File.ReadAllText(runtimeConfigPath));
+            if (!document.RootElement.TryGetProperty("runtimeOptions", out JsonElement runtimeOptions)) {
+                return new InstallSourceValidation(
+                    false,
+                    "The source runtime configuration is missing runtimeOptions and does not look like a valid published release.",
+                    CreatePublishCommandHint());
+            }
+
+            if (runtimeOptions.TryGetProperty("includedFrameworks", out _)) {
+                return new InstallSourceValidation(
+                    true,
+                    "Detected a multi-file self-contained publish.",
+                    null);
+            }
+
+            if (runtimeOptions.TryGetProperty("framework", out _) || runtimeOptions.TryGetProperty("frameworks", out _)) {
+                return new InstallSourceValidation(
+                    false,
+                    "The selected source is a framework-dependent build output, not a self-contained publish. Installing it can fail on systems without the matching x64 .NET desktop runtime.",
+                    CreatePublishCommandHint());
+            }
+
+            return new InstallSourceValidation(
+                false,
+                "The selected source does not advertise included frameworks and does not look like a supported self-contained release layout.",
+                CreatePublishCommandHint());
+        }
+        catch (Exception ex) {
+            return new InstallSourceValidation(
+                false,
+                $"The source runtime configuration could not be parsed: {ex.Message}",
+                CreatePublishCommandHint());
+        }
     }
 
     public static void MirrorDirectory(string sourceDirectory, string targetDirectory) {
@@ -316,6 +372,10 @@ internal static class InstallHelpers {
             out _);
     }
 
+    private static string CreatePublishCommandHint() {
+        return "dotnet publish src/Xbox360.Remote.Cli/Xbox360.Remote.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o <publish-dir>";
+    }
+
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern nint SendMessageTimeout(
         nint hWnd,
@@ -326,3 +386,8 @@ internal static class InstallHelpers {
         uint uTimeout,
         out nint lpdwResult);
 }
+
+internal sealed record InstallSourceValidation(
+    bool IsValid,
+    string Message,
+    string? PublishCommandHint);

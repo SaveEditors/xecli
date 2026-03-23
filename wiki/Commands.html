@@ -868,9 +868,12 @@ rgh threads resume --id 0xFB000008
 </code></pre>
 <p>Example output:</p>
 <pre><code class="language-text">Threads
-0xFB000008  priority=100  state=Running
-0xFB000009  priority=100  state=Waiting
+#  ID         Image         Start Addr.  End Addr.    Stack Base  Stack Limit
+1  0xFB000008 xboxkrnl.exe  0x8012E3C0   0x801F0000   0x7A020000  0x7A010000
+2  0xF9000004 Aurora.xex    0x82458C90   0x82BF0000   0x700A0000  0x70060000
 </code></pre>
+<p><code>threads list</code> now resolves the thread start routine address and, when that address lands inside a loaded image, also shows the containing image name and end boundary. <code>End Addr.</code> is the containing image end boundary, not a recovered function end.</p>
+<p><code>rgh threads list --json</code> includes <code>ImageName</code>, <code>StartAddress</code>, and <code>EndAddress</code> for the same reason.</p>
 <h3 id="debug-control">Debug control</h3>
 <pre><code class="language-powershell">rgh debug stop
 rgh debug go

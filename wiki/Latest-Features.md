@@ -71,4 +71,6 @@ rgh xex ida-decompile --running --out .\ida-decomp --max 10
 
 Ghidra is external and `(Free)`. IDA Pro `9.1.250226` is external and required for the IDA debugger/decompiler path. After you configure the tool path, XeCLI can install the supported XEX loader helpers with `rgh ghidra install-loader` and `rgh ida install-loader`.
 
+`threads list` now falls back to loaded-image metadata when XBDM does not publish real thread names. The table exposes `Image`, `Start Addr.`, and `End Addr.` so the operator still gets usable execution context.
+
 Read [Advanced-Guide.md](Advanced-Guide.md) for the broader workflow guidance.

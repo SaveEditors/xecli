@@ -911,9 +911,14 @@ Example output:
 
 ```text
 Threads
-0xFB000008  priority=100  state=Running
-0xFB000009  priority=100  state=Waiting
+#  ID         Image         Start Addr.  End Addr.    Stack Base  Stack Limit
+1  0xFB000008 xboxkrnl.exe  0x8012E3C0   0x801F0000   0x7A020000  0x7A010000
+2  0xF9000004 Aurora.xex    0x82458C90   0x82BF0000   0x700A0000  0x70060000
 ```
+
+`threads list` now resolves the thread start routine address and, when that address lands inside a loaded image, also shows the containing image name and end boundary. `End Addr.` is the containing image end boundary, not a recovered function end.
+
+`rgh threads list --json` includes `ImageName`, `StartAddress`, and `EndAddress` for the same reason.
 
 ### Debug control
 ```powershell

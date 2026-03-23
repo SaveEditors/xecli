@@ -52,6 +52,7 @@ public sealed record XbdmThreadInfo {
     public uint Priority { get; init; }
     public uint TlsBaseAddress { get; init; }
     public uint BaseAddress { get; init; }
+    public uint StartAddress { get; init; }
     public uint StackLimit { get; init; }
     public uint StackSlack { get; init; }
     public uint NameAddress { get; init; }

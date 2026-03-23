@@ -140,6 +140,7 @@ rgh threads context --id 0xFB000008
 rgh threads suspend --id 0xFB000008
 rgh threads resume --id 0xFB000008
 </code></pre>
+<p><code>threads list</code> now favors image-backed start metadata over fake names. On targets where XBDM does not expose real thread names, the table shows the containing image plus <code>Start Addr.</code> and <code>End Addr.</code> columns instead. <code>End Addr.</code> is the image end boundary for the resolved start address.</p>
 <h3 id="execution-control-and-events">Execution control and events</h3>
 <pre><code class="language-powershell">rgh debug stop
 rgh debug go

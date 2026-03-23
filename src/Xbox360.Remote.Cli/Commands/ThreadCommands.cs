@@ -8,16 +8,38 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class XbdmThreadsListCommand : AsyncCommand<XbdmThreadsListCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--no-names")]
-        [Description("Skip resolving thread names.")]
+        [Description("Compatibility flag. Thread list now uses start-address metadata instead of thread names.")]
         public bool NoNames { get; init; }
     }
+
+    private readonly record struct ThreadListRow(
+        uint Id,
+        uint SuspendCount,
+        uint Priority,
+        uint CurrentProcessor,
+        string? ImageName,
+        uint? StartAddress,
+        uint? EndAddress,
+        uint StackBase,
+        uint StackLimit);
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
         return await CliHelpers.WithClientAsync(settings, async client => {
             using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
-            IReadOnlyList<XbdmThreadInfo> threads = await client.GetThreadsAsync(!settings.NoNames, cts.Token);
+            IReadOnlyList<XbdmThreadInfo> threads = await client.GetThreadsAsync(includeNames: false, cts.Token);
+            IReadOnlyList<ThreadListRow> rows = await BuildRowsAsync(client, threads, cts.Token);
             if (settings.Json) {
-                CliOutput.EmitJson(threads);
+                CliOutput.EmitJson(rows.Select(row => new {
+                    row.Id,
+                    row.SuspendCount,
+                    row.Priority,
+                    row.CurrentProcessor,
+                    row.ImageName,
+                    row.StartAddress,
+                    row.EndAddress,
+                    row.StackBase,
+                    row.StackLimit
+                }));
                 return 0;
             }
 
@@ -28,26 +50,91 @@ public sealed class XbdmThreadsListCommand : AsyncCommand<XbdmThreadsListCommand
             table.AddColumn(new TableColumn("[grey]Suspend[/]"));
             table.AddColumn(new TableColumn("[grey]Priority[/]"));
             table.AddColumn(new TableColumn("[grey]CPU[/]"));
-            table.AddColumn(new TableColumn("[green]Name[/]"));
+            table.AddColumn(new TableColumn("[green]Image[/]"));
+            table.AddColumn(new TableColumn("[cyan]Start Addr.[/]"));
+            table.AddColumn(new TableColumn("[cyan]End Addr.[/]"));
             table.AddColumn(new TableColumn("[cyan]Stack Base[/]"));
             table.AddColumn(new TableColumn("[cyan]Stack Limit[/]"));
             int index = 1;
-            foreach (XbdmThreadInfo thread in threads) {
+            foreach (ThreadListRow row in rows) {
                 table.AddRow(
                     $"[grey]{index}[/]",
-                    $"[cyan]0x{thread.Id:X8}[/]",
-                    $"[grey]{thread.SuspendCount}[/]",
-                    $"[grey]{thread.Priority}[/]",
-                    $"[grey]{thread.CurrentProcessor}[/]",
-                    thread.Name != null ? $"[green]{Markup.Escape(thread.Name)}[/]" : "[grey]unknown[/]",
-                    $"[cyan]0x{thread.BaseAddress:X8}[/]",
-                    $"[cyan]0x{thread.StackLimit:X8}[/]");
+                    $"[cyan]0x{row.Id:X8}[/]",
+                    $"[grey]{row.SuspendCount}[/]",
+                    $"[grey]{row.Priority}[/]",
+                    $"[grey]{row.CurrentProcessor}[/]",
+                    string.IsNullOrWhiteSpace(row.ImageName) ? "[grey]unknown[/]" : $"[green]{Markup.Escape(row.ImageName)}[/]",
+                    row.StartAddress.HasValue ? $"[cyan]0x{row.StartAddress.Value:X8}[/]" : "[grey]unknown[/]",
+                    row.EndAddress.HasValue ? $"[cyan]0x{row.EndAddress.Value:X8}[/]" : "[grey]unknown[/]",
+                    $"[cyan]0x{row.StackBase:X8}[/]",
+                    $"[cyan]0x{row.StackLimit:X8}[/]");
                 index++;
             }
 
             AnsiConsole.Write(table);
             return 0;
         }, CancellationToken.None);
+    }
+
+    private static async Task<IReadOnlyList<ThreadListRow>> BuildRowsAsync(
+        XbdmClient client,
+        IReadOnlyList<XbdmThreadInfo> threads,
+        CancellationToken cancellationToken) {
+        if (threads.Count == 0)
+            return Array.Empty<ThreadListRow>();
+
+        IReadOnlyList<XbdmModuleInfo> modules;
+        try {
+            modules = await client.GetModulesAsync(includeSections: false, cancellationToken);
+        }
+        catch {
+            modules = Array.Empty<XbdmModuleInfo>();
+        }
+
+        List<ThreadListRow> rows = new List<ThreadListRow>(threads.Count);
+        foreach (XbdmThreadInfo thread in threads) {
+            XbdmModuleInfo? module = FindContainingModule(modules, thread.StartAddress);
+            uint? startAddress = thread.StartAddress == 0 ? null : thread.StartAddress;
+            uint? endAddress = null;
+            string? imageName = null;
+
+            if (module != null) {
+                imageName = module.Name;
+                ulong moduleEnd = (ulong) module.BaseAddress + module.ModuleSize;
+                if (moduleEnd <= uint.MaxValue) {
+                    endAddress = (uint) moduleEnd;
+                }
+            }
+
+            rows.Add(new ThreadListRow(
+                thread.Id,
+                thread.SuspendCount,
+                thread.Priority,
+                thread.CurrentProcessor,
+                imageName,
+                startAddress,
+                endAddress,
+                thread.BaseAddress,
+                thread.StackLimit));
+        }
+
+        return rows;
+    }
+
+    private static XbdmModuleInfo? FindContainingModule(IReadOnlyList<XbdmModuleInfo> modules, uint address) {
+        if (address == 0)
+            return null;
+
+        ulong target = address;
+        foreach (XbdmModuleInfo module in modules) {
+            ulong moduleStart = module.BaseAddress;
+            ulong moduleEnd = moduleStart + module.ModuleSize;
+            if (target >= moduleStart && target < moduleEnd) {
+                return module;
+            }
+        }
+
+        return null;
     }
 }
 

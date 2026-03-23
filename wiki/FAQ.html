@@ -155,6 +155,9 @@ rgh notify --message &quot;Transfer complete&quot; --icon success
 <pre><code class="language-powershell">rgh signin state
 </code></pre>
 <p>That command isolates the active session state, gamertag, XUID, and slot without forcing you to scan the full <code>status</code> output.</p>
+<h2 id="why-does-threads-list-show-image-and-address-columns-instead-of-thread-names">Why does <code>threads list</code> show image and address columns instead of thread names</h2>
+<p>Because many retail, JTAG, and plugin-backed XBDM targets do not expose usable thread-name pointers.</p>
+<p>XeCLI now resolves the thread start routine address, maps it back to a loaded image when possible, and shows <code>Image</code>, <code>Start Addr.</code>, and <code>End Addr.</code> in the thread table. <code>End Addr.</code> is the containing image end boundary, not a reconstructed function end.</p>
 <h2 id="can-xecli-control-the-ring-light">Can XeCLI control the ring light</h2>
 <p>Yes.</p>
 <p>Examples:</p>

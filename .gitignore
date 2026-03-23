@@ -18,6 +18,7 @@ release/
 *.bmp
 *.raw
 *.bin
+!src/Xbox360.Remote.Cli/Assets/empty_live.bin
 *.xex
 !/xbdm.xex
 !/XDRPC.xex

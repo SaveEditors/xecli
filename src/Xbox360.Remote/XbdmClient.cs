@@ -910,6 +910,7 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
         XbdmParamUtils.TryGetUInt32(text, "priority", out uint priority);
         XbdmParamUtils.TryGetUInt32(text, "tlsbase", out uint tlsBaseAddress);
         XbdmParamUtils.TryGetUInt32(text, "base", out uint baseAddress);
+        XbdmParamUtils.TryGetUInt32(text, "start", out uint startAddress);
         XbdmParamUtils.TryGetUInt32(text, "limit", out uint stackLimit);
         XbdmParamUtils.TryGetUInt32(text, "slack", out uint stackSlack);
         XbdmParamUtils.TryGetUInt32(text, "nameaddr", out uint nameAddress);
@@ -923,6 +924,7 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
             Priority = priority,
             TlsBaseAddress = tlsBaseAddress,
             BaseAddress = baseAddress,
+            StartAddress = startAddress,
             StackLimit = stackLimit,
             StackSlack = stackSlack,
             NameAddress = nameAddress,

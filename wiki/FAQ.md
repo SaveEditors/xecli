@@ -124,6 +124,11 @@ rgh signin state
 
 That command isolates the active session state, gamertag, XUID, and slot without forcing you to scan the full `status` output.
 
+## Why does `threads list` show image and address columns instead of thread names
+Because many retail, JTAG, and plugin-backed XBDM targets do not expose usable thread-name pointers.
+
+XeCLI now resolves the thread start routine address, maps it back to a loaded image when possible, and shows `Image`, `Start Addr.`, and `End Addr.` in the thread table. `End Addr.` is the containing image end boundary, not a reconstructed function end.
+
 ## Can XeCLI control the ring light
 Yes.
 

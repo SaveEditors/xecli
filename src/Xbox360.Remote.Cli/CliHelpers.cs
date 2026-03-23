@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.IO;
 using System.Net.Sockets;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -14,7 +15,16 @@ internal static class CliHelpers {
 
     public static async Task<XbdmClient> ConnectAsync(ConnectionSettings settings, CancellationToken cancellationToken) {
         (string ip, int port, int timeout) = await ResolveTargetAsync(settings, cancellationToken);
-        return await XbdmClient.ConnectAsync(new XbdmConnectionOptions { Host = ip, Port = port, TimeoutMs = timeout }, cancellationToken);
+        return await ConnectResolvedAsync(ip, port, timeout, cancellationToken);
+    }
+
+    public static async Task<XbdmClient> ConnectResolvedAsync(string ip, int port, int timeout, CancellationToken cancellationToken) {
+        try {
+            return await XbdmClient.ConnectAsync(new XbdmConnectionOptions { Host = ip, Port = port, TimeoutMs = timeout }, cancellationToken);
+        }
+        catch (Exception ex) when (IsConnectionFailure(ex)) {
+            throw CreateConnectionFailureException(ip, port, timeout, ex);
+        }
     }
 
     public static async Task<(string Ip, int Port, int TimeoutMs)> ResolveTargetAsync(ConnectionSettings settings, CancellationToken cancellationToken) {
@@ -59,11 +69,7 @@ internal static class CliHelpers {
         for (int attempt = 1; attempt <= ReconnectAttempts; attempt++) {
             int attemptTimeout = attempt == 1 ? target.TimeoutMs : ReconnectTimeoutMs;
             try {
-                using XbdmClient client = await XbdmClient.ConnectAsync(new XbdmConnectionOptions {
-                    Host = target.Ip,
-                    Port = target.Port,
-                    TimeoutMs = attemptTimeout
-                }, cancellationToken);
+                using XbdmClient client = await ConnectResolvedAsync(target.Ip, target.Port, attemptTimeout, cancellationToken);
 
                 EnsureDefaultTarget(settings, target.Ip, target.Port);
                 return await action(client);
@@ -83,11 +89,7 @@ internal static class CliHelpers {
     }
 
     public static async Task<int> WithClientOnceAsync((string Ip, int Port, int TimeoutMs) target, ConnectionSettings settings, Func<XbdmClient, Task<int>> action, CancellationToken cancellationToken) {
-        using XbdmClient client = await XbdmClient.ConnectAsync(new XbdmConnectionOptions {
-            Host = target.Ip,
-            Port = target.Port,
-            TimeoutMs = target.TimeoutMs
-        }, cancellationToken);
+        using XbdmClient client = await ConnectResolvedAsync(target.Ip, target.Port, target.TimeoutMs, cancellationToken);
 
         EnsureDefaultTarget(settings, target.Ip, target.Port);
         return await action(client);
@@ -110,6 +112,35 @@ internal static class CliHelpers {
         return ex is IOException ||
                ex is SocketException ||
                ex is TimeoutException;
+    }
+
+    private static bool IsConnectionFailure(Exception ex) {
+        return ex is TimeoutException ||
+               ex is SocketException ||
+               ex is OperationCanceledException operationCanceled && IsGenericCancellationMessage(operationCanceled.Message) ||
+               ex is IOException ioException && LooksLikeConnectionFailure(ioException.Message);
+    }
+
+    private static bool IsGenericCancellationMessage(string? message) {
+        return string.IsNullOrWhiteSpace(message) ||
+               message.Equals("The operation was canceled.", StringComparison.OrdinalIgnoreCase) ||
+               message.Equals("A task was canceled.", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool LooksLikeConnectionFailure(string? message) {
+        if (string.IsNullOrWhiteSpace(message))
+            return false;
+
+        return message.Contains("connect", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("timed out", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("refused", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("unreachable", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static IOException CreateConnectionFailureException(string ip, int port, int timeout, Exception innerException) {
+        return new IOException(
+            $"Console connection to {ip}:{port} did not complete within {timeout} ms. Check that the console is powered on, not frozen, and reachable, then try again or re-run rgh connect if the target changed.",
+            innerException);
     }
 
     private static async Task<bool> ShowReconnectCountdownAsync(int attempt, int total, int seconds, CancellationToken cancellationToken) {

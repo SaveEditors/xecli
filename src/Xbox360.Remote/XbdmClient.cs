@@ -33,25 +33,31 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
         client.SendTimeout = options.TimeoutMs;
         using CancellationTokenSource connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         connectCts.CancelAfter(options.TimeoutMs);
-        Task connectTask = client.ConnectAsync(options.Host, options.Port, connectCts.Token).AsTask();
         try {
+            Task connectTask = client.ConnectAsync(options.Host, options.Port, connectCts.Token).AsTask();
             await connectTask;
+
+            NetworkStream stream = client.GetStream();
+            XbdmLineReader reader = new XbdmLineReader(stream, 8192, options.TimeoutMs);
+            string line = await reader.ReadLineAsync(connectCts.Token);
+            XbdmResponse response = XbdmResponseParser.Parse(line);
+
+            if (response.ResponseType != XbdmResponseType.Connected && response.StatusCode != 201) {
+                throw new IOException($"Unexpected XBDM handshake: {response.RawMessage}");
+            }
+
+            return new XbdmClient(client, stream, reader);
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) {
+        catch (OperationCanceledException ex) {
             client.Dispose();
-            throw new TimeoutException($"XBDM connect timed out after {options.TimeoutMs} ms.");
+            throw new TimeoutException(
+                $"Console connection to {options.Host}:{options.Port} did not complete within {options.TimeoutMs} ms. Check that the console is powered on, not frozen, and reachable.",
+                ex);
         }
-
-        NetworkStream stream = client.GetStream();
-        XbdmLineReader reader = new XbdmLineReader(stream, 8192, options.TimeoutMs);
-        string line = await reader.ReadLineAsync(cancellationToken);
-        XbdmResponse response = XbdmResponseParser.Parse(line);
-
-        if (response.ResponseType != XbdmResponseType.Connected && response.StatusCode != 201) {
-            throw new IOException($"Unexpected XBDM handshake: {response.RawMessage}");
+        catch {
+            client.Dispose();
+            throw;
         }
-
-        return new XbdmClient(client, stream, reader);
     }
 
     public async ValueTask DisposeAsync() {

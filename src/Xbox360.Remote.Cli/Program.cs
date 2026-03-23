@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
+using System.Net.Sockets;
 using System.Reflection;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -59,7 +61,9 @@ internal static class Program {
                 }
             };
             config.SetExceptionHandler((ex, _) => {
-                AnsiConsole.MarkupLine($"[red]Error:[/] {Markup.Escape(ex.Message)}");
+                Exception root = UnwrapException(ex);
+                string message = GetUserFacingErrorMessage(root);
+                AnsiConsole.MarkupLine($"[red]Error:[/] {Markup.Escape(message)}");
             });
             config.AddExample(new[] { "status" });
             config.AddExample(new[] { "title" });
@@ -835,6 +839,100 @@ internal static class Program {
         return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? assembly.GetName().Version?.ToString()
             ?? "unknown";
+    }
+
+    private static Exception UnwrapException(Exception ex) {
+        while (true) {
+            if (ex is AggregateException aggregate && aggregate.InnerExceptions.Count == 1 && aggregate.InnerException != null) {
+                ex = aggregate.InnerException;
+                continue;
+            }
+
+            if ((ex is TargetInvocationException || ex is TypeInitializationException) && ex.InnerException != null) {
+                ex = ex.InnerException;
+                continue;
+            }
+
+            return ex;
+        }
+    }
+
+    private static string GetUserFacingErrorMessage(Exception ex) {
+        string fallbackMessage = string.IsNullOrWhiteSpace(ex.Message) ? ex.GetType().Name : ex.Message;
+        return TryGetConnectionGuidance(ex, fallbackMessage, out string? message)
+            ? message
+            : fallbackMessage;
+    }
+
+    private static bool TryGetConnectionGuidance(Exception ex, string fallbackMessage, out string message) {
+        if (IsGenericCancellationMessage(fallbackMessage) ||
+            (ex is OperationCanceledException operationCanceled && IsGenericCancellationMessage(operationCanceled.Message))) {
+            message = BuildConnectionGuidance("Console connection did not complete.");
+            return true;
+        }
+
+        if (LooksLikeConnectionFailure(fallbackMessage)) {
+            message = fallbackMessage.Contains("timed out", StringComparison.OrdinalIgnoreCase)
+                ? BuildConnectionGuidance("Console connection timed out.")
+                : BuildConnectionGuidance("Console connection failed.");
+            return true;
+        }
+
+        if (ex is TimeoutException) {
+            message = BuildConnectionGuidance("Console connection timed out.");
+            return true;
+        }
+
+        if (ex is SocketException socketException) {
+            message = BuildConnectionGuidance($"Console connection failed ({socketException.SocketErrorCode}).");
+            return true;
+        }
+
+        if (ex is IOException ioException && LooksLikeConnectionFailure(ioException.Message)) {
+            message = BuildConnectionGuidance("Console connection failed.");
+            return true;
+        }
+
+        message = string.Empty;
+        return false;
+    }
+
+    private static bool IsGenericCancellationMessage(string? message) {
+        return string.IsNullOrWhiteSpace(message) ||
+               message.Equals("The operation was canceled.", StringComparison.OrdinalIgnoreCase) ||
+               message.Equals("A task was canceled.", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool LooksLikeConnectionFailure(string? message) {
+        if (string.IsNullOrWhiteSpace(message))
+            return false;
+
+        return message.Contains("xbdm connect", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("timed out", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("actively refused", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("forcibly closed", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("unreachable", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("No connection could be made", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string BuildConnectionGuidance(string summary) {
+        string? target = TryGetSavedTargetDisplay();
+        return string.IsNullOrWhiteSpace(target)
+            ? $"{summary} Check that the console is powered on, not frozen, and reachable, then try again or set the target with `rgh connect`."
+            : $"{summary} Check that the console at {target} is powered on, not frozen, and reachable, then try again or re-run `rgh connect` if the target changed.";
+    }
+
+    private static string? TryGetSavedTargetDisplay() {
+        try {
+            CliConfig config = CliConfig.Load();
+            if (string.IsNullOrWhiteSpace(config.DefaultIp))
+                return null;
+
+            return $"{config.DefaultIp}:{config.DefaultPort ?? 730}";
+        }
+        catch {
+            return null;
+        }
     }
 
     private static bool ShouldShowPathPrompt(string[] args) {

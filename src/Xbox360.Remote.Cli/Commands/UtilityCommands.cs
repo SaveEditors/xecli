@@ -37,11 +37,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
         (string ip, int port, int _) = await CliHelpers.ResolveTargetAsync(settings, CancellationToken.None);
         int timeout = settings.TimeoutMs ?? 2000;
         using CancellationTokenSource connectCts = new CancellationTokenSource(timeout);
-        await using XbdmClient client = await XbdmClient.ConnectAsync(new XbdmConnectionOptions {
-            Host = ip,
-            Port = port,
-            TimeoutMs = timeout
-        }, connectCts.Token);
+        await using XbdmClient client = await CliHelpers.ConnectResolvedAsync(ip, port, timeout, connectCts.Token);
 
         {
             bool skipJrpc = settings.Quick || settings.NoJrpc;

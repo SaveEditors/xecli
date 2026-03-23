@@ -478,6 +478,90 @@ internal static class Program {
                 content.AddCommand<ContentDeleteCommand>("delete").WithAlias("rm").WithDescription("Delete installed content for a title.");
             });
 
+            config.AddBranch("con", con => {
+                con.SetDescription("Inspect and repair local Xbox 360 content packages.");
+                con.AddExample(new[] { "con", "info", ".\\E000000000000000.con" });
+                con.AddExample(new[] { "con", "verify", ".\\E000000000000000.con" });
+                con.AddExample(new[] { "con", "rehash", ".\\E000000000000000.con" });
+                con.AddExample(new[] { "con", "resign", ".\\E000000000000000.con" });
+                con.AddCommand<ConInfoCommand>("info").WithDescription("Show package metadata and derived FATX values.");
+                con.AddCommand<ConVerifyCommand>("verify").WithDescription("Verify a CON signature when supported.");
+                con.AddCommand<ConRehashCommand>("rehash").WithDescription("Save package headers and refresh STFS hashes.");
+                con.AddCommand<ConResignCommand>("resign").WithDescription("Re-sign a CON package and verify the result.");
+                con.AddCommand<ConMagicNameCommand>("magic-name").WithDescription("Print the package's FATX magic filename.");
+                con.AddCommand<ConFatxPathCommand>("fatx-path").WithDescription("Print the destination FATX content path.");
+            });
+
+            config.AddBranch("profile", profile => {
+                profile.SetDescription("Inspect and edit local Xbox 360 profile packages.");
+                profile.AddExample(new[] { "profile", "info", ".\\E000000000000000.con" });
+                profile.AddExample(new[] { "profile", "extract", ".\\E000000000000000.con", ".\\profile-files" });
+                profile.AddExample(new[] { "profile", "account", "show", ".\\E000000000000000.con" });
+                profile.AddExample(new[] { "profile", "account", "extract", ".\\E000000000000000.con", ".\\Account" });
+                profile.AddExample(new[] { "profile", "account", "set-gamertag", ".\\E000000000000000.con", "ExampleTag" });
+                profile.AddExample(new[] { "profile", "gpd", "list", ".\\E000000000000000.con" });
+                profile.AddExample(new[] { "profile", "gpd", "extract", ".\\E000000000000000.con", ".\\FFFE07D1.gpd", "--dashboard" });
+                profile.AddExample(new[] { "profile", "titles", "list", ".\\E000000000000000.con" });
+                profile.AddExample(new[] { "profile", "achievements", "list", ".\\E000000000000000.con", "--titleid", "4D530805" });
+                profile.AddExample(new[] { "profile", "achievements", "unlock", ".\\E000000000000000.con", "--titleid", "4D530805", "--achievementid", "0x00000001" });
+                profile.AddExample(new[] { "profile", "settings", "get", ".\\E000000000000000.con", "0x10040006" });
+                profile.AddExample(new[] { "profile", "settings", "set", ".\\E000000000000000.con", "0x10040006", "1337" });
+                profile.AddExample(new[] { "profile", "avatar-colors", "get", ".\\E000000000000000.con" });
+                profile.AddExample(new[] { "profile", "avatar-colors", "set", ".\\E000000000000000.con", "--hair", "0xFF22150D" });
+                profile.AddCommand<ProfileInfoCommand>("info").WithDescription("Show profile package contents and summary information.");
+                profile.AddCommand<ProfileExtractCommand>("extract").WithDescription("Extract files from a profile package.");
+
+                profile.AddBranch("account", account => {
+                    account.SetDescription("Inspect and update account data inside a profile package.");
+                    account.AddCommand<ProfileAccountShowCommand>("show").WithDescription("Show decoded profile account information.");
+                    account.AddCommand<ProfileAccountExtractCommand>("extract").WithDescription("Extract the raw Account payload from a profile package.");
+                    account.AddCommand<ProfileAccountSetGamertagCommand>("set-gamertag").WithAlias("set").WithDescription("Update the profile account gamertag.");
+                });
+
+                profile.AddBranch("gpd", gpd => {
+                    gpd.SetDescription("List and extract embedded dashboard and title GPD files.");
+                    gpd.AddCommand<ProfileGpdListCommand>("list").WithAlias("ls").WithDescription("List embedded dashboard and title GPD files.");
+                    gpd.AddCommand<ProfileGpdExtractCommand>("extract").WithDescription("Extract one dashboard or title GPD from the profile package.");
+                });
+
+                profile.AddBranch("titles", titles => {
+                    titles.SetDescription("Inspect title records inside a profile package.");
+                    titles.AddCommand<ProfileTitlesListCommand>("list").WithAlias("ls").WithDescription("List title records from the dashboard GPD.");
+                });
+
+                profile.AddBranch("achievements", achievements => {
+                    achievements.SetDescription("Inspect and edit achievement data inside a profile package.");
+                    achievements.AddCommand<ProfileAchievementsListCommand>("list").WithAlias("ls").WithDescription("List achievements for one title GPD.");
+                    achievements.AddCommand<ProfileAchievementsUnlockCommand>("unlock").WithDescription("Unlock one profile achievement and update title totals.");
+                    achievements.AddCommand<ProfileAchievementsLockCommand>("lock").WithDescription("Lock one profile achievement and update title totals.");
+                });
+
+                profile.AddBranch("settings", profileSettings => {
+                    profileSettings.SetDescription("Inspect and edit profile settings stored in the dashboard GPD.");
+                    profileSettings.AddCommand<ProfileSettingsListCommand>("list").WithAlias("ls").WithDescription("List profile settings.");
+                    profileSettings.AddCommand<ProfileSettingsGetCommand>("get").WithDescription("Read a single profile setting.");
+                    profileSettings.AddCommand<ProfileSettingsSetCommand>("set").WithDescription("Create or update a single profile setting.");
+                });
+
+                profile.AddBranch("avatar-colors", avatarColors => {
+                    avatarColors.SetDescription("Inspect and edit avatar color values stored in the dashboard profile setting blob.");
+                    avatarColors.AddCommand<ProfileAvatarColorsGetCommand>("get").WithDescription("Show avatar ARGB color values.");
+                    avatarColors.AddCommand<ProfileAvatarColorsSetCommand>("set").WithDescription("Update one or more avatar ARGB color values.");
+                });
+            });
+
+            config.AddBranch("xdbf", xdbf => {
+                xdbf.SetDescription("Inspect and extract records from local GPD/XDBF files.");
+                xdbf.AddExample(new[] { "xdbf", "list", ".\\415608C3.gpd", "--show-sync" });
+                xdbf.AddExample(new[] { "xdbf", "get", ".\\415608C3.gpd", "strings", "0x0000000000008000", "--out", ".\\title-name.bin" });
+                xdbf.AddExample(new[] { "xdbf", "extract", ".\\415608C3.gpd", ".\\records" });
+                xdbf.AddExample(new[] { "xdbf", "sync-status", ".\\415608C3.gpd" });
+                xdbf.AddCommand<XdbfListCommand>("list").WithAlias("ls").WithDescription("List records in a GPD/XDBF file.");
+                xdbf.AddCommand<XdbfGetCommand>("get").WithDescription("Read a single record from a GPD/XDBF file.");
+                xdbf.AddCommand<XdbfExtractCommand>("extract").WithDescription("Extract records to a directory.");
+                xdbf.AddCommand<XdbfSyncStatusCommand>("sync-status").WithDescription("Show records that are pending sync.");
+            });
+
             config.AddBranch("avatar", avatar => {
                 avatar.SetDescription("Avatar item library and install helpers.");
                 avatar.AddExample(new[] { "avatar", "library", "show" });

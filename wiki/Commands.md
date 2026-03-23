@@ -18,8 +18,10 @@ Use this table when you know the job you need done but not the exact command nam
 | Pull files from the console | `rgh fs get`, `rgh ftp get`, `rgh xex dump`, `rgh screenshot` |
 | Push files to the console | `rgh fs put`, `rgh ftp put`, `rgh save inject`, `rgh plugin enable` |
 | Manage saves | `rgh save list`, `rgh save extract`, `rgh save inject` |
+| Inspect or edit local CON/profile/GPD files | `rgh con ...`, `rgh profile ...`, `rgh xdbf ...` |
 | Manage title content or DashLaunch plugins | `rgh content ...`, `rgh plugin ...` |
-| Inspect or manage local Fatman disks or images | `rgh fatman devices`, `rgh fatman disks`, `rgh fatman partitions`, `rgh fatman scan`, `rgh fatman info`, `rgh fatman list`, `rgh fatman find`, `rgh fatman cat`, `rgh fatman get`, `rgh fatman extract`, `rgh fatman dump`, `rgh fatman format`, `rgh fatman check`, `rgh fatman repair`, `rgh fatman metadata ...` |
+| Back up NAND or export XeLL keys | `rgh xell boot`, `rgh xell info`, `rgh xell kv export`, `rgh nand dump` |
+| Inspect local Fatman disks or images | `rgh fatman devices`, `rgh fatman partitions`, `rgh fatman scan`, `rgh fatman info`, `rgh fatman list`, `rgh fatman find`, `rgh fatman cat`, `rgh fatman get`, `rgh fatman extract`, `rgh fatman dump` |
 | Stage Original Xbox compatibility packs | `rgh ogxbox list`, `rgh ogxbox install hacked|hud|retail` |
 | Browse or install avatar items from the local or hosted collection | `rgh avatar library ...`, `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install` |
 | Send visible console messages | `rgh notify`, `rgh notify-icons`, `rgh jrpc2 notify` |
@@ -32,8 +34,10 @@ XeCLI is organized into a few major namespaces:
 - Core commands: status, title, targeting, launch, reboot
 - XBDM-backed commands: modules, memory, threads, debug, screenshot, file system
 - JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC
+- XeLL-backed backup commands: XeLL inspection, keyvault export, and read-only NAND backup over the XeLL HTTP service
 - FTP-backed commands: file access, saves, content, and plugin management
-- Fatman manager: local FATX image and Windows disk inspection, extraction, formatting, metadata backup, and safe repair
+- Local content commands: CON package inspection, profile editing, and raw XDBF/GPD record access
+- Fatman manager: read-only local disk or image inspection and export
 - Analysis commands: XEX, Ghidra, IDA, metadata
 - Packaging commands: Games on Demand conversion and watchdog mode
 
@@ -94,6 +98,21 @@ For the exact top-level help screen and the exact help output of every top-level
 | `--no-nap` | Disable NAP broadcast discovery. |
 | `--no-tcp` | Disable TCP scan discovery. |
 | `--json` | Emit discovery results as JSON. |
+
+### XeLL-backed commands
+| Option | Description |
+| --- | --- |
+| `--ip <IP>` | Console IP. Uses the saved target if omitted. |
+| `--port <PORT>` | XBDM TCP port used while the console is still on the dashboard. Default: `730`. |
+| `--timeout <MS>` | Socket timeout in milliseconds. |
+| `--json` | Emit JSON output when supported. |
+| `--force-xell` | Skip the XellLaunch shortcut path and force the direct reboot-into-XeLL path. |
+
+Notes:
+
+- XeCLI always asks for confirmation before the first automatic reboot into XeLL.
+- If the shell is non-interactive or XeLL cannot be launched automatically, XeCLI prints the manual eject-button fallback instead of guessing.
+- Once XeLL is requested, XeCLI waits up to 30 seconds for the XeLL HTTP service on port 80 and then uses the detected XeLL IP.
 
 ## Core Commands
 ### `rgh status`
@@ -319,6 +338,8 @@ Copied bundled console plugins into E:\Plugins
 
 The current package catalog also includes XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch.
 
+Native read-only backup flows no longer depend on Simple 360 NAND Flasher. Use `rgh xell ...` and `rgh nand dump` when you want XeLL inspection, keyvault export, or a verified NAND backup directly from XeCLI.
+
 Console install example output:
 
 ```text
@@ -395,8 +416,115 @@ Important options:
 
 If `HddX` is missing and `--include-fixer` is not used, XeCLI stops before writing anything and tells you to rerun with the fixer included.
 
+## XeLL and Backup Commands
+These commands use XeLL Reloaded's HTTP services for read-only backup operations. XeCLI supports both older endpoint layouts such as `/rawflash` and the current XeLL Reloaded layout such as `/FLASH`, `/FUSE`, `/KV`, `/KVRAW`, `/KVRAW2`, `/LOG`, and `/REBOOT`.
+
+### `rgh xell boot`
+Detect the current mode, prompt before the first dashboard-to-XeLL reboot, and attach to the XeLL web service when it comes up.
+
+```powershell
+rgh xell boot
+rgh xell boot --force-xell
+rgh xell boot --json
+```
+
+Notes:
+
+- If the console is already in XeLL, the command reuses the active XeLL session.
+- If the console is on the dashboard, XeCLI asks before launching XeLL automatically.
+- If auto-launch is unavailable, XeCLI tells you to boot XeLL manually with eject and rerun the command.
+
+Example output:
+
+```text
+SUCCESS XeLL ready
+XeLL IP: 192.168.88.99
+```
+
+### `rgh xell info`
+Inspect the XeLL HTTP service and show which backup-related endpoints are currently exposed.
+
+```powershell
+rgh xell info
+rgh xell info --force-xell
+rgh xell info --json
+```
+
+Example output:
+
+```text
+Field           Value
+XeLL IP         192.168.88.99
+Flash Dump      /FLASH
+Key Vault       /KV
+Raw Key Vault   /KVRAW
+CPU Key         E64E0C1D4E2D...
+CPU Key Source  /FUSE
+Startup Log     /LOG
+Fuse Dump       available
+Reboot          /REBOOT
+```
+
+### `rgh xell kv export`
+Export the XeLL keyvault output, capture the CPU key, and package a verified backup set.
+
+```powershell
+rgh xell kv export
+rgh xell kv export --output kv_backup.bin
+rgh xell kv export --raw
+```
+
+Notes:
+
+- Default mode downloads the decrypted keyvault from `/KV`. `--raw` switches to `/KVRAW` or `/KVRAW2`.
+- The export requires a CPU key. If XeLL does not expose one, XeCLI fails rather than producing an incomplete set.
+- Host output includes your chosen KV filename, `KV+CPU KEY.txt`, a sibling `*.CPUKEY.txt`, optional `*.fuses.txt`, `*.sha256.txt`, and a `.zip`.
+- The archive is normalized to stable names such as `KV.bin` or `KV_RAW.bin`, `CPUKEY.txt`, `KV+CPU KEY.txt`, `fuses.txt`, and `manifest.sha256.txt`.
+
+Example output:
+
+```text
+SUCCESS Keyvault export complete
+KV: A:\Backups\kv_backup.bin
+CPU key: A:\Backups\kv_backup.CPUKEY.txt
+Combined text: A:\Backups\KV+CPU KEY.txt
+Archive: A:\Backups\kv_backup.zip
+Manifest: A:\Backups\kv_backup.sha256.txt
+```
+
+### `rgh nand dump`
+Boot XeLL Reloaded, download a flash dump, verify repeated reads, and package the result as a safe backup set.
+
+```powershell
+rgh nand dump
+rgh nand dump --single
+rgh nand dump --output nand_backup.bin
+rgh nand dump --force-xell
+```
+
+Notes:
+
+- This workflow is read-only. XeCLI never writes to NAND.
+- `rgh nand dump` takes the first dump, reboots back into XeLL, and compares the next dump byte-for-byte against the reference.
+- If the verification dump differs, XeCLI retries the second dump up to three more times before failing hard with "Do not flash these files."
+- After the bytes match, XeCLI verifies the copied output file, writes a SHA-256 manifest, builds a zip, and re-verifies every archive entry against the source files.
+- Host output includes the NAND image, optional `*.cpukey.txt`, optional `*.startup-log.txt`, `*.sha256.txt`, and a verified `.zip`.
+- `--single` and `--no-verify` skip the repeated-dump loop, but the archive and manifest are still verified.
+
+Example output:
+
+```text
+SUCCESS NAND dump verified
+NAND: A:\Backups\nand_backup_20260323_024501.bin
+Archive: A:\Backups\nand_backup_20260323_024501.zip
+Manifest: A:\Backups\nand_backup_20260323_024501.sha256.txt
+CPU key: A:\Backups\nand_backup_20260323_024501.cpukey.txt
+NAND verified — safe to flash
+Archive and manifest verified.
+```
+
 ## Fatman
-Fatman is XeCLI's FATX manager for local Xbox 360 disks and images. The current implementation supports image recovery, partition dumping, inspection, search, export, and image-backed FATX mutations.
+Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.
 
 ### Current command surface
 ```powershell
@@ -408,10 +536,6 @@ rgh fatman list
 rgh fatman find
 rgh fatman cat
 rgh fatman get
-rgh fatman mkdir
-rgh fatman put
-rgh fatman mv
-rgh fatman rm
 rgh fatman extract
 rgh fatman dump
 ```
@@ -435,10 +559,6 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 - browse directories and locate entries
 - search by name or path
 - recover data from `.img` and `.bin` sources
-- create FATX directories in an image
-- write host files into a FATX image
-- rename or move FATX entries in an image
-- remove FATX files or directories in an image
 - print small files in the terminal
 - dump partitions to a host directory
 - export selected files or directory trees to the host
@@ -447,19 +567,12 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 - the runtime has been verified against a synthetic FATX fixture image
 - manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real `XTAF` offsets and opened the compatibility volume by bounded offset
 
-### What it does not do yet
+### What it does not do in the first cut
+- write files back to FATX volumes
 - format or repartition disks
 - mount a virtual filesystem
 - repair damaged volumes
 - modify security sectors or low-level disk metadata
-
-### Image-backed FATX writes
-```powershell
-rgh fatman mkdir --image .\Hdd1.img --path \XeCLI
-rgh fatman put --image .\Hdd1.img --path \XeCLI\readme.txt --in .\readme.txt --overwrite
-rgh fatman mv --image .\Hdd1.img --path \XeCLI\readme.txt --to \XeCLI\readme-old.txt
-rgh fatman rm --image .\Hdd1.img --path \XeCLI --recursive
-```
 
 ### Example output
 ```text
@@ -1326,6 +1439,116 @@ SUCCESS Content delete complete
 Title Update for 0x415608C3 removed
 ```
 
+## Local Content Commands
+These commands operate on local files on the PC, not live console memory. A typical workflow is:
+
+1. Use `rgh profiles --json` or `rgh content list` to locate the container on the console.
+2. Pull it locally with `rgh ftp get` or `rgh fs get`.
+3. Inspect or edit it with `rgh con`, `rgh profile`, and `rgh xdbf`.
+4. Validate the result with `rgh con verify` before copying it back anywhere else.
+
+For profile packages, XeCLI writes changes back into the local container, refreshes STFS hashes, and preserves a valid CON signature when the package is a console-signed profile.
+
+### `rgh con`
+Use `con` for package-level metadata, verification, rehash, resign, and FATX-path derivation.
+
+```powershell
+rgh con info .\E00012AA8D7879B4.con
+rgh con verify .\E00012AA8D7879B4.con
+rgh con rehash .\E00012AA8D7879B4.con
+rgh con resign .\E00012AA8D7879B4-copy.con
+rgh con magic-name .\E00012AA8D7879B4.con
+rgh con fatx-path .\E00012AA8D7879B4.con --fix-name
+```
+
+Example output:
+
+```text
+Path             .\E00012AA8D7879B4.con
+Signature Type   Console
+Content Type     Profile
+STFS             valid
+FATX Path        Content\E00012AA8D7879B4\FFFE07D1\00010000\E00012AA8D7879B4
+```
+
+### `rgh profile`
+Use `profile` for decoded profile/package workflows: package summary, account extraction, embedded GPD extraction, title records, achievements, settings, and avatar colors.
+
+`rgh profiles` and `rgh profile` are different:
+
+- `rgh profiles` discovers live console profiles over XBDM/JRPC/FTP/F3
+- `rgh profile` works on one local pulled profile container such as `E000xxxxxxxxxxxx.con`
+
+```powershell
+rgh profile info .\E00012AA8D7879B4.con
+rgh profile extract .\E00012AA8D7879B4.con .\profile-files
+rgh profile account show .\E00012AA8D7879B4.con
+rgh profile account extract .\E00012AA8D7879B4.con .\Account
+rgh profile account set-gamertag .\E00012AA8D7879B4.con XeCliTest
+rgh profile gpd list .\E00012AA8D7879B4.con
+rgh profile gpd extract .\E00012AA8D7879B4.con .\FFFE07D1.gpd --dashboard
+rgh profile gpd extract .\E00012AA8D7879B4.con .\415607E7.gpd --titleid 415607E7
+rgh profile titles list .\E00012AA8D7879B4.con
+rgh profile achievements list .\E00012AA8D7879B4.con --titleid 415607E7
+rgh profile achievements unlock .\E00012AA8D7879B4.con --titleid 415607E7 --achievementid 0x00000004
+rgh profile achievements lock .\E00012AA8D7879B4.con --titleid 415607E7 --achievementid 0x00000004
+rgh profile settings list .\E00012AA8D7879B4.con
+rgh profile settings get .\E00012AA8D7879B4.con 0x10040006
+rgh profile settings set .\E00012AA8D7879B4.con 0x10040006 1337
+rgh profile avatar-colors get .\E00012AA8D7879B4.con
+rgh profile avatar-colors set .\E00012AA8D7879B4.con --hair 0xFF112233 --face-paint 0xFF556677
+```
+
+Notes:
+
+- `profile account extract` exports the raw `Account` payload without needing a full package extract.
+- `profile gpd list` surfaces the dashboard GPD plus each embedded title GPD found in the container.
+- `profile gpd extract` is the targeted path when you only want `FFFE07D1.gpd` or one game GPD.
+- `profile settings set` can update existing records or create missing records when `--type` is supplied.
+- `profile avatar-colors` edits the dashboard avatar blob stored in setting `0x63E80044`.
+- Mutating commands are safest on a disposable copy until you are comfortable with the exact workflow.
+
+Example output:
+
+```text
+Profile Package
+Profile ID      0xE00003608D3F513F
+Signature       Console
+Gamertag        ExampleUser
+Dashboard GPD   present
+Account         present
+Titles          3
+Gamerscore      50
+```
+
+### `rgh xdbf`
+Use `xdbf` when you want raw record-level access to a pulled `*.gpd` or other XDBF-backed file.
+
+```powershell
+rgh xdbf list .\FFFE07D1.gpd --show-sync
+rgh xdbf get .\FFFE07D1.gpd settings 0x0000000010040006
+rgh xdbf get .\FFFE07D1.gpd settings 0x0000000010040006 --out .\gamerscore-setting.bin
+rgh xdbf extract .\415607E7.gpd .\records
+rgh xdbf sync-status .\415607E7.gpd
+```
+
+Notes:
+
+- `--origin profile|pec` controls how sync records are interpreted for profile-backed versus PEC-backed files.
+- `--show-sync` and `sync-status` are useful when you need to understand which records are dirty before or after a profile edit.
+- `xdbf` is the low-level inspection path; prefer `profile ...` when XeCLI already exposes a higher-level decoded command.
+
+Example output:
+
+```text
+XDBF Records
+Namespace    Settings (0x0003)
+ID           0x0000000010040006
+Size         24
+Offset       0x0000091C
+Pending      yes
+```
+
 ## Avatar Commands
 The avatar surface now has three operator paths:
 
@@ -1760,4 +1983,11 @@ rgh xex ida-decompile --in .\title.xex --out .\ida-decomp --max 50 --out-db .\ti
 ```powershell
 rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
 rgh modules pending
+```
+
+### Capture a verified NAND backup
+```powershell
+rgh xell info
+rgh xell kv export --output .\kv_backup.bin
+rgh nand dump --output .\nand_backup.bin
 ```

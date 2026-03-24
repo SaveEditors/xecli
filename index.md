@@ -24,9 +24,8 @@ Ghidra is an external `(Free)` dependency, and XeCLI's supported Ghidra XEX impo
 
 ## Release
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
-- [Release Notes](https://saveeditors.github.io/xecli/wiki/Releases.html)
-- [v1.0.5 Notes](https://saveeditors.github.io/xecli/wiki/Releases.html#v105-local-content-and-profile-workflows)
-- [v1.0.4 Notes](https://saveeditors.github.io/xecli/wiki/Releases.html#v104-ida-and-fatman-expansion)
+- [Full Release Notes](https://saveeditors.github.io/xecli/wiki/Releases.html)
+- [GitHub Releases](https://github.com/SaveEditors/xecli/releases)
 
 ## Screenshots
 ![XeCLI help](assets/readme/rgh-help.png)

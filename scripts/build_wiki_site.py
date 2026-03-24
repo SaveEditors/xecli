@@ -119,8 +119,6 @@ def build_page(md_name: str) -> None:
     sidebar_html = build_sidebar(md_name)
     repo_link = "https://github.com/SaveEditors/xecli"
     releases_link = "https://github.com/SaveEditors/xecli/releases/latest"
-    author_link = "https://www.se7ensins.com/members/pepe-le-pew.527865/"
-
     output = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -138,7 +136,7 @@ def build_page(md_name: str) -> None:
         <span>XeCLI Wiki</span>
       </a>
       <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
-      <p class="wiki-sidebar__credit">Created by <a href="{author_link}">Pew7s</a></p>
+      <p class="wiki-sidebar__credit">Created by Pew7s</p>
       <label class="wiki-search">
         <span>Filter Pages</span>
         <input id="wiki-filter" type="text" placeholder="Type to filter navigation">

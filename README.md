@@ -14,7 +14,7 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 
 Ghidra remains an external `(Free)` dependency, and XeCLI's supported Ghidra XEX import path uses the maintained [`SaveEditors/XEXLoaderWV`](https://github.com/SaveEditors/XEXLoaderWV) fork. The IDA workflow is pinned to `IDA Pro 9.1.250226` with [`idaxex`](https://github.com/emoose/idaxex) `0.42b`, and IDA Pro is required if you want the IDA debugger/decompiler workflow.
 
-Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
+Created by Pew7s.
 
 <p align="center">
   <strong>Support our work? Buy us a coffee!</strong>
@@ -54,9 +54,9 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 For the current feature surface beyond this short summary, use the wiki's [Latest Features](https://saveeditors.github.io/xecli/wiki/Latest-Features.html) page.
 
 ## Recent Releases
-- `v1.0.5` local content and profile workflows: native `rgh con`, `rgh profile`, and `rgh xdbf` commands for pulled packages, profile edits, avatar colors, and dashboard title-record repair. [Release notes](https://saveeditors.github.io/xecli/wiki/Releases.html#v105-local-content-and-profile-workflows) · [GitHub release](https://github.com/SaveEditors/xecli/releases/tag/v1.0.5)
+- `v1.0.5` local content and profile workflows: native `rgh con`, `rgh profile`, and `rgh xdbf` commands for pulled packages, profile edits, avatar colors, and dashboard title-record repair. [Release notes](https://saveeditors.github.io/xecli/wiki/Releases.html#v105-local-content-and-release-polish) · [GitHub release](https://github.com/SaveEditors/xecli/releases/tag/v1.0.5)
 - `v1.0.4` IDA and Fatman expansion: headless IDA Pro 9.1 support, Ghidra helper-loader install flows, and expanded FATX/Fatman image tooling. [Release notes](https://saveeditors.github.io/xecli/wiki/Releases.html#v104-ida-and-fatman-expansion) · [GitHub release](https://github.com/SaveEditors/xecli/releases/tag/v1.0.4)
-- Older release notes: [Wiki Releases](https://saveeditors.github.io/xecli/wiki/Releases.html) · [GitHub Releases](https://github.com/SaveEditors/xecli/releases)
+- Full release notes: [Wiki Releases](https://saveeditors.github.io/xecli/wiki/Releases.html) · [GitHub Releases](https://github.com/SaveEditors/xecli/releases)
 
 ## Known Issues
 - Spoofing is still under active work. The current spoofing commands can be unstable or incomplete depending on the title, so expect issues while that feature set is being finished.

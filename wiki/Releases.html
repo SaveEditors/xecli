@@ -15,7 +15,7 @@
         <span>XeCLI Wiki</span>
       </a>
       <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
-      <p class="wiki-sidebar__credit">Created by <a href="https://www.se7ensins.com/members/pepe-le-pew.527865/">Pew7s</a></p>
+      <p class="wiki-sidebar__credit">Created by Pew7s</p>
       <label class="wiki-search">
         <span>Filter Pages</span>
         <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
@@ -68,8 +68,8 @@
       <section class="wiki-content-card">
         <article id="wiki-content" class="markdown-body">
           <h1 id="releases">Releases</h1>
-<p>This page keeps the recent public XeCLI release history concise and links back to the published GitHub releases. The README points here instead of carrying a long embedded changelog.</p>
-<h2 id="latest-two-releases">Latest Two Releases</h2>
+<p>This page is the full public XeCLI patch-notes history. The README only summarizes the latest two releases and links here for the complete release archive.</p>
+<h2 id="release-index">Release Index</h2>
 <table>
 <thead>
 <tr>
@@ -81,25 +81,49 @@
 <tbody>
 <tr>
 <td><code>v1.0.5</code></td>
-<td>Local CON/profile/XDBF workflows, native profile editing, and pulled-container repair</td>
-<td><a href="#v105-local-content-and-profile-workflows">Release notes</a> · <a href="https://github.com/SaveEditors/xecli/releases/tag/v1.0.5">GitHub release</a></td>
+<td>Local content workflows, thread metadata fallback, installer fixes, and release packaging</td>
+<td><a href="#v105-local-content-and-release-polish">Release notes</a></td>
 </tr>
 <tr>
 <td><code>v1.0.4</code></td>
 <td>IDA debugger/decompiler support and the expanded Fatman/FATX workflow</td>
-<td><a href="#v104-ida-and-fatman-expansion">Release notes</a> · <a href="https://github.com/SaveEditors/xecli/releases/tag/v1.0.4">GitHub release</a></td>
+<td><a href="#v104-ida-and-fatman-expansion">Release notes</a></td>
+</tr>
+<tr>
+<td><code>v1.0.3</code></td>
+<td>Original Xbox compatibility staging and install workflows</td>
+<td><a href="#v103-original-xbox-compatibility-update">Release notes</a></td>
+</tr>
+<tr>
+<td><code>v1.0.2</code></td>
+<td>Installer split and homebrew package staging</td>
+<td><a href="#v102-installer-and-homebrew-update">Release notes</a></td>
+</tr>
+<tr>
+<td><code>v1.0.1</code></td>
+<td>Avatar library/install workflows and hardware controls</td>
+<td><a href="#v101-avatar-update">Release notes</a></td>
+</tr>
+<tr>
+<td><code>v1.0.0</code></td>
+<td>Initial public XeCLI release</td>
+<td><a href="#v100-initial-release">Release notes</a></td>
 </tr>
 </tbody>
 </table>
-<p>Older releases: <a href="https://github.com/SaveEditors/xecli/releases">All releases</a></p>
-<h2 id="v105-local-content-and-profile-workflows">v1.0.5 Local Content and Profile Workflows</h2>
+<p>Published GitHub releases: <a href="https://github.com/SaveEditors/xecli/releases">All releases</a></p>
+<h2 id="v105-local-content-and-release-polish">v1.0.5 Local Content and Release Polish</h2>
 <ul>
 <li>Added native local-content branches with <code>rgh con</code>, <code>rgh profile</code>, and <code>rgh xdbf</code> for pulled Xbox 360 packages and GPD/XDBF files.</li>
 <li>Added package metadata, verification, rehash, resign, FATX magic-name, and FATX-path workflows directly inside <code>rgh con</code>.</li>
 <li>Added decoded profile operations for account inspection, raw <code>Account</code> extraction, embedded GPD list/extract, achievements, settings, and avatar-color edits.</li>
 <li>Added <code>rgh profile titles add</code> so XeCLI can repair or refresh one dashboard title record directly, using embedded title GPD data when it exists.</li>
 <li>Kept profile mutations inside XeCLI, writing back to the local container, refreshing STFS hashes, and preserving a verifiable CON result.</li>
-<li>Carried the detailed workflow docs into the wiki instead of bloating the README.</li>
+<li>Added thread list image metadata so <code>rgh threads list</code> can show <code>Image</code>, <code>Start Addr.</code>, and <code>End Addr.</code> fallback data when real thread names are not exposed by the console.</li>
+<li>Improved console connection error guidance so failed or incomplete target setup is easier to diagnose from the CLI.</li>
+<li>Hardened <code>rgh install --source</code> validation so the installer accepts published self-contained release layouts and rejects framework-dependent build output.</li>
+<li>Fixed the first-run installer prompt so only a bare <code>rgh</code> launch offers setup, while normal commands like <code>rgh status</code> and <code>rgh threads list</code> run directly.</li>
+<li>Added release publish, verification, packaging, and zip smoke-test scripts so the <code>win-x64</code> archive is validated as a fresh install before release.</li>
 </ul>
 <h2 id="v104-ida-and-fatman-expansion">v1.0.4 IDA and Fatman Expansion</h2>
 <ul>
@@ -108,7 +132,35 @@
 <li>Expanded Fatman into XeCLI's FATX image and storage workflow, with <code>rgh fatman</code> as the primary name and <code>rgh fatx</code> retained as the alias.</li>
 <li>Added FATX/XTAF discovery, partition inspection, scan, info, list, find, cat, get, extract, dump, mkdir, put, mv, and rm flows.</li>
 <li>Added Windows-first physical disk support, manual-open by <code>--offset</code> / <code>--length</code>, metadata backup/restore, and safe chain-map <code>check</code> / <code>repair</code> workflows.</li>
-<li>Added dedicated reverse-engineering and Fatman documentation across the wiki and published docs site.</li>
+</ul>
+<h2 id="v103-original-xbox-compatibility-update">v1.0.3 Original Xbox Compatibility Update</h2>
+<ul>
+<li>Added <code>rgh ogxbox list</code> and <code>rgh ogxbox install &lt;hacked|hud|retail&gt;</code> so XeCLI can stage or install the three public XeFu compatibility packs with user-facing descriptions instead of leaving that setup manual.</li>
+<li>Added optional HDD Compatibility Partition Fixer staging and direct console deployment support, including <code>HddX:\Compatibility</code> targeting for the compatibility files and automatic placement of the fixer on a writable console drive when needed.</li>
+</ul>
+<h2 id="v102-installer-and-homebrew-update">v1.0.2 Installer and Homebrew Update</h2>
+<ul>
+<li>Split first-time setup and package staging cleanly so <code>rgh install</code> remains the XeCLI installer and <code>rgh homebrew install &lt;package&gt;</code> handles Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch staging.</li>
+<li>Added <code>rgh ogxbox list</code> and <code>rgh ogxbox install &lt;hacked|hud|retail&gt;</code> for Original Xbox compatibility packs, with optional HDD Compatibility Partition Fixer staging and direct <code>HddX:\Compatibility</code> install support.</li>
+<li>Added a dedicated homebrew package catalog with cached downloads, archive extraction, generated <code>launch.ini</code>, bundled plugin copies, staging to removable USB drives or normal folders, and an explicit install confirmation prompt unless <code>--auto-confirm</code> is supplied.</li>
+<li>Kept silent backward compatibility for older <code>rgh install aurora</code> style calls by redirecting them to the new homebrew path without exposing that legacy syntax in public help.</li>
+<li>Fixed installer summaries and follow-up instructions so installs without PATH enabled now point users to the installed <code>rgh.exe</code> directly instead of telling them to run a missing <code>rgh</code> command.</li>
+</ul>
+<h2 id="v101-avatar-update">v1.0.1 Avatar Update</h2>
+<ul>
+<li>Added hosted and local <code>Avatar-Item-Collection</code> support with <code>rgh avatar games</code>, <code>rgh avatar items</code>, <code>rgh avatar choose</code>, <code>rgh avatar browse</code>, <code>rgh avatar install</code>, and <code>rgh avatar apply</code>.</li>
+<li>Added terminal and Windows picker flows for avatar item selection, with current-user ownership patching, cached downloads, and multi-item progress bars.</li>
+<li>Added hardware and session controls including sign-in state, LED presets, fan commands, tray control, shutdown, native popup messages, and title-aware spoof helpers.</li>
+<li>Added a dedicated <code>rgh homebrew install</code> workflow for staging Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch onto USB drives or staging folders, with archive caching, progress bars, generated <code>launch.ini</code>, bundled plugin copies, and confirm-before-install behavior.</li>
+<li>Reworked <code>rgh install</code> into a real installer flow with install-path selection, PATH registration, clearer first-time setup, and post-install console discovery prompts.</li>
+<li>Fixed current-user command registration so PATH-based installs resolve directly to <code>rgh.exe</code> instead of relying on a fragile wrapper-first path.</li>
+<li>Added direct repo-root copies of <code>xbdm.xex</code>, <code>XDRPC.xex</code>, and <code>JRPC2.xex</code>, and linked them from the Beginner Guide for separate download/use.</li>
+</ul>
+<h2 id="v100-initial-release">v1.0.0 Initial Release</h2>
+<ul>
+<li>Shipped the first public XeCLI release with the <code>rgh</code> command, XBDM discovery, console status, module inspection, memory inspection, thread control, and debug helpers.</li>
+<li>Added JRPC2 helpers for Title ID, temperatures, notifications, CPU key, motherboard, and dashboard queries, plus FTP-backed file, save, content, and plugin workflows.</li>
+<li>Added XEX dumping, string extraction, Ghidra headless integration, ISO to GOD conversion, and the bundled Title ID database in the release package.</li>
 </ul>
         </article>
       </section>

@@ -506,6 +506,7 @@ internal static class Program {
                 profile.AddExample(new[] { "profile", "gpd", "list", ".\\E000000000000000.con" });
                 profile.AddExample(new[] { "profile", "gpd", "extract", ".\\E000000000000000.con", ".\\FFFE07D1.gpd", "--dashboard" });
                 profile.AddExample(new[] { "profile", "titles", "list", ".\\E000000000000000.con" });
+                profile.AddExample(new[] { "profile", "titles", "add", ".\\E000000000000000.con", "--titleid", "415607E7" });
                 profile.AddExample(new[] { "profile", "achievements", "list", ".\\E000000000000000.con", "--titleid", "4D530805" });
                 profile.AddExample(new[] { "profile", "achievements", "unlock", ".\\E000000000000000.con", "--titleid", "4D530805", "--achievementid", "0x00000001" });
                 profile.AddExample(new[] { "profile", "settings", "get", ".\\E000000000000000.con", "0x10040006" });
@@ -531,6 +532,7 @@ internal static class Program {
                 profile.AddBranch("titles", titles => {
                     titles.SetDescription("Inspect title records inside a profile package.");
                     titles.AddCommand<ProfileTitlesListCommand>("list").WithAlias("ls").WithDescription("List title records from the dashboard GPD.");
+                    titles.AddCommand<ProfileTitlesAddCommand>("add").WithDescription("Insert or refresh one dashboard title record.");
                 });
 
                 profile.AddBranch("achievements", achievements => {
@@ -937,6 +939,11 @@ internal static class Program {
 
     private static bool ShouldShowPathPrompt(string[] args) {
         if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
+            return false;
+
+        // Keep first-run install guidance off real commands. A bare `rgh`
+        // invocation is the only place where an install prompt is appropriate.
+        if (args.Length != 0)
             return false;
 
         if (IsVersionRequest(args))

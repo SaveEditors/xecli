@@ -19,6 +19,7 @@ SITE_GROUPS = [
         "pages": [
             ("Home", "Home.md"),
             ("Latest Features", "Latest-Features.md"),
+            ("Releases", "Releases.md"),
             ("Beginner Guide", "Beginner-Guide.md"),
             ("FTP and File Transfer", "FTP-and-File-Transfer.md"),
             ("Commands Reference", "Commands.md"),

@@ -4,11 +4,12 @@ XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with X
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
-Ghidra is an external `(Free)` dependency. The IDA workflow is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`, and IDA Pro is required for the IDA debugger/decompiler workflow.
+Ghidra is an external `(Free)` dependency, and XeCLI's supported Ghidra XEX import path uses the maintained [SaveEditors/XEXLoaderWV](https://github.com/SaveEditors/XEXLoaderWV) fork. The IDA workflow is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`, and IDA Pro is required for the IDA debugger/decompiler workflow.
 
 ## Start Here
 - [Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)
 - [Latest Features](https://saveeditors.github.io/xecli/wiki/Latest-Features.html)
+- [Releases](https://saveeditors.github.io/xecli/wiki/Releases.html)
 - [FTP and File Transfer](https://saveeditors.github.io/xecli/wiki/FTP-and-File-Transfer.html)
 - [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html)
 - [CLI Help Output](https://saveeditors.github.io/xecli/wiki/CLI-Help.html)
@@ -23,6 +24,9 @@ Ghidra is an external `(Free)` dependency. The IDA workflow is pinned to `IDA Pr
 
 ## Release
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
+- [Release Notes](https://saveeditors.github.io/xecli/wiki/Releases.html)
+- [v1.0.5 Notes](https://saveeditors.github.io/xecli/wiki/Releases.html#v105-local-content-and-profile-workflows)
+- [v1.0.4 Notes](https://saveeditors.github.io/xecli/wiki/Releases.html#v104-ida-and-fatman-expansion)
 
 ## Screenshots
 ![XeCLI help](assets/readme/rgh-help.png)

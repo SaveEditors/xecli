@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link is-current" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link is-current" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -69,6 +69,31 @@
         <article id="wiki-content" class="markdown-body">
           <h1 id="latest-features">Latest Features</h1>
 <p>This page highlights the current XeCLI workflows that are most worth surfacing in the README, the wiki sidebar, and the docs landing page.</p>
+<h2 id="native-xell-utilities">Native XeLL Utilities</h2>
+<p>XeCLI now has a native XeLL workflow instead of treating XeLL inspection and keyvault export as an external afterthought. <code>rgh xell ...</code> detects whether the console is on the dashboard or already in XeLL, asks before the first automatic launch into XeLL, and then works against the XeLL HTTP service directly.</p>
+<p>Use:</p>
+<pre><code class="language-powershell">rgh xell boot
+rgh xell info
+rgh xell kv export
+</code></pre>
+<p><code>rgh xell kv export</code> packages the keyvault with <code>CPUKEY.txt</code>, <code>KV+CPU KEY.txt</code>, optional fuse text, and a verified archive.</p>
+<p>XeCLI supports both the older <code>/rawflash</code> style and the current XeLL Reloaded endpoint set <code>/FLASH</code>, <code>/FUSE</code>, <code>/KV</code>, <code>/KVRAW</code>, <code>/KVRAW2</code>, <code>/LOG</code>, and <code>/REBOOT</code>.</p>
+<h2 id="local-con-profile-and-gpd-workflows">Local CON, Profile, and GPD Workflows</h2>
+<p>XeCLI now has a practical local-content surface for pulled Xbox 360 containers instead of forcing that work into external tools. <code>rgh con</code> handles package metadata, verification, rehash, resign, magic-name, and FATX-path derivation. <code>rgh profile</code> handles decoded profile editing. <code>rgh xdbf</code> handles raw record inspection when you need to drop down to the GPD/XDBF level.</p>
+<p>Use:</p>
+<pre><code class="language-powershell">rgh con info .\E00012AA8D7879B4.con
+rgh con verify .\E00012AA8D7879B4.con
+rgh profile info .\E00012AA8D7879B4.con
+rgh profile account extract .\E00012AA8D7879B4.con .\Account
+rgh profile gpd list .\E00012AA8D7879B4.con
+rgh profile titles add .\E00012AA8D7879B4.con --titleid 415607E7 --replace
+rgh profile achievements unlock .\E00012AA8D7879B4.con --titleid 415607E7 --achievementid 0x00000004
+rgh profile settings set .\E00012AA8D7879B4.con 0x10040006 1337
+rgh profile avatar-colors set .\E00012AA8D7879B4.con --hair 0xFF112233
+rgh xdbf sync-status .\FFFE07D1.gpd
+</code></pre>
+<p>The profile path includes targeted extraction for the raw <code>Account</code> payload and for embedded dashboard/title GPD files, so you no longer need a full package extract just to inspect <code>FFFE07D1.gpd</code> or one title record set. <code>profile titles add</code> also gives XeCLI a native repair path when a title GPD exists but the dashboard title record is missing or stale. Mutating profile commands write back into the local container, refresh STFS hashes, and leave the CON verifiable.</p>
+<p>This surface has been validated against real pulled profile containers rather than only synthetic fixtures.</p>
 <h2 id="ftp-and-file-work">FTP and File Work</h2>
 <p>XeCLI includes a practical FTP workflow instead of treating FTP as an afterthought. The current command set covers saved targets, browsing, search, file pull and push, directory creation, rename/move, delete, and file printing.</p>
 <p>Use:</p>
@@ -114,8 +139,8 @@ rgh debug watch
 rgh ghidra decompile --running --out .\decomp
 rgh xex ida-decompile --running --out .\ida-decomp --max 10
 </code></pre>
-<p>Ghidra is external and <code>(Free)</code>. IDA Pro <code>9.1.250226</code> is external and required for the IDA debugger/decompiler path. After you configure the tool path, XeCLI can install the supported XEX loader helpers with <code>rgh ghidra install-loader</code> and <code>rgh ida install-loader</code>.</p>
 <p><code>threads list</code> now falls back to loaded-image metadata when XBDM does not publish real thread names. The table exposes <code>Image</code>, <code>Start Addr.</code>, and <code>End Addr.</code> so the operator still gets usable execution context.</p>
+<p>Ghidra is external and <code>(Free)</code>. IDA Pro <code>9.1.250226</code> is external and required for the IDA debugger/decompiler path. After you configure the tool path, XeCLI can install the supported XEX loader helpers with <code>rgh ghidra install-loader</code> and <code>rgh ida install-loader</code>.</p>
 <p>Read <a href="Advanced-Guide.html">Advanced-Guide.md</a> for the broader workflow guidance.</p>
         </article>
       </section>

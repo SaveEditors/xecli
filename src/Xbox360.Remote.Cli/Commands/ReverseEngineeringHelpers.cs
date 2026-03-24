@@ -16,7 +16,7 @@ internal static class ReverseEngineeringSupportConstants {
     public const string SupportedIdaxexArchiveUrl = "https://github.com/emoose/idaxex/releases/download/0.42b/idaxex%2Bxex1tool-0.42b_ida91.zip";
     public const string SupportedIdaxexDllSha256 = "97581B47D3E1C7306B8BAA289C6A4EF68D736078C87ACCC63F70A396CC497946";
     public const string KnownIdaxex43DllSha256 = "DA2BC0245A3A06721CCE3804777D63E31B3CF33A4507A1B3B07A966B16F09030";
-    public const string GhidraLatestLoaderApiUrl = "https://api.github.com/repos/zeroKilo/XEXLoaderWV/releases/latest";
+    public const string GhidraLatestLoaderApiUrl = "https://api.github.com/repos/SaveEditors/XEXLoaderWV/releases/latest";
     public const string GhidraOfficialUrl = "https://ghidra-sre.org/";
     public const string IdaOfficialUrl = "https://hex-rays.com/ida-pro";
     public const string XboxReversingUrl = "https://github.com/emoose/xbox-reversing/tree/master";

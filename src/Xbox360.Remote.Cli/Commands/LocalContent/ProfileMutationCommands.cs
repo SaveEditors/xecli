@@ -46,6 +46,23 @@ internal static class ProfileMutationCommandHelpers
 		return true;
 	}
 
+	public static bool TryParseOptionalNonNegativeInt(string? text, out int? value)
+	{
+		value = null;
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			return true;
+		}
+
+		if (!int.TryParse(text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed) || parsed < 0)
+		{
+			return false;
+		}
+
+		value = parsed;
+		return true;
+	}
+
 	public static bool TryParseTimestamp(string? text, out DateTime? value)
 	{
 		value = null;
@@ -212,6 +229,178 @@ internal static class ProfileMutationCommandHelpers
 		}
 
 		return normalized.All(static ch => Uri.IsHexDigit(ch));
+	}
+}
+
+public sealed class ProfileTitlesAddCommand : Command<ProfileTitlesAddCommand.Settings>
+{
+	public sealed class Settings : CommandSettings
+	{
+		[CommandArgument(0, "<PACKAGE>")]
+		[Description("Path to the profile package.")]
+		public string PackagePath { get; init; } = string.Empty;
+
+		[CommandOption("--titleid <TITLEID>")]
+		[Description("Title ID in hex, for example 415607E7.")]
+		public string? TitleId { get; init; }
+
+		[CommandOption("--name <NAME>")]
+		[Description("Optional title name override.")]
+		public string? Name { get; init; }
+
+		[CommandOption("--achievements-possible <COUNT>")]
+		[Description("Optional possible-achievement count. Defaults to the embedded title GPD when available.")]
+		public string? AchievementsPossible { get; init; }
+
+		[CommandOption("--credit-possible <COUNT>")]
+		[Description("Optional possible gamerscore total. Defaults to the embedded title GPD when available.")]
+		public string? CreditPossible { get; init; }
+
+		[CommandOption("--last-loaded <TIMESTAMP>")]
+		[Description("Optional ISO-8601 UTC timestamp to store as the last-loaded time.")]
+		public string? LastLoaded { get; init; }
+
+		[CommandOption("--replace")]
+		[Description("Replace an existing dashboard title record instead of failing.")]
+		public bool Replace { get; init; }
+
+		[CommandOption("--json")]
+		[Description("Output JSON.")]
+		public bool Json { get; init; }
+	}
+
+	public override int Execute(CommandContext context, Settings settings)
+	{
+		if (!ProfileCommandHelpers.TryParseTitleId(settings.TitleId, out uint titleId))
+		{
+			return LocalContentHelpers.Fail("Invalid or missing --titleid.");
+		}
+
+		if (titleId == ProfilePackage.DashboardTitleId)
+		{
+			return LocalContentHelpers.Fail("Use a real game Title ID, not the dashboard GPD ID.");
+		}
+
+		if (!ProfileMutationCommandHelpers.TryParseOptionalNonNegativeInt(settings.AchievementsPossible, out int? achievementsPossible))
+		{
+			return LocalContentHelpers.Fail("Invalid --achievements-possible.");
+		}
+
+		if (!ProfileMutationCommandHelpers.TryParseOptionalNonNegativeInt(settings.CreditPossible, out int? creditPossible))
+		{
+			return LocalContentHelpers.Fail("Invalid --credit-possible.");
+		}
+
+		if (!ProfileMutationCommandHelpers.TryParseTimestamp(settings.LastLoaded, out DateTime? lastLoadedUtc))
+		{
+			return LocalContentHelpers.Fail("Invalid --last-loaded. Use an ISO-8601 timestamp.");
+		}
+
+		return ProfileCommandHelpers.ExecuteWithProfile(settings.PackagePath, (_, profile) =>
+		{
+			if (!profile.HasDashboardData)
+			{
+				return LocalContentHelpers.Fail("Profile package does not contain FFFE07D1.gpd.");
+			}
+
+			ProfileTitleInfo? existingTitle = profile.ReadTitles().FirstOrDefault(candidate => candidate.TitleId == titleId);
+			if (existingTitle != null && !settings.Replace)
+			{
+				return LocalContentHelpers.Fail("Title record already exists. Use --replace to overwrite it.");
+			}
+
+			List<ProfileAchievementInfo>? titleAchievements = null;
+			if (profile.HasTitleDataFile(titleId))
+			{
+				titleAchievements = profile.ReadAchievements(titleId).ToList();
+			}
+
+			int derivedAchievementsPossible = titleAchievements?.Count ?? existingTitle?.AchievementsPossible ?? -1;
+			int derivedCreditPossible = titleAchievements?.Sum(static achievement => achievement.Credit) ?? existingTitle?.CreditPossible ?? -1;
+			int derivedAchievementsEarned = titleAchievements?.Count(static achievement => achievement.IsUnlocked) ?? existingTitle?.AchievementsEarned ?? 0;
+			int derivedCreditEarned = titleAchievements?.Where(static achievement => achievement.IsUnlocked).Sum(static achievement => achievement.Credit) ?? existingTitle?.CreditEarned ?? 0;
+
+			int resolvedAchievementsPossible = achievementsPossible ?? derivedAchievementsPossible;
+			int resolvedCreditPossible = creditPossible ?? derivedCreditPossible;
+			if (resolvedAchievementsPossible < 0)
+			{
+				return LocalContentHelpers.Fail("Missing possible achievement count. Supply --achievements-possible or embed the title GPD first.");
+			}
+
+			if (resolvedCreditPossible < 0)
+			{
+				return LocalContentHelpers.Fail("Missing possible gamerscore total. Supply --credit-possible or embed the title GPD first.");
+			}
+
+			if (titleAchievements != null && resolvedAchievementsPossible < titleAchievements.Count)
+			{
+				return LocalContentHelpers.Fail("Possible achievement count cannot be lower than the embedded title GPD achievement count.");
+			}
+
+			if (titleAchievements != null && resolvedCreditPossible < titleAchievements.Sum(static achievement => achievement.Credit))
+			{
+				return LocalContentHelpers.Fail("Possible gamerscore cannot be lower than the embedded title GPD total.");
+			}
+
+			string resolvedTitleName = settings.Name?.Trim() ?? string.Empty;
+			if (string.IsNullOrWhiteSpace(resolvedTitleName))
+			{
+				resolvedTitleName = existingTitle?.TitleName ?? string.Empty;
+			}
+
+			if (string.IsNullOrWhiteSpace(resolvedTitleName) &&
+				TitleIdDatabase.Instance.TryResolve(titleId, null, out TitleIdEntry? entry) &&
+				entry != null &&
+				!string.IsNullOrWhiteSpace(entry.Name))
+			{
+				resolvedTitleName = entry.Name;
+			}
+
+			if (string.IsNullOrWhiteSpace(resolvedTitleName))
+			{
+				resolvedTitleName = LocalContentHelpers.FormatUInt32(titleId);
+			}
+
+			DateTime? resolvedLastLoadedUtc = lastLoadedUtc ?? existingTitle?.LastLoadedUtc;
+			ProfileTitleInfo title = ProfileTitleInfo.Create(
+				titleId,
+				resolvedTitleName,
+				resolvedAchievementsPossible,
+				derivedAchievementsEarned,
+				resolvedCreditPossible,
+				derivedCreditEarned,
+				resolvedLastLoadedUtc);
+
+			ProfileTitleInfo saved = profile.WriteTitle(title, settings.Replace);
+			bool hasTitleData = profile.HasTitleDataFile(titleId);
+			if (settings.Json)
+			{
+				CliOutput.EmitJson(new
+				{
+					Operation = settings.Replace ? "replace-title" : "add-title",
+					TitleId = LocalContentHelpers.FormatUInt32(saved.TitleId),
+					saved.TitleName,
+					saved.AchievementsEarned,
+					saved.AchievementsPossible,
+					saved.CreditEarned,
+					saved.CreditPossible,
+					LastLoadedUtc = saved.LastLoadedUtc?.ToString("O", CultureInfo.InvariantCulture),
+					HasTitleData = hasTitleData
+				});
+				return 0;
+			}
+
+			OperationFeedback.WriteSuccess(
+				settings.Replace ? "Title record refreshed" : "Title record added",
+				"[cyan]" + LocalContentHelpers.FormatUInt32(saved.TitleId) + "[/] [grey]|[/] [green]" + Markup.Escape(saved.TitleName) + "[/] [grey]|[/] [gold1]" +
+				saved.CreditEarned + "/" + saved.CreditPossible + " GS[/]");
+			if (!hasTitleData)
+			{
+				OperationFeedback.WriteWarning("No embedded title GPD was found", "Only the dashboard title record was added.");
+			}
+
+			return 0;
+		});
 	}
 }
 

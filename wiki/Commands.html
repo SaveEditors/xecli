@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -117,12 +117,20 @@
 <td><code>rgh save list</code>, <code>rgh save extract</code>, <code>rgh save inject</code></td>
 </tr>
 <tr>
+<td>Inspect or edit local CON/profile/GPD files</td>
+<td><code>rgh con ...</code>, <code>rgh profile ...</code>, <code>rgh xdbf ...</code></td>
+</tr>
+<tr>
 <td>Manage title content or DashLaunch plugins</td>
 <td><code>rgh content ...</code>, <code>rgh plugin ...</code></td>
 </tr>
 <tr>
-<td>Inspect or manage local Fatman disks or images</td>
-<td><code>rgh fatman devices</code>, <code>rgh fatman disks</code>, <code>rgh fatman partitions</code>, <code>rgh fatman scan</code>, <code>rgh fatman info</code>, <code>rgh fatman list</code>, <code>rgh fatman find</code>, <code>rgh fatman cat</code>, <code>rgh fatman get</code>, <code>rgh fatman extract</code>, <code>rgh fatman dump</code>, <code>rgh fatman format</code>, <code>rgh fatman check</code>, <code>rgh fatman repair</code>, <code>rgh fatman metadata ...</code></td>
+<td>Inspect XeLL or export XeLL keys</td>
+<td><code>rgh xell boot</code>, <code>rgh xell info</code>, <code>rgh xell kv export</code></td>
+</tr>
+<tr>
+<td>Inspect local Fatman disks or images</td>
+<td><code>rgh fatman devices</code>, <code>rgh fatman partitions</code>, <code>rgh fatman scan</code>, <code>rgh fatman info</code>, <code>rgh fatman list</code>, <code>rgh fatman find</code>, <code>rgh fatman cat</code>, <code>rgh fatman get</code>, <code>rgh fatman extract</code>, <code>rgh fatman dump</code></td>
 </tr>
 <tr>
 <td>Stage Original Xbox compatibility packs</td>
@@ -152,8 +160,10 @@
 <li>Core commands: status, title, targeting, launch, reboot</li>
 <li>XBDM-backed commands: modules, memory, threads, debug, screenshot, file system</li>
 <li>JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC</li>
+<li>XeLL-backed commands: XeLL inspection and keyvault export over the XeLL HTTP service</li>
 <li>FTP-backed commands: file access, saves, content, and plugin management</li>
-<li>Fatman manager: local FATX image and Windows disk inspection, extraction, formatting, metadata backup, and safe repair</li>
+<li>Local content commands: CON package inspection, profile editing, and raw XDBF/GPD record access</li>
+<li>Fatman manager: read-only local disk or image inspection and export</li>
 <li>Analysis commands: XEX, Ghidra, IDA, metadata</li>
 <li>Packaging commands: Games on Demand conversion and watchdog mode</li>
 </ul>
@@ -280,6 +290,43 @@
 </tr>
 </tbody>
 </table>
+<h3 id="xell-backed-commands">XeLL-backed commands</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ip &lt;IP&gt;</code></td>
+<td>Console IP. Uses the saved target if omitted.</td>
+</tr>
+<tr>
+<td><code>--port &lt;PORT&gt;</code></td>
+<td>XBDM TCP port used while the console is still on the dashboard. Default: <code>730</code>.</td>
+</tr>
+<tr>
+<td><code>--timeout &lt;MS&gt;</code></td>
+<td>Socket timeout in milliseconds.</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit JSON output when supported.</td>
+</tr>
+<tr>
+<td><code>--force-xell</code></td>
+<td>Skip the XellLaunch shortcut path and force the direct reboot-into-XeLL path.</td>
+</tr>
+</tbody>
+</table>
+<p>Notes:</p>
+<ul>
+<li>XeCLI always asks for confirmation before the first automatic reboot into XeLL.</li>
+<li>If the shell is non-interactive or XeLL cannot be launched automatically, XeCLI prints the manual eject-button fallback instead of guessing.</li>
+<li>Once XeLL is requested, XeCLI waits up to 30 seconds for the XeLL HTTP service on port 80 and then uses the detected XeLL IP.</li>
+</ul>
 <h2 id="core-commands">Core Commands</h2>
 <h3 id="rgh-status"><code>rgh status</code></h3>
 <p>Console summary view with XBDM identity, running XEX, JRPC-backed fields, drive layout, and sign-in information.</p>
@@ -388,6 +435,7 @@ Arguments: debug=1
 <p>For a first-time install from the release package, run it from the extracted folder as:</p>
 <pre><code class="language-powershell">.\rgh.exe install
 </code></pre>
+<p>XeCLI validates the selected install source. Use the extracted published release folder or another self-contained publish output. Do not point <code>rgh install --source ...</code> at <code>src\Xbox360.Remote.Cli\bin\Release\...</code> or another framework-dependent source-build directory.</p>
 <pre><code class="language-powershell">rgh install
 rgh install --path C:\Tools\XeCLI
 rgh install --machine
@@ -412,6 +460,7 @@ Next Step          Open a new terminal and run rgh --help.
 Jtag at 192.168.1.186 was detected, would you like to connect now? [y/N]:
 </code></pre>
 <p>For dashboard and homebrew package staging, use <code>rgh homebrew install ...</code>. That keeps the installer flow and the USB package workflow separate in both help and docs.</p>
+<p>The first-run install prompt is also intentionally narrow now: it only appears on a bare <code>rgh</code> launch, not before normal commands like <code>rgh status</code> or <code>rgh threads list</code>.</p>
 <h3 id="rgh-homebrew-install"><code>rgh homebrew install</code></h3>
 <p>Download one or more public homebrew packages onto a USB drive, staging folder, or detected console drive.</p>
 <pre><code class="language-powershell">rgh homebrew list
@@ -505,8 +554,65 @@ Size                 31.42 MB
 <li><code>--json</code> emits machine-readable install output</li>
 </ul>
 <p>If <code>HddX</code> is missing and <code>--include-fixer</code> is not used, XeCLI stops before writing anything and tells you to rerun with the fixer included.</p>
+<h2 id="xell-commands">XeLL Commands</h2>
+<p>These commands use XeLL Reloaded's HTTP services for XeLL inspection and keyvault export. XeCLI supports both older endpoint layouts such as <code>/rawflash</code> and the current XeLL Reloaded layout such as <code>/FLASH</code>, <code>/FUSE</code>, <code>/KV</code>, <code>/KVRAW</code>, <code>/KVRAW2</code>, <code>/LOG</code>, and <code>/REBOOT</code>.</p>
+<h3 id="rgh-xell-boot"><code>rgh xell boot</code></h3>
+<p>Detect the current mode, prompt before the first dashboard-to-XeLL reboot, and attach to the XeLL web service when it comes up.</p>
+<pre><code class="language-powershell">rgh xell boot
+rgh xell boot --force-xell
+rgh xell boot --json
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>If the console is already in XeLL, the command reuses the active XeLL session.</li>
+<li>If the console is on the dashboard, XeCLI asks before launching XeLL automatically.</li>
+<li>If auto-launch is unavailable, XeCLI tells you to boot XeLL manually with eject and rerun the command.</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS XeLL ready
+XeLL IP: 192.168.88.99
+</code></pre>
+<h3 id="rgh-xell-info"><code>rgh xell info</code></h3>
+<p>Inspect the XeLL HTTP service and show which XeLL-related endpoints are currently exposed.</p>
+<pre><code class="language-powershell">rgh xell info
+rgh xell info --force-xell
+rgh xell info --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Field           Value
+XeLL IP         192.168.88.99
+Flash Dump      /FLASH
+Key Vault       /KV
+Raw Key Vault   /KVRAW
+CPU Key         E64E0C1D4E2D...
+CPU Key Source  /FUSE
+Startup Log     /LOG
+Fuse Dump       available
+Reboot          /REBOOT
+</code></pre>
+<h3 id="rgh-xell-kv-export"><code>rgh xell kv export</code></h3>
+<p>Export the XeLL keyvault output, capture the CPU key, and package a verified backup set.</p>
+<pre><code class="language-powershell">rgh xell kv export
+rgh xell kv export --output kv_backup.bin
+rgh xell kv export --raw
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>Default mode downloads the decrypted keyvault from <code>/KV</code>. <code>--raw</code> switches to <code>/KVRAW</code> or <code>/KVRAW2</code>.</li>
+<li>The export requires a CPU key. If XeLL does not expose one, XeCLI fails rather than producing an incomplete set.</li>
+<li>Host output includes your chosen KV filename, <code>KV+CPU KEY.txt</code>, a sibling <code>*.CPUKEY.txt</code>, optional <code>*.fuses.txt</code>, <code>*.sha256.txt</code>, and a <code>.zip</code>.</li>
+<li>The archive is normalized to stable names such as <code>KV.bin</code> or <code>KV_RAW.bin</code>, <code>CPUKEY.txt</code>, <code>KV+CPU KEY.txt</code>, <code>fuses.txt</code>, and <code>manifest.sha256.txt</code>.</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Keyvault export complete
+KV: A:\Backups\kv_backup.bin
+CPU key: A:\Backups\kv_backup.CPUKEY.txt
+Combined text: A:\Backups\KV+CPU KEY.txt
+Archive: A:\Backups\kv_backup.zip
+Manifest: A:\Backups\kv_backup.sha256.txt
+</code></pre>
 <h2 id="fatman">Fatman</h2>
-<p>Fatman is XeCLI's FATX manager for local Xbox 360 disks and images. The current implementation supports image recovery, partition dumping, inspection, search, export, and image-backed FATX mutations.</p>
+<p>Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.</p>
 <h3 id="current-command-surface">Current command surface</h3>
 <pre><code class="language-powershell">rgh fatman devices
 rgh fatman partitions
@@ -516,10 +622,6 @@ rgh fatman list
 rgh fatman find
 rgh fatman cat
 rgh fatman get
-rgh fatman mkdir
-rgh fatman put
-rgh fatman mv
-rgh fatman rm
 rgh fatman extract
 rgh fatman dump
 </code></pre>
@@ -542,10 +644,6 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 <li>browse directories and locate entries</li>
 <li>search by name or path</li>
 <li>recover data from <code>.img</code> and <code>.bin</code> sources</li>
-<li>create FATX directories in an image</li>
-<li>write host files into a FATX image</li>
-<li>rename or move FATX entries in an image</li>
-<li>remove FATX files or directories in an image</li>
 <li>print small files in the terminal</li>
 <li>dump partitions to a host directory</li>
 <li>export selected files or directory trees to the host</li>
@@ -555,19 +653,14 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 <li>the runtime has been verified against a synthetic FATX fixture image</li>
 <li>manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real <code>XTAF</code> offsets and opened the compatibility volume by bounded offset</li>
 </ul>
-<h3 id="what-it-does-not-do-yet">What it does not do yet</h3>
+<h3 id="what-it-does-not-do-in-the-first-cut">What it does not do in the first cut</h3>
 <ul>
+<li>write files back to FATX volumes</li>
 <li>format or repartition disks</li>
 <li>mount a virtual filesystem</li>
 <li>repair damaged volumes</li>
 <li>modify security sectors or low-level disk metadata</li>
 </ul>
-<h3 id="image-backed-fatx-writes">Image-backed FATX writes</h3>
-<pre><code class="language-powershell">rgh fatman mkdir --image .\Hdd1.img --path \XeCLI
-rgh fatman put --image .\Hdd1.img --path \XeCLI\readme.txt --in .\readme.txt --overwrite
-rgh fatman mv --image .\Hdd1.img --path \XeCLI\readme.txt --to \XeCLI\readme-old.txt
-rgh fatman rm --image .\Hdd1.img --path \XeCLI --recursive
-</code></pre>
 <h3 id="example-output">Example output</h3>
 <pre><code class="language-text">Fatman Sources
 0  Disk 0  932.51 GB  Xbox 360 HDD
@@ -1143,6 +1236,99 @@ rgh content list --titleid 415608C3
 <pre><code class="language-text">SUCCESS Content delete complete
 Title Update for 0x415608C3 removed
 </code></pre>
+<h2 id="local-content-commands">Local Content Commands</h2>
+<p>These commands operate on local files on the PC, not live console memory. A typical workflow is:</p>
+<ol>
+<li>Use <code>rgh profiles --json</code> or <code>rgh content list</code> to locate the container on the console.</li>
+<li>Pull it locally with <code>rgh ftp get</code> or <code>rgh fs get</code>.</li>
+<li>Inspect or edit it with <code>rgh con</code>, <code>rgh profile</code>, and <code>rgh xdbf</code>.</li>
+<li>Validate the result with <code>rgh con verify</code> before copying it back anywhere else.</li>
+</ol>
+<p>For profile packages, XeCLI writes changes back into the local container, refreshes STFS hashes, and preserves a valid CON signature when the package is a console-signed profile.</p>
+<h3 id="rgh-con"><code>rgh con</code></h3>
+<p>Use <code>con</code> for package-level metadata, verification, rehash, resign, and FATX-path derivation.</p>
+<pre><code class="language-powershell">rgh con info .\E00012AA8D7879B4.con
+rgh con verify .\E00012AA8D7879B4.con
+rgh con rehash .\E00012AA8D7879B4.con
+rgh con resign .\E00012AA8D7879B4-copy.con
+rgh con magic-name .\E00012AA8D7879B4.con
+rgh con fatx-path .\E00012AA8D7879B4.con --fix-name
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Path             .\E00012AA8D7879B4.con
+Signature Type   Console
+Content Type     Profile
+STFS             valid
+FATX Path        Content\E00012AA8D7879B4\FFFE07D1\00010000\E00012AA8D7879B4
+</code></pre>
+<h3 id="rgh-profile"><code>rgh profile</code></h3>
+<p>Use <code>profile</code> for decoded profile/package workflows: package summary, account extraction, embedded GPD extraction, title records, achievements, settings, and avatar colors.</p>
+<p><code>rgh profiles</code> and <code>rgh profile</code> are different:</p>
+<ul>
+<li><code>rgh profiles</code> discovers live console profiles over XBDM/JRPC/FTP/F3</li>
+<li><code>rgh profile</code> works on one local pulled profile container such as <code>E000xxxxxxxxxxxx.con</code></li>
+</ul>
+<pre><code class="language-powershell">rgh profile info .\E00012AA8D7879B4.con
+rgh profile extract .\E00012AA8D7879B4.con .\profile-files
+rgh profile account show .\E00012AA8D7879B4.con
+rgh profile account extract .\E00012AA8D7879B4.con .\Account
+rgh profile account set-gamertag .\E00012AA8D7879B4.con XeCliTest
+rgh profile gpd list .\E00012AA8D7879B4.con
+rgh profile gpd extract .\E00012AA8D7879B4.con .\FFFE07D1.gpd --dashboard
+rgh profile gpd extract .\E00012AA8D7879B4.con .\415607E7.gpd --titleid 415607E7
+rgh profile titles list .\E00012AA8D7879B4.con
+rgh profile titles add .\E00012AA8D7879B4.con --titleid 415607E7 --replace
+rgh profile achievements list .\E00012AA8D7879B4.con --titleid 415607E7
+rgh profile achievements unlock .\E00012AA8D7879B4.con --titleid 415607E7 --achievementid 0x00000004
+rgh profile achievements lock .\E00012AA8D7879B4.con --titleid 415607E7 --achievementid 0x00000004
+rgh profile settings list .\E00012AA8D7879B4.con
+rgh profile settings get .\E00012AA8D7879B4.con 0x10040006
+rgh profile settings set .\E00012AA8D7879B4.con 0x10040006 1337
+rgh profile avatar-colors get .\E00012AA8D7879B4.con
+rgh profile avatar-colors set .\E00012AA8D7879B4.con --hair 0xFF112233 --face-paint 0xFF556677
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li><code>profile account extract</code> exports the raw <code>Account</code> payload without needing a full package extract.</li>
+<li><code>profile gpd list</code> surfaces the dashboard GPD plus each embedded title GPD found in the container.</li>
+<li><code>profile gpd extract</code> is the targeted path when you only want <code>FFFE07D1.gpd</code> or one game GPD.</li>
+<li><code>profile titles add</code> can repair or replace one dashboard title record, deriving totals from the embedded title GPD when that file is present.</li>
+<li><code>profile settings set</code> can update existing records or create missing records when <code>--type</code> is supplied.</li>
+<li><code>profile avatar-colors</code> edits the dashboard avatar blob stored in setting <code>0x63E80044</code>.</li>
+<li>Mutating commands are safest on a disposable copy until you are comfortable with the exact workflow.</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">Profile Package
+Profile ID      0xE00003608D3F513F
+Signature       Console
+Gamertag        ExampleUser
+Dashboard GPD   present
+Account         present
+Titles          3
+Gamerscore      50
+</code></pre>
+<h3 id="rgh-xdbf"><code>rgh xdbf</code></h3>
+<p>Use <code>xdbf</code> when you want raw record-level access to a pulled <code>*.gpd</code> or other XDBF-backed file.</p>
+<pre><code class="language-powershell">rgh xdbf list .\FFFE07D1.gpd --show-sync
+rgh xdbf get .\FFFE07D1.gpd settings 0x0000000010040006
+rgh xdbf get .\FFFE07D1.gpd settings 0x0000000010040006 --out .\gamerscore-setting.bin
+rgh xdbf extract .\415607E7.gpd .\records
+rgh xdbf sync-status .\415607E7.gpd
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li><code>--origin profile|pec</code> controls how sync records are interpreted for profile-backed versus PEC-backed files.</li>
+<li><code>--show-sync</code> and <code>sync-status</code> are useful when you need to understand which records are dirty before or after a profile edit.</li>
+<li><code>xdbf</code> is the low-level inspection path; prefer <code>profile ...</code> when XeCLI already exposes a higher-level decoded command.</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">XDBF Records
+Namespace    Settings (0x0003)
+ID           0x0000000010040006
+Size         24
+Offset       0x0000091C
+Pending      yes
+</code></pre>
 <h2 id="avatar-commands">Avatar Commands</h2>
 <p>The avatar surface now has three operator paths:</p>
 <ul>
@@ -1453,6 +1639,11 @@ rgh xex ida-decompile --in .\title.xex --out .\ida-decomp --max 50 --out-db .\ti
 <h3 id="verify-a-reboot-expected-module-load">Verify a reboot-expected module load</h3>
 <pre><code class="language-powershell">rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
 rgh modules pending
+</code></pre>
+<h3 id="capture-xell-details-and-export-the-keyvault">Capture XeLL details and export the keyvault</h3>
+<pre><code class="language-powershell">rgh xell boot
+rgh xell info
+rgh xell kv export --output .\kv_backup.bin
 </code></pre>
         </article>
       </section>

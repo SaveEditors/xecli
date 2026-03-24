@@ -159,3 +159,18 @@ If you are intentionally running from source, install the .NET 10 SDK/runtime an
 ```powershell
 dotnet run --project src/Xbox360.Remote.Cli -- --help
 ```
+
+## `rgh install` says the selected source is not a published self-contained release
+That error means the installer was pointed at a source-build output instead of a publish/release layout.
+
+Use one of these instead:
+
+- the extracted GitHub release zip folder
+- a self-contained publish folder produced by `dotnet publish`
+
+Do not use:
+
+- `src\Xbox360.Remote.Cli\bin\Release\...`
+- other framework-dependent build output directories
+
+If you need to generate a local release layout first, publish XeCLI before running the installer.

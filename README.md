@@ -12,7 +12,7 @@ XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit built for live console work.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
-Ghidra remains an external `(Free)` dependency. The IDA workflow is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`, and IDA Pro is required if you want the IDA debugger/decompiler workflow.
+Ghidra remains an external `(Free)` dependency, and XeCLI's supported Ghidra XEX import path uses the maintained [`SaveEditors/XEXLoaderWV`](https://github.com/SaveEditors/XEXLoaderWV) fork. The IDA workflow is pinned to `IDA Pro 9.1.250226` with [`idaxex`](https://github.com/emoose/idaxex) `0.42b`, and IDA Pro is required if you want the IDA debugger/decompiler workflow.
 
 Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 
@@ -28,6 +28,7 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 ## Documentation
 - [Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)
 - [Latest Features](https://saveeditors.github.io/xecli/wiki/Latest-Features.html)
+- [Releases](https://saveeditors.github.io/xecli/wiki/Releases.html)
 - [FTP and File Transfer](https://saveeditors.github.io/xecli/wiki/FTP-and-File-Transfer.html)
 - [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html)
 - [CLI Help Output](https://saveeditors.github.io/xecli/wiki/CLI-Help.html)
@@ -45,53 +46,17 @@ Created by [Pew7s](https://www.se7ensins.com/members/pepe-le-pew.527865/).
 
 ## High-Value Workflows
 - FTP and file work: save a target once, then browse, search, pull, push, rename, and delete directly from `rgh`.
+- Pulled content repair: inspect local CON/profile/GPD files, rehash/resign packages, repair dashboard title records, and edit profile achievements, settings, and avatar colors without leaving XeCLI.
 - Avatar downloader and installer: use the local or hosted `Avatar-Item-Collection`, browse by game or item, cache remote packages, patch ownership, and install to the console.
 - Claude/Codex-friendly automation: drive `rgh` from terminal agents, shell scripts, or companion tools with explicit commands and `--json` output where supported.
 - Live debugging and reverse engineering: inspect modules, memory, threads, breakpoints, screenshots, XEX dumps, and both Ghidra and IDA output without switching tools.
 
-## Release Changelog
-### v1.0.4 IDA Debugger Support
-- Added headless IDA Pro 9.1.250226 support with `rgh ida config`, `rgh ida check`, `rgh ida install-loader`, `rgh ida analyze`, `rgh ida decompile`, `rgh ida verify`, and the `rgh xex ida-decompile` shortcut for live-console XEX workflows.
-- Pinned the supported IDA environment to `IDA Pro 9.1.250226` with `idaxex 0.42b`. IDA Pro is required to use the IDA debugger/decompiler workflow.
-- Clarified the Ghidra workflow as an external `(Free)` dependency and added helper-loader install flows through `rgh ghidra install-loader`.
-- Added the [Reverse Engineering](https://saveeditors.github.io/xecli/wiki/Reverse-Engineering.html) wiki page and updated the README, CLI help, commands reference, advanced guide, and FAQ to document the external tool requirements and supported loader versions.
-- Added `rgh fatman` as XeCLI's integrated FATX image and storage manager, with `rgh fatx` kept as the documented alias for users who prefer the filesystem term directly.
-- Added FATX/XTAF image recovery commands for `devices`, `partitions`, `scan`, `info`, `list`, `find`, `cat`, `get`, `extract`, and `dump`.
-- Added FATX image mutation commands for `mkdir`, `put`, `mv`, and `rm`.
-- Added Windows-first physical disk support with `rgh fatman disks`, `--disk`, retail-layout FATX formatting, low-level metadata backup/restore, and safe chain-map `check` / `repair` workflows.
-- Added manual-open support with `--offset` and `--length` so nonstandard, partial, or dev HDD images can be inspected directly by byte range instead of relying only on the retail partition map.
-- Added `rgh fatman scan` to surface plausible FATX/XTAF header offsets before manual-open workflows.
-- Added the [Fatman](https://saveeditors.github.io/xecli/wiki/FATX-Manager.html) wiki page and updated the README, Home, Commands Reference, CLI Help, and sidebar so the new image-recovery workflow is documented consistently.
+For the current feature surface beyond this short summary, use the wiki's [Latest Features](https://saveeditors.github.io/xecli/wiki/Latest-Features.html) page.
 
-### v1.0.3 Original Xbox Compatibility Update
-- Added `rgh ogxbox list` and `rgh ogxbox install <hacked|hud|retail>` so XeCLI can stage or install the three public XeFu compatibility packs with user-facing descriptions instead of leaving that setup manual.
-- Added optional HDD Compatibility Partition Fixer staging and direct console deployment support, including `HddX:\Compatibility` targeting for the compatibility files and automatic placement of the fixer on a writable console drive when needed.
-- Added the [Original Xbox Compatibility](https://saveeditors.github.io/xecli/wiki/Original-Xbox-Compatibility.html) wiki page and updated the README, Beginner Guide, Commands Reference, CLI Help, Homebrew and USB guide, Home page, and sidebar so the new workflow is documented consistently.
-- Added a `Known Issues` note in the README to make the current spoofing stability caveat explicit.
-
-### v1.0.2 Installer and Homebrew Update
-- Split first-time setup and package staging cleanly so `rgh install` remains the XeCLI installer and `rgh homebrew install <package>` handles Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch staging.
-- Added `rgh ogxbox list` and `rgh ogxbox install <hacked|hud|retail>` for Original Xbox compatibility packs, with optional HDD Compatibility Partition Fixer staging and direct `HddX:\Compatibility` install support.
-- Added a dedicated homebrew package catalog with cached downloads, archive extraction, generated `launch.ini`, bundled plugin copies, staging to removable USB drives or normal folders, and an explicit install confirmation prompt unless `--auto-confirm` is supplied.
-- Kept silent backward compatibility for older `rgh install aurora` style calls by redirecting them to the new homebrew path without exposing that legacy syntax in public help.
-- Fixed installer summaries and follow-up instructions so installs without PATH enabled now point users to the installed `rgh.exe` directly instead of telling them to run a missing `rgh` command.
-- Added the [Homebrew and USB](https://saveeditors.github.io/xecli/wiki/Homebrew-and-USB.html) and [Original Xbox Compatibility](https://saveeditors.github.io/xecli/wiki/Original-Xbox-Compatibility.html) wiki pages and updated the README, Beginner Guide, Commands Reference, CLI Help, FAQ, and site navigation to reflect the new split.
-
-### v1.0.1 Avatar Update
-- Added hosted and local `Avatar-Item-Collection` support with `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install`, and `rgh avatar apply`.
-- Added terminal and Windows picker flows for avatar item selection, with current-user ownership patching, cached downloads, and multi-item progress bars.
-- Added hardware and session controls including sign-in state, LED presets, fan commands, tray control, shutdown, native popup messages, and title-aware spoof helpers.
-- Added a dedicated `rgh homebrew install` workflow for staging Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch onto USB drives or staging folders, with archive caching, progress bars, generated `launch.ini`, bundled plugin copies, and confirm-before-install behavior.
-- Expanded the wiki with [Hardware and System Controls](https://saveeditors.github.io/xecli/wiki/Hardware-and-System.html), [XNotify](https://saveeditors.github.io/xecli/wiki/XNotify.html), and [Avatar Item Collection](https://saveeditors.github.io/xecli/wiki/Avatar-Item-Collection.html), and cleaned the wording across the public docs.
-- Reworked `rgh install` into a real installer flow with install-path selection, PATH registration, clearer first-time setup, and post-install console discovery prompts.
-- Fixed current-user command registration so PATH-based installs resolve directly to `rgh.exe` instead of relying on a fragile wrapper-first path.
-- Added direct repo-root copies of `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex`, and linked them from the Beginner Guide for separate download/use.
-
-### v1.0.0 Initial Release
-- Shipped the first public XeCLI release with the `rgh` command, XBDM discovery, console status, module inspection, memory inspection, thread control, and debug helpers.
-- Added JRPC2 helpers for Title ID, temperatures, notifications, CPU key, motherboard, and dashboard queries, plus FTP-backed file, save, content, and plugin workflows.
-- Added XEX dumping, string extraction, Ghidra headless integration, ISO to GOD conversion, and the bundled Title ID database in the release package.
-- Published the initial wiki set including [Home](https://saveeditors.github.io/xecli/wiki/Home.html), [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html), [CLI Help Output](https://saveeditors.github.io/xecli/wiki/CLI-Help.html), [Beginner Guide](https://saveeditors.github.io/xecli/wiki/Beginner-Guide.html), [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html), and [Troubleshooting](https://saveeditors.github.io/xecli/wiki/Troubleshooting.html).
+## Recent Releases
+- `v1.0.5` local content and profile workflows: native `rgh con`, `rgh profile`, and `rgh xdbf` commands for pulled packages, profile edits, avatar colors, and dashboard title-record repair. [Release notes](https://saveeditors.github.io/xecli/wiki/Releases.html#v105-local-content-and-profile-workflows) · [GitHub release](https://github.com/SaveEditors/xecli/releases/tag/v1.0.5)
+- `v1.0.4` IDA and Fatman expansion: headless IDA Pro 9.1 support, Ghidra helper-loader install flows, and expanded FATX/Fatman image tooling. [Release notes](https://saveeditors.github.io/xecli/wiki/Releases.html#v104-ida-and-fatman-expansion) · [GitHub release](https://github.com/SaveEditors/xecli/releases/tag/v1.0.4)
+- Older release notes: [Wiki Releases](https://saveeditors.github.io/xecli/wiki/Releases.html) · [GitHub Releases](https://github.com/SaveEditors/xecli/releases)
 
 ## Known Issues
 - Spoofing is still under active work. The current spoofing commands can be unstable or incomplete depending on the title, so expect issues while that feature set is being finished.
@@ -139,6 +104,10 @@ Bundled assets:
 
 Published releases include these assets so the package stays self-contained. The hosted avatar corpus itself lives separately at [SaveEditors/Avatar-Item-Collection](https://github.com/SaveEditors/Avatar-Item-Collection).
 XeCLI does not bundle Ghidra or IDA Pro themselves. Ghidra is `(Free)`. IDA Pro `9.1.250226` is required for the IDA debugger/decompiler workflow. After you configure each tool path, XeCLI can install the supported XEX loader helpers with `rgh ghidra install-loader` and `rgh ida install-loader`.
+
+## Credits
+- [`SaveEditors/XEXLoaderWV`](https://github.com/SaveEditors/XEXLoaderWV) is the maintained external Ghidra XEX loader fork used by XeCLI's headless Ghidra workflow and `rgh ghidra install-loader`, based on Warranty Voider's original `zeroKilo/XEXLoaderWV` project.
+- [`idaxex`](https://github.com/emoose/idaxex) by emoose is the pinned external XEX loader project used by XeCLI's supported IDA workflow.
 
 ## What the Console Must Provide
 XeCLI ships the expected console-side plugin payload in the repository and release package so users can deploy the exact versions the tool was built and tested against:

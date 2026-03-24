@@ -20,6 +20,8 @@ Run:
 
 Run that from the extracted release folder that contains `rgh.exe`.
 
+If you use `rgh install --source ...`, point it at the extracted published release or another self-contained publish output. XeCLI rejects framework-dependent build output such as `src\Xbox360.Remote.Cli\bin\Release\...`.
+
 The installer can choose the install scope, ask for the install directory, register `rgh` for new terminals, and then offer to connect to a detected console.
 
 After installation, open a new terminal and use:
@@ -32,6 +34,11 @@ rgh --help
 It can.
 
 During install, XeCLI asks whether you want `rgh` available in new terminals. You can accept or skip that step.
+
+## Why did XeCLI ask if I wanted to run the installer
+The first-run setup prompt is only intended for a bare `rgh` launch when XeCLI has not finished setup yet.
+
+Normal commands should not trigger it. If you see it before a real command, update to the current build and rerun the command.
 
 ## Can XeCLI stage dashboards to USB or install them directly to the console
 Yes.

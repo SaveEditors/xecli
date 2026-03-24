@@ -2,6 +2,7 @@
 
 - [Home](Home)
 - [Latest Features](Latest-Features)
+- [Releases](Releases)
 
 ## Getting Started
 - [Beginner Guide](Beginner-Guide)

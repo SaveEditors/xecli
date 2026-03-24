@@ -118,6 +118,18 @@ A clean release should contain:
 - `Assets/`
 - `ghidra_scripts/`
 - `ida_scripts/`
+- `LICENSE`
+
+## Release Automation
+XeCLI now treats release packaging as a repeatable pipeline instead of an ad-hoc publish folder copy.
+
+Current release path:
+
+- `scripts/publish-release.ps1` creates the single-file self-contained `win-x64` publish output
+- `scripts/verify-release.ps1` checks the publish folder contents, validates basic command startup, rejects framework-dependent build output as an installer source, and smoke-installs the published build
+- `scripts/package-release.ps1` zips the verified publish folder and writes a `.sha256` companion file
+- `scripts/smoke-test-release-zip.ps1` extracts the packaged zip, validates required content, and verifies install from the extracted archive
+- `.github/workflows/release.yml` runs that flow for `v*` tags and uploads the zip plus checksum to the GitHub release
 
 The source repo should not contain:
 

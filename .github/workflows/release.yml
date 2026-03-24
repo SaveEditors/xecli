@@ -1,14 +1,15 @@
-name: build
+name: release
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  release:
     runs-on: windows-latest
 
     steps:
@@ -36,16 +37,15 @@ jobs:
 
       - name: Package win-x64
         shell: pwsh
-        run: .\scripts\package-release.ps1 -PublishDir out\win-x64 -OutputDir out\release
+        run: .\scripts\package-release.ps1 -PublishDir out\win-x64 -OutputDir out\release -Version "${{ github.ref_name }}"
 
       - name: Smoke test packaged zip
         shell: pwsh
-        run: .\scripts\smoke-test-release-zip.ps1 -ZipPath out\release\XeCLI-win-x64.zip
+        run: .\scripts\smoke-test-release-zip.ps1 -ZipPath "out\release\XeCLI-${{ github.ref_name }}-win-x64.zip"
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Publish GitHub release assets
+        uses: softprops/action-gh-release@v2
         with:
-          name: XeCLI-win-x64
-          path: |
-            out/win-x64
-            out/release
+          files: |
+            out/release/*.zip
+            out/release/*.sha256

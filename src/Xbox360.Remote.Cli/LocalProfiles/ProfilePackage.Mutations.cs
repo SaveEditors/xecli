@@ -68,6 +68,36 @@ internal sealed partial class ProfilePackage
 		return ReadSetting(settingId);
 	}
 
+	public ProfileTitleInfo WriteTitle(ProfileTitleInfo title, bool replaceExisting)
+	{
+		if (!HasDashboardData)
+		{
+			throw new InvalidOperationException("Profile package does not contain FFFE07D1.gpd.");
+		}
+
+		string dashboardFile = $"{DashboardTitleId:X8}.gpd";
+		DataFile? dashboardData = null;
+		try
+		{
+			dashboardData = OpenDataFile(dashboardFile, DataFileOrigin.Profile);
+			bool exists = dashboardData.RecordExists(XdbfNamespace.Titles, title.TitleId);
+			if (exists && !replaceExisting)
+			{
+				throw new InvalidOperationException("Title record already exists: 0x" + title.TitleId.ToString("X8") + ".");
+			}
+
+			dashboardData.UpdateOrInsertRecord(XdbfNamespace.Titles, title.TitleId, title.ToArray());
+			SyncDashboardSummarySettings(dashboardData);
+		}
+		finally
+		{
+			dashboardData?.Close();
+		}
+
+		CommitPackageFiles(dashboardFile);
+		return ReadTitles().Single(candidate => candidate.TitleId == title.TitleId);
+	}
+
 	public ProfileAchievementInfo UnlockAchievement(uint titleId, uint achievementId, bool online, DateTime? achievedAtUtc)
 	{
 		return SetAchievementState(titleId, achievementId, unlock: true, online, achievedAtUtc);
@@ -173,10 +203,7 @@ internal sealed partial class ProfilePackage
 	{
 		if (!dataFile.RecordExists(XdbfNamespace.Settings, settingId))
 		{
-			dataFile.UpdateOrInsertRecord(
-				XdbfNamespace.Settings,
-				settingId,
-				ProfileSettingInfo.Create(settingId, ProfileSettingType.Int32, delta).ToArray());
+			SetOrCreateInt32Setting(dataFile, settingId, delta);
 			return;
 		}
 
@@ -188,10 +215,42 @@ internal sealed partial class ProfilePackage
 		}
 
 		int currentValue = Convert.ToInt32(existing.Value ?? 0, System.Globalization.CultureInfo.InvariantCulture);
+		SetOrCreateInt32Setting(dataFile, settingId, currentValue + delta);
+	}
+
+	private static void SyncDashboardSummarySettings(DataFile dashboardData)
+	{
+		var titles = dashboardData
+			.GetRecords(XdbfNamespace.Titles)
+			.Select(record => ProfileTitleInfo.Parse(dashboardData.GetData(record)))
+			.ToList();
+
+		SetOrCreateInt32Setting(dashboardData, GamercardAchievementsEarnedSettingId, titles.Sum(title => title.AchievementsEarned));
+		SetOrCreateInt32Setting(dashboardData, GamercardCreditEarnedSettingId, titles.Sum(title => title.CreditEarned));
+	}
+
+	private static void SetOrCreateInt32Setting(DataFile dataFile, ulong settingId, int value)
+	{
+		if (!dataFile.RecordExists(XdbfNamespace.Settings, settingId))
+		{
+			dataFile.UpdateOrInsertRecord(
+				XdbfNamespace.Settings,
+				settingId,
+				ProfileSettingInfo.Create(settingId, ProfileSettingType.Int32, value).ToArray());
+			return;
+		}
+
+		ProfileSettingInfo existing = ProfileSettingInfo.Parse(dataFile.GetData(XdbfNamespace.Settings, settingId));
+		if (existing.Type != ProfileSettingType.Int32 && existing.Type != ProfileSettingType.Context)
+		{
+			throw new InvalidOperationException(
+				"Cannot update non-Int32 profile summary setting " + settingId.ToString("X8") + ".");
+		}
+
 		dataFile.UpdateData(
 			XdbfNamespace.Settings,
 			settingId,
-			existing.WithValue(currentValue + delta).ToArray());
+			existing.WithValue(value).ToArray());
 	}
 
 	private void StagePackageFile(string fileName, byte[] data)

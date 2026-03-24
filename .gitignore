@@ -12,6 +12,8 @@ obj/
 publish/
 dist/
 release/
+out/
+tmp/
 *.zip
 
 # Local captures, dumps, and generated analysis artifacts

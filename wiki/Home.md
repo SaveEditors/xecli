@@ -1,6 +1,6 @@
 # XeCLI Wiki
 
-XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, Fatman, XeLL-backed backups, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
+XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, Fatman, XeLL inspection utilities, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
 
 The local source tree is the canonical behavior model for these pages. If a feature is documented here, it should match the shipped release and the current repo state unless a page says otherwise.
 
@@ -13,7 +13,7 @@ Avatar workflows in the shipped release now support both:
 
 `rgh avatar install` remains the direct path for explicit one-item or full-title installs. `--remote` switches the same workflow to the hosted `Avatar-Item-Collection` repository with local caching.
 
-Native XeLL workflows are also built into the shipped CLI now. `rgh xell ...` and `rgh nand dump` handle guided XeLL launch, keyvault export, and verified read-only NAND backup without depending on an external flasher workflow.
+Native XeLL workflows are also built into the shipped CLI now. `rgh xell ...` handles guided XeLL launch, XeLL HTTP inspection, and keyvault export without depending on an external helper workflow.
 
 Local content workflows are built in now as well. `rgh con`, `rgh profile`, and `rgh xdbf` cover pulled CON/profile/GPD files directly, including rehash/resign, raw `Account` or GPD extraction, achievement and setting edits, and avatar color edits inside profile packages.
 
@@ -21,7 +21,7 @@ Local content workflows are built in now as well. `rgh con`, `rgh profile`, and 
 
 The current features worth surfacing first are:
 
-- [XeLL and NAND Backups](XeLL-and-NAND-Backups.md) for guided XeLL launch, keyvault export, and verified NAND backup.
+- [Releases](Releases.md) for the current public release notes without turning the README into a long changelog.
 - [FTP and File Transfer](FTP-and-File-Transfer.md) for saved FTP targets and the full `rgh ftp ...` workflow.
 - [Avatar Item Collection](Avatar-Item-Collection.md) for local or hosted avatar downloads, browsing, and install planning.
 - [Integrations](Integrations.md) for Claude, Codex, and other terminal-agent or script-driven workflows.
@@ -35,8 +35,8 @@ The current features worth surfacing first are:
 | Page | Purpose |
 | --- | --- |
 | [Latest Features](Latest-Features.md) | Current standout workflows to surface in the README, sidebar, and docs landing pages |
+| [Releases](Releases.md) | Current public release notes and links to the latest GitHub releases |
 | [Beginner Guide](Beginner-Guide.md) | Safe first-run workflow: install, discovery, connect, status, and basic operations |
-| [XeLL and NAND Backups](XeLL-and-NAND-Backups.md) | Guided XeLL launch, HTTP endpoint inspection, keyvault export, and verified read-only NAND backup |
 | [FTP and File Transfer](FTP-and-File-Transfer.md) | Saved FTP targets, browse/find/get/put workflows, and when to use FTP instead of `rgh fs` |
 | [Commands Reference](Commands.md) | Full command-by-command reference with examples |
 | [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
@@ -70,16 +70,15 @@ The current features worth surfacing first are:
 ### New user path
 1. [Beginner Guide](Beginner-Guide.md)
 2. [Latest Features](Latest-Features.md)
-3. [XeLL and NAND Backups](XeLL-and-NAND-Backups.md)
-4. [Commands Reference](Commands.md)
-5. [Hardware and System Controls](Hardware-and-System.md)
-6. [Remote Spoofing](Remote-Spoofing.md)
-7. [XNotify](XNotify.md)
-8. [CLI Help Output](CLI-Help.md)
-9. [Troubleshooting](Troubleshooting.md)
-10. [Homebrew and USB](Homebrew-and-USB.md)
-11. [Original Xbox Compatibility](Original-Xbox-Compatibility.md)
-12. [Fatman](FATX-Manager.md)
+3. [Commands Reference](Commands.md)
+4. [Hardware and System Controls](Hardware-and-System.md)
+5. [Remote Spoofing](Remote-Spoofing.md)
+6. [XNotify](XNotify.md)
+7. [CLI Help Output](CLI-Help.md)
+8. [Troubleshooting](Troubleshooting.md)
+9. [Homebrew and USB](Homebrew-and-USB.md)
+10. [Original Xbox Compatibility](Original-Xbox-Compatibility.md)
+11. [Fatman](FATX-Manager.md)
 
 ### Reverse-engineering path
 1. [Advanced Guide](Advanced-Guide.md)
@@ -100,7 +99,7 @@ The current features worth surfacing first are:
 - Status, title resolution, profile visibility, and pulled-profile editing
 - Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing
 - Launch, reboot, and console notification workflows
-- Guided XeLL launch, XeLL HTTP endpoint inspection, keyvault export, and verified read-only NAND backup
+- Guided XeLL launch, XeLL HTTP endpoint inspection, and keyvault export
 - Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 documented as a title-local spoof flow rather than a signed-in account change
 - Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs
 
@@ -117,7 +116,7 @@ The current features worth surfacing first are:
 - Fatman device discovery, partition inspection, directory browsing, read-only search, and file export
 - Save extraction and injection
 - DashLaunch plugin slot management
-- XeLL-backed read-only NAND backup, keyvault export, CPU key capture, startup-log capture, and packaged SHA-256 manifests
+- XeLL-backed keyvault export, CPU key capture, startup-log capture, and packaged SHA-256 manifests
 - USB/folder staging or direct console installs with `rgh homebrew install aurora|dashlaunch|xexmenu|fsd|xm360|timefixer|simple360|xelllaunch|all`
 - Original Xbox compatibility staging or direct `HddX:\Compatibility` installs with `rgh ogxbox install hacked|hud|retail`, plus optional HDD Compatibility Partition Fixer staging
 - Avatar Item Collection cataloging, remote browsing, search, dry-run planning, progress-driven installs, and install execution
@@ -178,9 +177,9 @@ rgh fatman cat --image .\hdd.img --partition Content --path /launch.ini
 rgh ping
 rgh status
 rgh title
+rgh xell boot
 rgh xell info
 rgh xell kv export
-rgh nand dump
 rgh con info .\E00012AA8D7879B4.con
 rgh profile info .\E00012AA8D7879B4.con
 rgh profile gpd list .\E00012AA8D7879B4.con
@@ -199,6 +198,7 @@ rgh screenshot --out .\screen.bmp
 ## Release and Docs Entry Points
 - [Repository](https://github.com/SaveEditors/xecli)
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
+- [Release Notes](Releases.md)
 - [Docs Landing Page](https://saveeditors.github.io/xecli/)
 - [Published Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)
 

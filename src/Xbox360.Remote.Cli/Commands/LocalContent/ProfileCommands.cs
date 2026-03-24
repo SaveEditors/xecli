@@ -394,6 +394,7 @@ public sealed class ProfileTitlesListCommand : Command<ProfileTitlesListCommand.
 			table.AddColumn(new TableColumn("[green]Title[/]"));
 			table.AddColumn(new TableColumn("[gold1]GS[/]"));
 			table.AddColumn(new TableColumn("[grey]Ach[/]"));
+			table.AddColumn(new TableColumn("[grey]GPD[/]"));
 			table.AddColumn(new TableColumn("[grey]Last Loaded[/]"));
 			foreach (var title in titles)
 			{
@@ -402,6 +403,7 @@ public sealed class ProfileTitlesListCommand : Command<ProfileTitlesListCommand.
 					"[green]" + Markup.Escape(title.ResolvedTitleName) + "[/]",
 					"[gold1]" + title.CreditEarned + "/" + title.CreditPossible + "[/]",
 					"[grey]" + title.AchievementsEarned + "/" + title.AchievementsPossible + "[/]",
+					title.HasTitleData ? "[green]yes[/]" : "[yellow]no[/]",
 					title.LastLoadedUtc.HasValue
 						? "[white]" + Markup.Escape(title.LastLoadedUtc.Value.ToUniversalTime().ToString("u", CultureInfo.InvariantCulture)) + "[/]"
 						: "[grey]never[/]");

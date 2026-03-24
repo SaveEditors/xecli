@@ -273,6 +273,47 @@ internal sealed class ProfileTitleInfo
 		}
 	}
 
+	public static ProfileTitleInfo Create(
+		uint titleId,
+		string? titleName,
+		int achievementsPossible,
+		int achievementsEarned,
+		int creditPossible,
+		int creditEarned,
+		DateTime? lastLoadedUtc)
+	{
+		if (achievementsPossible < 0)
+		{
+			throw new InvalidOperationException("Title achievement count cannot be negative.");
+		}
+
+		if (achievementsEarned < 0 || achievementsEarned > achievementsPossible)
+		{
+			throw new InvalidOperationException("Title earned achievements must fall within the possible total.");
+		}
+
+		if (creditPossible < 0)
+		{
+			throw new InvalidOperationException("Title credit total cannot be negative.");
+		}
+
+		if (creditEarned < 0 || creditEarned > creditPossible)
+		{
+			throw new InvalidOperationException("Title earned credit must fall within the possible total.");
+		}
+
+		return new ProfileTitleInfo
+		{
+			TitleId = titleId,
+			TitleName = titleName?.Trim() ?? string.Empty,
+			AchievementsPossible = achievementsPossible,
+			AchievementsEarned = achievementsEarned,
+			CreditPossible = creditPossible,
+			CreditEarned = creditEarned,
+			LastLoadedUtc = lastLoadedUtc?.ToUniversalTime()
+		};
+	}
+
 	public void ApplyAchievementDelta(int achievementsDelta, int creditDelta)
 	{
 		int newAchievements = AchievementsEarned + achievementsDelta;

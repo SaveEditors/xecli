@@ -20,7 +20,7 @@ Use this table when you know the job you need done but not the exact command nam
 | Manage saves | `rgh save list`, `rgh save extract`, `rgh save inject` |
 | Inspect or edit local CON/profile/GPD files | `rgh con ...`, `rgh profile ...`, `rgh xdbf ...` |
 | Manage title content or DashLaunch plugins | `rgh content ...`, `rgh plugin ...` |
-| Back up NAND or export XeLL keys | `rgh xell boot`, `rgh xell info`, `rgh xell kv export`, `rgh nand dump` |
+| Inspect XeLL or export XeLL keys | `rgh xell boot`, `rgh xell info`, `rgh xell kv export` |
 | Inspect local Fatman disks or images | `rgh fatman devices`, `rgh fatman partitions`, `rgh fatman scan`, `rgh fatman info`, `rgh fatman list`, `rgh fatman find`, `rgh fatman cat`, `rgh fatman get`, `rgh fatman extract`, `rgh fatman dump` |
 | Stage Original Xbox compatibility packs | `rgh ogxbox list`, `rgh ogxbox install hacked|hud|retail` |
 | Browse or install avatar items from the local or hosted collection | `rgh avatar library ...`, `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install` |
@@ -34,7 +34,7 @@ XeCLI is organized into a few major namespaces:
 - Core commands: status, title, targeting, launch, reboot
 - XBDM-backed commands: modules, memory, threads, debug, screenshot, file system
 - JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC
-- XeLL-backed backup commands: XeLL inspection, keyvault export, and read-only NAND backup over the XeLL HTTP service
+- XeLL-backed commands: XeLL inspection and keyvault export over the XeLL HTTP service
 - FTP-backed commands: file access, saves, content, and plugin management
 - Local content commands: CON package inspection, profile editing, and raw XDBF/GPD record access
 - Fatman manager: read-only local disk or image inspection and export
@@ -274,6 +274,8 @@ For a first-time install from the release package, run it from the extracted fol
 .\rgh.exe install
 ```
 
+XeCLI validates the selected install source. Use the extracted published release folder or another self-contained publish output. Do not point `rgh install --source ...` at `src\Xbox360.Remote.Cli\bin\Release\...` or another framework-dependent source-build directory.
+
 ```powershell
 rgh install
 rgh install --path C:\Tools\XeCLI
@@ -303,6 +305,8 @@ Jtag at 192.168.1.186 was detected, would you like to connect now? [y/N]:
 ```
 
 For dashboard and homebrew package staging, use `rgh homebrew install ...`. That keeps the installer flow and the USB package workflow separate in both help and docs.
+
+The first-run install prompt is also intentionally narrow now: it only appears on a bare `rgh` launch, not before normal commands like `rgh status` or `rgh threads list`.
 
 ### `rgh homebrew install`
 Download one or more public homebrew packages onto a USB drive, staging folder, or detected console drive.
@@ -337,8 +341,6 @@ Copied bundled console plugins into E:\Plugins
 ```
 
 The current package catalog also includes XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch.
-
-Native read-only backup flows no longer depend on Simple 360 NAND Flasher. Use `rgh xell ...` and `rgh nand dump` when you want XeLL inspection, keyvault export, or a verified NAND backup directly from XeCLI.
 
 Console install example output:
 
@@ -416,8 +418,8 @@ Important options:
 
 If `HddX` is missing and `--include-fixer` is not used, XeCLI stops before writing anything and tells you to rerun with the fixer included.
 
-## XeLL and Backup Commands
-These commands use XeLL Reloaded's HTTP services for read-only backup operations. XeCLI supports both older endpoint layouts such as `/rawflash` and the current XeLL Reloaded layout such as `/FLASH`, `/FUSE`, `/KV`, `/KVRAW`, `/KVRAW2`, `/LOG`, and `/REBOOT`.
+## XeLL Commands
+These commands use XeLL Reloaded's HTTP services for XeLL inspection and keyvault export. XeCLI supports both older endpoint layouts such as `/rawflash` and the current XeLL Reloaded layout such as `/FLASH`, `/FUSE`, `/KV`, `/KVRAW`, `/KVRAW2`, `/LOG`, and `/REBOOT`.
 
 ### `rgh xell boot`
 Detect the current mode, prompt before the first dashboard-to-XeLL reboot, and attach to the XeLL web service when it comes up.
@@ -442,7 +444,7 @@ XeLL IP: 192.168.88.99
 ```
 
 ### `rgh xell info`
-Inspect the XeLL HTTP service and show which backup-related endpoints are currently exposed.
+Inspect the XeLL HTTP service and show which XeLL-related endpoints are currently exposed.
 
 ```powershell
 rgh xell info
@@ -490,37 +492,6 @@ CPU key: A:\Backups\kv_backup.CPUKEY.txt
 Combined text: A:\Backups\KV+CPU KEY.txt
 Archive: A:\Backups\kv_backup.zip
 Manifest: A:\Backups\kv_backup.sha256.txt
-```
-
-### `rgh nand dump`
-Boot XeLL Reloaded, download a flash dump, verify repeated reads, and package the result as a safe backup set.
-
-```powershell
-rgh nand dump
-rgh nand dump --single
-rgh nand dump --output nand_backup.bin
-rgh nand dump --force-xell
-```
-
-Notes:
-
-- This workflow is read-only. XeCLI never writes to NAND.
-- `rgh nand dump` takes the first dump, reboots back into XeLL, and compares the next dump byte-for-byte against the reference.
-- If the verification dump differs, XeCLI retries the second dump up to three more times before failing hard with "Do not flash these files."
-- After the bytes match, XeCLI verifies the copied output file, writes a SHA-256 manifest, builds a zip, and re-verifies every archive entry against the source files.
-- Host output includes the NAND image, optional `*.cpukey.txt`, optional `*.startup-log.txt`, `*.sha256.txt`, and a verified `.zip`.
-- `--single` and `--no-verify` skip the repeated-dump loop, but the archive and manifest are still verified.
-
-Example output:
-
-```text
-SUCCESS NAND dump verified
-NAND: A:\Backups\nand_backup_20260323_024501.bin
-Archive: A:\Backups\nand_backup_20260323_024501.zip
-Manifest: A:\Backups\nand_backup_20260323_024501.sha256.txt
-CPU key: A:\Backups\nand_backup_20260323_024501.cpukey.txt
-NAND verified — safe to flash
-Archive and manifest verified.
 ```
 
 ## Fatman
@@ -1489,6 +1460,7 @@ rgh profile gpd list .\E00012AA8D7879B4.con
 rgh profile gpd extract .\E00012AA8D7879B4.con .\FFFE07D1.gpd --dashboard
 rgh profile gpd extract .\E00012AA8D7879B4.con .\415607E7.gpd --titleid 415607E7
 rgh profile titles list .\E00012AA8D7879B4.con
+rgh profile titles add .\E00012AA8D7879B4.con --titleid 415607E7 --replace
 rgh profile achievements list .\E00012AA8D7879B4.con --titleid 415607E7
 rgh profile achievements unlock .\E00012AA8D7879B4.con --titleid 415607E7 --achievementid 0x00000004
 rgh profile achievements lock .\E00012AA8D7879B4.con --titleid 415607E7 --achievementid 0x00000004
@@ -1504,6 +1476,7 @@ Notes:
 - `profile account extract` exports the raw `Account` payload without needing a full package extract.
 - `profile gpd list` surfaces the dashboard GPD plus each embedded title GPD found in the container.
 - `profile gpd extract` is the targeted path when you only want `FFFE07D1.gpd` or one game GPD.
+- `profile titles add` can repair or replace one dashboard title record, deriving totals from the embedded title GPD when that file is present.
 - `profile settings set` can update existing records or create missing records when `--type` is supplied.
 - `profile avatar-colors` edits the dashboard avatar blob stored in setting `0x63E80044`.
 - Mutating commands are safest on a disposable copy until you are comfortable with the exact workflow.
@@ -1985,9 +1958,9 @@ rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
 rgh modules pending
 ```
 
-### Capture a verified NAND backup
+### Capture XeLL details and export the keyvault
 ```powershell
+rgh xell boot
 rgh xell info
 rgh xell kv export --output .\kv_backup.bin
-rgh nand dump --output .\nand_backup.bin
 ```

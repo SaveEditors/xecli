@@ -9,7 +9,8 @@ XeCLI does not bundle Ghidra, IDA Pro, Java, or XEX loader plugins. Reverse-engi
 - Official IDA Pro site: [IDA Pro](https://hex-rays.com/ida-pro)
 - Official Hex-Rays download/account portal: [My Hex-Rays](https://my.hex-rays.com/)
 - Official open-source IDA SDK: [ida-sdk](https://github.com/HexRaysSA/ida-sdk)
-- Official Ghidra XEX loader project used by XeCLI: [XEXLoaderWV](https://github.com/zeroKilo/XEXLoaderWV)
+- Community XEX loader project used by XeCLI's supported IDA workflow: [emoose/idaxex](https://github.com/emoose/idaxex)
+- Maintained Ghidra XEX loader fork used by XeCLI: [SaveEditors/XEXLoaderWV](https://github.com/SaveEditors/XEXLoaderWV)
 - Community Xbox reverse-engineering references: [emoose/xbox-reversing](https://github.com/emoose/xbox-reversing/tree/master)
 
 ## Ghidra Support
@@ -31,6 +32,7 @@ XeCLI does not bundle Ghidra, IDA Pro, Java, or XEX loader plugins. Reverse-engi
 - Ships the headless helper script in `src/Xbox360.Remote.Cli/ghidra_scripts/`.
 - Detects `XEXLoaderWV.jar` automatically for `.xex` imports.
 - Can install `XEXLoaderWV` into the configured Ghidra install with `rgh ghidra install-loader`.
+- Uses the maintained `SaveEditors/XEXLoaderWV` fork as an external dependency; XeCLI does not bundle the jar in the repo or release package.
 - Verifies decompile output with `rgh ghidra verify`.
 
 ### Ghidra requirements

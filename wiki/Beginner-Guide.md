@@ -39,6 +39,8 @@ The published release is self-contained. You do not need to install .NET separat
 
 Run that command from the extracted release folder that contains `rgh.exe`.
 
+If you use `--source`, point it at the extracted published release or another self-contained publish folder. XeCLI rejects framework-dependent source-build output such as `src\Xbox360.Remote.Cli\bin\Release\...` because that install path can fail on machines without the matching desktop runtime.
+
 The installer now walks through:
 
 - install scope: current user or all users
@@ -53,6 +55,8 @@ After installation completes, open a new terminal and use:
 rgh --help
 rgh status
 ```
+
+The first-run setup prompt should only appear on a bare `rgh` launch. Normal commands should go straight to their command handler.
 
 ## 3. Discover or Set a Target Manually
 If you skipped the post-install connection prompt, use the manual discovery path:

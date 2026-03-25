@@ -124,7 +124,7 @@ internal static class CliOutput
 			}));
 			return;
 		}
-		AnsiConsole.Write(new Rule("[bold deepskyblue1]Detected Consoles[/]").RuleStyle("silver"));
+		WriteSectionHeader("Detected Consoles");
 		Table table = CreateTable();
 		table.AddColumn(AlignableExtensions.Centered(new TableColumn("[white]#[/]")));
 		table.AddColumn(new TableColumn("[cyan1]IP[/]"));
@@ -188,7 +188,20 @@ internal static class CliOutput
 
 	public static Table CreateTable()
 	{
-		return new Table().Border(TableBorder.Rounded).BorderColor(Color.Silver).Expand();
+		TableBorder border = (SupportsUnicodeOutput() ? TableBorder.Rounded : TableBorder.Ascii);
+		return new Table().Border(border).BorderColor(Color.Silver).Expand();
+	}
+
+	public static void WriteSectionHeader(string title)
+	{
+		string text = Markup.Escape(title);
+		if (SupportsUnicodeOutput())
+		{
+			AnsiConsole.Write(new Rule("[bold deepskyblue1]" + text + "[/]").RuleStyle("silver"));
+			return;
+		}
+		AnsiConsole.MarkupLine("[bold deepskyblue1]" + text + "[/]");
+		AnsiConsole.MarkupLine("[grey]" + new string('-', Math.Max(12, title.Length + 4)) + "[/]");
 	}
 
 	public static string FormatTimestamp(DateTime? value)
@@ -216,6 +229,18 @@ internal static class CliOutput
 		catch
 		{
 			return TimeZoneInfo.Local;
+		}
+	}
+
+	private static bool SupportsUnicodeOutput()
+	{
+		try
+		{
+			return string.Equals(Environment.GetEnvironmentVariable("XECLI_UNICODE"), "1", StringComparison.Ordinal);
+		}
+		catch
+		{
+			return false;
 		}
 	}
 }

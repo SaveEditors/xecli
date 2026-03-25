@@ -287,7 +287,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings>
 				else
 				{
 					string text2 = ((!jrpcAvailable.HasValue) ? "[grey70]skipped[/]" : (jrpcAvailable.Value ? "[springgreen3_1]online[/]" : "[red1]unavailable[/]"));
-					AnsiConsole.Write(new Rule("[bold deepskyblue1]Status[/]").RuleStyle("silver"));
+					CliOutput.WriteSectionHeader("Status");
 					Table table = CliOutput.CreateTable();
 					table.AddColumn(new TableColumn("[bold white]Field[/]"));
 					table.AddColumn(new TableColumn("[bold white]Value[/]"));
@@ -319,7 +319,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings>
 					AnsiConsole.Write(table);
 					if (cpuTemp.HasValue || gpuTemp.HasValue || edramTemp.HasValue || mbTemp.HasValue)
 					{
-						AnsiConsole.Write(new Rule("[bold deepskyblue1]Temps (C)[/]").RuleStyle("silver"));
+						CliOutput.WriteSectionHeader("Temps (C)");
 						Table table2 = CliOutput.CreateTable();
 						table2.AddColumn(new TableColumn("[bold deepskyblue1]CPU[/]"));
 						table2.AddColumn(new TableColumn("[bold deepskyblue1]GPU[/]"));
@@ -330,7 +330,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings>
 					}
 					if (drives != null && drives.Count > 0)
 					{
-						AnsiConsole.Write(new Rule("[bold deepskyblue1]Drives[/]").RuleStyle("silver"));
+						CliOutput.WriteSectionHeader("Drives");
 						Table table3 = CliOutput.CreateTable();
 						table3.AddColumn(new TableColumn("[bold springgreen3_1]Name[/]"));
 						table3.AddColumn(new TableColumn("[bold white]Aliases[/]"));
@@ -347,7 +347,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings>
 						List<XbdmDriveEntry> list = drives.Where((XbdmDriveEntry d) => d.Name.StartsWith("Usb", StringComparison.OrdinalIgnoreCase)).ToList();
 						if (list.Count > 0)
 						{
-							AnsiConsole.Write(new Rule("[bold deepskyblue1]Connected USB[/]").RuleStyle("silver"));
+							CliOutput.WriteSectionHeader("Connected USB");
 							Table table4 = CliOutput.CreateTable();
 							table4.AddColumn(new TableColumn("[bold springgreen3_1]Name[/]"));
 							table4.AddColumn(new TableColumn("[bold deepskyblue1]Total[/]"));

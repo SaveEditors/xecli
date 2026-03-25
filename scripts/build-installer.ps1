@@ -3,6 +3,8 @@ param(
     [string]$OutputDir = "out\installer",
     [string]$Version = "",
     [string]$IsccPath = "",
+    [string]$DotNetRuntimeVersion = "10.0.5",
+    [string]$DotNetRuntimeUrl = "",
     [switch]$SkipPublish,
     [switch]$StageOnly,
     [switch]$VerifyInstaller
@@ -99,11 +101,49 @@ function Find-IsccPath {
     return $null
 }
 
+function Resolve-DotNetRuntimeUrl {
+    param(
+        [string]$RequestedUrl,
+        [string]$RuntimeVersion
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($RequestedUrl)) {
+        return $RequestedUrl
+    }
+
+    return "https://dotnetcli.azureedge.net/dotnet/Runtime/$RuntimeVersion/dotnet-runtime-$RuntimeVersion-win-x64.exe"
+}
+
+function Ensure-DotNetRuntimeInstaller {
+    param(
+        [string]$RuntimeVersion,
+        [string]$RuntimeUrl
+    )
+
+    $cacheDir = Join-Path $repoRoot "tmp\installer-prereqs"
+    New-Item -ItemType Directory -Force -Path $cacheDir | Out-Null
+
+    $runtimeInstallerPath = Join-Path $cacheDir "dotnet-runtime-$RuntimeVersion-win-x64.exe"
+    if (Test-Path $runtimeInstallerPath) {
+        return $runtimeInstallerPath
+    }
+
+    Write-Host "Downloading .NET runtime $RuntimeVersion from $RuntimeUrl"
+    Invoke-WebRequest -Uri $RuntimeUrl -OutFile $runtimeInstallerPath
+    if (-not (Test-Path $runtimeInstallerPath)) {
+        throw "Failed to download .NET runtime installer from $RuntimeUrl"
+    }
+
+    return $runtimeInstallerPath
+}
+
 $projectPath = Join-Path $repoRoot "decompiled\rgh.csproj"
 $publishDir = Resolve-RepoPath $PublishDir
 $outputDir = Resolve-RepoPath $OutputDir
 $issPath = Join-Path $repoRoot "installer\XeCLI.iss"
 $appVersion = Get-AppVersion -ProjectPath $projectPath -RequestedVersion $Version
+$resolvedDotNetRuntimeUrl = Resolve-DotNetRuntimeUrl -RequestedUrl $DotNetRuntimeUrl -RuntimeVersion $DotNetRuntimeVersion
+$dotNetRuntimeInstallerPath = Ensure-DotNetRuntimeInstaller -RuntimeVersion $DotNetRuntimeVersion -RuntimeUrl $resolvedDotNetRuntimeUrl
 
 if (-not (Test-Path $issPath)) {
     throw "Installer script was not found at $issPath"
@@ -138,6 +178,8 @@ $isccArgs = @(
     "/DAppVersion=$appVersion",
     "/DReleaseDir=$publishDir",
     "/DOutputDir=$outputDir",
+    "/DDotNetRuntimeVersion=$DotNetRuntimeVersion",
+    "/DDotNetRuntimeInstaller=$dotNetRuntimeInstallerPath",
     $issPath
 )
 

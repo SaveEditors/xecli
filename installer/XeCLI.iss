@@ -9,6 +9,12 @@
 #ifndef OutputDir
   #define OutputDir "out\\installer"
 #endif
+#ifndef DotNetRuntimeVersion
+  #define DotNetRuntimeVersion "10.0.5"
+#endif
+#ifndef DotNetRuntimeInstaller
+  #error "DotNetRuntimeInstaller define is required."
+#endif
 
 [Setup]
 AppId={{E4E0C9B1-68CE-4D99-8A6A-B825D1C615B1}
@@ -48,12 +54,22 @@ en.AddToPathTask=Add rgh to PATH
 es.AddToPathTask=Agregar rgh al PATH
 en.SupportUsButton=Support Us
 es.SupportUsButton=Apoyanos
+en.InstallDotNetRuntimeStatus=Installing .NET runtime {#DotNetRuntimeVersion} (x64)...
+es.InstallDotNetRuntimeStatus=Instalando .NET runtime {#DotNetRuntimeVersion} (x64)...
 
 [Tasks]
 Name: "modifypath"; Description: "{cm:AddToPathTask}"; Flags: checkedonce
 
 [Files]
 Source: "{#ReleaseDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#DotNetRuntimeInstaller}"; DestDir: "{tmp}"; DestName: "dotnet-runtime-{#DotNetRuntimeVersion}-win-x64.exe"; Flags: ignoreversion deleteafterinstall
+
+[Run]
+Filename: "{tmp}\dotnet-runtime-{#DotNetRuntimeVersion}-win-x64.exe"; \
+    Parameters: "/install /quiet /norestart"; \
+    StatusMsg: "{cm:InstallDotNetRuntimeStatus}"; \
+    Flags: waituntilterminated runhidden; \
+    Check: NeedsDotNetRuntimeInstall
 
 [Code]
 const
@@ -64,6 +80,30 @@ const
 
 var
   SupportButton: TNewButton;
+
+function HasDotNetRuntime(const VersionPrefix: String): Boolean;
+var
+  RuntimeVersions: TArrayOfString;
+  I: Integer;
+begin
+  Result := false;
+  if not RegGetSubkeyNames(HKLM64, 'SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.NETCore.App', RuntimeVersions) then
+    exit;
+
+  for I := 0 to GetArrayLength(RuntimeVersions) - 1 do
+  begin
+    if Pos(VersionPrefix + '.', RuntimeVersions[I]) = 1 then
+    begin
+      Result := true;
+      exit;
+    end;
+  end;
+end;
+
+function NeedsDotNetRuntimeInstall: Boolean;
+begin
+  Result := not HasDotNetRuntime('10.0');
+end;
 
 function GetDefaultDir(Param: String): String;
 begin

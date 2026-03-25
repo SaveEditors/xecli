@@ -3,7 +3,7 @@
 - [Home](Home)
 - [Latest Features](Latest-Features)
 - [Releases](Releases)
-- [v1.0.6 Release Notes](Release-Notes-v1.0.6)
+- [v1.0.7 Release Notes](Release-Notes-v1.0.7)
 
 ## Getting Started
 - [Beginner Guide](Beginner-Guide)

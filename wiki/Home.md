@@ -15,7 +15,7 @@ Avatar workflows in the shipped release now support both:
 
 Native XeLL workflows are also built into the shipped CLI now. `rgh xell ...` and `rgh nand dump` handle guided XeLL launch, keyvault export, and verified read-only NAND backup without depending on an external flasher workflow.
 
-v1.0.6 expands that into a one-command PC workflow for automated NAND dumping, with the release archive documenting the packaging and safety model in more detail.
+v1.0.7 builds on that by pairing the automated NAND workflow with full Spanish localization, the new Inno Setup installer, and a single canonical GitHub wiki that replaces the HTML site.
 
 Local content workflows are built in now as well. `rgh con`, `rgh profile`, and `rgh xdbf` cover pulled CON/profile/GPD files directly, including rehash/resign, raw `Account` or GPD extraction, achievement and setting edits, and avatar color edits inside profile packages.
 
@@ -25,7 +25,7 @@ The current features worth surfacing first are:
 
 - [Releases](Releases) for the full patch-notes archive across all public versions.
 - [Latest Features](Latest-Features) for the current workflow highlights and release timeline.
-- [v1.0.6 Release Notes](Release-Notes-v1.0.6) for the detailed NAND-dumping and XeLL staging update.
+- [v1.0.7 Release Notes](Release-Notes-v1.0.7) for the installer, localization, and documentation release.
 - [XeCLI-XeLL](XeCLI-XeLL) for the payload model, guided XeLL launch, keyvault export, and verified NAND backup.
 - [FTP and File Transfer](FTP-and-File-Transfer) for saved FTP targets and the full `rgh ftp ...` workflow.
 - [Avatar Item Collection](Avatar-Item-Collection) for local or hosted avatar downloads, browsing, and install planning.
@@ -40,7 +40,7 @@ The current features worth surfacing first are:
 | --- | --- |
 | [Latest Features](Latest-Features) | Current workflow highlights plus the full release timeline and feature map |
 | [Releases](Releases) | Canonical patch-notes archive for all public XeCLI releases |
-| [v1.0.6 Release Notes](Release-Notes-v1.0.6) | Automated NAND dumping, managed staging, verification behavior, and the optional XeCLI-XeLL companion package |
+| [v1.0.7 Release Notes](Release-Notes-v1.0.7) | Spanish localization, the Inno Setup-based installer, Ko-fi support, and the GitHub wiki migration |
 | [Beginner Guide](Beginner-Guide) | Safe first-run workflow: install, discovery, connect, status, and basic operations |
 | [XeCLI-XeLL](XeCLI-XeLL) | Managed XeLL payload workflow, HTTP endpoint inspection, keyvault export, and verified read-only NAND backup |
 | [FTP and File Transfer](FTP-and-File-Transfer) | Saved FTP targets, browse/find/get/put workflows, and when to use FTP instead of `rgh fs` |
@@ -108,7 +108,7 @@ The current features worth surfacing first are:
 - Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing
 - Launch, reboot, and console notification workflows
 - Guided XeLL launch, XeLL HTTP endpoint inspection, keyvault export, and verified read-only NAND backup
-- v1.0.6 automated NAND dumping from the PC, including managed helper/linker staging and automatic reboot on verified success
+- v1.0.7 adds Spanish localization, the Inno Setup installer, and the GitHub wiki migration on top of the verified NAND dump flow
 - Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 documented as a title-local spoof flow rather than a signed-in account change
 - Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs
 

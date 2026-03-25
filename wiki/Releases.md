@@ -8,6 +8,7 @@ Patch notes on this page describe shipped product behavior, operator-facing fixe
 
 | Release | Focus | Links |
 | --- | --- | --- |
+| `v1.0.7` | Spanish localization, dark Inno Setup installer, Ko-fi support, and the canonical GitHub wiki migration | [Release notes](#v107-spanish-localization-inno-setup-and-wiki) |
 | `v1.0.6` | Automated NAND dumping, managed XeLL/XeCLI-XeLL staging, verified packaging, and safe reboot control | [Release notes](#v106-automated-nand-dumping-and-xecli-xell) |
 | `v1.0.5` | Local content workflows, thread metadata fallback, installer fixes, and release packaging | [Release notes](#v105-local-content-and-release-polish) |
 | `v1.0.4` | IDA debugger/decompiler support and the expanded Fatman/FATX workflow | [Release notes](#v104-ida-and-fatman-expansion) |
@@ -17,6 +18,12 @@ Patch notes on this page describe shipped product behavior, operator-facing fixe
 | `v1.0.0` | Initial public XeCLI release | [Release notes](#v100-initial-release) |
 
 Published GitHub releases: [All releases](https://github.com/SaveEditors/xecli/releases)
+
+## v1.0.7 Spanish Localization, Inno Setup, and Wiki
+
+- Added Spanish help, installer, and avatar strings so Spanish operators can navigate the CLI, wrapper, and WinForms browser without a manual translation layer.
+- Released a dark-themed Inno Setup installer with the XeCLI logo, brand art, Ko-fi support, icon replacement, and a verified install/uninstall/Path cycle as part of the full packaging script.
+- Migrated the documentation to the GitHub wiki under `wiki/*.md`, removing the legacy HTML wiki, the CSS/JS assets, and the HTML index so a single maintained surface now powers the public docs.
 
 ## v1.0.6 Automated NAND Dumping and XeCLI-XeLL
 

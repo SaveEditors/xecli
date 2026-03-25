@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reverse Engineering | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Reverse-Engineering.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
+      <p class="wiki-sidebar__credit">Created by Pew7s</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" >
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Release-Notes-v1.0.6.html" data-page="Release-Notes-v1.0.6.html">Release Notes v1.0.6</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="XeLL-and-NAND-Backups.html" data-page="XeLL-and-NAND-Backups.html">XeLL and NAND Backups</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="architecture-reference" open>
+              <summary>Technical Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link is-current" href="Reverse-Engineering.html" data-page="Reverse-Engineering.html">Reverse Engineering</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Technical Reference</div>
+          <h1>Reverse Engineering</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli">Repo</a>
+          <a href="https://github.com/SaveEditors/xecli/releases/latest">Releases</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="reverse-engineering">Reverse Engineering</h1>
+<h2 id="external-tooling">External Tooling</h2>
+<p>XeCLI does not bundle Ghidra, IDA Pro, Java, or XEX loader plugins. Reverse-engineering workflows depend on external installs plus the helper loaders that XeCLI can install after you point it at those tools.</p>
+<ul>
+<li>Official Ghidra site: <a href="https://ghidra-sre.org/">Ghidra</a></li>
+<li>Official Ghidra releases: <a href="https://github.com/NationalSecurityAgency/ghidra/releases">NSA Ghidra Releases</a></li>
+<li>Official IDA Pro site: <a href="https://hex-rays.com/ida-pro">IDA Pro</a></li>
+<li>Official Hex-Rays download/account portal: <a href="https://my.hex-rays.com/">My Hex-Rays</a></li>
+<li>Official open-source IDA SDK: <a href="https://github.com/HexRaysSA/ida-sdk">ida-sdk</a></li>
+<li>Official Ghidra XEX loader project used by XeCLI: <a href="https://github.com/zeroKilo/XEXLoaderWV">XEXLoaderWV</a></li>
+<li>Community Xbox reverse-engineering references: <a href="https://github.com/emoose/xbox-reversing/tree/master">emoose/xbox-reversing</a></li>
+</ul>
+<h2 id="ghidra-support">Ghidra Support</h2>
+<h3 id="current-command-surface">Current command surface</h3>
+<ul>
+<li><code>rgh ghidra config</code></li>
+<li><code>rgh ghidra install-loader</code></li>
+<li><code>rgh ghidra analyze</code></li>
+<li><code>rgh ghidra decompile</code></li>
+<li><code>rgh ghidra verify</code></li>
+<li><code>rgh xex decompile</code></li>
+</ul>
+<h3 id="what-xecli-does-for-ghidra">What XeCLI does for Ghidra</h3>
+<ul>
+<li>Treats Ghidra as an external headless backend.</li>
+<li>Stores the Ghidra install path, <code>JAVA_HOME</code>, and default project path.</li>
+<li>Pulls <code>.xex</code> files from a local path, FTP path, or the current running title.</li>
+<li>Ships the headless helper script in <code>src/Xbox360.Remote.Cli/ghidra_scripts/</code>.</li>
+<li>Detects <code>XEXLoaderWV.jar</code> automatically for <code>.xex</code> imports.</li>
+<li>Can install <code>XEXLoaderWV</code> into the configured Ghidra install with <code>rgh ghidra install-loader</code>.</li>
+<li>Verifies decompile output with <code>rgh ghidra verify</code>.</li>
+</ul>
+<h3 id="ghidra-requirements">Ghidra requirements</h3>
+<ul>
+<li>Ghidra is external and not shipped by XeCLI.</li>
+<li>Ghidra is documented as <code>(Free)</code> in the CLI. XeCLI does not currently pin a tested Ghidra version in the docs.</li>
+<li>Java must be available for the configured Ghidra runtime.</li>
+<li><code>XEXLoaderWV</code> is required for clean <code>.xex</code> imports.</li>
+<li>After <code>rgh ghidra config --path &lt;dir&gt;</code>, XeCLI can install the loader helper for you with <code>rgh ghidra install-loader</code>.</li>
+</ul>
+<h2 id="ida-support">IDA Support</h2>
+<h3 id="supported-baseline">Supported baseline</h3>
+<ul>
+<li>Supported IDA build: <code>IDA Pro 9.1.250226</code></li>
+<li>Supported XEX loader build: <code>idaxex 0.42b</code></li>
+<li>Do not claim support for <code>idaxex 0.43</code> or <code>IDA 9.2</code> until that exact combination is validated in XeCLI.</li>
+</ul>
+<h3 id="current-command-surface_1">Current command surface</h3>
+<ul>
+<li><code>rgh ida config</code></li>
+<li><code>rgh ida check</code></li>
+<li><code>rgh ida install-loader</code></li>
+<li><code>rgh ida analyze</code></li>
+<li><code>rgh ida decompile</code></li>
+<li><code>rgh ida verify</code></li>
+<li><code>rgh xex ida-decompile</code></li>
+</ul>
+<h3 id="what-xecli-does-for-ida">What XeCLI does for IDA</h3>
+<ul>
+<li>Treats IDA Pro as an external headless backend.</li>
+<li>Stores the IDA install path, Python command, <code>IDAUSR</code>, and preferred backend.</li>
+<li>Validates the configured runtime with <code>rgh ida check</code>.</li>
+<li>Installs the pinned <code>idaxex 0.42b</code> loader set with <code>rgh ida install-loader</code>.</li>
+<li>Ships the helper scripts in <code>src/Xbox360.Remote.Cli/ida_scripts/</code>.</li>
+<li>Imports raw <code>.xex</code> files through <code>idat.exe</code> batch mode.</li>
+<li>Uses <code>idalib</code> for database-backed decompilation when available.</li>
+<li>Supports one-shot console-driven decompilation through <code>rgh xex ida-decompile</code>.</li>
+<li>Verifies exported C output with <code>rgh ida verify</code>.</li>
+</ul>
+<h3 id="ida-requirements">IDA requirements</h3>
+<ul>
+<li>IDA Pro is external and not shipped by XeCLI.</li>
+<li>XeCLI documents <code>IDA Pro 9.1.250226</code> as the supported baseline.</li>
+<li>A valid local IDA install and license are required for <code>idat</code> and <code>idalib</code>.</li>
+<li><code>idaxex 0.42b</code> must be present for <code>.xex</code> loading.</li>
+<li>Python is required for <code>idalib</code> workflows.</li>
+<li>After <code>rgh ida config --path &lt;dir&gt;</code>, XeCLI can install the supported loader helper for you with <code>rgh ida install-loader</code>.</li>
+</ul>
+<h2 id="validation-notes">Validation Notes</h2>
+<p>These workflows were validated against a live console on <strong>March 22, 2026</strong>:</p>
+<ul>
+<li><code>rgh ida check</code></li>
+<li><code>rgh ida install-loader</code></li>
+<li><code>rgh ghidra install-loader</code></li>
+<li><code>rgh ida analyze --ftp-path /Hdd1/Aurora/Aurora.xex --out-db ...</code></li>
+<li><code>rgh ida decompile --in ...Aurora-cli.i64 --backend idalib --max 1</code></li>
+<li><code>rgh ida verify --dir ...</code></li>
+<li><code>rgh xex ida-decompile --ftp-path /Hdd1/Aurora/Aurora.xex --out ... --max 1 --out-db ... --keep-db</code></li>
+</ul>
+<p>Observed live IDA import/decompile results for Aurora:</p>
+<ul>
+<li>imported database: <code>Aurora-cli.i64</code></li>
+<li>segments: <code>7</code></li>
+<li>functions: <code>40129</code></li>
+<li>one-function <code>idalib</code> export completed successfully</li>
+<li>one-shot <code>xex ida-decompile</code> completed successfully with the auto-selected <code>idalib</code> backend after batch import</li>
+</ul>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+      <section class="wiki-panel wiki-support">
+        <h2>Support XeCLI</h2>
+        <p class="wiki-support__text">Support our work? Buy us a coffee!</p>
+        <p class="wiki-support__button">
+          <a href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">
+            <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" alt="Support XeCLI on Ko-fi" width="180">
+          </a>
+        </p>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

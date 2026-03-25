@@ -20,7 +20,9 @@ SITE_GROUPS = [
             ("Home", "Home.md"),
             ("Latest Features", "Latest-Features.md"),
             ("Releases", "Releases.md"),
+            ("Release Notes v1.0.6", "Release-Notes-v1.0.6.md"),
             ("Beginner Guide", "Beginner-Guide.md"),
+            ("XeLL and NAND Backups", "XeLL-and-NAND-Backups.md"),
             ("FTP and File Transfer", "FTP-and-File-Transfer.md"),
             ("Commands Reference", "Commands.md"),
             ("CLI Help Output", "CLI-Help.md"),
@@ -39,6 +41,7 @@ SITE_GROUPS = [
         "title": "Technical Reference",
         "pages": [
             ("Advanced Guide", "Advanced-Guide.md"),
+            ("Reverse Engineering", "Reverse-Engineering.md"),
             ("Frameworks and Architecture", "Frameworks.md"),
             ("Documentation Standards", "Standards.md"),
             ("Contributing", "Contributing.md"),

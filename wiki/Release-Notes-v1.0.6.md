@@ -34,6 +34,7 @@ The verification path remains read-only.
 
 ## Related Docs
 
-- [XeLL and NAND Backups](XeLL-and-NAND-Backups.md)
-- [Commands Reference](Commands.md)
-- [Latest Features](Latest-Features.md)
+- [XeLL and NAND Backups](https://saveeditors.github.io/xecli/wiki/XeLL-and-NAND-Backups.html)
+- [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html)
+- [Latest Features](https://saveeditors.github.io/xecli/wiki/Latest-Features.html)
+- [Release Archive](https://saveeditors.github.io/xecli/wiki/Releases.html)

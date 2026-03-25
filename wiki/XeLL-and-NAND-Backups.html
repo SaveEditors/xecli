@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XeLL and NAND Backups | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="XeLL-and-NAND-Backups.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
+      <p class="wiki-sidebar__credit">Created by Pew7s</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Release-Notes-v1.0.6.html" data-page="Release-Notes-v1.0.6.html">Release Notes v1.0.6</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link is-current" href="XeLL-and-NAND-Backups.html" data-page="XeLL-and-NAND-Backups.html">XeLL and NAND Backups</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="architecture-reference" >
+              <summary>Technical Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Reverse-Engineering.html" data-page="Reverse-Engineering.html">Reverse Engineering</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>XeLL and NAND Backups</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli">Repo</a>
+          <a href="https://github.com/SaveEditors/xecli/releases/latest">Releases</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="xell-and-nand-backups">XeLL and NAND Backups</h1>
+<p>This page documents XeCLI's native XeLL-backed backup workflows. XeCLI v1.0.6 turns NAND backup into a PC-side one-command flow, while keeping the underlying operations read-only and verified before success is reported.</p>
+<h2 id="command-surface">Command Surface</h2>
+<pre><code class="language-powershell">rgh xell boot
+rgh xell info
+rgh xell kv export
+rgh xell kv export --raw
+rgh nand dump
+rgh nand dump --single
+</code></pre>
+<h2 id="guided-xell-launch">Guided XeLL Launch</h2>
+<p>XeCLI does not assume the console is already in XeLL.</p>
+<ul>
+<li>It first detects whether the console is on the dashboard or already in XeLL.</li>
+<li>If the console is already in XeLL, the command attaches to the detected XeLL IP and continues.</li>
+<li>If the console is on the dashboard, XeCLI asks for confirmation before the first automatic transition into XeLL.</li>
+<li>When available, XeCLI prefers the XellLaunch shortcut path. <code>--force-xell</code> skips that preference and forces the direct reboot path.</li>
+<li>If the session is non-interactive, or if automatic launch is not available, XeCLI prints the manual eject-button fallback instead of rebooting without confirmation.</li>
+<li>The standalone <code>Xell-NoN</code> companion package can be used when you want the minimal XeLL-side bootstrap for the same automated NAND workflow.</li>
+</ul>
+<p>All XeLL-backed commands wait up to 30 seconds for the XeLL HTTP server on port 80. If the dashboard IP changes after the reboot, XeCLI also scans the local subnet and common XeLL fallback addresses such as <code>192.168.88.99</code>.</p>
+<h2 id="endpoint-compatibility">Endpoint Compatibility</h2>
+<p>XeCLI supports both older and current XeLL Reloaded HTTP layouts.</p>
+<ul>
+<li>Flash dump: <code>/rawflash</code> and <code>/FLASH</code></li>
+<li>CPU key and fuse text: <code>/cpukey.txt</code> and <code>/FUSE</code></li>
+<li>Keyvault: <code>/KV</code></li>
+<li>Raw keyvault: <code>/KVRAW</code> and <code>/KVRAW2</code></li>
+<li>Startup log: <code>/log</code> and <code>/LOG</code></li>
+<li>Reboot: <code>/reboot</code> and <code>/REBOOT</code></li>
+</ul>
+<p>Use <code>rgh xell info</code> when you want to see which of those endpoints the active XeLL build exposes.</p>
+<h2 id="keyvault-export">Keyvault Export</h2>
+<p><code>rgh xell kv export</code> downloads the XeLL keyvault output and refuses to finish unless a CPU key is also available.</p>
+<pre><code class="language-powershell">rgh xell kv export
+rgh xell kv export --output .\kv_backup.bin
+rgh xell kv export --raw
+</code></pre>
+<p>Default mode exports the decrypted keyvault from <code>/KV</code>. <code>--raw</code> switches to the raw keyvault block.</p>
+<p>Host-side output includes:</p>
+<ul>
+<li>your selected KV filename</li>
+<li><code>KV+CPU KEY.txt</code></li>
+<li>a sibling <code>*.CPUKEY.txt</code></li>
+<li>optional <code>*.fuses.txt</code></li>
+<li><code>*.sha256.txt</code></li>
+<li>a <code>.zip</code> archive</li>
+</ul>
+<p>Inside the archive, XeCLI uses stable names:</p>
+<ul>
+<li><code>KV.bin</code> or <code>KV_RAW.bin</code></li>
+<li><code>CPUKEY.txt</code></li>
+<li><code>KV+CPU KEY.txt</code></li>
+<li><code>fuses.txt</code> when available</li>
+<li><code>manifest.sha256.txt</code></li>
+</ul>
+<p>The final zip is verified by reopening it and comparing every entry against the source files byte-for-byte.</p>
+<h2 id="nand-backup-verification">NAND Backup Verification</h2>
+<p><code>rgh nand dump</code> is the high-safety backup path. It does not write anything to NAND and, in v1.0.6, is the single PC-side command that drives the automated NAND workflow.</p>
+<pre><code class="language-powershell">rgh nand dump
+rgh nand dump --output .\nand_backup.bin
+rgh nand dump --single
+rgh nand dump --force-xell
+</code></pre>
+<p>Default verification flow:</p>
+<ol>
+<li>Detect the current mode and prompt before the first automatic XeLL launch.</li>
+<li>Wait for XeLL HTTP and download the reference dump.</li>
+<li>Attempt a second verification dump.</li>
+<li>On stock helper paths, XeCLI requests a XeLL reboot and waits for XeLL to come back before downloading the verification dump.</li>
+<li>On the managed custom payload path, XeCLI can keep the console inside the same XeLL session for the verification dump when dashboard round-trips would otherwise introduce NAND drift.</li>
+<li>Compare the verification dump byte-for-byte against the reference dump.</li>
+<li>If the verification dump differs, retry the second dump up to three more times.</li>
+<li>If a match is found, copy the verified dump to the final output path and compare that copy again.</li>
+<li>Write a SHA-256 manifest, build a zip archive, and verify the archive contents byte-for-byte.</li>
+</ol>
+<p>The release now stages the helper/linker assets that the automated path expects, so the operator does not need to assemble the PC-side tooling manually before starting the dump.</p>
+<p>Successful output can include:</p>
+<ul>
+<li>the verified NAND image</li>
+<li><code>*.cpukey.txt</code> when XeLL exposed the CPU key</li>
+<li><code>*.startup-log.txt</code> when XeLL exposed the startup log</li>
+<li><code>*.sha256.txt</code></li>
+<li>a verified <code>.zip</code></li>
+</ul>
+<p>When the verified path completes, XeCLI prints <code>NAND verified — safe to flash</code>.</p>
+<p><code>--single</code> and <code>--no-verify</code> skip the repeated second-dump loop, but XeCLI still validates the copied output, manifest, and zip archive. Auto-reboot stays disabled in those modes so the console does not leave XeLL before the operator can see that verification was skipped.</p>
+<h2 id="failure-behavior">Failure Behavior</h2>
+<p>XeCLI fails closed for backup work.</p>
+<ul>
+<li>If no XeLL HTTP server appears within 30 seconds, the command stops and tells you to check Ethernet and boot XeLL manually.</li>
+<li>If the keyvault export does not include a CPU key, XeCLI aborts rather than packaging an incomplete set.</li>
+<li>If NAND verification never produces matching dumps, XeCLI stops with a hard failure and tells you not to flash the files.</li>
+</ul>
+<h2 id="recommended-sequence">Recommended Sequence</h2>
+<pre><code class="language-powershell">rgh xell info
+rgh xell kv export --output .\kv_backup.bin
+rgh nand dump --output .\nand_backup.bin
+</code></pre>
+<p>This gives you an inspected XeLL session, a packaged KV plus CPU key set, and a verified NAND backup set from the same XeLL workflow.</p>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+      <section class="wiki-panel wiki-support">
+        <h2>Support XeCLI</h2>
+        <p class="wiki-support__text">Support our work? Buy us a coffee!</p>
+        <p class="wiki-support__button">
+          <a href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">
+            <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" alt="Support XeCLI on Ko-fi" width="180">
+          </a>
+        </p>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

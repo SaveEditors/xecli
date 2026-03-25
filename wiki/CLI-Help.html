@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Release-Notes-v1.0.6.html" data-page="Release-Notes-v1.0.6.html">Release Notes v1.0.6</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="XeLL-and-NAND-Backups.html" data-page="XeLL-and-NAND-Backups.html">XeLL and NAND Backups</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link is-current" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -33,7 +33,7 @@
             <details class="wiki-nav__group" data-group="architecture-reference" >
               <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Reverse-Engineering.html" data-page="Reverse-Engineering.html">Reverse Engineering</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
             </details>
             
@@ -106,72 +106,80 @@ EXAMPLES:
     rgh fan set --speed 55 --channel both
     rgh led set --preset quadrant1
     rgh tray open
+    rgh nand dump
+    rgh nand dump --single
+    rgh nand dump --output nand_backup.bin
+    rgh xell boot
+    rgh xell info
+    rgh xell kv export
     rgh popup show --title XeCLI --body Connected to console --preset none
     rgh avatar games --search Black Ops
     rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 
 --current-user
+    rgh avatar browse --remote
     rgh homebrew install aurora --usb E:
     rgh homebrew install all --usb E: --auto-confirm
     rgh ogxbox install hacked --include-fixer --usb E:
-    rgh fatman devices
-    rgh fatx dump --image .\Hdd1.img --out .\recovery
     rgh ghidra decompile --running --out .\decomp
-    rgh ida decompile --running --out .\ida-decomp --max 25
+    rgh ida check
+    rgh ida decompile --running --out .\ida-decomp
 
 OPTIONS:
     -h, --help    Prints help information
 
 COMMANDS:
-    status          Show a compact console status snapshot
-    profiles        List profiles and signed-in users
-    title           Resolve the active title or look up a Title ID in the local database
-    target          Show or set the default target
-    ping            Ping the current console
-    reboot          Reboot the console (cold by default)
-    shutdown        Power off the console
-    launch          Launch a XEX with optional arguments
-    install         Launch the XeCLI installer
-    start           Discover consoles and set the default target
-    connect         Set or select the default target
-    scan            Scan the network for consoles
-    screenshot      Capture a live screenshot
-    xbdm            XBDM commands
-    modules         Shortcut for `rgh xbdm modules`
-    module          Alias of `rgh modules` and `rgh xbdm modules`
-    mem             Shortcut for `rgh xbdm mem`
-    xex             Shortcut for `rgh xbdm xex`
-    fs              Shortcut for `rgh xbdm fs`
-    threads         Shortcut for `rgh xbdm threads`
-    debug           Shortcut for `rgh xbdm debug`
-    jrpc2           JRPC2 (XDRPC-style) commands
-    notify          Send an on-screen notification with a raw icon id, built-in
-                    icon name, or preset alias
-    notify-icons    Browse the built-in XNotify icon catalog and manage preset
-                    aliases
-    smc             System Management Controller helpers
-    fan             Fan speed helpers
-    led             Ring-of-light LED helpers
-    signin          Signed-in user helpers
-    tray            Disc tray helpers
-    popup           Trainer-style console popup helpers
-    spoof           Private title-aware spoof helpers
-    ftp             FTP commands (alternate access)
-    save            Profile and save-data helpers over FTP
-    content         Installed content management over FTP
-    homebrew        Download public homebrew packages to USB, a folder, or the console
-    ogxbox          Original Xbox compatibility pack installer for HddX:\Compatibility
-    fatman          FATX manager for local disks and images
-    fatx            Alias of `rgh fatman`
-    avatar          Avatar item library and install helpers
-    plugin          DashLaunch plugin management
-    god             ISO to Games on Demand conversion
-    ghidra          Ghidra headless helpers (Free, external install required)
-    ida             IDA Pro headless helpers (IDA Pro 9.1.250226 required, external install required)
+    status          Show a compact console status snapshot                      
+    profiles        List profiles and signed-in users                           
+    title           Resolve the active title or look up a Title ID              
+    target          Show or set the default target                              
+    ping            Ping the current console                                    
+    reboot          Reboot the console (cold by default)                        
+    shutdown        Power off the console                                       
+    launch          Launch a XEX with optional arguments                        
+    install         Launch the XeCLI installer                                  
+    start           Discover consoles and set the default target                
+    connect         Set or select the default target                            
+    scan            Scan the network for consoles                               
+    screenshot      Capture a live screenshot                                   
+    homebrew        Download public homebrew packages to USB, a folder, or a    
+                    detected console drive                                      
+    ogxbox          Original Xbox compatibility pack installer for              
+                    HddX:\Compatibility                                         
+    xbdm            XBDM commands                                               
+    modules         Shortcut for `rgh xbdm modules`                             
+    module          Alias of `rgh modules` and `rgh xbdm modules`               
+    mem             Shortcut for `rgh xbdm mem`                                 
+    xex             Shortcut for `rgh xbdm xex`                                 
+    fs              Shortcut for `rgh xbdm fs`                                  
+    threads         Shortcut for `rgh xbdm threads`                             
+    debug           Shortcut for `rgh xbdm debug`                               
+    jrpc2           JRPC2 (XDRPC-style) commands                                
+    notify          Send an on-screen notification                              
+    notify-icons    Browse XNotify icons and manage preset aliases              
+    smc             System Management Controller helpers                        
+    fan             Fan speed helpers                                           
+    led             Ring-of-light LED helpers                                   
+    signin          Signed-in user helpers                                      
+    tray            Disc tray helpers                                           
+    xell            XeLL Reloaded helpers with guided auto-launch when needed   
+    nand            XeLL-backed NAND dumping and verification                   
+    popup           Trainer-style console popup helpers                         
+    spoof           Private title-aware spoof helpers. BO2 supports local GT,   
+                    local XUID, and remote spoofing                             
+    ftp             FTP commands (alternate access)                             
+    save            Profile and save-data helpers over FTP                      
+    content         Installed content management over FTP                       
+    avatar          Avatar item library and install helpers                     
+    plugin          DashLaunch plugin management                                
+    god             ISO to Games on Demand conversion                           
+    ghidra          Ghidra headless helpers                                     
+    ida             IDA headless helpers                                        
 </code></pre>
 <p>Avatar browsing in the shipped build now has both a terminal path and a Windows picker. Use <code>rgh avatar choose</code> for terminal selection, <code>rgh avatar browse</code> for the Windows picker, and <code>rgh avatar install</code> for direct one-item or full-title installs. Add <code>--remote</code> to use the hosted <code>Avatar-Item-Collection</code> repo with local caching and progress bars.</p>
 <p>Original Xbox compatibility is intentionally separate from normal homebrew installs. Use <code>rgh ogxbox install hacked|hud|retail</code> for the three public XeFu sets, and add <code>--include-fixer</code> when you also want the HDD Compatibility Partition Fixer staged.</p>
+<p><code>rgh xell ...</code> and <code>rgh nand ...</code> are native XeCLI branches. They prompt before the first automatic dashboard-to-XeLL transition, attach to XeLL's HTTP service once it comes up, and keep all backup operations read-only.</p>
 <h2 id="fatman">Fatman</h2>
-<p>Fatman is XeCLI's FATX manager for local Xbox 360 disks and images. The current implementation supports image recovery, partition dumping, inspection, search, export, and image-backed FATX mutations.</p>
+<p>Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.</p>
 <p>Current command surface:</p>
 <pre><code class="language-text">rgh fatman devices
 rgh fatman partitions
@@ -181,10 +189,6 @@ rgh fatman list
 rgh fatman find
 rgh fatman cat
 rgh fatman get
-rgh fatman mkdir
-rgh fatman put
-rgh fatman mv
-rgh fatman rm
 rgh fatman extract
 rgh fatman dump
 </code></pre>
@@ -210,19 +214,15 @@ rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --
 <li>print small files in the terminal</li>
 <li>export selected files or directory trees to the host</li>
 <li>recover data from <code>.img</code> and <code>.bin</code> sources</li>
-<li>create FATX directories in an image</li>
-<li>write host files into a FATX image</li>
-<li>rename or move FATX entries in an image</li>
-<li>remove FATX files or directories in an image</li>
 </ul>
 <p>Validation note:</p>
 <ul>
 <li>the runtime has been verified against a synthetic FATX fixture image</li>
 <li>manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real <code>XTAF</code> offsets and opened the compatibility volume by bounded offset</li>
-<li>image-backed <code>mkdir</code>, <code>put</code>, <code>mv</code>, <code>rm</code>, <code>list</code>, and <code>cat</code> were also validated against a synthetic FATX image in local testing</li>
 </ul>
-<p>What it does not do yet:</p>
+<p>What it does not do in the first cut:</p>
 <ul>
+<li>write files back to FATX volumes</li>
 <li>format or repartition disks</li>
 <li>mount a virtual filesystem</li>
 <li>repair damaged volumes</li>
@@ -1372,6 +1372,145 @@ COMMANDS:
     analyze           Import a XEX into an IDA database headlessly
     decompile         Decompile a XEX or IDA database to C
     verify            Verify IDA decompiler output for obvious failures
+</code></pre>
+<h3 id="rgh-xell-help"><code>rgh xell help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+XeLL Reloaded helpers with guided auto-launch when needed
+
+USAGE:
+    rgh xell [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh xell boot
+    rgh xell info
+    rgh xell kv export
+    rgh xell kv export --raw
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    boot    Launch XeLL Reloaded, or confirm that XeLL is already running
+    info    Inspect the available XeLL HTTP services, endpoints, and detected
+            CPU key
+    kv      XeLL keyvault export helpers
+</code></pre>
+<h3 id="rgh-xell-kv-help"><code>rgh xell kv help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+XeLL keyvault export helpers
+
+USAGE:
+    rgh xell kv [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh xell kv export
+    rgh xell kv export --output kv_backup.bin
+    rgh xell kv export --raw
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    export    Export the keyvault, CPU key text, and a packaged verified backup
+              set
+</code></pre>
+<h3 id="rgh-nand-help"><code>rgh nand help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+XeLL-backed NAND dumping and verification
+
+USAGE:
+    rgh nand [OPTIONS] &lt;COMMAND&gt;
+
+EXAMPLES:
+    rgh nand dump
+    rgh nand dump --single
+    rgh nand dump --output nand_backup.bin
+    rgh nand dump --force-xell
+
+OPTIONS:
+    -h, --help    Prints help information
+
+COMMANDS:
+    dump    Boot XeLL Reloaded, download the flash dump, verify repeated dumps,
+            and package a safe backup
+</code></pre>
+<h3 id="rgh-xell-boot-help"><code>rgh xell boot help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Launch XeLL Reloaded, or confirm that XeLL is already running
+
+USAGE:
+    rgh xell boot [OPTIONS]
+
+OPTIONS:
+    -h, --help            Prints help information
+        --ip &lt;IP&gt;         Console IP address. If omitted, uses the last
+                          connected console
+        --port &lt;PORT&gt;     TCP port (default: 730)
+        --timeout &lt;MS&gt;    Socket timeout in milliseconds (default: 5000)
+        --json            Emit JSON output
+        --force-xell      Force the direct XeLL reboot path instead of the
+                          XellLaunch shortcut when available
+</code></pre>
+<h3 id="rgh-xell-info-help"><code>rgh xell info help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Inspect the available XeLL HTTP services, endpoints, and detected CPU key
+
+USAGE:
+    rgh xell info [OPTIONS]
+
+OPTIONS:
+    -h, --help            Prints help information
+        --ip &lt;IP&gt;         Console IP address. If omitted, uses the last
+                          connected console
+        --port &lt;PORT&gt;     TCP port (default: 730)
+        --timeout &lt;MS&gt;    Socket timeout in milliseconds (default: 5000)
+        --json            Emit JSON output
+        --force-xell      Force the direct XeLL reboot path instead of the
+                          XellLaunch shortcut when available
+</code></pre>
+<h3 id="rgh-xell-kv-export-help"><code>rgh xell kv export help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Export the keyvault, CPU key text, and a packaged verified backup set
+
+USAGE:
+    rgh xell kv export [OPTIONS]
+
+OPTIONS:
+    -h, --help             Prints help information
+        --ip &lt;IP&gt;          Console IP address. If omitted, uses the last
+                           connected console
+        --port &lt;PORT&gt;      TCP port (default: 730)
+        --timeout &lt;MS&gt;     Socket timeout in milliseconds (default: 5000)
+        --json             Emit JSON output
+        --force-xell       Force the direct XeLL reboot path instead of the
+                           XellLaunch shortcut when available
+        --output &lt;FILE&gt;    Output keyvault filename. Defaults to
+                           kv_yyyyMMdd_HHmmss.bin
+        --raw              Export the raw keyvault block instead of the
+                           decrypted KV
+</code></pre>
+<h3 id="rgh-nand-dump-help"><code>rgh nand dump help</code></h3>
+<pre><code class="language-text">DESCRIPTION:
+Boot XeLL Reloaded, download the flash dump, verify repeated dumps, and package
+a safe backup
+
+USAGE:
+    rgh nand dump [OPTIONS]
+
+OPTIONS:
+    -h, --help             Prints help information
+        --ip &lt;IP&gt;          Console IP address. If omitted, uses the last
+                           connected console
+        --port &lt;PORT&gt;      TCP port (default: 730)
+        --timeout &lt;MS&gt;     Socket timeout in milliseconds (default: 5000)
+        --json             Emit JSON output
+        --force-xell       Force the direct XeLL reboot path instead of the
+                           XellLaunch shortcut when available
+        --single           Take one dump only and skip byte-for-byte
+                           verification
+        --output &lt;FILE&gt;    Output NAND filename. Defaults to
+                           nand_backup_yyyyMMdd_HHmmss.bin
+        --no-verify        Skip the second-dump verification loop
 </code></pre>
 <h2 id="where-the-full-examples-live">Where the Full Examples Live</h2>
 <p>Use this page for the real help screens. Use <a href="Commands.html">Commands.md</a> for task-oriented examples and command-by-command usage patterns.</p>

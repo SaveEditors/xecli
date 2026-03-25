@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" >
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Release-Notes-v1.0.6.html" data-page="Release-Notes-v1.0.6.html">Release Notes v1.0.6</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="XeLL-and-NAND-Backups.html" data-page="XeLL-and-NAND-Backups.html">XeLL and NAND Backups</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -33,7 +33,7 @@
             <details class="wiki-nav__group" data-group="architecture-reference" >
               <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Reverse-Engineering.html" data-page="Reverse-Engineering.html">Reverse Engineering</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
             </details>
             
@@ -82,7 +82,6 @@
 <pre><code class="language-powershell">.\rgh.exe install
 </code></pre>
 <p>Run that from the extracted release folder that contains <code>rgh.exe</code>.</p>
-<p>If you use <code>rgh install --source ...</code>, point it at the extracted published release or another self-contained publish output. XeCLI rejects framework-dependent build output such as <code>src\Xbox360.Remote.Cli\bin\Release\...</code>.</p>
 <p>The installer can choose the install scope, ask for the install directory, register <code>rgh</code> for new terminals, and then offer to connect to a detected console.</p>
 <p>After installation, open a new terminal and use:</p>
 <pre><code class="language-powershell">rgh --help
@@ -90,9 +89,6 @@
 <h2 id="does-the-installer-add-rgh-to-path">Does the installer add <code>rgh</code> to PATH</h2>
 <p>It can.</p>
 <p>During install, XeCLI asks whether you want <code>rgh</code> available in new terminals. You can accept or skip that step.</p>
-<h2 id="why-did-xecli-ask-if-i-wanted-to-run-the-installer">Why did XeCLI ask if I wanted to run the installer</h2>
-<p>The first-run setup prompt is only intended for a bare <code>rgh</code> launch when XeCLI has not finished setup yet.</p>
-<p>Normal commands should not trigger it. If you see it before a real command, update to the current build and rerun the command.</p>
 <h2 id="can-xecli-stage-dashboards-to-usb-or-install-them-directly-to-the-console">Can XeCLI stage dashboards to USB or install them directly to the console</h2>
 <p>Yes.</p>
 <p>Use the dedicated <code>homebrew</code> branch:</p>
@@ -159,9 +155,6 @@ rgh notify --message &quot;Transfer complete&quot; --icon success
 <pre><code class="language-powershell">rgh signin state
 </code></pre>
 <p>That command isolates the active session state, gamertag, XUID, and slot without forcing you to scan the full <code>status</code> output.</p>
-<h2 id="why-does-threads-list-show-image-and-address-columns-instead-of-thread-names">Why does <code>threads list</code> show image and address columns instead of thread names</h2>
-<p>Because many retail, JTAG, and plugin-backed XBDM targets do not expose usable thread-name pointers.</p>
-<p>XeCLI now resolves the thread start routine address, maps it back to a loaded image when possible, and shows <code>Image</code>, <code>Start Addr.</code>, and <code>End Addr.</code> in the thread table. <code>End Addr.</code> is the containing image end boundary, not a reconstructed function end.</p>
 <h2 id="can-xecli-control-the-ring-light">Can XeCLI control the ring light</h2>
 <p>Yes.</p>
 <p>Examples:</p>
@@ -179,6 +172,9 @@ rgh fan show
 <p>Read <code>Hardware and System Controls</code> for the operational details.</p>
 <h2 id="why-does-status-quick-show-skipped-fields">Why does <code>status --quick</code> show skipped fields</h2>
 <p>Because those fields were intentionally skipped. The current release distinguishes skipped from unknown so the operator can tell the difference between a deliberate fast path and a failed probe.</p>
+<h2 id="why-does-threads-list-show-image-and-address-columns-instead-of-thread-names">Why does <code>threads list</code> show image and address columns instead of thread names</h2>
+<p>Because many retail, JTAG, and plugin-backed XBDM targets do not expose usable thread-name pointers.</p>
+<p>XeCLI now resolves the thread start routine address, maps it back to a loaded image when possible, and shows <code>Image</code>, <code>Start Addr.</code>, and <code>End Addr.</code> in the thread table. <code>End Addr.</code> is the containing image end boundary, not a reconstructed function end.</p>
 <h2 id="can-module-load-require-a-reboot">Can module load require a reboot</h2>
 <p>Yes. Some live module loads do not complete as a clean hot-load on every console or plugin stack. Use <code>--reboot-expected</code> and verify with <code>rgh modules pending</code>.</p>
 <h2 id="is-module-unload-safe">Is module unload safe</h2>

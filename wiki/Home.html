@@ -25,7 +25,7 @@
             <details class="wiki-nav__group" data-group="getting-started" open>
               <summary>Getting Started</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+                <a class="wiki-nav__link is-current" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Release-Notes-v1.0.6.html" data-page="Release-Notes-v1.0.6.html">Release Notes v1.0.6</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="XeLL-and-NAND-Backups.html" data-page="XeLL-and-NAND-Backups.html">XeLL and NAND Backups</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
               </div>
             </details>
             
@@ -33,7 +33,7 @@
             <details class="wiki-nav__group" data-group="architecture-reference" >
               <summary>Technical Reference</summary>
               <div class="wiki-nav__items">
-                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Reverse-Engineering.html" data-page="Reverse-Engineering.html">Reverse Engineering</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
               </div>
             </details>
             
@@ -68,7 +68,7 @@
       <section class="wiki-content-card">
         <article id="wiki-content" class="markdown-body">
           <h1 id="xecli-wiki">XeCLI Wiki</h1>
-<p>XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, Fatman, XeLL inspection utilities, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the <code>rgh</code> CLI, bundled metadata, and release workflows.</p>
+<p>XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, Fatman, XeLL-backed backups, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the <code>rgh</code> CLI, bundled metadata, and release workflows.</p>
 <p>The local source tree is the canonical behavior model for these pages. If a feature is documented here, it should match the shipped release and the current repo state unless a page says otherwise.</p>
 <p>The repository and product name are <code>XeCLI</code>. The installed terminal command is <code>rgh</code>.</p>
 <p>Avatar workflows in the shipped release now support both:</p>
@@ -77,12 +77,13 @@
 <li><code>rgh avatar browse</code> for a Windows picker with search, filters, multi-select, and install</li>
 </ul>
 <p><code>rgh avatar install</code> remains the direct path for explicit one-item or full-title installs. <code>--remote</code> switches the same workflow to the hosted <code>Avatar-Item-Collection</code> repository with local caching.</p>
-<p>Native XeLL workflows are also built into the shipped CLI now. <code>rgh xell ...</code> handles guided XeLL launch, XeLL HTTP inspection, and keyvault export without depending on an external helper workflow.</p>
+<p>Native XeLL workflows are also built into the shipped CLI now. <code>rgh xell ...</code> and <code>rgh nand dump</code> handle guided XeLL launch, keyvault export, and verified read-only NAND backup without depending on an external flasher workflow.</p>
+<p>v1.0.6 expands that into a one-command PC workflow for automated NAND dumping, with the release notes documenting the packaging and safety model in more detail.</p>
 <p>Local content workflows are built in now as well. <code>rgh con</code>, <code>rgh profile</code>, and <code>rgh xdbf</code> cover pulled CON/profile/GPD files directly, including rehash/resign, raw <code>Account</code> or GPD extraction, achievement and setting edits, and avatar color edits inside profile packages.</p>
 <h2 id="latest-features">Latest Features</h2>
 <p>The current features worth surfacing first are:</p>
 <ul>
-<li><a href="Releases.html">Releases</a> for the current public release notes without turning the README into a long changelog.</li>
+<li><a href="XeLL-and-NAND-Backups.html">XeLL and NAND Backups</a> for guided XeLL launch, keyvault export, and verified NAND backup.</li>
 <li><a href="FTP-and-File-Transfer.html">FTP and File Transfer</a> for saved FTP targets and the full <code>rgh ftp ...</code> workflow.</li>
 <li><a href="Avatar-Item-Collection.html">Avatar Item Collection</a> for local or hosted avatar downloads, browsing, and install planning.</li>
 <li><a href="Integrations.html">Integrations</a> for terminal-agent, script-driven, and companion-tool workflows.</li>
@@ -105,12 +106,16 @@
 <td>Current standout workflows to surface in the README, sidebar, and docs landing pages</td>
 </tr>
 <tr>
-<td><a href="Releases.html">Releases</a></td>
-<td>Current public release notes and links to the latest GitHub releases</td>
+<td><a href="Release-Notes-v1.0.6.html">v1.0.6 Release Notes</a></td>
+<td>Automated NAND dumping, managed staging, verification behavior, and the optional Xell-NoN companion package</td>
 </tr>
 <tr>
 <td><a href="Beginner-Guide.html">Beginner Guide</a></td>
 <td>Safe first-run workflow: install, discovery, connect, status, and basic operations</td>
+</tr>
+<tr>
+<td><a href="XeLL-and-NAND-Backups.html">XeLL and NAND Backups</a></td>
+<td>Guided XeLL launch, HTTP endpoint inspection, keyvault export, and verified read-only NAND backup</td>
 </tr>
 <tr>
 <td><a href="FTP-and-File-Transfer.html">FTP and File Transfer</a></td>
@@ -217,6 +222,7 @@
 <ol>
 <li><a href="Beginner-Guide.html">Beginner Guide</a></li>
 <li><a href="Latest-Features.html">Latest Features</a></li>
+<li><a href="XeLL-and-NAND-Backups.html">XeLL and NAND Backups</a></li>
 <li><a href="Commands.html">Commands Reference</a></li>
 <li><a href="Hardware-and-System.html">Hardware and System Controls</a></li>
 <li><a href="Remote-Spoofing.html">Remote Spoofing</a></li>
@@ -248,7 +254,8 @@
 <li>Status, title resolution, profile visibility, and pulled-profile editing</li>
 <li>Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing</li>
 <li>Launch, reboot, and console notification workflows</li>
-<li>Guided XeLL launch, XeLL HTTP endpoint inspection, and keyvault export</li>
+<li>Guided XeLL launch, XeLL HTTP endpoint inspection, keyvault export, and verified read-only NAND backup</li>
+<li>v1.0.6 automated NAND dumping from the PC, including managed helper/linker staging and automatic reboot on verified success</li>
 <li>Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 documented as a title-local spoof flow rather than a signed-in account change</li>
 <li>Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs</li>
 </ul>
@@ -267,7 +274,7 @@
 <li>Fatman device discovery, partition inspection, directory browsing, read-only search, and file export</li>
 <li>Save extraction and injection</li>
 <li>DashLaunch plugin slot management</li>
-<li>XeLL-backed keyvault export, CPU key capture, startup-log capture, and packaged SHA-256 manifests</li>
+<li>XeLL-backed read-only NAND backup, keyvault export, CPU key capture, startup-log capture, and packaged SHA-256 manifests</li>
 <li>USB/folder staging or direct console installs with <code>rgh homebrew install aurora|dashlaunch|xexmenu|fsd|xm360|timefixer|simple360|xelllaunch|all</code></li>
 <li>Original Xbox compatibility staging or direct <code>HddX:\Compatibility</code> installs with <code>rgh ogxbox install hacked|hud|retail</code>, plus optional HDD Compatibility Partition Fixer staging</li>
 <li>Avatar Item Collection cataloging, remote browsing, search, dry-run planning, progress-driven installs, and install execution</li>
@@ -329,9 +336,9 @@ rgh fatman cat --image .\hdd.img --partition Content --path /launch.ini
 rgh ping
 rgh status
 rgh title
-rgh xell boot
 rgh xell info
 rgh xell kv export
+rgh nand dump
 rgh con info .\E00012AA8D7879B4.con
 rgh profile info .\E00012AA8D7879B4.con
 rgh profile gpd list .\E00012AA8D7879B4.con
@@ -350,7 +357,6 @@ rgh screenshot --out .\screen.bmp
 <ul>
 <li><a href="https://github.com/SaveEditors/xecli">Repository</a></li>
 <li><a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a></li>
-<li><a href="Releases.html">Release Notes</a></li>
 <li><a href="https://saveeditors.github.io/xecli/">Docs Landing Page</a></li>
 <li><a href="https://saveeditors.github.io/xecli/wiki/Home.html">Published Wiki Home</a></li>
 </ul>

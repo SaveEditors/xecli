@@ -19,7 +19,7 @@ Good agent tasks:
 - connect to the saved console target and verify live state
 - capture screenshots or pull files for local analysis
 - run repeatable FTP-backed maintenance steps
-- dump the running XEX and feed it into a Ghidra workflow
+- dump the running XEX and feed it into a Ghidra or IDA workflow
 - collect sign-in, title, module, or content snapshots for another tool
 
 Recommended pattern:
@@ -45,7 +45,7 @@ Good examples:
 - overlays that need sign-in/session state
 - operator panels that need LED or notification actions
 - save tools that need extraction and injection
-- reverse-engineering helpers that need XEX pulls or Ghidra automation
+- reverse-engineering helpers that need XEX pulls or Ghidra/IDA automation
 
 Typical calls:
 
@@ -73,6 +73,8 @@ Common commands with useful JSON output:
 - `content list`
 - `signin state`
 - `ghidra verify`
+- `ida check`
+- `ida verify`
 
 Example:
 
@@ -153,8 +155,12 @@ This works well when your application wants the files that XeCLI can pull rather
 
 This is also a good fit when you want XeCLI’s live progress handling and clear error messages without rewriting FTP/XBDM transport code yourself.
 
-## Ghidra Integration Pattern
-If your tool needs decompile output but you do not want to own a Ghidra automation layer:
+## Ghidra and IDA Integration Patterns
+If your tool needs decompile output but you do not want to own the reverse-engineering automation layer yourself, XeCLI can drive either supported backend.
+
+### Ghidra path
+
+If you want XeCLI to handle Ghidra import, decompile, and verification:
 
 ```powershell
 rgh ghidra decompile --in .\title.xex --out .\decomp
@@ -162,6 +168,24 @@ rgh ghidra verify --dir .\decomp --json
 ```
 
 This keeps import, decompile, and verification logic in one place.
+
+### IDA path
+
+If you want XeCLI to handle the IDA import/decompile path instead:
+
+```powershell
+rgh ida analyze --in .\title.xex --out-db .\title.i64 --overwrite
+rgh ida decompile --in .\title.i64 --out .\ida-decomp --backend idalib --max 50
+rgh ida verify --dir .\ida-decomp --json
+```
+
+For a one-shot XEX-driven IDA path, use:
+
+```powershell
+rgh xex ida-decompile --in .\title.xex --out .\ida-decomp --out-db .\title.i64 --keep-db
+```
+
+Use the Ghidra path when you want the `(Free)` external backend or a looser environment requirement. Use the IDA path when you want the pinned `IDA Pro 9.1.250226` plus `idaxex 0.42b` workflow documented by XeCLI.
 
 ## Notification Integration Pattern
 If your app needs visible console-side feedback, use XeCLI as the notification layer rather than hardcoding icon IDs in multiple places.
@@ -196,7 +220,7 @@ If you build another tool around XeCLI, do not hardcode machine-specific paths. 
 
 If you ship XeCLI beside another tool, prefer resolving:
 
-- executable folder for `ConsoleDependencies/`, `Assets/`, and `ghidra_scripts/`
+- executable folder for `ConsoleDependencies/`, `Assets/`, `ghidra_scripts/`, and `ida_scripts/`
 - per-user config for runtime overrides
 - `titleids.local.csv` for user-specific metadata extensions
 
@@ -205,7 +229,7 @@ Use XeCLI directly when:
 
 - you want stable command names
 - you need live XBDM/JRPC2/FTP coordination
-- you want the shipped metadata and Ghidra flow
+- you want the shipped metadata and Ghidra/IDA flows
 - you need a tool that can still be used manually in terminal
 
 Reimplement only if:
@@ -226,5 +250,5 @@ Reimplement only if:
 | File pull/push | `rgh ftp ...` or `rgh fs ...` |
 | Claude/Codex automation | `rgh status --json`, `rgh title --json`, `rgh ftp ...`, `rgh screenshot` |
 | Running-XEX acquisition | `rgh xex dump` |
-| Decompile pipeline | `rgh ghidra decompile` + `rgh ghidra verify --json` |
+| Decompile pipeline | `rgh ghidra decompile` + `rgh ghidra verify --json` or `rgh ida decompile` + `rgh ida verify --json` |
 | Save backup/import | `rgh save extract` / `rgh save inject` |

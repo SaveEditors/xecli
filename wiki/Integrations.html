@@ -84,7 +84,7 @@
 <li>connect to the saved console target and verify live state</li>
 <li>capture screenshots or pull files for local analysis</li>
 <li>run repeatable FTP-backed maintenance steps</li>
-<li>dump the running XEX and feed it into a Ghidra workflow</li>
+<li>dump the running XEX and feed it into a Ghidra or IDA workflow</li>
 <li>collect sign-in, title, module, or content snapshots for another tool</li>
 </ul>
 <p>Recommended pattern:</p>
@@ -105,7 +105,7 @@ rgh ftp list --path /Hdd1/
 <li>overlays that need sign-in/session state</li>
 <li>operator panels that need LED or notification actions</li>
 <li>save tools that need extraction and injection</li>
-<li>reverse-engineering helpers that need XEX pulls or Ghidra automation</li>
+<li>reverse-engineering helpers that need XEX pulls or Ghidra/IDA automation</li>
 </ul>
 <p>Typical calls:</p>
 <pre><code class="language-powershell">rgh status --json
@@ -129,6 +129,8 @@ rgh content list --json
 <li><code>content list</code></li>
 <li><code>signin state</code></li>
 <li><code>ghidra verify</code></li>
+<li><code>ida check</code></li>
+<li><code>ida verify</code></li>
 </ul>
 <p>Example:</p>
 <pre><code class="language-powershell">rgh status --json &gt; status.json
@@ -193,12 +195,24 @@ rgh save extract --titleid 415608C3 --out .\saves
 </code></pre>
 <p>This works well when your application wants the files that XeCLI can pull rather than embedding transport logic itself.</p>
 <p>This is also a good fit when you want XeCLI’s live progress handling and clear error messages without rewriting FTP/XBDM transport code yourself.</p>
-<h2 id="ghidra-integration-pattern">Ghidra Integration Pattern</h2>
-<p>If your tool needs decompile output but you do not want to own a Ghidra automation layer:</p>
+<h2 id="ghidra-and-ida-integration-patterns">Ghidra and IDA Integration Patterns</h2>
+<p>If your tool needs decompile output but you do not want to own the reverse-engineering automation layer yourself, XeCLI can drive either supported backend.</p>
+<h3 id="ghidra-path">Ghidra path</h3>
+<p>If you want XeCLI to handle Ghidra import, decompile, and verification:</p>
 <pre><code class="language-powershell">rgh ghidra decompile --in .\title.xex --out .\decomp
 rgh ghidra verify --dir .\decomp --json
 </code></pre>
 <p>This keeps import, decompile, and verification logic in one place.</p>
+<h3 id="ida-path">IDA path</h3>
+<p>If you want XeCLI to handle the IDA import/decompile path instead:</p>
+<pre><code class="language-powershell">rgh ida analyze --in .\title.xex --out-db .\title.i64 --overwrite
+rgh ida decompile --in .\title.i64 --out .\ida-decomp --backend idalib --max 50
+rgh ida verify --dir .\ida-decomp --json
+</code></pre>
+<p>For a one-shot XEX-driven IDA path, use:</p>
+<pre><code class="language-powershell">rgh xex ida-decompile --in .\title.xex --out .\ida-decomp --out-db .\title.i64 --keep-db
+</code></pre>
+<p>Use the Ghidra path when you want the <code>(Free)</code> external backend or a looser environment requirement. Use the IDA path when you want the pinned <code>IDA Pro 9.1.250226</code> plus <code>idaxex 0.42b</code> workflow documented by XeCLI.</p>
 <h2 id="notification-integration-pattern">Notification Integration Pattern</h2>
 <p>If your app needs visible console-side feedback, use XeCLI as the notification layer rather than hardcoding icon IDs in multiple places.</p>
 <p>Examples:</p>
@@ -226,7 +240,7 @@ rgh led set --preset quadrant1
 <p>If you build another tool around XeCLI, do not hardcode machine-specific paths. Resolve config and asset paths relative to the XeCLI executable or the documented per-user config locations.</p>
 <p>If you ship XeCLI beside another tool, prefer resolving:</p>
 <ul>
-<li>executable folder for <code>ConsoleDependencies/</code>, <code>Assets/</code>, and <code>ghidra_scripts/</code></li>
+<li>executable folder for <code>ConsoleDependencies/</code>, <code>Assets/</code>, <code>ghidra_scripts/</code>, and <code>ida_scripts/</code></li>
 <li>per-user config for runtime overrides</li>
 <li><code>titleids.local.csv</code> for user-specific metadata extensions</li>
 </ul>
@@ -235,7 +249,7 @@ rgh led set --preset quadrant1
 <ul>
 <li>you want stable command names</li>
 <li>you need live XBDM/JRPC2/FTP coordination</li>
-<li>you want the shipped metadata and Ghidra flow</li>
+<li>you want the shipped metadata and Ghidra/IDA flows</li>
 <li>you need a tool that can still be used manually in terminal</li>
 </ul>
 <p>Reimplement only if:</p>
@@ -287,7 +301,7 @@ rgh led set --preset quadrant1
 </tr>
 <tr>
 <td>Decompile pipeline</td>
-<td><code>rgh ghidra decompile</code> + <code>rgh ghidra verify --json</code></td>
+<td><code>rgh ghidra decompile</code> + <code>rgh ghidra verify --json</code> or <code>rgh ida decompile</code> + <code>rgh ida verify --json</code></td>
 </tr>
 <tr>
 <td>Save backup/import</td>

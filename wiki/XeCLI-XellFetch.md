@@ -1,12 +1,12 @@
-# XeCLI-XeLL
+# XeCLI-XellFetch
 
-This page documents the `XeCLI-XeLL` workflow layer: XeCLI's managed XeLL bootstrap, endpoint detection, keyvault export path, and verified read-only NAND dump flow.
+This page documents the `XeCLI-XellFetch` workflow layer: XeCLI's managed XeLL bootstrap, endpoint detection, keyvault export path, and verified read-only NAND dump flow.
 
-XeCLI v1.0.6 does not treat XeLL as a loose external handoff. It uses a defined PC-side workflow that can launch or re-attach to XeLL, inspect the active endpoint surface, export keys, drive repeated dump verification, and only reboot automatically after the safety checks pass.
+XeCLI does not treat XeLL as a loose external handoff. It uses a defined PC-side workflow that can launch or re-attach to XeLL, inspect the active endpoint surface, export keys, drive repeated dump verification, and only reboot automatically after the safety checks pass.
 
-## What XeCLI-XeLL Covers
+## What XeCLI-XellFetch Covers
 
-`XeCLI-XeLL` is the operator-facing name for the XeLL payload and workflow model used by:
+`XeCLI-XellFetch` is the operator-facing name for the XeLL payload and workflow model used by:
 
 - `rgh xell boot`
 - `rgh xell info`
@@ -20,7 +20,7 @@ That surface covers:
 - packaged keyvault export with CPU key capture
 - verified read-only NAND backup
 - managed reboot control after success
-- optional use of the standalone `XeCLI-XeLL` payload bundle outside the full desktop package
+- optional use of the standalone `XeCLI-XellFetch` payload bundle outside the full desktop package
 
 ## Command Surface
 
@@ -42,7 +42,7 @@ XeCLI does not assume the console is already in XeLL.
 - If the console is on the dashboard, XeCLI asks for confirmation before the first automatic transition into XeLL.
 - When available, XeCLI prefers the XellLaunch shortcut path. `--force-xell` skips that preference and forces the direct reboot path.
 - If the session is non-interactive, or if automatic launch is not available, XeCLI prints the manual eject-button fallback instead of rebooting without confirmation.
-- The standalone `XeCLI-XeLL` companion package can be used when you want the same custom XeLL-side bootstrap without the broader desktop bundle.
+- The standalone `XeCLI-XellFetch` companion package can be used when you want the same custom XeLL-side bootstrap without the broader desktop bundle.
 
 ## Payload and Staging Model
 
@@ -51,7 +51,7 @@ The managed workflow can stage and use the helper/linker assets needed by the au
 In practical terms, the release line now supports two operator models:
 
 - the full XeCLI desktop package, where `rgh nand dump` manages the XeLL-side handoff itself
-- the standalone `XeCLI-XeLL` package, where you want the payload stack available separately for the same XeCLI-managed XeLL tasks
+- the standalone `XeCLI-XellFetch` package, where you want the payload stack available separately for the same XeCLI-managed XeLL tasks
 
 The point of the payload layer is consistency. XeCLI and the active XeLL-side components report the same state transitions for dump start, verification, and completion instead of leaving that coordination to manual timing.
 
@@ -142,7 +142,7 @@ When the verified path completes, XeCLI prints `NAND verified — safe to flash`
 
 ## Safety Boundaries
 
-`XeCLI-XeLL` is intentionally a read-only workflow surface.
+`XeCLI-XellFetch` is intentionally a read-only workflow surface.
 
 It does not claim to be:
 
@@ -169,4 +169,4 @@ rgh xell kv export --output .\kv_backup.bin
 rgh nand dump --output .\nand_backup.bin
 ```
 
-This gives you an inspected XeLL session, a packaged KV plus CPU key set, and a verified NAND backup set through the same `XeCLI-XeLL` workflow.
+This gives you an inspected XeLL session, a packaged KV plus CPU key set, and a verified NAND backup set through the same `XeCLI-XellFetch` workflow.

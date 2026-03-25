@@ -18,8 +18,9 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 ## v1.0.6 Highlights
 
 - Added the automated PC-side NAND workflow with `rgh nand dump`
+- Added the verified PC-side keyvault workflow with `rgh xell kv export`
 - Added managed staging for the helper/linker assets used by the XeLL dump flow
-- Added the `Xell-NoN` companion package for the standalone payload/bootstrap path
+- Added the `XeCLI-XellFetch` companion package for the standalone payload/bootstrap path
 - Added verified-success reboot gating so the console only leaves XeLL after the PC confirms the dump is valid
 - Added same-session verification fallback for consoles that ignore XeLL reboot during the second pass
 
@@ -58,7 +59,7 @@ The IDA workflow is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`.
 
 ## Companion Package
 
-The standalone `Xell-NoN` companion bundle lives in [Xell-NoN](Xell-NoN) and is also published at [github.com/SaveEditors/Xell-NoN](https://github.com/SaveEditors/Xell-NoN). It packages the custom `xell.bin`, `XellLaunch`, and `QuickBoot` assets for operators who want the XeLL-side payload without the full XeCLI desktop workflow.
+The standalone `XeCLI-XellFetch` companion bundle lives in [XeCLI-XellFetch](XeCLI-XellFetch) and is also published at [github.com/SaveEditors/XeCLI-XellFetch](https://github.com/SaveEditors/XeCLI-XellFetch). It packages the custom `xell.bin`, `XellLaunch`, and `QuickBoot` assets for operators who want the XeLL-side payload with or without the full XeCLI desktop workflow.
 
 ## Release
 

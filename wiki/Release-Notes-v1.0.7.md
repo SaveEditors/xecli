@@ -32,4 +32,4 @@ gh-ext helper output, and the avatar browser UI use the same string catalog so t
 
 - [Latest Features](Latest-Features)
 - [Releases](Releases)
-- [XeCLI-XeLL](XeCLI-XeLL)
+- [XeCLI-XellFetch](XeCLI-XellFetch)

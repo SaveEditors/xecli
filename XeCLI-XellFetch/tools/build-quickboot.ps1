@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory = $true)][string]$ConfigFile,
     [Parameter(Mandatory = $true)][string]$OutputFile,
     [string]$DisplayName = "XeLL Launch",
-    [string]$Description = "XeLL shortcut created by Xell-NoN."
+    [string]$Description = "XeLL shortcut created by XeCLI-XellFetch."
 )
 
 $ErrorActionPreference = "Stop"
@@ -83,4 +83,3 @@ finally {
         $config.Close()
     }
 }
-

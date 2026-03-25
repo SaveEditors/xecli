@@ -433,7 +433,7 @@ Notes:
 - If the console is already in XeLL, the command reuses the active XeLL session.
 - If the console is on the dashboard, XeCLI asks before launching XeLL automatically.
 - If auto-launch is unavailable, XeCLI tells you to boot XeLL manually with eject and rerun the command.
-- The standalone `XeCLI-XeLL` companion package can be used as the minimal XeLL-side bootstrap when you want the automated NAND flow without the broader desktop bundle. See [XeCLI-XeLL](XeCLI-XeLL) for the payload model and workflow boundaries.
+- The standalone `XeCLI-XellFetch` companion package can be used as the minimal XeLL-side bootstrap when you want the automated NAND flow without the broader desktop bundle. See [XeCLI-XellFetch](XeCLI-XellFetch) for the payload model and workflow boundaries.
 
 Example output:
 

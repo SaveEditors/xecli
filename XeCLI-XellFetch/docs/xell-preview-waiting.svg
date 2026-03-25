@@ -2,7 +2,7 @@
 <rect width="1280" height="720" fill="#0d0d0d" />
 <rect x="0" y="0" width="1280" height="720" fill="none" stroke="#5c4e8a" stroke-width="2" />
 <text x="640" y="70" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="24" font-weight="700" xml:space="preserve">========================================</text>
-<text x="640" y="108" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="30" font-weight="700" xml:space="preserve">XeCLI XeLL</text>
+<text x="640" y="108" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="30" font-weight="700" xml:space="preserve">XeCLI | XellFetch</text>
 <text x="640" y="146" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="24" font-weight="700" xml:space="preserve">========================================</text>
 <text x="640" y="220" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="30" font-weight="700" xml:space="preserve"> __   __      ____ _     ___ </text>
 <text x="640" y="258" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="30" font-weight="700" xml:space="preserve"> \ \ / /__   / ___| |   |_ _|</text>
@@ -10,7 +10,7 @@
 <text x="640" y="334" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="30" font-weight="700" xml:space="preserve">   | |  __/ | |___| |___ | | </text>
 <text x="640" y="372" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="30" font-weight="700" xml:space="preserve">   |_|\___|  \____|_____|___|</text>
 <text x="640" y="450" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="34" font-weight="700" xml:space="preserve">Waiting for XeCLI connection</text>
-<text x="640" y="520" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="24" font-weight="400" xml:space="preserve">XeCLI on the PC will start the NAND dump automatically.</text>
+<text x="640" y="520" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="24" font-weight="400" xml:space="preserve">XeCLI on the PC will start the requested task automatically.</text>
 <text x="640" y="560" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="24" font-weight="400" xml:space="preserve">Do not power off or reboot the console.</text>
 <text x="640" y="600" text-anchor="middle" fill="#5c4e8a" font-family="Cascadia Mono, Consolas, monospace" font-size="24" font-weight="400" xml:space="preserve">Leave this screen open until XeCLI confirms completion.</text>
 <rect x="920" y="666" width="360" height="42" fill="#ffffff" rx="4" ry="4" />

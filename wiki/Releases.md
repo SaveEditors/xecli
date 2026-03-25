@@ -9,7 +9,7 @@ Patch notes on this page describe shipped product behavior, operator-facing fixe
 | Release | Focus | Links |
 | --- | --- | --- |
 | `v1.0.7` | Spanish localization, dark Inno Setup installer, Ko-fi support, and the canonical GitHub wiki migration | [Release notes](#v107-spanish-localization-inno-setup-and-wiki) |
-| `v1.0.6` | Automated NAND dumping, managed XeLL/XeCLI-XeLL staging, verified packaging, and safe reboot control | [Release notes](#v106-automated-nand-dumping-and-xecli-xell) |
+| `v1.0.6` | Automated NAND dumping, managed XeLL/XeCLI-XellFetch staging, verified packaging, and safe reboot control | [Release notes](#v106-automated-nand-dumping-and-xecli-xellfetch) |
 | `v1.0.5` | Local content workflows, thread metadata fallback, installer fixes, and release packaging | [Release notes](#v105-local-content-and-release-polish) |
 | `v1.0.4` | IDA debugger/decompiler support and the expanded Fatman/FATX workflow | [Release notes](#v104-ida-and-fatman-expansion) |
 | `v1.0.3` | Original Xbox compatibility staging and install workflows | [Release notes](#v103-original-xbox-compatibility-update) |
@@ -25,11 +25,11 @@ Published GitHub releases: [All releases](https://github.com/SaveEditors/xecli/r
 - Released a dark-themed Inno Setup installer with the XeCLI logo, brand art, Ko-fi support, icon replacement, and a verified install/uninstall/Path cycle as part of the full packaging script.
 - Migrated the documentation to the GitHub wiki under `wiki/*.md`, removing the legacy HTML wiki, the CSS/JS assets, and the HTML index so a single maintained surface now powers the public docs.
 
-## v1.0.6 Automated NAND Dumping and XeCLI-XeLL
+## v1.0.6 Automated NAND Dumping and XeCLI-XellFetch
 
 - Added `rgh nand dump` as a one-command PC workflow for managed XeLL launch, NAND download, verification, packaging, and verified-success reboot control.
 - Added managed helper/linker staging so the workflow can provision `XellLaunch`, `QuickBoot`, and the custom `xell.bin` payload without requiring the operator to gather them separately.
-- Added the standalone `XeCLI-XeLL` companion package so the XeLL payload stack can be used outside the full XeCLI desktop flow when needed.
+- Added the standalone `XeCLI-XellFetch` companion package so the XeLL payload stack can be used outside the full XeCLI desktop flow when needed.
 - Added explicit verification gating so auto-reboot only happens after XeCLI confirms the dump, manifest, and archive are valid.
 - Added safe same-session verification fallback when the console ignores XeLL reboot during the second-pass dump.
 - Added improved XeLL payload status sync so the console UI and the PC-side command flow report the same NAND dump and completion states.

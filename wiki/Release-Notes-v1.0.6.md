@@ -14,7 +14,7 @@ That means the operator does not need to break the flow into separate console-si
 
 The release package carries the helper/linker assets that the automated dump path expects, so the user does not have to gather them separately before starting the backup.
 
-If you prefer the standalone payload bundle, the `XeCLI-XeLL` companion package can be used as the stripped XeLL-side bootstrap for the same automated NAND flow and related XeCLI-managed XeLL tasks. Published repo: [github.com/SaveEditors/XeCLI-XeLL](https://github.com/SaveEditors/XeCLI-XeLL).
+If you prefer the standalone payload bundle, the `XeCLI-XellFetch` companion package can be used as the stripped XeLL-side bootstrap for the same automated NAND flow and related XeCLI-managed XeLL tasks. Published repo: [github.com/SaveEditors/XeCLI-XellFetch](https://github.com/SaveEditors/XeCLI-XellFetch).
 
 ## Verification and Reboot
 
@@ -36,7 +36,7 @@ The verification path remains read-only.
 
 ## Related Docs
 
-- [XeCLI-XeLL](XeCLI-XeLL)
+- [XeCLI-XellFetch](XeCLI-XellFetch)
 - [Commands Reference](Commands)
 - [Latest Features](Latest-Features)
 - [Release Archive](Releases)

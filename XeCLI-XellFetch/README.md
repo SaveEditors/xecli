@@ -1,6 +1,10 @@
-# XeCLI-XeLL
+[![Support XeCLI on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/saveeditors)
 
-XeCLI-XeLL is the standalone companion package for XeCLI's custom XeLL payload and launcher bundle.
+# XeCLI-XellFetch
+
+XeCLI-XellFetch is the standalone companion package for XeCLI's custom XeLL payload and launcher bundle.
+
+It is called `Fetch` because it fetches NAND and keyvault data over the network.
 
 It includes:
 
@@ -8,9 +12,10 @@ It includes:
 - the `XellLaunch` helper XEX used to chain-load that payload from a running dashboard
 - the `QuickBoot` content assets used to build a dashboard shortcut package
 
-XeCLI uses this payload as part of its automated XeLL workflows, including verified NAND dumping and verified keyvault export. If you want the full PC-side workflow, verification loop, packaging, and reboot handling, use the main XeCLI repo instead.
+XeCLI uses this payload as part of its automated XeLL workflows, including verified NAND dumping and verified keyvault export. You can also use this package on its own without XeCLI by launching the helper directly and pulling the exposed HTTP endpoints from your own tooling.
 
 Main XeCLI repo: [https://github.com/SaveEditors/xecli](https://github.com/SaveEditors/xecli)
+Standalone companion repo: [https://github.com/SaveEditors/XeCLI-XellFetch](https://github.com/SaveEditors/XeCLI-XellFetch)
 
 ## Layout
 
@@ -29,18 +34,22 @@ launch/
 tools/
   build-quickboot.ps1
 docs/
-  XeCLI_CUSTOMIZATION.md
+  XellFetch_CUSTOMIZATION.md
   xell-preview-waiting.svg
 SHA256SUMS.txt
 ```
 
 ## Why this payload
 
-This package carries the same custom waiting-screen payload XeCLI v1.0.6 now ships by default.
+This package carries the same custom waiting-screen payload XeCLI ships for its managed XeLL workflows.
 
-- `Assets\XellLaunch\default.xex` is the helper XeCLI stages on-console.
-- `Assets\QuickBoot\default.xex` and `Assets\QuickBoot\X360.dll` are the content assets XeCLI uses for dashboard shortcut generation.
-- `Assets\XellLaunch\xell.bin` and `payload\xell.bin` should match the same live-tested custom build hash.
+- It can be launched and queried without XeCLI.
+- It keeps the job-aware waiting, transfer, verification, success, and failure states used by the main workflow.
+- It ships the same helper and QuickBoot assets XeCLI uses for dashboard-side launch.
+
+- `launch\XellLaunch\default.xex` is the helper used to stage the payload from a running dashboard.
+- `launch\QuickBoot\default.xex` and `launch\QuickBoot\X360.dll` are the content assets used for dashboard shortcut generation.
+- `payload\xell.bin` should match the same live-tested custom build hash XeCLI ships in `Assets\XellLaunch\xell.bin`.
 
 ## Direct helper launch
 
@@ -62,7 +71,7 @@ Useful endpoints exposed by this payload family:
 - `/reboot` and `/REBOOT`: generic reboot
 - `/XECLI_DONE`, `/xecli_done`, `/XECLI_REBOOT`, `/xecli_reboot`: completion reboot paths used by XeCLI
 
-If the console gets a DHCP lease, browse to `http://<console-ip>/` and use the endpoints above directly.
+If the console gets a DHCP lease, browse to `http://<console-ip>/` and use the endpoints above directly from a browser, `curl`, PowerShell, or your own host tool.
 
 ## Optional QuickBoot shortcut
 
@@ -93,5 +102,5 @@ The script uses the same content metadata XeCLI uses for its QuickBoot shortcut 
 ## Notes
 
 - This package does not rebuild XeLL from source. It packages the already-built binaries present in this workspace.
-- `docs/XeCLI_CUSTOMIZATION.md` documents the intended UI/behavior of the custom payload.
+- `docs/XellFetch_CUSTOMIZATION.md` documents the intended UI/behavior of the custom payload.
 - `docs/xell-preview-waiting.svg` is a static preview of the waiting screen styling.

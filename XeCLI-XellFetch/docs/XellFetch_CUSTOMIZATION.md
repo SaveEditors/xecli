@@ -1,6 +1,6 @@
-# XeCLI-XeLL Custom Payload Notes
+# XeCLI-XellFetch Custom Payload Notes
 
-This tree carries the XeCLI-specific branding patch for the staged `xell.bin` payload.
+This tree carries the XeCLI-specific branding patch for the staged `xell.bin` payload used by XeCLI and the standalone XeCLI-XellFetch bundle.
 
 Current customization:
 

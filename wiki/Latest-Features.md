@@ -8,13 +8,13 @@ XeCLI v1.0.7 pairs the automated NAND workflow with full Spanish localization, t
 
 `rgh nand dump` still launches or re-attaches to XeLL, stages the helper and linker assets the backup path needs, performs the reference and verification reads, packages the result, and reboots automatically only after a verified success.
 
-If you want the stripped boot package instead of the full desktop bundle, the standalone `XeCLI-XeLL` companion package can serve as the minimal XeLL-side payload bundle for the same workflow.
+If you want the stripped boot package instead of the full desktop bundle, the standalone `XeCLI-XellFetch` companion package can serve as the minimal XeLL-side payload bundle for the same workflow.
 
-Read [XeCLI-XeLL](XeCLI-XeLL) for the payload model, workflow boundaries, safety notes, and verification behavior.
+Read [XeCLI-XellFetch](XeCLI-XellFetch) for the payload model, workflow boundaries, safety notes, and verification behavior.
 
 ## Current Workflow Pillars
 
-### XeCLI-XeLL Workflow
+### XeCLI-XellFetch Workflow
 
 XeCLI has a native XeLL workflow instead of treating NAND and key backup as an external handoff. `rgh xell ...` detects whether the console is on the dashboard or already in XeLL, asks before the first automatic launch into XeLL, and then works against the XeLL HTTP service directly.
 
@@ -31,7 +31,7 @@ The backup path is intentionally read-only. `rgh nand dump` takes a reference du
 
 XeCLI supports both the older `/rawflash` style and the current XeLL Reloaded endpoint set `/FLASH`, `/FUSE`, `/KV`, `/KVRAW`, `/KVRAW2`, `/LOG`, and `/REBOOT`.
 
-Read [XeCLI-XeLL](XeCLI-XeLL) for the full workflow, payload model, and safety boundaries.
+Read [XeCLI-XellFetch](XeCLI-XellFetch) for the full workflow, payload model, and safety boundaries.
 
 ### Local CON, Profile, and GPD Workflows
 

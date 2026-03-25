@@ -26,7 +26,7 @@ The current features worth surfacing first are:
 - [Releases](Releases) for the full patch-notes archive across all public versions.
 - [Latest Features](Latest-Features) for the current workflow highlights and release timeline.
 - [v1.0.7 Release Notes](Release-Notes-v1.0.7) for the installer, localization, and documentation release.
-- [XeCLI-XeLL](XeCLI-XeLL) for the payload model, guided XeLL launch, keyvault export, and verified NAND backup.
+- [XeCLI-XellFetch](XeCLI-XellFetch) for the payload model, guided XeLL launch, keyvault export, and verified NAND backup.
 - [FTP and File Transfer](FTP-and-File-Transfer) for saved FTP targets and the full `rgh ftp ...` workflow.
 - [Avatar Item Collection](Avatar-Item-Collection) for local or hosted avatar downloads, browsing, and install planning.
 - [Integrations](Integrations) for terminal-agent, script-driven, and companion-tool workflows.
@@ -42,7 +42,7 @@ The current features worth surfacing first are:
 | [Releases](Releases) | Canonical patch-notes archive for all public XeCLI releases |
 | [v1.0.7 Release Notes](Release-Notes-v1.0.7) | Spanish localization, the Inno Setup-based installer, Ko-fi support, and the GitHub wiki migration |
 | [Beginner Guide](Beginner-Guide) | Safe first-run workflow: install, discovery, connect, status, and basic operations |
-| [XeCLI-XeLL](XeCLI-XeLL) | Managed XeLL payload workflow, HTTP endpoint inspection, keyvault export, and verified read-only NAND backup |
+| [XeCLI-XellFetch](XeCLI-XellFetch) | Managed XeLL payload workflow, HTTP endpoint inspection, keyvault export, and verified read-only NAND backup |
 | [FTP and File Transfer](FTP-and-File-Transfer) | Saved FTP targets, browse/find/get/put workflows, and when to use FTP instead of `rgh fs` |
 | [Commands Reference](Commands) | Full command-by-command reference with examples |
 | [CLI Help Output](CLI-Help) | Exact built-in `rgh help` output and top-level branch help screens |
@@ -76,7 +76,7 @@ The current features worth surfacing first are:
 ### New user path
 1. [Beginner Guide](Beginner-Guide)
 2. [Latest Features](Latest-Features)
-3. [XeCLI-XeLL](XeCLI-XeLL)
+3. [XeCLI-XellFetch](XeCLI-XellFetch)
 4. [Commands Reference](Commands)
 5. [Hardware and System Controls](Hardware-and-System)
 6. [Remote Spoofing](Remote-Spoofing)

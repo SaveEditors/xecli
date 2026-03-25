@@ -7,7 +7,7 @@
 
 ## Getting Started
 - [Beginner Guide](Beginner-Guide)
-- [XeCLI-XeLL](XeCLI-XeLL)
+- [XeCLI-XellFetch](XeCLI-XellFetch)
 - [FTP and File Transfer](FTP-and-File-Transfer)
 - [Commands Reference](Commands)
 - [CLI Help Output](CLI-Help)

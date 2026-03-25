@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Avatar Item Collection | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Avatar-Item-Collection.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
+      <p class="wiki-sidebar__credit">Created by Pew7s</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link is-current" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="architecture-reference" >
+              <summary>Technical Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>Avatar Item Collection</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli">Repo</a>
+          <a href="https://github.com/SaveEditors/xecli/releases/latest">Releases</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="avatar-item-collection">Avatar Item Collection</h1>
+<p><code>Avatar-Item-Collection</code> is the avatar library name used by XeCLI for browsing, download, install planning, and console-side deployment.</p>
+<p>XeCLI includes two selection paths for this library:</p>
+<ul>
+<li><code>rgh avatar choose</code> for a terminal-based picker</li>
+<li><code>rgh avatar browse</code> for a Windows picker</li>
+</ul>
+<p>Both sit on top of the same manifest, cache, ownership patch, and install pipeline.</p>
+<p>This is the name shown throughout the CLI, the wiki, and the hosted library.</p>
+<h2 id="what-xecli-supports">What XeCLI Supports</h2>
+<p>XeCLI now exposes a finished avatar command surface against this collection in local or remote mode:</p>
+<ul>
+<li><code>rgh avatar library show</code></li>
+<li><code>rgh avatar library set</code></li>
+<li><code>rgh avatar games</code></li>
+<li><code>rgh avatar items</code></li>
+<li><code>rgh avatar choose</code></li>
+<li><code>rgh avatar browse</code></li>
+<li><code>rgh avatar install</code></li>
+<li><code>rgh avatar apply</code></li>
+</ul>
+<p>That surface can:</p>
+<ul>
+<li>resolve the active collection root</li>
+<li>fall back to the hosted GitHub collection when a local corpus is not configured</li>
+<li>build and cache a searchable item index</li>
+<li>resolve item names and title labels from package metadata before falling back to raw IDs</li>
+<li>list games with avatar content</li>
+<li>list items by title, text match, publisher, or derived tag</li>
+<li>offer a terminal picker for title-first or item-first selection</li>
+<li>offer a Windows picker for search, filtering, multi-select, and select-all workflows</li>
+<li>patch ownership for a target XUID</li>
+<li>install directly into the console content tree with progress-aware transfer output</li>
+<li>fall back to XBDM upload and verification when FTP is unavailable</li>
+<li>show progress bars and per-item status during multi-item installs</li>
+</ul>
+<h2 id="collection-layout">Collection Layout</h2>
+<p>The top-level folder should be named <code>Avatar-Item-Collection</code>.</p>
+<p>XeCLI supports two on-disk layouts inside each title folder.</p>
+<h3 id="standard-avatar-content-layout">Standard avatar-content layout</h3>
+<pre><code class="language-text">Avatar-Item-Collection/
+  415608C3/
+    00009000/
+      000000080DF3B242CAE65A52415608C3
+</code></pre>
+<p>This is the common Xbox 360 avatar-content structure.</p>
+<h3 id="irregular-title-root-payload-layout">Irregular title-root payload layout</h3>
+<pre><code class="language-text">Avatar-Item-Collection/
+  58410A5D/
+    0000020800060102C383304058410A5D
+</code></pre>
+<p>XeCLI preserves that root layout during install instead of forcing a <code>00009000</code> folder.</p>
+<h2 id="runtime-paths">Runtime Paths</h2>
+<p>By default XeCLI resolves the collection root in this order:</p>
+<ol>
+<li>explicit <code>--library &lt;DIR&gt;</code></li>
+<li>saved config value</li>
+<li><code>XECLI_AVATAR_COLLECTION_ROOT</code></li>
+<li><code>Avatar-Item-Collection</code> beside the executable</li>
+<li>the local fallback path bundled into the current build or test environment</li>
+</ol>
+<p>If no local corpus is available, XeCLI can switch to the hosted GitHub-backed collection automatically or when <code>--remote</code> is supplied.</p>
+<p>Hosted collection:</p>
+<ul>
+<li><a href="https://github.com/SaveEditors/Avatar-Item-Collection">SaveEditors/Avatar-Item-Collection</a></li>
+</ul>
+<p>Index cache and working files live under the XeCLI config or cache directories unless overridden.</p>
+<p>Typical runtime paths:</p>
+<ul>
+<li><code>%APPDATA%\XeCLI\avatar-index.v3.json</code></li>
+<li><code>%APPDATA%\XeCLI\avatar-work\...</code></li>
+<li><code>%LOCALAPPDATA%\XeCLI\cache\avatar\avatar-remote-index.v1.json</code></li>
+<li><code>%LOCALAPPDATA%\XeCLI\cache\avatar\packages\...</code></li>
+<li><code>%LOCALAPPDATA%\XeCLI\cache\avatar\download-cache\...</code></li>
+</ul>
+<h2 id="command-usage">Command Usage</h2>
+<h3 id="show-the-active-collection-path">Show the active collection path</h3>
+<pre><code class="language-powershell">rgh avatar library show
+rgh avatar library show --remote
+</code></pre>
+<h3 id="save-the-default-collection-path">Save the default collection path</h3>
+<pre><code class="language-powershell">rgh avatar library set --path A:\Downloads\12\em\Avatar-Item-Collection
+rgh avatar library set --manifest-url https://raw.githubusercontent.com/SaveEditors/Avatar-Item-Collection/main/avatar-manifest.json
+rgh avatar library set --title-map-url https://raw.githubusercontent.com/SaveEditors/Avatar-Item-Collection/main/avatar-title-map.json
+rgh avatar library set --content-base-url https://raw.githubusercontent.com/SaveEditors/Avatar-Item-Collection/main/
+rgh avatar library set --download-cache C:\Users\B\AppData\Local\XeCLI\cache\avatar\download-cache
+</code></pre>
+<h3 id="list-games-with-avatar-items">List games with avatar items</h3>
+<pre><code class="language-powershell">rgh avatar games
+rgh avatar games --search &quot;Black Ops&quot;
+rgh avatar games --remote --search &quot;Black Ops&quot;
+</code></pre>
+<h3 id="list-items-for-a-title">List items for a title</h3>
+<pre><code class="language-powershell">rgh avatar items --titleid 415608C3 --limit 10
+rgh avatar items --titleid 58410A5D --limit 10
+rgh avatar items --remote --titleid 415608C3 --limit 10
+</code></pre>
+<h3 id="choose-items-in-the-terminal">Choose items in the terminal</h3>
+<pre><code class="language-powershell">rgh avatar choose --search &quot;Black Ops&quot; --current-user
+rgh avatar choose --remote --titleid 58410A5D --all --current-user
+</code></pre>
+<h3 id="browse-items-in-the-windows-picker">Browse items in the Windows picker</h3>
+<pre><code class="language-powershell">rgh avatar browse --remote
+rgh avatar browse --remote --titleid 415608C3 --search hoodie
+</code></pre>
+<h3 id="install-one-item-for-the-current-signed-in-user">Install one item for the current signed-in user</h3>
+<pre><code class="language-powershell">rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+rgh avatar install --remote --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+</code></pre>
+<h3 id="install-every-item-for-a-title">Install every item for a title</h3>
+<pre><code class="language-powershell">rgh avatar install --titleid 415608C3 --all --current-user
+rgh avatar install --remote --titleid 415608C3 --all --current-user
+</code></pre>
+<h3 id="install-one-item-through-the-alias">Install one item through the alias</h3>
+<pre><code class="language-powershell">rgh avatar apply --contentid 0000020800060102C383304058410A5D --current-user
+</code></pre>
+<h2 id="ownership-and-install-model">Ownership and Install Model</h2>
+<p>Avatar installs are not just file copies.</p>
+<p>XeCLI:</p>
+<ol>
+<li>resolves the target user XUID</li>
+<li>patches ownership data in a temporary working copy</li>
+<li>preserves the item’s original relative store layout</li>
+<li>uploads to the console content tree</li>
+<li>verifies the remote file size</li>
+</ol>
+<p>When <code>--remote</code> is used, XeCLI first downloads the selected package from the hosted <code>Avatar-Item-Collection</code> repo into the local cache, verifies it, patches ownership, and then uploads it to the console.</p>
+<p>The download step is cached so repeated installs do not re-fetch the same package unless the manifest changes or the local cache is cleared.</p>
+<p>If no explicit XUID is provided, XeCLI resolves the current signed-in user from the console and uses that XUID for patching.</p>
+<h2 id="remote-install-paths">Remote Install Paths</h2>
+<p>XeCLI installs avatar items into the console content tree under:</p>
+<ul>
+<li><code>/Hdd1/Content/0000000000000000/&lt;TITLEID&gt;/...</code></li>
+</ul>
+<p>Examples validated against a live console:</p>
+<h3 id="standard-layout-proof">Standard layout proof</h3>
+<ul>
+<li>source:</li>
+<li><code>A:\Downloads\12\em\Avatar-Item-Collection\415608C3\00009000\000000080DF3B242CAE65A52415608C3</code></li>
+<li>remote:</li>
+<li><code>/Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3</code></li>
+</ul>
+<h3 id="root-layout-proof">Root-layout proof</h3>
+<ul>
+<li>source:</li>
+<li><code>A:\Downloads\12\em\Avatar-Item-Collection\58410A5D\0000020800060102C383304058410A5D</code></li>
+<li>remote:</li>
+<li><code>/Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D</code></li>
+</ul>
+<h2 id="transport-behavior">Transport Behavior</h2>
+<p>XeCLI prefers FTP for avatar install when the console FTP service is available.</p>
+<p>If FTP is unavailable, XeCLI can fall back to:</p>
+<ul>
+<li>XBDM directory creation</li>
+<li>XBDM file upload</li>
+<li>XBDM-side size verification</li>
+</ul>
+<p>That means avatar install does not depend entirely on FTP being up.</p>
+<p>The simplest way to use the library is:</p>
+<ol>
+<li>pick a game from the catalog</li>
+<li>filter the items for that game</li>
+<li>select one or many items</li>
+<li>install them with <code>rgh avatar install</code></li>
+</ol>
+<p>XeCLI includes both a terminal picker and a Windows picker that follow that flow.</p>
+<h2 id="search-and-metadata">Search and Metadata</h2>
+<p>XeCLI indexes avatar items with:</p>
+<ul>
+<li>title ID</li>
+<li>resolved title name</li>
+<li>content ID</li>
+<li>display name</li>
+<li>game name when present</li>
+<li>publisher</li>
+<li>file size</li>
+<li>relative store path</li>
+<li>derived tags</li>
+<li>package layout type</li>
+</ul>
+<p>Title matching uses container metadata first, then the bundled Title ID database as fallback. That keeps avatar item labels readable even when a package would otherwise surface only a raw content ID.</p>
+<p>For hosted browsing, XeCLI uses the remote manifest/title-map pair before falling back to the bundled database. That keeps title labels consistent across the CLI and future UI clients.</p>
+<h2 id="use-with-other-tools">Use With Other Tools</h2>
+<p>Other launchers or managers can reuse the same collection name and layout model.</p>
+<p>The clean integration pattern is:</p>
+<ol>
+<li>point to <code>Avatar-Item-Collection</code></li>
+<li>build or reuse an index</li>
+<li>filter by title or item name</li>
+<li>hand selected installs to XeCLI</li>
+</ol>
+<p>That keeps one shared library name and one predictable storage model across tools.</p>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+      <section class="wiki-panel wiki-support">
+        <h2>Support XeCLI</h2>
+        <p class="wiki-support__text">Support our work? Buy us a coffee!</p>
+        <p class="wiki-support__button">
+          <a href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">
+            <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" alt="Support XeCLI on Ko-fi" width="180">
+          </a>
+        </p>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

@@ -1,12 +1,25 @@
+# Build output
+/bin/
+/obj/
 /decompiled/bin/
 /decompiled/obj/
-/captures/
+
+# IDE and local packaging output
+/.vs/
+/.vscode/
+/publish/
+/dist/
+/release/
+/out/
+/tmp/
 /tmp-*/
 /ext-publish/
 /ext-stage/
 /re-cache/
 /wrapper/bin/
 /wrapper/obj/
+
+# Runtime and publish artifacts
 /rgh.dll
 /rgh.exe
 /rgh.pdb
@@ -45,9 +58,41 @@
 /clretwrc.dll
 /clrgc.dll
 /clrgcexp.dll
-/hs_err_pid*.log
+/netstandard.dll
+
+# Captures, dumps, and generated analysis artifacts
+/captures/
 /capture.err
 /capture.out
+/hs_err_pid*.log
+*.bmp
+*.raw
+*.bin
+!src/Xbox360.Remote.Cli/Assets/empty_live.bin
+*.xex
+!/xbdm.xex
+!/XDRPC.xex
+!/JRPC2.xex
+*.c
+*.i64
+*.idb
+*.id0
+*.id1
+*.id2
+*.nam
+*.til
+/decomp/
+/dumps/
+/screen*_variants/
+*.zip
+*.user
+*.suo
+
+# Local config copies
+/config.json
+/titleids.local.csv
+
+# Local workspace debris
 /Bitwise.cs
 /DNGuard.cs
 /DataFile.cs
@@ -81,7 +126,6 @@
 /wrapper/
 /bo2-ingame.bmp
 /bo2-start.bmp
-/netstandard.dll
 /rgh.dll.bak
 /rgh.dll.dispatch.bak
 /rgh.dll.pre-helpfix.bak

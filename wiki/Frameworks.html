@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Frameworks and Architecture | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Frameworks.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
+      <p class="wiki-sidebar__credit">Created by Pew7s</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" >
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="architecture-reference" open>
+              <summary>Technical Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link is-current" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Technical Reference</div>
+          <h1>Frameworks and Architecture</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli">Repo</a>
+          <a href="https://github.com/SaveEditors/xecli/releases/latest">Releases</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="frameworks-and-architecture">Frameworks and Architecture</h1>
+<p>This page explains how XeCLI is structured and how the major subsystems fit together.</p>
+<h2 id="command-layer">Command Layer</h2>
+<p>The CLI surface is implemented in <code>src/Xbox360.Remote.Cli/</code>. Commands are grouped by operational area and exposed through the <code>rgh</code> command.</p>
+<p>Important command groups:</p>
+<ul>
+<li>Core console workflows</li>
+<li>XBDM-backed live operations</li>
+<li>JRPC2-backed RPC helpers</li>
+<li>FTP-backed file and content workflows</li>
+<li>Ghidra headless orchestration</li>
+<li>Games on Demand conversion</li>
+</ul>
+<h2 id="xbdm-transport">XBDM Transport</h2>
+<p>XBDM is the primary transport and the backbone of the live-console feature set.</p>
+<p>XeCLI uses XBDM for:</p>
+<ul>
+<li>Console identity and status</li>
+<li>Running XEX path resolution</li>
+<li>Module list, info, and dumps</li>
+<li>Memory reads and writes</li>
+<li>Thread control</li>
+<li>Breakpoints and debug events</li>
+<li>Screenshots</li>
+<li>XBDM-backed file operations</li>
+</ul>
+<p>Recent hardening in this area focuses on:</p>
+<ul>
+<li>fail-fast connect/read timeouts</li>
+<li>one-shot fast connection paths for commands that should never hang for a minute</li>
+<li>clear handling for disconnect-prone operations such as module load</li>
+</ul>
+<h2 id="jrpc2-layer">JRPC2 Layer</h2>
+<p>JRPC2 is optional but important. When present, XeCLI uses it for:</p>
+<ul>
+<li>Title ID</li>
+<li>dashboard version</li>
+<li>motherboard type</li>
+<li>CPU key</li>
+<li>temperatures</li>
+<li>notifications</li>
+<li>generic ordinal/address RPC calls</li>
+</ul>
+<p>The CLI is designed so a missing JRPC2 plugin degrades functionality instead of making the entire tool unusable.</p>
+<h2 id="ftp-layer">FTP Layer</h2>
+<p>FTP is used where the storage tree matters more than live debugger state:</p>
+<ul>
+<li>browsing files</li>
+<li>transferring saves</li>
+<li>listing installed content</li>
+<li>editing <code>launch.ini</code></li>
+<li>pulling large files without XBDM-specific limitations</li>
+</ul>
+<p>FTP-backed commands are separate on purpose. That keeps it clear which operations depend on console-side FTP service versus XBDM.</p>
+<h2 id="title-id-database">Title ID Database</h2>
+<p>The bundled database is loaded from local assets, not fetched remotely.</p>
+<p>Load sources:</p>
+<ol>
+<li><code>Assets/xbox360_gamelist.csv</code></li>
+<li><code>Assets/xbox360_titleids.txt</code></li>
+<li><code>%APPDATA%\XeCLI\titleids.local.csv</code></li>
+</ol>
+<p>This gives XeCLI a stable metadata base while still allowing private overrides.</p>
+<h2 id="active-title-naming">Active Title Naming</h2>
+<p>The active-title pipeline does more than a raw database lookup:</p>
+<ol>
+<li>Resolve Title ID from the live console when possible.</li>
+<li>Resolve the running XEX path from XBDM.</li>
+<li>Look up the Title ID in the bundled database.</li>
+<li>If the database entry is too generic, prefer a path-based fallback name for the displayed title.</li>
+</ol>
+<p>This is why <code>rgh title</code> can show <code>Aurora</code> while still exposing the underlying <code>Xbox 360 Dashboard</code> database entry.</p>
+<h2 id="pending-module-verification">Pending Module Verification</h2>
+<p>Module load and unload do not always behave like a clean request-response API on a live RGH console. XeCLI tracks pending module operations in <code>%APPDATA%\XeCLI\config.json</code> when a reboot or disconnect is part of the expected flow.</p>
+<p>Tracked fields include:</p>
+<ul>
+<li>action</li>
+<li>module name</li>
+<li>module path</li>
+<li>thread mode</li>
+<li>creation time</li>
+</ul>
+<p><code>rgh modules pending</code> and <code>rgh status</code> can then verify the post-reboot state instead of guessing.</p>
+<h2 id="reverse-engineering-integration">Reverse-Engineering Integration</h2>
+<p>XeCLI uses Ghidra and IDA Pro as external headless analysis backends.</p>
+<p>What XeCLI adds:</p>
+<ul>
+<li>consistent command-line entry points</li>
+<li>running-title and FTP-backed source acquisition</li>
+<li>helper-loader installation</li>
+<li>decompile export orchestration</li>
+<li>verification of output quality</li>
+</ul>
+<p>What XeCLI does not do:</p>
+<ul>
+<li>replace Ghidra</li>
+<li>replace IDA Pro</li>
+<li>provide its own decompiler</li>
+<li>ship Ghidra itself</li>
+<li>ship IDA Pro itself</li>
+</ul>
+<h2 id="release-layout">Release Layout</h2>
+<p>A clean release should contain:</p>
+<ul>
+<li><code>rgh.exe</code></li>
+<li><code>Assets/</code></li>
+<li><code>ghidra_scripts/</code></li>
+<li><code>ida_scripts/</code></li>
+<li><code>LICENSE</code></li>
+</ul>
+<h2 id="release-automation">Release Automation</h2>
+<p>XeCLI now treats release packaging as a repeatable pipeline instead of an ad-hoc publish folder copy.</p>
+<p>Current release path:</p>
+<ul>
+<li><code>scripts/publish-release.ps1</code> creates the single-file self-contained <code>win-x64</code> publish output</li>
+<li><code>scripts/verify-release.ps1</code> checks the publish folder contents, validates basic command startup, rejects framework-dependent build output as an installer source, and smoke-installs the published build</li>
+<li><code>scripts/package-release.ps1</code> zips the verified publish folder and writes a <code>.sha256</code> companion file</li>
+<li><code>scripts/smoke-test-release-zip.ps1</code> extracts the packaged zip, validates required content, and verifies install from the extracted archive</li>
+<li><code>.github/workflows/release.yml</code> runs that flow for <code>v*</code> tags and uploads the zip plus checksum to the GitHub release</li>
+</ul>
+<p>The source repo should not contain:</p>
+<ul>
+<li>captured screenshots</li>
+<li>memory dumps</li>
+<li>publish output</li>
+<li>smoke-test artifacts</li>
+</ul>
+<h2 id="design-goals">Design Goals</h2>
+<p>The project is optimized for:</p>
+<ul>
+<li>direct operator workflows</li>
+<li>automation-safe command surfaces</li>
+<li>explicit handling of dangerous operations</li>
+<li>reuse by other tools</li>
+</ul>
+<p>That is why the project keeps the command line advanced but organizes it by namespaces instead of flattening everything into one giant help screen.</p>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+      <section class="wiki-panel wiki-support">
+        <h2>Support XeCLI</h2>
+        <p class="wiki-support__text">Support our work? Buy us a coffee!</p>
+        <p class="wiki-support__button">
+          <a href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">
+            <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" alt="Support XeCLI on Ko-fi" width="180">
+          </a>
+        </p>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

@@ -11,35 +11,35 @@ public sealed class LedSetCommand : AsyncCommand<LedSetCommand.Settings>
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--preset <NAME>")]
-		[Description("all-green|all-red|all-orange|all-off|quadrant1|quadrant2|quadrant3|quadrant4")]
+		[LocalizedDescription("all-green|all-red|all-orange|all-off|quadrant1|quadrant2|quadrant3|quadrant4")]
 		public string? Preset { get; init; }
 
 		[CommandOption("--tl <COLOR>")]
-		[Description("Top-left color: off|green|red|orange")]
+		[LocalizedDescription("Top-left color: off|green|red|orange")]
 		public string? TopLeft { get; init; }
 
 		[CommandOption("--tr <COLOR>")]
-		[Description("Top-right color: off|green|red|orange")]
+		[LocalizedDescription("Top-right color: off|green|red|orange")]
 		public string? TopRight { get; init; }
 
 		[CommandOption("--bl <COLOR>")]
-		[Description("Bottom-left color: off|green|red|orange")]
+		[LocalizedDescription("Bottom-left color: off|green|red|orange")]
 		public string? BottomLeft { get; init; }
 
 		[CommandOption("--br <COLOR>")]
-		[Description("Bottom-right color: off|green|red|orange")]
+		[LocalizedDescription("Bottom-right color: off|green|red|orange")]
 		public string? BottomRight { get; init; }
 
 		[CommandOption("--notify")]
-		[Description("Send a default success notification to the console.")]
+		[LocalizedDescription("Send a default success notification to the console.")]
 		public bool Notify { get; init; }
 
 		[CommandOption("--notify-icon <NAME>")]
-		[Description("Notification icon preset name.")]
+		[LocalizedDescription("Notification icon preset name.")]
 		public string? NotifyIcon { get; init; }
 
 		[CommandOption("--notify-logo <ID>")]
-		[Description("Notification logo id (decimal or 0x hex).")]
+		[LocalizedDescription("Notification logo id (decimal or 0x hex).")]
 		public string? NotifyLogo { get; init; }
 	}
 

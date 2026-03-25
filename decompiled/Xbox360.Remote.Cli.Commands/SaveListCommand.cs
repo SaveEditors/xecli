@@ -14,15 +14,15 @@ public sealed class SaveListCommand : AsyncCommand<SaveListCommand.Settings>
 	public sealed class Settings : FtpConnectionSettings
 	{
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Title ID in hex (for example 4D530805).")]
+		[LocalizedDescription("Title ID in hex (for example 4D530805).")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--profile <PROFILE>")]
-		[Description("Restrict to one 16-character profile ID.")]
+		[LocalizedDescription("Restrict to one 16-character profile ID.")]
 		public string? ProfileId { get; init; }
 
 		[CommandOption("--device <ROOTS>")]
-		[Description("Optional comma-separated storage roots, for example Hdd1 or Hdd1,Usb0.")]
+		[LocalizedDescription("Optional comma-separated storage roots, for example Hdd1 or Hdd1,Usb0.")]
 		public string? Devices { get; init; }
 	}
 

@@ -13,31 +13,31 @@ public sealed class RemoteSpoofApplyCommand : AsyncCommand<RemoteSpoofApplyComma
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--slot <N>")]
-		[Description("1-based client slot to overwrite.")]
+		[LocalizedDescription("1-based client slot to overwrite.")]
 		public int? Slot { get; init; }
 
 		[CommandOption("--all")]
-		[Description("Overwrite every supported slot.")]
+		[LocalizedDescription("Overwrite every supported slot.")]
 		public bool All { get; init; }
 
 		[CommandOption("--text <TEXT>")]
-		[Description("Replacement name text. Use {slot} to inject the 1-based slot number.")]
+		[LocalizedDescription("Replacement name text. Use {slot} to inject the 1-based slot number.")]
 		public string? Text { get; init; }
 
 		[CommandOption("--xuid <HEX>")]
-		[Description("16-character XUID to write into each target slot's identity field alongside the name.")]
+		[LocalizedDescription("16-character XUID to write into each target slot's identity field alongside the name.")]
 		public string? Xuid { get; init; }
 
 		[CommandOption("--notify")]
-		[Description("Send a default success notification to the console.")]
+		[LocalizedDescription("Send a default success notification to the console.")]
 		public bool Notify { get; init; }
 
 		[CommandOption("--notify-icon <NAME>")]
-		[Description("Notification icon preset name.")]
+		[LocalizedDescription("Notification icon preset name.")]
 		public string? NotifyIcon { get; init; }
 
 		[CommandOption("--notify-logo <ID>")]
-		[Description("Notification logo id (decimal or 0x hex).")]
+		[LocalizedDescription("Notification logo id (decimal or 0x hex).")]
 		public string? NotifyLogo { get; init; }
 	}
 

@@ -13,11 +13,11 @@ public sealed class NotifyIconsListCommand : Command<NotifyIconsListCommand.Sett
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--builtins-only")]
-		[Description("Show only the built-in XNotify icon catalog.")]
+		[LocalizedDescription("Show only the built-in XNotify icon catalog.")]
 		public bool BuiltinsOnly { get; init; }
 
 		[CommandOption("--presets-only")]
-		[Description("Show only user-defined preset aliases from config.")]
+		[LocalizedDescription("Show only user-defined preset aliases from config.")]
 		public bool PresetsOnly { get; init; }
 	}
 

@@ -9,31 +9,31 @@ public sealed class AvatarLibrarySetCommand : Command<AvatarLibrarySetCommand.Se
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--path <DIR>")]
-		[Description("Set the default Avatar-Item-Collection root.")]
+		[LocalizedDescription("Set the default Avatar-Item-Collection root.")]
 		public string? Path { get; init; }
 
 		[CommandOption("--cache <PATH>")]
-		[Description("Set the avatar index cache file or directory.")]
+		[LocalizedDescription("Set the avatar index cache file or directory.")]
 		public string? CachePath { get; init; }
 
 		[CommandOption("--manifest-url <URL>")]
-		[Description("Set the hosted avatar manifest URL.")]
+		[LocalizedDescription("Set the hosted avatar manifest URL.")]
 		public string? ManifestUrl { get; init; }
 
 		[CommandOption("--title-map-url <URL>")]
-		[Description("Set the hosted avatar title map URL.")]
+		[LocalizedDescription("Set the hosted avatar title map URL.")]
 		public string? TitleMapUrl { get; init; }
 
 		[CommandOption("--content-base-url <URL>")]
-		[Description("Set the hosted avatar content base URL.")]
+		[LocalizedDescription("Set the hosted avatar content base URL.")]
 		public string? ContentBaseUrl { get; init; }
 
 		[CommandOption("--download-cache <DIR>")]
-		[Description("Set the cache directory for downloaded avatar packages.")]
+		[LocalizedDescription("Set the cache directory for downloaded avatar packages.")]
 		public string? DownloadCachePath { get; init; }
 
 		[CommandOption("--clear")]
-		[Description("Clear saved avatar library settings.")]
+		[LocalizedDescription("Clear saved avatar library settings.")]
 		public bool Clear { get; init; }
 	}
 

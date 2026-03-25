@@ -11,15 +11,15 @@ public sealed class TrayOpenCommand : AsyncCommand<TrayOpenCommand.Settings>
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--notify")]
-		[Description("Send a default success notification to the console.")]
+		[LocalizedDescription("Send a default success notification to the console.")]
 		public bool Notify { get; init; }
 
 		[CommandOption("--notify-icon <NAME>")]
-		[Description("Notification icon preset name.")]
+		[LocalizedDescription("Notification icon preset name.")]
 		public string? NotifyIcon { get; init; }
 
 		[CommandOption("--notify-logo <ID>")]
-		[Description("Notification logo id (decimal or 0x hex).")]
+		[LocalizedDescription("Notification logo id (decimal or 0x hex).")]
 		public string? NotifyLogo { get; init; }
 	}
 

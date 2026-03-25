@@ -15,15 +15,15 @@ public sealed class ContentListCommand : AsyncCommand<ContentListCommand.Setting
 	public sealed class Settings : FtpConnectionSettings
 	{
 		[CommandOption("--device <ROOTS>")]
-		[Description("Comma-separated content roots, for example Hdd1 or Hdd1,Usb0 (default: Hdd1,Usb0,Usb1,HddX).")]
+		[LocalizedDescription("Comma-separated content roots, for example Hdd1 or Hdd1,Usb0 (default: Hdd1,Usb0,Usb1,HddX).")]
 		public string? Devices { get; init; }
 
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Restrict to one Title ID.")]
+		[LocalizedDescription("Restrict to one Title ID.")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--show-types")]
-		[Description("Include content-type breakdowns per title.")]
+		[LocalizedDescription("Include content-type breakdowns per title.")]
 		public bool ShowTypes { get; init; }
 	}
 

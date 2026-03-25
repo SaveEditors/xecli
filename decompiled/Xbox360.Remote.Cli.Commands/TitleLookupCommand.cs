@@ -17,15 +17,15 @@ public sealed class TitleLookupCommand : AsyncCommand<TitleLookupCommand.Setting
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandArgument(0, "[TITLEID]")]
-		[Description("Title ID (hex, with or without 0x). Omit it or pass 'active' to resolve the current title.")]
+		[LocalizedDescription("Title ID (hex, with or without 0x). Omit it or pass 'active' to resolve the current title.")]
 		public string TitleId { get; init; } = string.Empty;
 
 		[CommandArgument(1, "[MEDIAID]")]
-		[Description("Optional media ID (hex).")]
+		[LocalizedDescription("Optional media ID (hex).")]
 		public string? MediaId { get; init; }
 
 		[CommandOption("--active")]
-		[Description("Resolve the currently active title from the connected console.")]
+		[LocalizedDescription("Resolve the currently active title from the connected console.")]
 		public bool Active { get; init; }
 	}
 

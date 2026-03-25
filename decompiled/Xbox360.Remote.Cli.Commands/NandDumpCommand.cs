@@ -23,15 +23,15 @@ public sealed class NandDumpCommand : AsyncCommand<NandDumpCommand.Settings>
 	public sealed class Settings : XellCommandSettings
 	{
 		[CommandOption("--single")]
-		[Description("Take one dump only and skip byte-for-byte verification.")]
+		[LocalizedDescription("Take one dump only and skip byte-for-byte verification.")]
 		public bool Single { get; init; }
 
 		[CommandOption("--output <FILE>")]
-		[Description("Output NAND filename. Defaults to nand_backup_yyyyMMdd_HHmmss.bin.")]
+		[LocalizedDescription("Output NAND filename. Defaults to nand_backup_yyyyMMdd_HHmmss.bin.")]
 		public string? Output { get; init; }
 
 		[CommandOption("--no-verify")]
-		[Description("Skip the second-dump verification loop.")]
+		[LocalizedDescription("Skip the second-dump verification loop.")]
 		public bool NoVerify { get; init; }
 
 		public override ValidationResult Validate()

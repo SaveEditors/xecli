@@ -13,11 +13,11 @@ public sealed class XbdmXexDumpCommand : AsyncCommand<XbdmXexDumpCommand.Setting
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--path <XEX>")]
-		[Description("Explicit XEX path. If omitted, uses the running title.")]
+		[LocalizedDescription("Explicit XEX path. If omitted, uses the running title.")]
 		public string? Path { get; init; }
 
 		[CommandOption("--out <FILE>")]
-		[Description("Output file path.")]
+		[LocalizedDescription("Output file path.")]
 		public string? Output { get; init; }
 	}
 

@@ -19,11 +19,11 @@ public sealed class FtpCatCommand : AsyncCommand<FtpCatCommand.Settings>
 		public string? Path { get; init; }
 
 		[CommandOption("--max <BYTES>")]
-		[Description("Maximum bytes to read (default: 65536).")]
+		[LocalizedDescription("Maximum bytes to read (default: 65536).")]
 		public string? MaxBytes { get; init; }
 
 		[CommandOption("--encoding <ENC>")]
-		[Description("ascii|utf8 (default: utf8).")]
+		[LocalizedDescription("ascii|utf8 (default: utf8).")]
 		public string? EncodingName { get; init; }
 	}
 

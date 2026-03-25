@@ -16,23 +16,23 @@ public sealed class FtpFindCommand : AsyncCommand<FtpFindCommand.Settings>
 	public sealed class Settings : FtpConnectionSettings
 	{
 		[CommandOption("--path <PATH>")]
-		[Description("Root path to search (default: /).")]
+		[LocalizedDescription("Root path to search (default: /).")]
 		public string? Path { get; init; }
 
 		[CommandOption("--name <PATTERN>")]
-		[Description("File or folder name pattern (supports * and ? wildcards).")]
+		[LocalizedDescription("File or folder name pattern (supports * and ? wildcards).")]
 		public string? Name { get; init; }
 
 		[CommandOption("--regex")]
-		[Description("Interpret --name as a regular expression.")]
+		[LocalizedDescription("Interpret --name as a regular expression.")]
 		public bool Regex { get; init; }
 
 		[CommandOption("--depth <N>")]
-		[Description("Maximum recursion depth (default: 6).")]
+		[LocalizedDescription("Maximum recursion depth (default: 6).")]
 		public int? Depth { get; init; }
 
 		[CommandOption("--max <N>")]
-		[Description("Maximum results to return (default: 200).")]
+		[LocalizedDescription("Maximum results to return (default: 200).")]
 		public int? Max { get; init; }
 	}
 

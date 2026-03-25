@@ -11,27 +11,27 @@ public sealed class Jrpc2NotifyCommand : AsyncCommand<Jrpc2NotifyCommand.Setting
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandArgument(0, "[message]")]
-		[Description("Notification text.")]
+		[LocalizedDescription("Notification text.")]
 		public string? MessageArgument { get; init; }
 
 		[CommandArgument(1, "[logo]")]
-		[Description("Optional icon id or built-in icon name.")]
+		[LocalizedDescription("Optional icon id or built-in icon name.")]
 		public string? LogoArgument { get; init; }
 
 		[CommandOption("--logo <ID>")]
-		[Description("Notification logo id or built-in icon name.")]
+		[LocalizedDescription("Notification logo id or built-in icon name.")]
 		public string? Logo { get; init; }
 
 		[CommandOption("--icon <NAME>")]
-		[Description("Notification icon preset name from config.")]
+		[LocalizedDescription("Notification icon preset name from config.")]
 		public string? Icon { get; init; }
 
 		[CommandOption("--message <TEXT>")]
-		[Description("Notification text.")]
+		[LocalizedDescription("Notification text.")]
 		public string? Message { get; init; }
 
 		[CommandOption("--position <POS>")]
-		[Description("Notification position (top|bottom|center|left|right|top-left|top-right|bottom-left|bottom-right).")]
+		[LocalizedDescription("Notification position (top|bottom|center|left|right|top-left|top-right|bottom-left|bottom-right).")]
 		public string? Position { get; init; }
 	}
 

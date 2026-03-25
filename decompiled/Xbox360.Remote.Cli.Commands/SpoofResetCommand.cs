@@ -13,15 +13,15 @@ public sealed class SpoofResetCommand : AsyncCommand<SpoofResetCommand.Settings>
 	public sealed class Settings : SpoofIdentitySettingsBase
 	{
 		[CommandOption("--gamertag <TEXT>")]
-		[Description("Explicit gamertag to restore instead of the signed-in user.")]
+		[LocalizedDescription("Explicit gamertag to restore instead of the signed-in user.")]
 		public string? Gamertag { get; init; }
 
 		[CommandOption("--xuid <HEX>")]
-		[Description("Explicit XUID to restore instead of the signed-in user.")]
+		[LocalizedDescription("Explicit XUID to restore instead of the signed-in user.")]
 		public string? Xuid { get; init; }
 
 		[CommandOption("--clear-remote")]
-		[Description("Clear every supported remote slot after restoring the local identity.")]
+		[LocalizedDescription("Clear every supported remote slot after restoring the local identity.")]
 		public bool ClearRemote { get; init; }
 	}
 

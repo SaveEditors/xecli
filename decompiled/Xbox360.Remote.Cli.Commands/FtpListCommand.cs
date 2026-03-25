@@ -14,7 +14,7 @@ public sealed class FtpListCommand : AsyncCommand<FtpListCommand.Settings>
 	public sealed class Settings : FtpConnectionSettings
 	{
 		[CommandOption("--path <PATH>")]
-		[Description("Remote directory path (default: /).")]
+		[LocalizedDescription("Remote directory path (default: /).")]
 		public string? Path { get; init; }
 	}
 

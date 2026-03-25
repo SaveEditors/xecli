@@ -13,7 +13,7 @@ public sealed class HomebrewListCommand : Command<HomebrewListCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--json")]
-		[Description("Emit machine-readable output.")]
+		[LocalizedDescription("Emit machine-readable output.")]
 		public bool Json { get; init; }
 	}
 

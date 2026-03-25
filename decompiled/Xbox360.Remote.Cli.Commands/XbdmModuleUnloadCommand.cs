@@ -12,35 +12,35 @@ public sealed class XbdmModuleUnloadCommand : AsyncCommand<XbdmModuleUnloadComma
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--name <MODULE>")]
-		[Description("Loaded module name, e.g. XDRPC.xex.")]
+		[LocalizedDescription("Loaded module name, e.g. XDRPC.xex.")]
 		public string? Name { get; init; }
 
 		[CommandOption("--handle <HANDLE>")]
-		[Description("Explicit module handle as hex or decimal.")]
+		[LocalizedDescription("Explicit module handle as hex or decimal.")]
 		public string? Handle { get; init; }
 
 		[CommandOption("--skip-mark")]
-		[Description("Do not set the sysdll unload marker at handle+0x40 before unloading.")]
+		[LocalizedDescription("Do not set the sysdll unload marker at handle+0x40 before unloading.")]
 		public bool SkipMark { get; init; }
 
 		[CommandOption("--dry-run")]
-		[Description("Show the resolved unload target without writing anything.")]
+		[LocalizedDescription("Show the resolved unload target without writing anything.")]
 		public bool DryRun { get; init; }
 
 		[CommandOption("--force")]
-		[Description("Required. Module unload can wedge the console if the target rejects live unload.")]
+		[LocalizedDescription("Required. Module unload can wedge the console if the target rejects live unload.")]
 		public bool Force { get; init; }
 
 		[CommandOption("--notify")]
-		[Description("Send a default success notification to the console.")]
+		[LocalizedDescription("Send a default success notification to the console.")]
 		public bool Notify { get; init; }
 
 		[CommandOption("--notify-icon <NAME>")]
-		[Description("Notification icon preset name.")]
+		[LocalizedDescription("Notification icon preset name.")]
 		public string? NotifyIcon { get; init; }
 
 		[CommandOption("--notify-logo <ID>")]
-		[Description("Notification logo id (decimal or 0x hex).")]
+		[LocalizedDescription("Notification logo id (decimal or 0x hex).")]
 		public string? NotifyLogo { get; init; }
 	}
 

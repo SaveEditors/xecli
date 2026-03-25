@@ -13,7 +13,7 @@ public sealed class PluginListCommand : AsyncCommand<PluginListCommand.Settings>
 	public sealed class Settings : FtpConnectionSettings
 	{
 		[CommandOption("--ini <PATH>")]
-		[Description("DashLaunch config path (default: /Hdd1/launch.ini).")]
+		[LocalizedDescription("DashLaunch config path (default: /Hdd1/launch.ini).")]
 		public string? IniPath { get; init; }
 	}
 

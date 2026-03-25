@@ -17,51 +17,51 @@ public sealed class XbdmScreenshotCommand : AsyncCommand<XbdmScreenshotCommand.S
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--out <FILE>")]
-		[Description("Output file path (.bmp or .raw).")]
+		[LocalizedDescription("Output file path (.bmp or .raw).")]
 		public string? Output { get; init; }
 
 		[CommandOption("--format <FORMAT>")]
-		[Description("Output format: bmp or raw.")]
+		[LocalizedDescription("Output format: bmp or raw.")]
 		public string? Format { get; init; }
 
 		[CommandOption("--raw")]
-		[Description("Force raw output (same as --format raw).")]
+		[LocalizedDescription("Force raw output (same as --format raw).")]
 		public bool Raw { get; init; }
 
 		[CommandOption("--force")]
-		[Description("Overwrite the output file if it exists.")]
+		[LocalizedDescription("Overwrite the output file if it exists.")]
 		public bool Force { get; init; }
 
 		[CommandOption("--decode <MODE>")]
-		[Description("Force decode mode: auto, linear, tiled-v1, tiled-v2, tiled-v3, tiled-xenia.")]
+		[LocalizedDescription("Force decode mode: auto, linear, tiled-v1, tiled-v2, tiled-v3, tiled-xenia.")]
 		public string? Decode { get; init; }
 
 		[CommandOption("--endianness <MODE>")]
-		[Description("Force endianness: auto, none, swap8-16, swap8-32, swap16-32.")]
+		[LocalizedDescription("Force endianness: auto, none, swap8-16, swap8-32, swap16-32.")]
 		public string? Endianness { get; init; }
 
 		[CommandOption("--order <ORDER>")]
-		[Description("Force 32bpp channel order: auto, bgra, rgba, argb, abgr, bgrx, rgbx, xrgb, xbgr.")]
+		[LocalizedDescription("Force 32bpp channel order: auto, bgra, rgba, argb, abgr, bgrx, rgbx, xrgb, xbgr.")]
 		public string? Order { get; init; }
 
 		[CommandOption("--dump-variants")]
-		[Description("Dump all decode variants to a folder next to the output file.")]
+		[LocalizedDescription("Dump all decode variants to a folder next to the output file.")]
 		public bool DumpVariants { get; init; }
 
 		[CommandOption("--crop-right <PX>")]
-		[Description("Crop N pixels from the right edge (default: 0).")]
+		[LocalizedDescription("Crop N pixels from the right edge (default: 0).")]
 		public int CropRight { get; init; }
 
 		[CommandOption("--crop-right-percent <PCT>")]
-		[Description("Crop a percentage from the right edge (0-50).")]
+		[LocalizedDescription("Crop a percentage from the right edge (0-50).")]
 		public double? CropRightPercent { get; init; }
 
 		[CommandOption("--xenia-bank-xor <N>")]
-		[Description("Force Xenia tile bank XOR (0-1) when using tiled-xenia.")]
+		[LocalizedDescription("Force Xenia tile bank XOR (0-1) when using tiled-xenia.")]
 		public int? XeniaBankXor { get; init; }
 
 		[CommandOption("--xenia-pipe-xor <N>")]
-		[Description("Force Xenia tile pipe XOR (0-3) when using tiled-xenia.")]
+		[LocalizedDescription("Force Xenia tile pipe XOR (0-3) when using tiled-xenia.")]
 		public int? XeniaPipeXor { get; init; }
 	}
 

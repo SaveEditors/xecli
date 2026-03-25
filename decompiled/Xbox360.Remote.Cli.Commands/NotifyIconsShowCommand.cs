@@ -10,7 +10,7 @@ public sealed class NotifyIconsShowCommand : Command<NotifyIconsShowCommand.Sett
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<value>")]
-		[Description("A built-in icon name, preset alias, decimal id, or 0x hex id.")]
+		[LocalizedDescription("A built-in icon name, preset alias, decimal id, or 0x hex id.")]
 		public string? Value { get; init; }
 	}
 

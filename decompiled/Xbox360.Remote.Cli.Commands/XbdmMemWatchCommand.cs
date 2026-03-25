@@ -18,15 +18,15 @@ public sealed class XbdmMemWatchCommand : AsyncCommand<XbdmMemWatchCommand.Setti
 		public string? Size { get; init; }
 
 		[CommandOption("--interval <MS>")]
-		[Description("Poll interval in milliseconds (default 500).")]
+		[LocalizedDescription("Poll interval in milliseconds (default 500).")]
 		public int? IntervalMs { get; init; }
 
 		[CommandOption("--count <N>")]
-		[Description("Number of iterations (default 0 = infinite).")]
+		[LocalizedDescription("Number of iterations (default 0 = infinite).")]
 		public int? Count { get; init; }
 
 		[CommandOption("--clear")]
-		[Description("Clear the screen between updates.")]
+		[LocalizedDescription("Clear the screen between updates.")]
 		public bool Clear { get; init; }
 	}
 

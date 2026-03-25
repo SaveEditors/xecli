@@ -11,19 +11,19 @@ public sealed class PluginEnableCommand : AsyncCommand<PluginEnableCommand.Setti
 	public sealed class Settings : FtpConnectionSettings
 	{
 		[CommandOption("--slot <N>")]
-		[Description("Plugin slot number, usually 1-5.")]
+		[LocalizedDescription("Plugin slot number, usually 1-5.")]
 		public int? Slot { get; init; }
 
 		[CommandOption("--path <PATH>")]
-		[Description("Plugin XEX path.")]
+		[LocalizedDescription("Plugin XEX path.")]
 		public string? PluginPath { get; init; }
 
 		[CommandOption("--ini <PATH>")]
-		[Description("DashLaunch config path (default: /Hdd1/launch.ini).")]
+		[LocalizedDescription("DashLaunch config path (default: /Hdd1/launch.ini).")]
 		public string? IniPath { get; init; }
 
 		[CommandOption("--backup")]
-		[Description("Create a .bak copy before writing.")]
+		[LocalizedDescription("Create a .bak copy before writing.")]
 		public bool Backup { get; init; }
 	}
 

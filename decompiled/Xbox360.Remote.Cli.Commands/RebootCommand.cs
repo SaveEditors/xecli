@@ -10,19 +10,19 @@ public sealed class RebootCommand : AsyncCommand<RebootCommand.Settings>
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--title")]
-		[Description("Restart the current title instead of a cold reboot.")]
+		[LocalizedDescription("Restart the current title instead of a cold reboot.")]
 		public bool Title { get; init; }
 
 		[CommandOption("--notify")]
-		[Description("Send a default success notification to the console.")]
+		[LocalizedDescription("Send a default success notification to the console.")]
 		public bool Notify { get; init; }
 
 		[CommandOption("--notify-icon <NAME>")]
-		[Description("Notification icon preset name.")]
+		[LocalizedDescription("Notification icon preset name.")]
 		public string? NotifyIcon { get; init; }
 
 		[CommandOption("--notify-logo <ID>")]
-		[Description("Notification logo id (decimal or 0x hex).")]
+		[LocalizedDescription("Notification logo id (decimal or 0x hex).")]
 		public string? NotifyLogo { get; init; }
 	}
 

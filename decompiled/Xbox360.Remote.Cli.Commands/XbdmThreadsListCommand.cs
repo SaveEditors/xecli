@@ -12,7 +12,7 @@ public sealed class XbdmThreadsListCommand : AsyncCommand<XbdmThreadsListCommand
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--no-names")]
-		[Description("Skip resolving thread names.")]
+		[LocalizedDescription("Skip resolving thread names.")]
 		public bool NoNames { get; init; }
 	}
 

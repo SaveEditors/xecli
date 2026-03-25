@@ -9,15 +9,15 @@ public sealed class TargetCommand : Command<TargetCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--set <IP>")]
-		[Description("Set the default console IP.")]
+		[LocalizedDescription("Set the default console IP.")]
 		public string? Ip { get; init; }
 
 		[CommandOption("--port <PORT>")]
-		[Description("Set the default port (default: 730).")]
+		[LocalizedDescription("Set the default port (default: 730).")]
 		public int? Port { get; init; }
 
 		[CommandOption("--clear")]
-		[Description("Clear the saved target.")]
+		[LocalizedDescription("Clear the saved target.")]
 		public bool Clear { get; init; }
 	}
 

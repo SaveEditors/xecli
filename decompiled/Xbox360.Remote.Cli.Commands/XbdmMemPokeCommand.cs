@@ -14,14 +14,14 @@ public sealed class XbdmMemPokeCommand : AsyncCommand<XbdmMemPokeCommand.Setting
 		public string? Address { get; init; }
 
 		[CommandOption("--type <TYPE>")]
-		[Description("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii|hex plus byte/int/float/string/bytes aliases")]
+		[LocalizedDescription("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii|hex plus byte/int/float/string/bytes aliases")]
 		public string? Type { get; init; }
 
 		[CommandOption("--value <VALUE>")]
 		public string? Value { get; init; }
 
 		[CommandOption("--le")]
-		[Description("Write little-endian (default is big-endian).")]
+		[LocalizedDescription("Write little-endian (default is big-endian).")]
 		public bool LittleEndian { get; init; }
 	}
 

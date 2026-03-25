@@ -15,15 +15,15 @@ public sealed class XbdmMemPeekCommand : AsyncCommand<XbdmMemPeekCommand.Setting
 		public string? Address { get; init; }
 
 		[CommandOption("--type <TYPE>")]
-		[Description("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii plus byte/int/float/string aliases")]
+		[LocalizedDescription("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii plus byte/int/float/string aliases")]
 		public string? Type { get; init; }
 
 		[CommandOption("--len <N>")]
-		[Description("Length for ascii reads (default 32).")]
+		[LocalizedDescription("Length for ascii reads (default 32).")]
 		public int? Length { get; init; }
 
 		[CommandOption("--le")]
-		[Description("Interpret as little-endian (default is big-endian).")]
+		[LocalizedDescription("Interpret as little-endian (default is big-endian).")]
 		public bool LittleEndian { get; init; }
 	}
 

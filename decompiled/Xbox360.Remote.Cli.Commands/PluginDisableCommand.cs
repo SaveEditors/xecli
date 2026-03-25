@@ -11,15 +11,15 @@ public sealed class PluginDisableCommand : AsyncCommand<PluginDisableCommand.Set
 	public sealed class Settings : FtpConnectionSettings
 	{
 		[CommandOption("--slot <N>")]
-		[Description("Plugin slot number, usually 1-5.")]
+		[LocalizedDescription("Plugin slot number, usually 1-5.")]
 		public int? Slot { get; init; }
 
 		[CommandOption("--ini <PATH>")]
-		[Description("DashLaunch config path (default: /Hdd1/launch.ini).")]
+		[LocalizedDescription("DashLaunch config path (default: /Hdd1/launch.ini).")]
 		public string? IniPath { get; init; }
 
 		[CommandOption("--backup")]
-		[Description("Create a .bak copy before writing.")]
+		[LocalizedDescription("Create a .bak copy before writing.")]
 		public bool Backup { get; init; }
 	}
 

@@ -13,27 +13,27 @@ public sealed class PopupMessageBoxCommand : AsyncCommand<PopupMessageBoxCommand
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--title <TEXT>")]
-		[Description("Popup title text.")]
+		[LocalizedDescription("Popup title text.")]
 		public string? Title { get; init; }
 
 		[CommandOption("--body <TEXT>")]
-		[Description("Popup body text.")]
+		[LocalizedDescription("Popup body text.")]
 		public string? Body { get; init; }
 
 		[CommandOption("--button <TEXT>")]
-		[Description("Button label. Repeat to add multiple buttons.")]
+		[LocalizedDescription("Button label. Repeat to add multiple buttons.")]
 		public string[]? Buttons { get; init; }
 
 		[CommandOption("--focus <INDEX>")]
-		[Description("Focused button index (default: 0).")]
+		[LocalizedDescription("Focused button index (default: 0).")]
 		public uint? FocusedButtonIndex { get; init; }
 
 		[CommandOption("--preset <NAME>")]
-		[Description("Popup icon preset: none|error|warning|question (default: none).")]
+		[LocalizedDescription("Popup icon preset: none|error|warning|question (default: none).")]
 		public string? Preset { get; init; }
 
 		[CommandOption("--style <ID>")]
-		[Description("Raw popup style id. Overrides --preset when provided.")]
+		[LocalizedDescription("Raw popup style id. Overrides --preset when provided.")]
 		public uint? MessageBoxType { get; init; }
 	}
 

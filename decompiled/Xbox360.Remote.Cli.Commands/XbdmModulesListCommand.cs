@@ -12,7 +12,7 @@ public sealed class XbdmModulesListCommand : AsyncCommand<XbdmModulesListCommand
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--sections")]
-		[Description("Include section details.")]
+		[LocalizedDescription("Include section details.")]
 		public bool Sections { get; init; }
 	}
 

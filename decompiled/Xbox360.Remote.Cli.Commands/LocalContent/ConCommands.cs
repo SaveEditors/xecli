@@ -50,11 +50,11 @@ public sealed class ConInfoCommand : Command<ConInfoCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the CON/LIVE/PIRS package.")]
+		[LocalizedDescription("Path to the CON/LIVE/PIRS package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -138,11 +138,11 @@ public sealed class ConVerifyCommand : Command<ConVerifyCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the CON/LIVE/PIRS package.")]
+		[LocalizedDescription("Path to the CON/LIVE/PIRS package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -184,11 +184,11 @@ public sealed class ConRehashCommand : Command<ConRehashCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the STFS package.")]
+		[LocalizedDescription("Path to the STFS package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -231,11 +231,11 @@ public sealed class ConResignCommand : Command<ConResignCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the CON package.")]
+		[LocalizedDescription("Path to the CON package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -297,7 +297,7 @@ public sealed class ConMagicNameCommand : Command<ConMagicNameCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the CON/LIVE/PIRS package.")]
+		[LocalizedDescription("Path to the CON/LIVE/PIRS package.")]
 		public string PackagePath { get; init; } = string.Empty;
 	}
 
@@ -322,11 +322,11 @@ public sealed class ConFatxPathCommand : Command<ConFatxPathCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the CON/LIVE/PIRS package.")]
+		[LocalizedDescription("Path to the CON/LIVE/PIRS package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--fix-name")]
-		[Description("Replace the leaf filename with the package's magic FATX name when available.")]
+		[LocalizedDescription("Replace the leaf filename with the package's magic FATX name when available.")]
 		public bool FixName { get; init; }
 	}
 

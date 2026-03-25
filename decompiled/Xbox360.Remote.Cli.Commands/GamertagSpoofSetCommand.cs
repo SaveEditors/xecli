@@ -11,7 +11,7 @@ public sealed class GamertagSpoofSetCommand : AsyncCommand<GamertagSpoofSetComma
 	public sealed class Settings : SpoofIdentitySettingsBase
 	{
 		[CommandOption("--value <TEXT>")]
-		[Description("Gamertag to write into the running supported title.")]
+		[LocalizedDescription("Gamertag to write into the running supported title.")]
 		public string? Value { get; init; }
 	}
 

@@ -14,23 +14,23 @@ public sealed class IdaVerifyCommand : Command<IdaVerifyCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--dir <DIR>")]
-		[Description("Directory containing decompiled output to verify.")]
+		[LocalizedDescription("Directory containing decompiled output to verify.")]
 		public string? Directory { get; init; }
 
 		[CommandOption("--pattern <REGEX>")]
-		[Description("Regex pattern to flag (default: bad instruction|JUMPOUT|decompilation failed|<UNKNOWN>).")]
+		[LocalizedDescription("Regex pattern to flag (default: bad instruction|JUMPOUT|decompilation failed|<UNKNOWN>).")]
 		public string Pattern { get; init; } = "bad instruction|JUMPOUT|decompilation failed|<UNKNOWN>";
 
 		[CommandOption("--ext <EXT>")]
-		[Description("File extension to scan (default: .c).")]
+		[LocalizedDescription("File extension to scan (default: .c).")]
 		public string Extension { get; init; } = ".c";
 
 		[CommandOption("--max <N>")]
-		[Description("Maximum matching files to display (default: 25).")]
+		[LocalizedDescription("Maximum matching files to display (default: 25).")]
 		public int? MaxResults { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 

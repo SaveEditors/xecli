@@ -13,11 +13,11 @@ public sealed class XbdmModulesInfoCommand : AsyncCommand<XbdmModulesInfoCommand
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--name <MODULE>")]
-		[Description("Module name, e.g. default.xex or xam.xex.")]
+		[LocalizedDescription("Module name, e.g. default.xex or xam.xex.")]
 		public string? Name { get; init; }
 
 		[CommandOption("--sections")]
-		[Description("Include section details.")]
+		[LocalizedDescription("Include section details.")]
 		public bool Sections { get; init; }
 	}
 

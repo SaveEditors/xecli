@@ -11,7 +11,7 @@ public sealed class XuidSpoofSetCommand : AsyncCommand<XuidSpoofSetCommand.Setti
 	public sealed class Settings : SpoofIdentitySettingsBase
 	{
 		[CommandOption("--value <HEX>")]
-		[Description("16-character XUID to write into the running supported title.")]
+		[LocalizedDescription("16-character XUID to write into the running supported title.")]
 		public string? Value { get; init; }
 	}
 

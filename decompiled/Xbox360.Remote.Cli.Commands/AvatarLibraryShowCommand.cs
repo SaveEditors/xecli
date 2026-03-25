@@ -9,7 +9,7 @@ public sealed class AvatarLibraryShowCommand : Command<AvatarLibraryShowCommand.
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--json")]
-		[Description("Emit JSON output.")]
+		[LocalizedDescription("Emit JSON output.")]
 		public bool Json { get; init; }
 	}
 

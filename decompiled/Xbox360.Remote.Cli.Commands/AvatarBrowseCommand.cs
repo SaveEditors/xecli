@@ -15,27 +15,27 @@ public sealed class AvatarBrowseCommand : AsyncCommand<AvatarBrowseCommand.Setti
 	public class Settings : AvatarInstallCommand.Settings
 	{
 		[CommandOption("--search <TEXT>")]
-		[Description("Initial item search text.")]
+		[LocalizedDescription("Initial item search text.")]
 		public string? Search { get; init; }
 
 		[CommandOption("--game <TEXT>")]
-		[Description("Initial game/title filter text.")]
+		[LocalizedDescription("Initial game/title filter text.")]
 		public string? Game { get; init; }
 
 		[CommandOption("--publisher <TEXT>")]
-		[Description("Initial publisher filter.")]
+		[LocalizedDescription("Initial publisher filter.")]
 		public string? Publisher { get; init; }
 
 		[CommandOption("--tag <TEXT>")]
-		[Description("Initial derived tag filter.")]
+		[LocalizedDescription("Initial derived tag filter.")]
 		public string? Tag { get; init; }
 
 		[CommandOption("--limit <N>")]
-		[Description("Maximum titles/items to preload (default: 100, 0 = no limit).")]
+		[LocalizedDescription("Maximum titles/items to preload (default: 100, 0 = no limit).")]
 		public int? Limit { get; init; }
 
 		[CommandOption("--no-cache")]
-		[Description("Force a fresh library scan instead of using the cache.")]
+		[LocalizedDescription("Force a fresh library scan instead of using the cache.")]
 		public bool NoCache { get; init; }
 	}
 

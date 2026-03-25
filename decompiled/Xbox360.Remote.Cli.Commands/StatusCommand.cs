@@ -15,19 +15,19 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings>
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--quick")]
-		[Description("Skip JRPC2, drive, and user checks for a fast snapshot.")]
+		[LocalizedDescription("Skip JRPC2, drive, and user checks for a fast snapshot.")]
 		public bool Quick { get; init; }
 
 		[CommandOption("--no-jrpc")]
-		[Description("Skip JRPC2 queries (temps, CPU key, dashboard, title id).")]
+		[LocalizedDescription("Skip JRPC2 queries (temps, CPU key, dashboard, title id).")]
 		public bool NoJrpc { get; init; }
 
 		[CommandOption("--no-drives")]
-		[Description("Skip drive and USB size reporting.")]
+		[LocalizedDescription("Skip drive and USB size reporting.")]
 		public bool NoDrives { get; init; }
 
 		[CommandOption("--no-users")]
-		[Description("Skip user list and signed-in detection.")]
+		[LocalizedDescription("Skip user list and signed-in detection.")]
 		public bool NoUsers { get; init; }
 	}
 

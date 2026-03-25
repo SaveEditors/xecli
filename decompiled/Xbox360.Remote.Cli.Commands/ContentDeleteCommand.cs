@@ -13,15 +13,15 @@ public sealed class ContentDeleteCommand : AsyncCommand<ContentDeleteCommand.Set
 	public sealed class Settings : FtpConnectionSettings
 	{
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Title ID to remove.")]
+		[LocalizedDescription("Title ID to remove.")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--device <ROOTS>")]
-		[Description("Comma-separated content roots, for example Hdd1 or Hdd1,Usb0.")]
+		[LocalizedDescription("Comma-separated content roots, for example Hdd1 or Hdd1,Usb0.")]
 		public string? Devices { get; init; }
 
 		[CommandOption("--yes")]
-		[Description("Delete without interactive confirmation.")]
+		[LocalizedDescription("Delete without interactive confirmation.")]
 		public bool Yes { get; init; }
 	}
 

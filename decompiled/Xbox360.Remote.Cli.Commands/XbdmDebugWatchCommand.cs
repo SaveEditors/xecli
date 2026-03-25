@@ -15,23 +15,23 @@ public sealed class XbdmDebugWatchCommand : AsyncCommand<XbdmDebugWatchCommand.S
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--duration <SEC>")]
-		[Description("How long to wait for notifications before exiting (default: 30).")]
+		[LocalizedDescription("How long to wait for notifications before exiting (default: 30).")]
 		public int? DurationSeconds { get; init; }
 
 		[CommandOption("--max <N>")]
-		[Description("Maximum notifications to print before exiting.")]
+		[LocalizedDescription("Maximum notifications to print before exiting.")]
 		public int? MaxEvents { get; init; }
 
 		[CommandOption("--raw")]
-		[Description("Print raw notify lines instead of parsed summaries.")]
+		[LocalizedDescription("Print raw notify lines instead of parsed summaries.")]
 		public bool Raw { get; init; }
 
 		[CommandOption("--stopon-fce")]
-		[Description("Ask XBDM to stop on first-chance exceptions.")]
+		[LocalizedDescription("Ask XBDM to stop on first-chance exceptions.")]
 		public bool StopOnFce { get; init; }
 
 		[CommandOption("--name <NAME>")]
-		[Description("Debugger session name (default: XeCLI).")]
+		[LocalizedDescription("Debugger session name (default: XeCLI).")]
 		public string? DebuggerName { get; init; }
 	}
 

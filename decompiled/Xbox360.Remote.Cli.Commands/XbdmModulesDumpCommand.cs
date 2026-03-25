@@ -15,19 +15,19 @@ public sealed class XbdmModulesDumpCommand : AsyncCommand<XbdmModulesDumpCommand
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--name <MODULE>")]
-		[Description("Module name, e.g. default.xex or xam.xex.")]
+		[LocalizedDescription("Module name, e.g. default.xex or xam.xex.")]
 		public string? Name { get; init; }
 
 		[CommandOption("--out <FILE>")]
-		[Description("Output file path.")]
+		[LocalizedDescription("Output file path.")]
 		public string? Output { get; init; }
 
 		[CommandOption("--all")]
-		[Description("Dump all modules to a directory.")]
+		[LocalizedDescription("Dump all modules to a directory.")]
 		public bool All { get; init; }
 
 		[CommandOption("--dir <DIR>")]
-		[Description("Output directory for --all.")]
+		[LocalizedDescription("Output directory for --all.")]
 		public string? Directory { get; init; }
 	}
 

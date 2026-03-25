@@ -21,11 +21,11 @@ public sealed class XbdmMemStringsCommand : AsyncCommand<XbdmMemStringsCommand.S
 		public string? Size { get; init; }
 
 		[CommandOption("--min <N>")]
-		[Description("Minimum string length (default 4).")]
+		[LocalizedDescription("Minimum string length (default 4).")]
 		public int? MinLength { get; init; }
 
 		[CommandOption("--max <N>")]
-		[Description("Maximum strings to return (default 200).")]
+		[LocalizedDescription("Maximum strings to return (default 200).")]
 		public int? MaxCount { get; init; }
 	}
 

@@ -16,31 +16,31 @@ public sealed class SaveInjectCommand : AsyncCommand<SaveInjectCommand.Settings>
 	public sealed class Settings : FtpConnectionSettings
 	{
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Title ID in hex (for example 4D530805).")]
+		[LocalizedDescription("Title ID in hex (for example 4D530805).")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--profile <PROFILE>")]
-		[Description("Destination 16-character profile ID.")]
+		[LocalizedDescription("Destination 16-character profile ID.")]
 		public string? ProfileId { get; init; }
 
 		[CommandOption("--device <ROOT>")]
-		[Description("Destination storage root, for example Hdd1 or Usb0 (default: Hdd1).")]
+		[LocalizedDescription("Destination storage root, for example Hdd1 or Usb0 (default: Hdd1).")]
 		public string? Device { get; init; }
 
 		[CommandOption("--in <PATH>")]
-		[Description("Local file or directory to upload.")]
+		[LocalizedDescription("Local file or directory to upload.")]
 		public string? InputPath { get; init; }
 
 		[CommandOption("--remote-path <RELATIVE>")]
-		[Description("Relative save path to use when --in points to a single file.")]
+		[LocalizedDescription("Relative save path to use when --in points to a single file.")]
 		public string? RemotePath { get; init; }
 
 		[CommandOption("--overwrite")]
-		[Description("Overwrite remote files that already exist.")]
+		[LocalizedDescription("Overwrite remote files that already exist.")]
 		public bool Overwrite { get; init; }
 
 		[CommandOption("--dry-run")]
-		[Description("Show the remote paths that would be uploaded without writing anything.")]
+		[LocalizedDescription("Show the remote paths that would be uploaded without writing anything.")]
 		public bool DryRun { get; init; }
 	}
 

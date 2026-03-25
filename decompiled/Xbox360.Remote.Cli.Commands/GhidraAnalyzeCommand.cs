@@ -16,47 +16,47 @@ public sealed class GhidraAnalyzeCommand : AsyncCommand<GhidraAnalyzeCommand.Set
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--in <FILE>")]
-		[Description("Input file to analyze (XEX).")]
+		[LocalizedDescription("Input file to analyze (XEX).")]
 		public string? Input { get; init; }
 
 		[CommandOption("--ftp-path <PATH>")]
-		[Description("Fetch the XEX via FTP before analysis (e.g. /Hdd1/Aurora/Aurora.xex).")]
+		[LocalizedDescription("Fetch the XEX via FTP before analysis (e.g. /Hdd1/Aurora/Aurora.xex).")]
 		public string? FtpPath { get; init; }
 
 		[CommandOption("--running")]
-		[Description("Use the running title XEX (resolved via XBDM + FTP).")]
+		[LocalizedDescription("Use the running title XEX (resolved via XBDM + FTP).")]
 		public bool Running { get; init; }
 
 		[CommandOption("--project <NAME>")]
-		[Description("Project name (default: <file>_headless).")]
+		[LocalizedDescription("Project name (default: <file>_headless).")]
 		public string? ProjectName { get; init; }
 
 		[CommandOption("--projects <DIR>")]
-		[Description("Project root directory override.")]
+		[LocalizedDescription("Project root directory override.")]
 		public string? ProjectsPath { get; init; }
 
 		[CommandOption("--path <DIR>")]
-		[Description("Ghidra install directory override.")]
+		[LocalizedDescription("Ghidra install directory override.")]
 		public string? GhidraPath { get; init; }
 
 		[CommandOption("--java <DIR>")]
-		[Description("JAVA_HOME override.")]
+		[LocalizedDescription("JAVA_HOME override.")]
 		public string? JavaPath { get; init; }
 
 		[CommandOption("--loader <NAME>")]
-		[Description("Explicit loader name.")]
+		[LocalizedDescription("Explicit loader name.")]
 		public string? Loader { get; init; }
 
 		[CommandOption("--timeout <SEC>")]
-		[Description("Analysis timeout per file (seconds, default: 5000).")]
+		[LocalizedDescription("Analysis timeout per file (seconds, default: 5000).")]
 		public int? TimeoutSeconds { get; init; } = 5000;
 
 		[CommandOption("--delete-project")]
-		[Description("Delete the project before import.")]
+		[LocalizedDescription("Delete the project before import.")]
 		public bool DeleteProject { get; init; }
 
 		[CommandOption("--overwrite")]
-		[Description("Overwrite existing file in project.")]
+		[LocalizedDescription("Overwrite existing file in project.")]
 		public bool Overwrite { get; init; }
 	}
 

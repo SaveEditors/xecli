@@ -14,15 +14,15 @@ public sealed class AvatarGamesCommand : AsyncCommand<AvatarGamesCommand.Setting
 	public sealed class Settings : AvatarLibrarySettings
 	{
 		[CommandOption("--search <TEXT>")]
-		[Description("Filter titles by name, publisher, or title id.")]
+		[LocalizedDescription("Filter titles by name, publisher, or title id.")]
 		public string? Search { get; init; }
 
 		[CommandOption("--limit <N>")]
-		[Description("Maximum titles to show (default: 100, 0 = no limit).")]
+		[LocalizedDescription("Maximum titles to show (default: 100, 0 = no limit).")]
 		public int? Limit { get; init; }
 
 		[CommandOption("--no-cache")]
-		[Description("Force a fresh library scan instead of using the cache.")]
+		[LocalizedDescription("Force a fresh library scan instead of using the cache.")]
 		public bool NoCache { get; init; }
 	}
 

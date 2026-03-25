@@ -15,11 +15,11 @@ public sealed class ProfilesCommand : AsyncCommand<ProfilesCommand.Settings>
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--no-ftp")]
-		[Description("Skip FTP profile scan.")]
+		[LocalizedDescription("Skip FTP profile scan.")]
 		public bool NoFtp { get; init; }
 
 		[CommandOption("--no-f3")]
-		[Description("Skip F3 profile lookup (HTTP 9999).")]
+		[LocalizedDescription("Skip F3 profile lookup (HTTP 9999).")]
 		public bool NoF3 { get; init; }
 	}
 

@@ -11,7 +11,7 @@ public sealed class XbdmThreadResumeCommand : AsyncCommand<XbdmThreadResumeComma
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--id <ID>")]
-		[Description("Thread ID in hex or decimal.")]
+		[LocalizedDescription("Thread ID in hex or decimal.")]
 		public string? ThreadId { get; init; }
 	}
 

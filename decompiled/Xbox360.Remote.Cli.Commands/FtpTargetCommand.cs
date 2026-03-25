@@ -10,23 +10,23 @@ public sealed class FtpTargetCommand : Command<FtpTargetCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--set <IP>")]
-		[Description("Set the default FTP IP.")]
+		[LocalizedDescription("Set the default FTP IP.")]
 		public string? Ip { get; init; }
 
 		[CommandOption("--port <PORT>")]
-		[Description("Set the default FTP port (default: 21).")]
+		[LocalizedDescription("Set the default FTP port (default: 21).")]
 		public int? Port { get; init; }
 
 		[CommandOption("--user <USER>")]
-		[Description("Set the default FTP username.")]
+		[LocalizedDescription("Set the default FTP username.")]
 		public string? User { get; init; }
 
 		[CommandOption("--pass <PASS>")]
-		[Description("Set the default FTP password.")]
+		[LocalizedDescription("Set the default FTP password.")]
 		public string? Pass { get; init; }
 
 		[CommandOption("--clear")]
-		[Description("Clear saved FTP target settings.")]
+		[LocalizedDescription("Clear saved FTP target settings.")]
 		public bool Clear { get; init; }
 	}
 

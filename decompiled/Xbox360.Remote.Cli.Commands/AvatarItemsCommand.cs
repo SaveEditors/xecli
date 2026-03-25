@@ -13,31 +13,31 @@ public sealed class AvatarItemsCommand : AsyncCommand<AvatarItemsCommand.Setting
 	public sealed class Settings : AvatarLibrarySettings
 	{
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Restrict items to a Title ID.")]
+		[LocalizedDescription("Restrict items to a Title ID.")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--game <TEXT>")]
-		[Description("Restrict items to a game name match.")]
+		[LocalizedDescription("Restrict items to a game name match.")]
 		public string? Game { get; init; }
 
 		[CommandOption("--search <TEXT>")]
-		[Description("Search by item name, game name, or content id.")]
+		[LocalizedDescription("Search by item name, game name, or content id.")]
 		public string? Search { get; init; }
 
 		[CommandOption("--publisher <TEXT>")]
-		[Description("Restrict items to one publisher.")]
+		[LocalizedDescription("Restrict items to one publisher.")]
 		public string? Publisher { get; init; }
 
 		[CommandOption("--tag <TEXT>")]
-		[Description("Restrict items to one derived tag.")]
+		[LocalizedDescription("Restrict items to one derived tag.")]
 		public string? Tag { get; init; }
 
 		[CommandOption("--limit <N>")]
-		[Description("Maximum items to show (default: 100, 0 = no limit).")]
+		[LocalizedDescription("Maximum items to show (default: 100, 0 = no limit).")]
 		public int? Limit { get; init; }
 
 		[CommandOption("--no-cache")]
-		[Description("Force a fresh library scan instead of using the cache.")]
+		[LocalizedDescription("Force a fresh library scan instead of using the cache.")]
 		public bool NoCache { get; init; }
 	}
 

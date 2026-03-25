@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using XeCli.Localization;
 using Color = Spectre.Console.Color;
 using Panel = Spectre.Console.Panel;
 
@@ -22,31 +23,31 @@ public sealed class InstallCommand : Command<InstallCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--machine")]
-		[Description("Install for all users (administrator approval required).")]
+		[LocalizedDescription("Install for all users (administrator approval required).")]
 		public bool Machine { get; init; }
 
 		[CommandOption("--uninstall")]
-		[Description("Remove the command registration. With --machine, remove the all-users PATH entry.")]
+		[LocalizedDescription("Remove the command registration. With --machine, remove the all-users PATH entry.")]
 		public bool Uninstall { get; init; }
 
 		[CommandOption("--machine-path")]
-		[Description("Legacy path-only install for the current executable directory (admin required).")]
+		[LocalizedDescription("Legacy path-only install for the current executable directory (admin required).")]
 		public bool MachinePath { get; init; }
 
 		[CommandOption("--path <DIR>")]
-		[Description("Install directory for XeCLI.")]
+		[LocalizedDescription("Install directory for XeCLI.")]
 		public string? Path { get; init; }
 
 		[CommandOption("--source <DIR>")]
-		[Description("Source release directory containing rgh.exe and its runtime files.")]
+		[LocalizedDescription("Source release directory containing rgh.exe and its runtime files.")]
 		public string? Source { get; init; }
 
 		[CommandOption("--no-path")]
-		[Description("Do not add the install directory to PATH.")]
+		[LocalizedDescription("Do not add the install directory to PATH.")]
 		public bool NoPath { get; init; }
 
 		[CommandOption("--quiet")]
-		[Description("Suppress non-error install output.")]
+		[LocalizedDescription("Suppress non-error install output.")]
 		public bool Quiet { get; init; }
 	}
 
@@ -290,11 +291,11 @@ public sealed class InstallCommand : Command<InstallCommand.Settings>
 				return defaultYes;
 			}
 			text = text.Trim().ToLowerInvariant();
-			if ((text == "y" || text == "yes") ? true : false)
+			if (LocalizedText.IsAffirmative(text))
 			{
 				return true;
 			}
-			if ((text == "n" || text == "no") ? true : false)
+			if (LocalizedText.IsNegative(text))
 			{
 				break;
 			}

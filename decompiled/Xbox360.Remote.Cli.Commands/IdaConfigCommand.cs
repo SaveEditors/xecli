@@ -10,23 +10,23 @@ public sealed class IdaConfigCommand : Command<IdaConfigCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--path <DIR>")]
-		[Description("IDA install directory.")]
+		[LocalizedDescription("IDA install directory.")]
 		public string? Path { get; init; }
 
 		[CommandOption("--python <EXE>")]
-		[Description("Python interpreter for idalib workflows.")]
+		[LocalizedDescription("Python interpreter for idalib workflows.")]
 		public string? PythonPath { get; init; }
 
 		[CommandOption("--user <DIR>")]
-		[Description("IDAUSR override for plugins/loaders.")]
+		[LocalizedDescription("IDAUSR override for plugins/loaders.")]
 		public string? UserPath { get; init; }
 
 		[CommandOption("--backend <MODE>")]
-		[Description("Preferred backend: auto, batch, or idalib.")]
+		[LocalizedDescription("Preferred backend: auto, batch, or idalib.")]
 		public string? Backend { get; init; }
 
 		[CommandOption("--clear")]
-		[Description("Clear stored IDA settings.")]
+		[LocalizedDescription("Clear stored IDA settings.")]
 		public bool Clear { get; init; }
 	}
 

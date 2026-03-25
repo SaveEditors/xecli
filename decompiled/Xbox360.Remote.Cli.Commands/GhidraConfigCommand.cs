@@ -10,19 +10,19 @@ public sealed class GhidraConfigCommand : Command<GhidraConfigCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--path <DIR>")]
-		[Description("Ghidra install directory (contains support/analyzeHeadless.bat).")]
+		[LocalizedDescription("Ghidra install directory (contains support/analyzeHeadless.bat).")]
 		public string? Path { get; init; }
 
 		[CommandOption("--java <DIR>")]
-		[Description("JAVA_HOME to use for Ghidra.")]
+		[LocalizedDescription("JAVA_HOME to use for Ghidra.")]
 		public string? JavaPath { get; init; }
 
 		[CommandOption("--projects <DIR>")]
-		[Description("Default Ghidra projects directory.")]
+		[LocalizedDescription("Default Ghidra projects directory.")]
 		public string? ProjectsPath { get; init; }
 
 		[CommandOption("--clear")]
-		[Description("Clear stored Ghidra settings.")]
+		[LocalizedDescription("Clear stored Ghidra settings.")]
 		public bool Clear { get; init; }
 	}
 

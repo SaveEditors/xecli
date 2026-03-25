@@ -12,23 +12,23 @@ public sealed class GodBuildCommand : Command<GodBuildCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<ISO>")]
-		[Description("Path to the ISO image.")]
+		[LocalizedDescription("Path to the ISO image.")]
 		public string IsoPath { get; init; } = string.Empty;
 
 		[CommandArgument(1, "<DEST>")]
-		[Description("Output folder for the GOD package.")]
+		[LocalizedDescription("Output folder for the GOD package.")]
 		public string DestDir { get; init; } = string.Empty;
 
 		[CommandOption("--trim <MODE>")]
-		[Description("Trim unused space: end or none (default: end).")]
+		[LocalizedDescription("Trim unused space: end or none (default: end).")]
 		public string? Trim { get; init; }
 
 		[CommandOption("-j|--threads <N>")]
-		[Description("Parallel workers for part files (default: 1).")]
+		[LocalizedDescription("Parallel workers for part files (default: 1).")]
 		public int Threads { get; init; } = 1;
 
 		[CommandOption("--title <NAME>")]
-		[Description("Override the package display title.")]
+		[LocalizedDescription("Override the package display title.")]
 		public string? Title { get; init; }
 	}
 

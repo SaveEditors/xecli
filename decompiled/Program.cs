@@ -1,13 +1,16 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Cli.Help;
+using XeCli.Localization;
 using Xbox360.Remote.Cli;
 using Xbox360.Remote.Cli.Commands;
 using Color = Spectre.Console.Color;
@@ -18,7 +21,14 @@ internal static class Program
 	[STAThread]
 	public static async Task<int> Main(string[] args)
 	{
+		args = LocalizedText.ExtractLanguageArgument(args, out string? requestedLanguage);
 		args = NormalizeArgs(args);
+		LocalizedText.Initialize(ResolveLanguageCode(args, requestedLanguage));
+		Console.InputEncoding = Encoding.UTF8;
+		Console.OutputEncoding = Encoding.UTF8;
+		LocalizedConsole.Initialize();
+		CultureInfo.CurrentUICulture = LocalizedText.Culture;
+		CultureInfo.DefaultThreadCurrentUICulture = LocalizedText.Culture;
 		if (OperatingSystem.IsWindows())
 		{
 			InstallHelpers.RemoveBrokenUserShim();
@@ -33,6 +43,8 @@ internal static class Program
 		commandApp.Configure(delegate(IConfigurator config)
 		{
 			config.SetApplicationName("rgh");
+			config.Settings.Culture = LocalizedText.Culture;
+			config.Settings.Console = AnsiConsole.Console;
 			config.Settings.ShowOptionDefaultValues = true;
 			config.Settings.MaximumIndirectExamples = 2;
 			ICommandAppSettings settings = config.Settings;
@@ -413,14 +425,16 @@ internal static class Program
 				xell.AddExample("xell", "info");
 				xell.AddExample("xell", "kv", "export");
 				xell.AddExample("xell", "kv", "export", "--raw");
+				xell.AddExample("xell", "kv", "export", "--single");
 				xell.AddCommand<XellBootCommand>("boot").WithDescription("Launch XeLL Reloaded, or confirm that XeLL is already running.");
 				xell.AddCommand<XellInfoCommand>("info").WithDescription("Inspect the available XeLL HTTP services, endpoints, and detected CPU key.");
 				ConfiguratorExtensions.AddBranch(xell, "kv", delegate(IConfigurator<CommandSettings> kv)
 				{
-					kv.SetDescription("XeLL keyvault export helpers.");
+					kv.SetDescription("XeLL keyvault export helpers with optional repeated verification.");
 					kv.AddExample("xell", "kv", "export");
 					kv.AddExample("xell", "kv", "export", "--output", "kv_backup.bin");
 					kv.AddExample("xell", "kv", "export", "--raw");
+					kv.AddExample("xell", "kv", "export", "--single");
 					kv.AddCommand<XellKvExportCommand>("export").WithDescription("Export the keyvault, CPU key text, and a packaged verified backup set.");
 				});
 			});
@@ -660,6 +674,32 @@ internal static class Program
 		return await commandApp.RunAsync(args);
 	}
 
+	private static string ResolveLanguageCode(string[] args, string? requestedLanguage)
+	{
+		if (!string.IsNullOrWhiteSpace(requestedLanguage))
+		{
+			return LocalizedText.NormalizeLanguageCode(requestedLanguage);
+		}
+		string environmentVariable = Environment.GetEnvironmentVariable("XECLI_LANG");
+		if (!string.IsNullOrWhiteSpace(environmentVariable))
+		{
+			return LocalizedText.NormalizeLanguageCode(environmentVariable);
+		}
+		CliConfig cliConfig = CliConfig.Load();
+		if (!string.IsNullOrWhiteSpace(cliConfig.UiLanguage))
+		{
+			return LocalizedText.NormalizeLanguageCode(cliConfig.UiLanguage);
+		}
+		if (ShouldPromptForLanguage(args))
+		{
+			string value = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Choose language / Elige idioma").AddChoices("English", "Español"));
+			cliConfig.UiLanguage = ((value == "Español") ? "es" : "en");
+			cliConfig.Save();
+			return cliConfig.UiLanguage;
+		}
+		return LocalizedText.GetDefaultLanguageCode();
+	}
+
 	private static Task HandleFirstRunPathPromptAsync(string[] args)
 	{
 		if (!ShouldShowPathPrompt(args))
@@ -859,6 +899,19 @@ internal static class Program
 	{
 		Assembly assembly = Assembly.GetEntryAssembly() ?? typeof(Program).Assembly;
 		return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? assembly.GetName().Version?.ToString() ?? "unknown";
+	}
+
+	private static bool ShouldPromptForLanguage(string[] args)
+	{
+		if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
+		{
+			return false;
+		}
+		if (IsVersionRequest(args))
+		{
+			return false;
+		}
+		return !args.Any((string arg) => arg.Equals("--version", StringComparison.OrdinalIgnoreCase) || arg.Equals("-v", StringComparison.OrdinalIgnoreCase));
 	}
 
 	private static bool ShouldShowPathPrompt(string[] args)

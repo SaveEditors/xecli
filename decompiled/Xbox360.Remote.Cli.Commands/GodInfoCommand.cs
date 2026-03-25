@@ -11,11 +11,11 @@ public sealed class GodInfoCommand : Command<GodInfoCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<ISO>")]
-		[Description("Path to the ISO image.")]
+		[LocalizedDescription("Path to the ISO image.")]
 		public string IsoPath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 

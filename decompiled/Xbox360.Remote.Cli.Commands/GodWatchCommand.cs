@@ -17,63 +17,63 @@ public sealed class GodWatchCommand : AsyncCommand<GodWatchCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<WATCH>")]
-		[Description("Directory to watch for new ISO files.")]
+		[LocalizedDescription("Directory to watch for new ISO files.")]
 		public string WatchDir { get; init; } = string.Empty;
 
 		[CommandOption("--dest <DIR>")]
-		[Description("Output root directory for GOD packages.")]
+		[LocalizedDescription("Output root directory for GOD packages.")]
 		public string DestDir { get; init; } = string.Empty;
 
 		[CommandOption("--trim <MODE>")]
-		[Description("Trim unused space: end or none (default: end).")]
+		[LocalizedDescription("Trim unused space: end or none (default: end).")]
 		public string? Trim { get; init; }
 
 		[CommandOption("-j|--threads <N>")]
-		[Description("Parallel workers for part files (default: 1).")]
+		[LocalizedDescription("Parallel workers for part files (default: 1).")]
 		public int Threads { get; init; } = 1;
 
 		[CommandOption("--title <NAME>")]
-		[Description("Override the package display title for all conversions.")]
+		[LocalizedDescription("Override the package display title for all conversions.")]
 		public string? Title { get; init; }
 
 		[CommandOption("--ext <LIST>")]
-		[Description("Comma-separated extensions to include (default: iso).")]
+		[LocalizedDescription("Comma-separated extensions to include (default: iso).")]
 		public string? Extensions { get; init; }
 
 		[CommandOption("--recursive")]
-		[Description("Watch subdirectories recursively.")]
+		[LocalizedDescription("Watch subdirectories recursively.")]
 		public bool Recursive { get; init; }
 
 		[CommandOption("--settle <SECONDS>")]
-		[Description("Seconds a file must remain unchanged before converting (default: 8).")]
+		[LocalizedDescription("Seconds a file must remain unchanged before converting (default: 8).")]
 		public int SettleSeconds { get; init; } = 8;
 
 		[CommandOption("--poll <MS>")]
-		[Description("Poll interval in milliseconds for stability checks (default: 500).")]
+		[LocalizedDescription("Poll interval in milliseconds for stability checks (default: 500).")]
 		public int PollMs { get; init; } = 500;
 
 		[CommandOption("--timeout <SECONDS>")]
-		[Description("Max seconds to wait for a file to become stable (0 = no timeout).")]
+		[LocalizedDescription("Max seconds to wait for a file to become stable (0 = no timeout).")]
 		public int TimeoutSeconds { get; init; }
 
 		[CommandOption("--retries <N>")]
-		[Description("Retry failed conversions (default: 2).")]
+		[LocalizedDescription("Retry failed conversions (default: 2).")]
 		public int Retries { get; init; } = 2;
 
 		[CommandOption("--delete-source")]
-		[Description("Delete ISO files after a successful conversion.")]
+		[LocalizedDescription("Delete ISO files after a successful conversion.")]
 		public bool DeleteSource { get; init; }
 
 		[CommandOption("--move-done <DIR>")]
-		[Description("Move ISO files to this folder after successful conversion.")]
+		[LocalizedDescription("Move ISO files to this folder after successful conversion.")]
 		public string? MoveDoneDir { get; init; }
 
 		[CommandOption("--move-failed <DIR>")]
-		[Description("Move ISO files to this folder after failed conversion.")]
+		[LocalizedDescription("Move ISO files to this folder after failed conversion.")]
 		public string? MoveFailedDir { get; init; }
 
 		[CommandOption("--once")]
-		[Description("Process existing ISOs once and exit.")]
+		[LocalizedDescription("Process existing ISOs once and exit.")]
 		public bool Once { get; init; }
 	}
 

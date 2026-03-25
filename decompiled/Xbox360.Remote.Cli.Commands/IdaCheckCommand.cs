@@ -12,19 +12,19 @@ public sealed class IdaCheckCommand : AsyncCommand<IdaCheckCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--path <DIR>")]
-		[Description("IDA install directory override.")]
+		[LocalizedDescription("IDA install directory override.")]
 		public string? Path { get; init; }
 
 		[CommandOption("--python <EXE>")]
-		[Description("Python interpreter override for idalib checks.")]
+		[LocalizedDescription("Python interpreter override for idalib checks.")]
 		public string? PythonPath { get; init; }
 
 		[CommandOption("--user <DIR>")]
-		[Description("IDAUSR override for loader discovery.")]
+		[LocalizedDescription("IDAUSR override for loader discovery.")]
 		public string? UserPath { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 

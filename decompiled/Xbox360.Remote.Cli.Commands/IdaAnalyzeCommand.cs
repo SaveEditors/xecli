@@ -14,47 +14,47 @@ public sealed class IdaAnalyzeCommand : AsyncCommand<IdaAnalyzeCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--in <FILE>")]
-		[Description("Input file to analyze (XEX/XBE/etc.).")]
+		[LocalizedDescription("Input file to analyze (XEX/XBE/etc.).")]
 		public string? Input { get; init; }
 
 		[CommandOption("--ftp-path <PATH>")]
-		[Description("Fetch the executable via FTP before analysis.")]
+		[LocalizedDescription("Fetch the executable via FTP before analysis.")]
 		public string? FtpPath { get; init; }
 
 		[CommandOption("--running")]
-		[Description("Use the running title XEX (resolved via XBDM + FTP).")]
+		[LocalizedDescription("Use the running title XEX (resolved via XBDM + FTP).")]
 		public bool Running { get; init; }
 
 		[CommandOption("--out-db <FILE>")]
-		[Description("Output IDA database path (.i64). Defaults to XeCLI cache.")]
+		[LocalizedDescription("Output IDA database path (.i64). Defaults to XeCLI cache.")]
 		public string? OutputDatabase { get; init; }
 
 		[CommandOption("--overwrite")]
-		[Description("Overwrite an existing output database.")]
+		[LocalizedDescription("Overwrite an existing output database.")]
 		public bool Overwrite { get; init; }
 
 		[CommandOption("--path <DIR>")]
-		[Description("IDA install directory override.")]
+		[LocalizedDescription("IDA install directory override.")]
 		public string? IdaPath { get; init; }
 
 		[CommandOption("--user <DIR>")]
-		[Description("IDAUSR override for plugins/loaders.")]
+		[LocalizedDescription("IDAUSR override for plugins/loaders.")]
 		public string? UserPath { get; init; }
 
 		[CommandOption("--script-path <DIR>")]
-		[Description("Override script path (default: ida_scripts next to rgh.exe).")]
+		[LocalizedDescription("Override script path (default: ida_scripts next to rgh.exe).")]
 		public string? ScriptPath { get; init; }
 
 		[CommandOption("--log <FILE>")]
-		[Description("IDA log file path. Defaults to XeCLI cache.")]
+		[LocalizedDescription("IDA log file path. Defaults to XeCLI cache.")]
 		public string? LogPath { get; init; }
 
 		[CommandOption("--file-type <TYPE>")]
-		[Description("Explicit IDA file type override.")]
+		[LocalizedDescription("Explicit IDA file type override.")]
 		public string? FileType { get; init; }
 
 		[CommandOption("--processor <NAME>")]
-		[Description("Explicit processor override.")]
+		[LocalizedDescription("Explicit processor override.")]
 		public string? Processor { get; init; }
 	}
 

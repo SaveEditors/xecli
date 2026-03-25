@@ -12,7 +12,7 @@ public sealed class Jrpc2TempsCommand : AsyncCommand<Jrpc2TempsCommand.Settings>
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandOption("--sensor <SENSOR>")]
-		[Description("cpu|gpu|edram|motherboard")]
+		[LocalizedDescription("cpu|gpu|edram|motherboard")]
 		public string? Sensor { get; init; }
 	}
 

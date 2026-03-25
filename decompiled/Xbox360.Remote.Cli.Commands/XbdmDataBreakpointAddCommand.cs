@@ -15,11 +15,11 @@ public sealed class XbdmDataBreakpointAddCommand : AsyncCommand<XbdmDataBreakpoi
 		public string? Address { get; init; }
 
 		[CommandOption("--size <SIZE>")]
-		[Description("Size in bytes (default 4).")]
+		[LocalizedDescription("Size in bytes (default 4).")]
 		public string? Size { get; init; }
 
 		[CommandOption("--type <TYPE>")]
-		[Description("write|read|exec|rw (default write).")]
+		[LocalizedDescription("write|read|exec|rw (default write).")]
 		public string? Type { get; init; }
 	}
 

@@ -14,39 +14,39 @@ public sealed class LaunchCommand : AsyncCommand<LaunchCommand.Settings>
 	public sealed class Settings : ConnectionSettings
 	{
 		[CommandArgument(0, "[XEX]")]
-		[Description("XEX path to launch, for example Hdd1:\\Aurora\\Aurora.xex.")]
+		[LocalizedDescription("XEX path to launch, for example Hdd1:\\Aurora\\Aurora.xex.")]
 		public string? Xex { get; init; }
 
 		[CommandOption("--xex <PATH>")]
-		[Description("XEX path to launch, for example Hdd1:\\Aurora\\Aurora.xex.")]
+		[LocalizedDescription("XEX path to launch, for example Hdd1:\\Aurora\\Aurora.xex.")]
 		public string? XexPath { get; init; }
 
 		[CommandOption("--directory <DIR>")]
-		[Description("Working directory passed to XBDM. Defaults to the XEX folder.")]
+		[LocalizedDescription("Working directory passed to XBDM. Defaults to the XEX folder.")]
 		public string? Directory { get; init; }
 
 		[CommandOption("--args <TEXT>")]
-		[Description("Command-line arguments passed to the XEX.")]
+		[LocalizedDescription("Command-line arguments passed to the XEX.")]
 		public string? Arguments { get; init; }
 
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Optional Title ID for display/logging.")]
+		[LocalizedDescription("Optional Title ID for display/logging.")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--dry-run")]
-		[Description("Show the generated XBDM command without executing it.")]
+		[LocalizedDescription("Show the generated XBDM command without executing it.")]
 		public bool DryRun { get; init; }
 
 		[CommandOption("--notify")]
-		[Description("Send a default success notification to the console.")]
+		[LocalizedDescription("Send a default success notification to the console.")]
 		public bool Notify { get; init; }
 
 		[CommandOption("--notify-icon <NAME>")]
-		[Description("Notification icon preset name.")]
+		[LocalizedDescription("Notification icon preset name.")]
 		public string? NotifyIcon { get; init; }
 
 		[CommandOption("--notify-logo <ID>")]
-		[Description("Notification logo id (decimal or 0x hex).")]
+		[LocalizedDescription("Notification logo id (decimal or 0x hex).")]
 		public string? NotifyLogo { get; init; }
 	}
 

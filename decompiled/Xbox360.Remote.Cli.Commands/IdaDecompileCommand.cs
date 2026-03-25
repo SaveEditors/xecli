@@ -14,67 +14,67 @@ public sealed class IdaDecompileCommand : AsyncCommand<IdaDecompileCommand.Setti
 	public sealed class Settings : CommandSettings
 	{
 		[CommandOption("--in <FILE>")]
-		[Description("Input file to analyze (XEX/XBE/etc.).")]
+		[LocalizedDescription("Input file to analyze (XEX/XBE/etc.).")]
 		public string? Input { get; init; }
 
 		[CommandOption("--ftp-path <PATH>")]
-		[Description("Fetch the executable via FTP before decompilation.")]
+		[LocalizedDescription("Fetch the executable via FTP before decompilation.")]
 		public string? FtpPath { get; init; }
 
 		[CommandOption("--running")]
-		[Description("Use the running title XEX (resolved via XBDM + FTP).")]
+		[LocalizedDescription("Use the running title XEX (resolved via XBDM + FTP).")]
 		public bool Running { get; init; }
 
 		[CommandOption("--out <DIR>")]
-		[Description("Output directory for decompiled C files.")]
+		[LocalizedDescription("Output directory for decompiled C files.")]
 		public string? Output { get; init; }
 
 		[CommandOption("--max <N>")]
-		[Description("Maximum number of functions to decompile.")]
+		[LocalizedDescription("Maximum number of functions to decompile.")]
 		public int? MaxFunctions { get; init; }
 
 		[CommandOption("--backend <MODE>")]
-		[Description("Backend: auto, batch, or idalib.")]
+		[LocalizedDescription("Backend: auto, batch, or idalib.")]
 		public string? Backend { get; init; }
 
 		[CommandOption("--out-db <FILE>")]
-		[Description("Persist the generated IDA database (batch backend only).")]
+		[LocalizedDescription("Persist the generated IDA database (batch backend only).")]
 		public string? OutputDatabase { get; init; }
 
 		[CommandOption("--keep-db")]
-		[Description("Keep the generated cache database when --out-db is omitted (batch backend only).")]
+		[LocalizedDescription("Keep the generated cache database when --out-db is omitted (batch backend only).")]
 		public bool KeepDatabase { get; init; }
 
 		[CommandOption("--overwrite-db")]
-		[Description("Overwrite an existing output database.")]
+		[LocalizedDescription("Overwrite an existing output database.")]
 		public bool OverwriteDatabase { get; init; }
 
 		[CommandOption("--path <DIR>")]
-		[Description("IDA install directory override.")]
+		[LocalizedDescription("IDA install directory override.")]
 		public string? IdaPath { get; init; }
 
 		[CommandOption("--python <EXE>")]
-		[Description("Python interpreter override for idalib.")]
+		[LocalizedDescription("Python interpreter override for idalib.")]
 		public string? PythonPath { get; init; }
 
 		[CommandOption("--user <DIR>")]
-		[Description("IDAUSR override for plugins/loaders.")]
+		[LocalizedDescription("IDAUSR override for plugins/loaders.")]
 		public string? UserPath { get; init; }
 
 		[CommandOption("--script-path <DIR>")]
-		[Description("Override script path (default: ida_scripts next to rgh.exe).")]
+		[LocalizedDescription("Override script path (default: ida_scripts next to rgh.exe).")]
 		public string? ScriptPath { get; init; }
 
 		[CommandOption("--log <FILE>")]
-		[Description("IDA log file path (batch backend). Defaults to XeCLI cache.")]
+		[LocalizedDescription("IDA log file path (batch backend). Defaults to XeCLI cache.")]
 		public string? LogPath { get; init; }
 
 		[CommandOption("--file-type <TYPE>")]
-		[Description("Explicit IDA file type override.")]
+		[LocalizedDescription("Explicit IDA file type override.")]
 		public string? FileType { get; init; }
 
 		[CommandOption("--processor <NAME>")]
-		[Description("Explicit processor override.")]
+		[LocalizedDescription("Explicit processor override.")]
 		public string? Processor { get; init; }
 	}
 

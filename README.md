@@ -16,4 +16,4 @@ Useful docs:
 - [wiki/XeLL-and-NAND-Backups.md](wiki/XeLL-and-NAND-Backups.md)
 - [wiki/Commands.md](wiki/Commands.md)
 
-The standalone `Xell-NoN` companion bundle lives in [Xell-NoN](Xell-NoN). It packages the custom `xell.bin`, `XellLaunch`, and `QuickBoot` assets for operators who want the XeLL-side payload without the full XeCLI desktop workflow.
+The standalone `Xell-NoN` companion bundle lives in [Xell-NoN](Xell-NoN) and is also published at [github.com/SaveEditors/Xell-NoN](https://github.com/SaveEditors/Xell-NoN). It packages the custom `xell.bin`, `XellLaunch`, and `QuickBoot` assets for operators who want the XeLL-side payload without the full XeCLI desktop workflow.

@@ -4,7 +4,7 @@ XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with X
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
-[![Support XeCLI on Ko-fi](https://storage.ko-fi.com/cdn/kofi3.png?v=3)](https://ko-fi.com/saveeditors)
+[![Support XeCLI on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/saveeditors)
 
 ## What XeCLI Covers
 

@@ -46,7 +46,11 @@ internal static class XellAssetHelpers
 		},
 		{
 			"F53C65698C85419CF5709A2A79EC9BAEE26382BB85717CD551C0069E4F3EF47E",
-			("Xell-NoN custom payload build (alex-free/xell-reloaded v0.993-d4f08b4, xell-2f)", "Shows the XeCLI waiting screen, progress states, and token-gated verified reboot flow used by XeCLI v1.0.6.")
+			("XeCLI-XeLL custom payload build (alex-free/xell-reloaded v0.993-d4f08b4, xell-2f)", "Shows the XeCLI waiting screen, job-aware progress states, and token-gated verified reboot flow used by XeCLI v1.0.6.")
+		},
+		{
+			"FB84B61F0DC1E245D282B92D7300409C1049342386C36F4363D170A23466757E",
+			("XeCLI-XeLL custom payload build (alex-free/xell-reloaded v0.993-d4f08b4, xell-2f)", "Shows the XeCLI waiting screen, job-aware progress states, verified keyvault export support, and token-gated verified reboot flow used by XeCLI v1.0.6.")
 		},
 		{
 			"1D5581C9C4FA01E4604A706ABA494AF72A163B1A9889EB31E5A2BA1536B3EA8C",

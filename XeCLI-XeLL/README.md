@@ -1,6 +1,6 @@
-# Xell-NoN
+# XeCLI-XeLL
 
-Xell-NoN is a small standalone package for the XeCLI NAND-over-network payload.
+XeCLI-XeLL is the standalone companion package for XeCLI's custom XeLL payload and launcher bundle.
 
 It includes:
 
@@ -8,7 +8,7 @@ It includes:
 - the `XellLaunch` helper XEX used to chain-load that payload from a running dashboard
 - the `QuickBoot` content assets used to build a dashboard shortcut package
 
-XeCLI uses this payload as part of its automated NAND dump flow. If you want the full PC-side workflow, verification loop, packaging, and reboot handling, use the main XeCLI repo instead.
+XeCLI uses this payload as part of its automated XeLL workflows, including verified NAND dumping and verified keyvault export. If you want the full PC-side workflow, verification loop, packaging, and reboot handling, use the main XeCLI repo instead.
 
 Main XeCLI repo: [https://github.com/SaveEditors/xecli](https://github.com/SaveEditors/xecli)
 
@@ -56,7 +56,9 @@ The helper looks for `xell.bin` beside itself first. If you move the helper, kee
 Useful endpoints exposed by this payload family:
 
 - `/rawflash` and `/FLASH`: NAND dump stream
+- `/KV`, `/KVRAW`, and `/KVRAW2`: keyvault export stream
 - `/XECLI_STATUS` and `/xecli_status`: plain-text status and heartbeat
+- `/XECLI_SYNC` and `/xecli_sync`: XeCLI job/status synchronization
 - `/reboot` and `/REBOOT`: generic reboot
 - `/XECLI_DONE`, `/xecli_done`, `/XECLI_REBOOT`, `/xecli_reboot`: completion reboot paths used by XeCLI
 

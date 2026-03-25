@@ -33,6 +33,12 @@ internal sealed record XellLaunchPreflight(string LauncherPath, string SiblingXe
 
 internal sealed record XellBootRequest(bool ForceDirectBoot, string? LauncherPath, XellLaunchPreflight? Preflight, bool UsedQuickBoot = false, string? QuickBootPackagePath = null, string? QuickBootTargetPath = null, string? QuickBootLauncherPath = null, IReadOnlyList<string>? UsbStorage = null);
 
+internal enum XellPayloadJobKind
+{
+	Nand,
+	KeyVault
+}
+
 internal static class XellHelpers
 {
 	public const int DefaultBootTimeoutSeconds = 210;
@@ -62,6 +68,10 @@ internal static class XellHelpers
 	private static readonly string[] DefaultStartupLogPaths = new string[2] { "/log", "/LOG" };
 
 	private const string FinalRebootToken = "RBT";
+
+	private const string PayloadJobNand = "nand";
+
+	private const string PayloadJobKeyVault = "kv";
 
 	private static readonly string[] DefaultCustomStatusPaths = new string[2] { "/XECLI_STATUS", "/xecli_status" };
 
@@ -530,14 +540,19 @@ public static async Task DownloadRawFlashAsync(XellHttpEndpoint endpoint, string
 	await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.RawFlashPath, DefaultRawFlashPaths), destinationPath, title, "XeLL did not expose a readable flash dump endpoint.", cancellationToken, progressSyncCallback);
 }
 
-	public static async Task DownloadKeyVaultAsync(XellHttpEndpoint endpoint, string destinationPath, bool raw, string title, CancellationToken cancellationToken)
+	public static Task DownloadKeyVaultAsync(XellHttpEndpoint endpoint, string destinationPath, bool raw, string title, CancellationToken cancellationToken)
+	{
+		return DownloadKeyVaultAsync(endpoint, destinationPath, raw, title, cancellationToken, null);
+	}
+
+	public static async Task DownloadKeyVaultAsync(XellHttpEndpoint endpoint, string destinationPath, bool raw, string title, CancellationToken cancellationToken, Func<int, Task>? progressSyncCallback)
 	{
 	if (raw)
 	{
-		await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.RawKeyVaultPath, DefaultRawKeyVaultPaths), destinationPath, title, "XeLL did not expose a readable raw keyvault endpoint.", cancellationToken, null);
+		await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.RawKeyVaultPath, DefaultRawKeyVaultPaths), destinationPath, title, "XeLL did not expose a readable raw keyvault endpoint.", cancellationToken, progressSyncCallback);
 		return;
 	}
-	await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.KeyVaultPath, DefaultKeyVaultPaths), destinationPath, title, "XeLL did not expose a readable keyvault endpoint.", cancellationToken, null);
+	await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.KeyVaultPath, DefaultKeyVaultPaths), destinationPath, title, "XeLL did not expose a readable keyvault endpoint.", cancellationToken, progressSyncCallback);
 }
 
 public static async Task DownloadBinaryAsync(XellHttpEndpoint endpoint, string relativePath, string destinationPath, string title, CancellationToken cancellationToken)
@@ -655,24 +670,59 @@ public static async Task DownloadBinaryAsync(XellHttpEndpoint endpoint, string r
 		return null;
 	}
 
+private static string GetPayloadJobName(XellPayloadJobKind job)
+{
+	return (job == XellPayloadJobKind.KeyVault) ? PayloadJobKeyVault : PayloadJobNand;
+}
+
+private static Task<bool> TrySyncJobStageAsync(XellHttpEndpoint endpoint, XellPayloadJobKind job, string stage, bool? verified, int? verificationPass, int? verificationTotal, string? path, string? reason, string? finalToken, int? percent, CancellationToken cancellationToken)
+{
+	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath(GetPayloadJobName(job), stage, verified, verificationPass, verificationTotal, path, reason, finalToken, percent), cancellationToken);
+}
+
 public static Task<bool> TrySyncDumpStartedAsync(XellHttpEndpoint endpoint, CancellationToken cancellationToken)
 {
-	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("dump", null, null, null, null, null, null, null), cancellationToken);
+	return TrySyncJobStageAsync(endpoint, XellPayloadJobKind.Nand, "dump", null, null, null, null, null, null, null, cancellationToken);
+}
+
+public static Task<bool> TrySyncKeyVaultStartedAsync(XellHttpEndpoint endpoint, CancellationToken cancellationToken)
+{
+	return TrySyncJobStageAsync(endpoint, XellPayloadJobKind.KeyVault, "dump", null, null, null, null, null, null, null, cancellationToken);
 }
 
 public static Task<bool> TrySyncVerificationProgressAsync(XellHttpEndpoint endpoint, int pass, int total, CancellationToken cancellationToken)
 {
-	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("verify", null, pass, total, null, null, null, null), cancellationToken);
+	return TrySyncVerificationProgressAsync(endpoint, XellPayloadJobKind.Nand, pass, total, cancellationToken);
+}
+
+public static Task<bool> TrySyncVerificationProgressAsync(XellHttpEndpoint endpoint, XellPayloadJobKind job, int pass, int total, CancellationToken cancellationToken)
+{
+	return TrySyncJobStageAsync(endpoint, job, "verify", null, pass, total, null, null, null, null, cancellationToken);
 }
 
 public static Task<bool> TrySyncDumpProgressAsync(XellHttpEndpoint endpoint, int percent, CancellationToken cancellationToken)
 {
-	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("dump", null, null, null, null, null, null, percent), cancellationToken);
+	return TrySyncDumpProgressAsync(endpoint, XellPayloadJobKind.Nand, percent, cancellationToken);
+}
+
+public static Task<bool> TrySyncDumpProgressAsync(XellHttpEndpoint endpoint, XellPayloadJobKind job, int percent, CancellationToken cancellationToken)
+{
+	return TrySyncJobStageAsync(endpoint, job, "dump", null, null, null, null, null, null, percent, cancellationToken);
+}
+
+public static Task<bool> TrySyncKeyVaultProgressAsync(XellHttpEndpoint endpoint, int percent, CancellationToken cancellationToken)
+{
+	return TrySyncDumpProgressAsync(endpoint, XellPayloadJobKind.KeyVault, percent, cancellationToken);
 }
 
 public static Task<bool> TrySyncVerificationPercentAsync(XellHttpEndpoint endpoint, int percent, CancellationToken cancellationToken)
 {
-	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("verify", null, null, null, null, null, null, percent), cancellationToken);
+	return TrySyncVerificationPercentAsync(endpoint, XellPayloadJobKind.Nand, percent, cancellationToken);
+}
+
+public static Task<bool> TrySyncVerificationPercentAsync(XellHttpEndpoint endpoint, XellPayloadJobKind job, int percent, CancellationToken cancellationToken)
+{
+	return TrySyncJobStageAsync(endpoint, job, "verify", null, null, null, null, null, null, percent, cancellationToken);
 }
 
 	public static async Task<bool> TryRequestRebootAsync(XellHttpEndpoint endpoint, CancellationToken cancellationToken)
@@ -700,9 +750,14 @@ public static Task<bool> TrySyncVerificationPercentAsync(XellHttpEndpoint endpoi
 		return false;
 	}
 
-public static async Task<bool> TryRequestCompletionRebootAsync(XellHttpEndpoint endpoint, bool verified, int verificationPass, int verificationTotal, string? path, CancellationToken cancellationToken)
+public static Task<bool> TryRequestCompletionRebootAsync(XellHttpEndpoint endpoint, bool verified, int verificationPass, int verificationTotal, string? path, CancellationToken cancellationToken)
 {
-	if (await TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("complete", verified, verificationPass, verificationTotal, path, null, verified ? FinalRebootToken : null, null), cancellationToken))
+	return TryRequestCompletionRebootAsync(endpoint, XellPayloadJobKind.Nand, verified, verificationPass, verificationTotal, path, cancellationToken);
+}
+
+public static async Task<bool> TryRequestCompletionRebootAsync(XellHttpEndpoint endpoint, XellPayloadJobKind job, bool verified, int verificationPass, int verificationTotal, string? path, CancellationToken cancellationToken)
+{
+	if (await TrySyncJobStageAsync(endpoint, job, "complete", verified, verificationPass, verificationTotal, path, null, verified ? FinalRebootToken : null, null, cancellationToken))
 	{
 		return true;
 	}
@@ -736,7 +791,12 @@ public static async Task<bool> TryRequestCompletionRebootAsync(XellHttpEndpoint 
 
 public static Task<bool> TryNotifyFailureAsync(XellHttpEndpoint endpoint, string reason, int verificationPass, int verificationTotal, string? path, CancellationToken cancellationToken)
 {
-	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("failed", verified: false, verificationPass, verificationTotal, path, reason, null, null), cancellationToken);
+	return TryNotifyFailureAsync(endpoint, XellPayloadJobKind.Nand, reason, verificationPass, verificationTotal, path, cancellationToken);
+}
+
+public static Task<bool> TryNotifyFailureAsync(XellHttpEndpoint endpoint, XellPayloadJobKind job, string reason, int verificationPass, int verificationTotal, string? path, CancellationToken cancellationToken)
+{
+	return TrySyncJobStageAsync(endpoint, job, "failed", verified: false, verificationPass, verificationTotal, path, reason, null, null, cancellationToken);
 }
 
 	public static IReadOnlyList<string> BuildCandidateIps(string preferredIp, bool includeSubnetSweep)
@@ -894,9 +954,9 @@ public static Task<bool> TryNotifyFailureAsync(XellHttpEndpoint endpoint, string
 		return new Uri(new Uri(endpoint.BaseUrl.TrimEnd('/') + "/"), relativePath.TrimStart('/'));
 	}
 
-private static string BuildPayloadSyncPath(string stage, bool? verified, int? verificationPass, int? verificationTotal, string? path, string? reason, string? finalToken, int? percent)
+private static string BuildPayloadSyncPath(string job, string stage, bool? verified, int? verificationPass, int? verificationTotal, string? path, string? reason, string? finalToken, int? percent)
 {
-	List<string> list = new List<string> { "stage=" + Uri.EscapeDataString(stage) };
+	List<string> list = new List<string> { "job=" + Uri.EscapeDataString(job), "stage=" + Uri.EscapeDataString(stage) };
 		if (verified.HasValue)
 		{
 			list.Add("verified=" + (verified.Value ? "1" : "0"));

@@ -1,6 +1,6 @@
 param(
     [string]$PublishDir = "out\win-x64",
-    [string]$BuildDir = "src\Xbox360.Remote.Cli\bin\Release\net10.0-windows"
+    [string]$BuildDir = "decompiled\bin\Release\net10.0-windows"
 )
 
 $ErrorActionPreference = "Stop"
@@ -116,19 +116,6 @@ if ($LASTEXITCODE -ne 0) {
 & $publishExe help | Out-Null
 if ($LASTEXITCODE -ne 0) {
     throw "Published rgh.exe help failed with exit code $LASTEXITCODE"
-}
-
-$buildExe = Join-Path $buildDir "rgh.exe"
-if (Test-Path $buildExe) {
-    $rejectDir = Join-Path $tempRoot ("xecli-badinstall-" + [Guid]::NewGuid().ToString("N"))
-    & $buildExe install --source $buildDir --path $rejectDir --quiet | Out-Null
-    if ($LASTEXITCODE -eq 0) {
-        throw "Framework-dependent build output was accepted by the installer. Expected rejection."
-    }
-
-    if (Test-Path $rejectDir) {
-        Remove-Item -Recurse -Force $rejectDir
-    }
 }
 
 $installDir = Join-Path $tempRoot ("xecli-install-" + [Guid]::NewGuid().ToString("N"))

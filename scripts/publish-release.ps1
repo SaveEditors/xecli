@@ -5,7 +5,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$projectPath = Join-Path $repoRoot "src\Xbox360.Remote.Cli\Xbox360.Remote.Cli.csproj"
+$projectPath = Join-Path $repoRoot "decompiled\rgh.csproj"
 
 if ([System.IO.Path]::IsPathRooted($Output)) {
     $publishDir = $Output
@@ -25,5 +25,24 @@ dotnet publish $projectPath `
     -p:PublishSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
     -o $publishDir
+
+foreach ($asset in @(
+    "ghidra_scripts",
+    "ida_scripts",
+    "ConsoleDependencies",
+    "LICENSE"
+)) {
+    $sourcePath = Join-Path $repoRoot $asset
+    $destinationPath = Join-Path $publishDir $asset
+    if (-not (Test-Path $sourcePath)) {
+        throw "Required release asset was not found at $sourcePath"
+    }
+
+    if (Test-Path $destinationPath) {
+        Remove-Item -Recurse -Force $destinationPath
+    }
+
+    Copy-Item -Recurse -Force $sourcePath $destinationPath
+}
 
 Write-Host "Published XeCLI to $publishDir"

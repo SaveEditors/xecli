@@ -99,7 +99,7 @@ function Find-IsccPath {
     return $null
 }
 
-$projectPath = Join-Path $repoRoot "src\Xbox360.Remote.Cli\Xbox360.Remote.Cli.csproj"
+$projectPath = Join-Path $repoRoot "decompiled\rgh.csproj"
 $publishDir = Resolve-RepoPath $PublishDir
 $outputDir = Resolve-RepoPath $OutputDir
 $issPath = Join-Path $repoRoot "installer\XeCLI.iss"

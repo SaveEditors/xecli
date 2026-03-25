@@ -1,0 +1,31 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xbox360.Remote", "src\\Xbox360.Remote\\Xbox360.Remote.csproj", "{D603D377-F037-458F-9AB0-5BB4B62D8EC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xbox360.Remote.Cli", "src\\Xbox360.Remote.Cli\\Xbox360.Remote.Cli.csproj", "{6A58CB75-834C-4B54-BB07-2512FC7B1489}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xbox360.Fatx", "src\\Xbox360.Fatx\\Xbox360.Fatx.csproj", "{A2C2BF7E-BA9E-4FD4-B624-38646E4C8140}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D603D377-F037-458F-9AB0-5BB4B62D8EC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D603D377-F037-458F-9AB0-5BB4B62D8EC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D603D377-F037-458F-9AB0-5BB4B62D8EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D603D377-F037-458F-9AB0-5BB4B62D8EC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A58CB75-834C-4B54-BB07-2512FC7B1489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A58CB75-834C-4B54-BB07-2512FC7B1489}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A58CB75-834C-4B54-BB07-2512FC7B1489}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A58CB75-834C-4B54-BB07-2512FC7B1489}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2C2BF7E-BA9E-4FD4-B624-38646E4C8140}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2C2BF7E-BA9E-4FD4-B624-38646E4C8140}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2C2BF7E-BA9E-4FD4-B624-38646E4C8140}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2C2BF7E-BA9E-4FD4-B624-38646E4C8140}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

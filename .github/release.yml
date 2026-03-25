@@ -1,0 +1,43 @@
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+  categories:
+    - title: Core CLI
+      labels:
+        - cli
+        - core
+    - title: XBDM and Debugging
+      labels:
+        - xbdm
+        - debug
+    - title: JRPC2 and RPC
+      labels:
+        - jrpc2
+        - rpc
+    - title: FTP and File Workflows
+      labels:
+        - ftp
+        - filesystem
+    - title: XEX and Reverse Engineering
+      labels:
+        - xex
+        - ghidra
+        - reverse-engineering
+    - title: Games on Demand
+      labels:
+        - god
+        - iso
+    - title: Title Metadata
+      labels:
+        - title-db
+        - metadata
+    - title: Documentation
+      labels:
+        - documentation
+        - wiki
+    - title: Build and Packaging
+      labels:
+        - build
+        - ci
+        - packaging

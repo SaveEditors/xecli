@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Commands Reference | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Commands.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
+      <p class="wiki-sidebar__credit">Created by Pew7s</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" open>
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link is-current" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="architecture-reference" >
+              <summary>Technical Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Getting Started</div>
+          <h1>Commands Reference</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli">Repo</a>
+          <a href="https://github.com/SaveEditors/xecli/releases/latest">Releases</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="commands-reference">Commands Reference</h1>
+<p>This page documents the XeCLI command surface by workflow area. Command examples use the installed terminal command <code>rgh</code>.</p>
+<p>The <code>Example output</code> blocks on this page are representative results from the shipped CLI. Exact spacing, colors, and secondary detail lines can vary by flags, console state, and whether JSON mode is enabled.</p>
+<h2 id="find-by-workflow">Find by Workflow</h2>
+<p>Use this table when you know the job you need done but not the exact command namespace yet.</p>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Start here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Check if the console is up</td>
+<td><code>rgh ping</code>, <code>rgh status</code>, <code>rgh title</code></td>
+</tr>
+<tr>
+<td>Find and connect to a console</td>
+<td><code>rgh start</code>, <code>rgh scan</code>, <code>rgh connect</code>, <code>rgh target</code></td>
+</tr>
+<tr>
+<td>Read or dump live memory</td>
+<td><code>rgh mem dump</code>, <code>rgh mem hexdump</code>, <code>rgh mem peek</code></td>
+</tr>
+<tr>
+<td>Change live memory</td>
+<td><code>rgh mem poke</code>, <code>rgh mem search --freeze</code></td>
+</tr>
+<tr>
+<td>Work with loaded modules</td>
+<td><code>rgh modules list</code>, <code>rgh modules info</code>, <code>rgh modules dump</code>, <code>rgh modules load</code>, <code>rgh modules unload</code></td>
+</tr>
+<tr>
+<td>Inspect threads or break execution</td>
+<td><code>rgh threads ...</code>, <code>rgh debug ...</code></td>
+</tr>
+<tr>
+<td>Pull files from the console</td>
+<td><code>rgh fs get</code>, <code>rgh ftp get</code>, <code>rgh xex dump</code>, <code>rgh screenshot</code></td>
+</tr>
+<tr>
+<td>Push files to the console</td>
+<td><code>rgh fs put</code>, <code>rgh ftp put</code>, <code>rgh save inject</code>, <code>rgh plugin enable</code></td>
+</tr>
+<tr>
+<td>Manage saves</td>
+<td><code>rgh save list</code>, <code>rgh save extract</code>, <code>rgh save inject</code></td>
+</tr>
+<tr>
+<td>Inspect or edit local CON/profile/GPD files</td>
+<td><code>rgh con ...</code>, <code>rgh profile ...</code>, <code>rgh xdbf ...</code></td>
+</tr>
+<tr>
+<td>Manage title content or DashLaunch plugins</td>
+<td><code>rgh content ...</code>, <code>rgh plugin ...</code></td>
+</tr>
+<tr>
+<td>Inspect XeLL or export XeLL keys</td>
+<td><code>rgh xell boot</code>, <code>rgh xell info</code>, <code>rgh xell kv export</code></td>
+</tr>
+<tr>
+<td>Inspect local Fatman disks or images</td>
+<td><code>rgh fatman devices</code>, <code>rgh fatman partitions</code>, <code>rgh fatman scan</code>, <code>rgh fatman info</code>, <code>rgh fatman list</code>, <code>rgh fatman find</code>, <code>rgh fatman cat</code>, <code>rgh fatman get</code>, <code>rgh fatman extract</code>, <code>rgh fatman dump</code></td>
+</tr>
+<tr>
+<td>Stage Original Xbox compatibility packs</td>
+<td><code>rgh ogxbox list</code>, <code>rgh ogxbox install hacked|hud|retail</code></td>
+</tr>
+<tr>
+<td>Browse or install avatar items from the local or hosted collection</td>
+<td><code>rgh avatar library ...</code>, <code>rgh avatar games</code>, <code>rgh avatar items</code>, <code>rgh avatar choose</code>, <code>rgh avatar browse</code>, <code>rgh avatar install</code></td>
+</tr>
+<tr>
+<td>Send visible console messages</td>
+<td><code>rgh notify</code>, <code>rgh notify-icons</code>, <code>rgh jrpc2 notify</code></td>
+</tr>
+<tr>
+<td>Analyze XEX files</td>
+<td><code>rgh xex strings</code>, <code>rgh xex decompile</code>, <code>rgh xex ida-decompile</code>, <code>rgh ghidra ...</code>, <code>rgh ida ...</code></td>
+</tr>
+<tr>
+<td>Convert retail ISOs</td>
+<td><code>rgh god info</code>, <code>rgh god build</code>, <code>rgh god watch</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="command-model">Command Model</h2>
+<p>XeCLI is organized into a few major namespaces:</p>
+<ul>
+<li>Core commands: status, title, targeting, launch, reboot</li>
+<li>XBDM-backed commands: modules, memory, threads, debug, screenshot, file system</li>
+<li>JRPC2-backed commands: CPU key, temps, Title ID, dashboard, notifications, generic RPC</li>
+<li>XeLL-backed commands: XeLL inspection and keyvault export over the XeLL HTTP service</li>
+<li>FTP-backed commands: file access, saves, content, and plugin management</li>
+<li>Local content commands: CON package inspection, profile editing, and raw XDBF/GPD record access</li>
+<li>Fatman manager: read-only local disk or image inspection and export</li>
+<li>Analysis commands: XEX, Ghidra, IDA, metadata</li>
+<li>Packaging commands: Games on Demand conversion and watchdog mode</li>
+</ul>
+<p>Shortcut equivalence:</p>
+<ul>
+<li><code>rgh modules</code> = <code>rgh xbdm modules</code></li>
+<li><code>rgh module</code> = alias of <code>rgh modules</code></li>
+<li><code>rgh mem</code> = <code>rgh xbdm mem</code></li>
+<li><code>rgh xex</code> = <code>rgh xbdm xex</code></li>
+<li><code>rgh fs</code> = <code>rgh xbdm fs</code></li>
+<li><code>rgh threads</code> = <code>rgh xbdm threads</code></li>
+<li><code>rgh debug</code> = <code>rgh xbdm debug</code></li>
+<li><code>rgh fatman</code> = local FATX manager for disks and images</li>
+<li><code>rgh fatx</code> = alias of <code>rgh fatman</code></li>
+</ul>
+<p>High-traffic aliases:</p>
+<ul>
+<li><code>rgh s</code> = <code>rgh start</code></li>
+<li><code>rgh c</code> = <code>rgh connect</code></li>
+<li><code>rgh discover</code> = <code>rgh scan</code></li>
+<li><code>rgh shot</code> = <code>rgh screenshot</code></li>
+<li><code>rgh run</code> = <code>rgh launch</code></li>
+<li><code>rgh xnotify</code> = <code>rgh notify</code></li>
+<li><code>rgh mem search</code> = <code>rgh mem find</code></li>
+<li><code>rgh mem read</code> = <code>rgh mem peek</code></li>
+<li><code>rgh mem write</code> = <code>rgh mem poke</code></li>
+<li><code>rgh module remove</code> = <code>rgh modules unload</code></li>
+<li><code>rgh module verify</code> = <code>rgh modules pending</code></li>
+<li><code>rgh avatar apply</code> = <code>rgh avatar install</code></li>
+<li><code>rgh fatx</code> = alias of <code>rgh fatman</code></li>
+</ul>
+<p>For the exact top-level help screen and the exact help output of every top-level command group, see <a href="CLI-Help.html">CLI-Help.md</a>.</p>
+<h2 id="common-options">Common Options</h2>
+<h3 id="xbdm-backed-commands">XBDM-backed commands</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ip &lt;IP&gt;</code></td>
+<td>Console IP. Uses the saved target if omitted.</td>
+</tr>
+<tr>
+<td><code>--port &lt;PORT&gt;</code></td>
+<td>XBDM TCP port. Default: <code>730</code>.</td>
+</tr>
+<tr>
+<td><code>--timeout &lt;MS&gt;</code></td>
+<td>Socket timeout in milliseconds.</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit JSON output when supported.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ftp-backed-commands">FTP-backed commands</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ip &lt;IP&gt;</code></td>
+<td>Console IP. Uses the saved target if omitted.</td>
+</tr>
+<tr>
+<td><code>--port &lt;PORT&gt;</code></td>
+<td>FTP port. Default: <code>21</code>.</td>
+</tr>
+<tr>
+<td><code>--user &lt;USER&gt;</code></td>
+<td>FTP username. Default: <code>xboxftp</code>.</td>
+</tr>
+<tr>
+<td><code>--pass &lt;PASS&gt;</code></td>
+<td>FTP password. Default: <code>xboxftp</code>.</td>
+</tr>
+<tr>
+<td><code>--timeout &lt;MS&gt;</code></td>
+<td>FTP timeout in milliseconds.</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit JSON output when supported.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="discovery-commands">Discovery commands</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ports &lt;PORTS&gt;</code></td>
+<td>Comma-separated TCP ports to probe. Default: <code>730,731</code>.</td>
+</tr>
+<tr>
+<td><code>--timeout &lt;MS&gt;</code></td>
+<td>Discovery timeout. Default: <code>400</code>.</td>
+</tr>
+<tr>
+<td><code>--no-nap</code></td>
+<td>Disable NAP broadcast discovery.</td>
+</tr>
+<tr>
+<td><code>--no-tcp</code></td>
+<td>Disable TCP scan discovery.</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit discovery results as JSON.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="xell-backed-commands">XeLL-backed commands</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ip &lt;IP&gt;</code></td>
+<td>Console IP. Uses the saved target if omitted.</td>
+</tr>
+<tr>
+<td><code>--port &lt;PORT&gt;</code></td>
+<td>XBDM TCP port used while the console is still on the dashboard. Default: <code>730</code>.</td>
+</tr>
+<tr>
+<td><code>--timeout &lt;MS&gt;</code></td>
+<td>Socket timeout in milliseconds.</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit JSON output when supported.</td>
+</tr>
+<tr>
+<td><code>--force-xell</code></td>
+<td>Skip the XellLaunch shortcut path and force the direct reboot-into-XeLL path.</td>
+</tr>
+</tbody>
+</table>
+<p>Notes:</p>
+<ul>
+<li>XeCLI always asks for confirmation before the first automatic reboot into XeLL.</li>
+<li>If the shell is non-interactive or XeLL cannot be launched automatically, XeCLI prints the manual eject-button fallback instead of guessing.</li>
+<li>Once XeLL is requested, XeCLI waits up to 30 seconds for the XeLL HTTP service on port 80 and then uses the detected XeLL IP.</li>
+</ul>
+<h2 id="core-commands">Core Commands</h2>
+<h3 id="rgh-status"><code>rgh status</code></h3>
+<p>Console summary view with XBDM identity, running XEX, JRPC-backed fields, drive layout, and sign-in information.</p>
+<pre><code class="language-powershell">rgh status
+rgh status --quick
+rgh status --json
+rgh status --no-drives --no-users
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li><code>--quick</code> skips slower JRPC, drive, and sign-in probes.</li>
+<li>Skipped fields are rendered as skipped instead of unknown.</li>
+<li>When a pending module load or unload is being tracked across a reboot, <code>status</code> can surface that state.</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">Status
+IP               192.168.1.186
+Execution State  start
+Title ID         0xFFFE07D1
+Title Name       Aurora
+Signed In        Yes
+Gamertag         ExampleUser
+</code></pre>
+<h3 id="rgh-profiles"><code>rgh profiles</code></h3>
+<p>Enumerates sign-in and profile information gathered from XBDM, JRPC/XAM, FTP, and F3 when available.</p>
+<pre><code class="language-powershell">rgh profiles
+rgh profiles --json
+rgh profiles --no-ftp
+rgh profiles --no-f3
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Signed-In Users
+User 0   ExampleUser   state=SignedInToLive   xuid=0x&lt;xuid&gt;
+
+Profiles (FTP)
+72 profile containers found across Hdd1 and Usb devices
+</code></pre>
+<h3 id="rgh-title"><code>rgh title</code></h3>
+<p>Resolve the active title or look up a specific Title ID from the bundled database.</p>
+<pre><code class="language-powershell">rgh title
+rgh title --json
+rgh title 415608C3
+rgh title 415608C3 2B7302D6
+rgh title active
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Active Title
+Title ID     0xFFFE07D1
+Title Name   Aurora
+Media ID     unknown
+Source       running xex path + bundled database
+</code></pre>
+<h3 id="rgh-target"><code>rgh target</code></h3>
+<p>Show, set, or clear the saved default XBDM target.</p>
+<pre><code class="language-powershell">rgh target
+rgh target --set &lt;console-ip&gt;
+rgh target --set &lt;console-ip&gt; --port 730
+rgh target --clear
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Default target
+IP      192.168.1.186
+Port    730
+</code></pre>
+<h3 id="rgh-ping"><code>rgh ping</code></h3>
+<p>Fast XBDM connectivity check.</p>
+<pre><code class="language-powershell">rgh ping
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">OK 21 ms
+</code></pre>
+<h3 id="rgh-reboot"><code>rgh reboot</code></h3>
+<p>Cold reboot or title reboot.</p>
+<pre><code class="language-powershell">rgh reboot
+rgh reboot --title
+rgh reboot --notify
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Reboot requested
+cold reboot command sent to console
+</code></pre>
+<h3 id="rgh-shutdown"><code>rgh shutdown</code></h3>
+<p>Power off the console through the JRPC power path.</p>
+<pre><code class="language-powershell">rgh shutdown
+rgh shutdown --notify
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Shutdown requested
+power-off command sent to console
+</code></pre>
+<h3 id="rgh-launch"><code>rgh launch</code></h3>
+<p>Launch a XEX with optional directory, arguments, title hint, and notification.</p>
+<pre><code class="language-powershell">rgh launch Hdd1:\Aurora\Aurora.xex
+rgh launch Hdd1:\Aurora\Aurora.xex --titleid FFFE07D1
+rgh launch --xex Hdd1:\Aurora\Aurora.xex --args &quot;debug=1&quot;
+rgh launch --xex Hdd1:\Aurora\Aurora.xex --dry-run
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Launch requested
+Hdd1:\Aurora\Aurora.xex
+Target title: Aurora (0xFFFE07D1)
+Arguments: debug=1
+</code></pre>
+<h3 id="rgh-install"><code>rgh install</code></h3>
+<p><code>rgh install</code> is the XeCLI installer. It chooses an install location and optionally registers <code>rgh</code> for new terminals.</p>
+<p>For a first-time install from the release package, run it from the extracted folder as:</p>
+<pre><code class="language-powershell">.\rgh.exe install
+</code></pre>
+<p>XeCLI validates the selected install source. Use the extracted published release folder or another self-contained publish output. Do not point <code>rgh install --source ...</code> at <code>src\Xbox360.Remote.Cli\bin\Release\...</code> or another framework-dependent source-build directory.</p>
+<pre><code class="language-powershell">rgh install
+rgh install --path C:\Tools\XeCLI
+rgh install --machine
+rgh install --uninstall
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">XeCLI Installer
+1. Current user
+2. All users
+Choose an install scope [1]:
+Install directory: C:\Users\You\AppData\Local\Programs\XeCLI
+Add rgh to PATH for new terminals? [Y/n]:
+Continue with installation? [Y/n]:
+
+Created by Pew - Se7ensins
+SUCCESS Install complete
+Scope              Current user
+Install Directory  C:\Users\You\AppData\Local\Programs\XeCLI
+Command            rgh
+PATH               User PATH updated
+Next Step          Open a new terminal and run rgh --help.
+Jtag at 192.168.1.186 was detected, would you like to connect now? [y/N]:
+</code></pre>
+<p>For dashboard and homebrew package staging, use <code>rgh homebrew install ...</code>. That keeps the installer flow and the USB package workflow separate in both help and docs.</p>
+<p>The first-run install prompt is also intentionally narrow now: it only appears on a bare <code>rgh</code> launch, not before normal commands like <code>rgh status</code> or <code>rgh threads list</code>.</p>
+<h3 id="rgh-homebrew-install"><code>rgh homebrew install</code></h3>
+<p>Download one or more public homebrew packages onto a USB drive, staging folder, or detected console drive.</p>
+<pre><code class="language-powershell">rgh homebrew list
+rgh homebrew install aurora --usb E:
+rgh homebrew install all --usb E: --auto-confirm
+rgh homebrew install aurora --device Hdd1 --ini-mode merge
+rgh homebrew install all --device Hdd1 --ini-mode generated --auto-confirm
+rgh homebrew install dashlaunch --usb A:\UsbStage --force-download
+rgh homebrew install xm360 --usb E:
+rgh homebrew install timefixer --usb E:
+rgh homebrew install simple360 --usb E:
+rgh homebrew install xelllaunch --usb E:
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Homebrew install complete
+4 package(s) 326 MB -&gt; E:\
+
+Package            Installed To         Files   Size
+Aurora 0.7b.2      E:\Aurora            167     38.69 MB
+DashLaunch 3.21    E:\DashLaunch          8      2.52 MB
+XeXMenu 1.2        E:\XeXMenu             1    203.37 MB
+Freestyle Dash 3   E:\FreestyleDash      26     81.43 MB
+
+Generated E:\launch.ini
+Copied bundled console plugins into E:\Plugins
+</code></pre>
+<p>The current package catalog also includes XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch.</p>
+<p>Console install example output:</p>
+<pre><code class="language-text">SUCCESS Console homebrew install complete
+1 package(s) 2.52 MB -&gt; Hdd1 on 192.168.1.186
+
+Package            Console Path       Files   Size
+DashLaunch 3.21    /Hdd1/DashLaunch   8       2.52 MB
+
+Bundled plugins copied to /Hdd1/Plugins
+Updated existing launch.ini plugin entries /Hdd1/launch.ini
+</code></pre>
+<p>Important options:</p>
+<ul>
+<li><code>--usb &lt;TARGET&gt;</code> accepts a drive letter, removable-drive selection number, or folder path</li>
+<li>omit <code>--usb</code> to install directly onto the console through FTP</li>
+<li><code>--device &lt;DEVICE&gt;</code> targets a detected console drive such as <code>Hdd1</code>, <code>Usb0</code>, <code>Usb1</code>, or <code>Usb2</code></li>
+<li><code>--ini-mode &lt;generated|merge|skip&gt;</code> chooses whether XeCLI creates a fresh <code>launch.ini</code>, updates plugin entries in the existing file, or leaves it alone</li>
+<li><code>--ini &lt;PATH&gt;</code> overrides the console-side <code>launch.ini</code> path when using direct console install</li>
+<li><code>--cache &lt;DIR&gt;</code> moves archive and staging storage to a different directory</li>
+<li><code>--force-download</code> refreshes cached archives</li>
+<li><code>--auto-confirm</code> skips the confirmation prompt before staging or direct console install</li>
+<li><code>--json</code> emits machine-readable package install output</li>
+</ul>
+<h3 id="rgh-ogxbox-install"><code>rgh ogxbox install</code></h3>
+<p>Stage or install one of the public Original Xbox XeFu compatibility sets.</p>
+<pre><code class="language-powershell">rgh ogxbox list
+rgh ogxbox install hacked --usb E:
+rgh ogxbox install hud --include-fixer --usb E:
+rgh ogxbox install retail
+</code></pre>
+<p>Set choices:</p>
+<ul>
+<li><code>hacked</code></li>
+<li>best default choice for modded consoles</li>
+<li>removes stock whitelist/restriction checks and targets wider compatibility</li>
+<li><code>hud</code></li>
+<li>same hacked base, but keeps the full Xbox 360 guide enabled during original Xbox titles</li>
+<li>can cost performance or compatibility in some games</li>
+<li><code>retail</code></li>
+<li>stock-style emulator files</li>
+<li>closest to the original Microsoft behavior</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Original Xbox compatibility install complete
+Hacked XeFu Pack -&gt; /HddX/Compatibility
+
+Field                Value
+Mode                 console
+XeFu Set             Hacked XeFu Pack
+Target               192.168.1.186
+Compatibility Path   /HddX/Compatibility
+Compatibility Files  Installed
+Fixer Included       No
+Files                23
+Size                 31.42 MB
+</code></pre>
+<p>Important options:</p>
+<ul>
+<li><code>--usb &lt;TARGET&gt;</code> stages to a removable USB drive or folder instead of installing directly to the console</li>
+<li>omit <code>--usb</code> to connect over FTP and target <code>HddX:\Compatibility</code></li>
+<li><code>--include-fixer</code> also stages or installs HDD Compatibility Partition Fixer so you can create <code>HddX</code> on drives that do not have it yet</li>
+<li><code>--cache &lt;DIR&gt;</code> moves archive and staging storage to a different directory</li>
+<li><code>--force-download</code> refreshes cached archives</li>
+<li><code>--auto-confirm</code> skips the confirmation prompt</li>
+<li><code>--json</code> emits machine-readable install output</li>
+</ul>
+<p>If <code>HddX</code> is missing and <code>--include-fixer</code> is not used, XeCLI stops before writing anything and tells you to rerun with the fixer included.</p>
+<h2 id="xell-commands">XeLL Commands</h2>
+<p>These commands use XeLL Reloaded's HTTP services for XeLL inspection and keyvault export. XeCLI supports both older endpoint layouts such as <code>/rawflash</code> and the current XeLL Reloaded layout such as <code>/FLASH</code>, <code>/FUSE</code>, <code>/KV</code>, <code>/KVRAW</code>, <code>/KVRAW2</code>, <code>/LOG</code>, and <code>/REBOOT</code>.</p>
+<h3 id="rgh-xell-boot"><code>rgh xell boot</code></h3>
+<p>Detect the current mode, prompt before the first dashboard-to-XeLL reboot, and attach to the XeLL web service when it comes up.</p>
+<pre><code class="language-powershell">rgh xell boot
+rgh xell boot --force-xell
+rgh xell boot --json
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>If the console is already in XeLL, the command reuses the active XeLL session.</li>
+<li>If the console is on the dashboard, XeCLI asks before launching XeLL automatically.</li>
+<li>If auto-launch is unavailable, XeCLI tells you to boot XeLL manually with eject and rerun the command.</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS XeLL ready
+XeLL IP: 192.168.88.99
+</code></pre>
+<h3 id="rgh-xell-info"><code>rgh xell info</code></h3>
+<p>Inspect the XeLL HTTP service and show which XeLL-related endpoints are currently exposed.</p>
+<pre><code class="language-powershell">rgh xell info
+rgh xell info --force-xell
+rgh xell info --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Field           Value
+XeLL IP         192.168.88.99
+Flash Dump      /FLASH
+Key Vault       /KV
+Raw Key Vault   /KVRAW
+CPU Key         E64E0C1D4E2D...
+CPU Key Source  /FUSE
+Startup Log     /LOG
+Fuse Dump       available
+Reboot          /REBOOT
+</code></pre>
+<h3 id="rgh-xell-kv-export"><code>rgh xell kv export</code></h3>
+<p>Export the XeLL keyvault output, capture the CPU key, and package a verified backup set.</p>
+<pre><code class="language-powershell">rgh xell kv export
+rgh xell kv export --output kv_backup.bin
+rgh xell kv export --raw
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>Default mode downloads the decrypted keyvault from <code>/KV</code>. <code>--raw</code> switches to <code>/KVRAW</code> or <code>/KVRAW2</code>.</li>
+<li>The export requires a CPU key. If XeLL does not expose one, XeCLI fails rather than producing an incomplete set.</li>
+<li>Host output includes your chosen KV filename, <code>KV+CPU KEY.txt</code>, a sibling <code>*.CPUKEY.txt</code>, optional <code>*.fuses.txt</code>, <code>*.sha256.txt</code>, and a <code>.zip</code>.</li>
+<li>The archive is normalized to stable names such as <code>KV.bin</code> or <code>KV_RAW.bin</code>, <code>CPUKEY.txt</code>, <code>KV+CPU KEY.txt</code>, <code>fuses.txt</code>, and <code>manifest.sha256.txt</code>.</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Keyvault export complete
+KV: A:\Backups\kv_backup.bin
+CPU key: A:\Backups\kv_backup.CPUKEY.txt
+Combined text: A:\Backups\KV+CPU KEY.txt
+Archive: A:\Backups\kv_backup.zip
+Manifest: A:\Backups\kv_backup.sha256.txt
+</code></pre>
+<h2 id="fatman">Fatman</h2>
+<p>Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.</p>
+<h3 id="current-command-surface">Current command surface</h3>
+<pre><code class="language-powershell">rgh fatman devices
+rgh fatman partitions
+rgh fatman scan
+rgh fatman info
+rgh fatman list
+rgh fatman find
+rgh fatman cat
+rgh fatman get
+rgh fatman extract
+rgh fatman dump
+</code></pre>
+<h3 id="manual-open-by-offset">Manual open by offset</h3>
+<ul>
+<li>use <code>--offset</code> to open a FATX/XTAF volume directly from a byte offset</li>
+<li>use <code>--length</code> with <code>--offset</code> when you want to clamp the manual partition size</li>
+<li>both values accept decimal bytes or <code>0x</code>-prefixed hex</li>
+<li>use <code>rgh fatman scan</code> first when you need candidate offsets for a nonstandard image</li>
+</ul>
+<pre><code class="language-powershell">rgh fatman scan --image .\Unknown.img
+rgh fatman info --image .\Unknown.img --offset 0xB6600000
+rgh fatman list --image .\Unknown.img --offset 0xB6600000 --path /
+rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --out .\partition-dump
+</code></pre>
+<h3 id="what-it-will-do">What it will do</h3>
+<ul>
+<li>detect FATX-capable disks or image sources</li>
+<li>inspect partitions and volume details</li>
+<li>browse directories and locate entries</li>
+<li>search by name or path</li>
+<li>recover data from <code>.img</code> and <code>.bin</code> sources</li>
+<li>print small files in the terminal</li>
+<li>dump partitions to a host directory</li>
+<li>export selected files or directory trees to the host</li>
+</ul>
+<h3 id="validation-note">Validation note</h3>
+<ul>
+<li>the runtime has been verified against a synthetic FATX fixture image</li>
+<li>manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real <code>XTAF</code> offsets and opened the compatibility volume by bounded offset</li>
+</ul>
+<h3 id="what-it-does-not-do-in-the-first-cut">What it does not do in the first cut</h3>
+<ul>
+<li>write files back to FATX volumes</li>
+<li>format or repartition disks</li>
+<li>mount a virtual filesystem</li>
+<li>repair damaged volumes</li>
+<li>modify security sectors or low-level disk metadata</li>
+</ul>
+<h3 id="example-output">Example output</h3>
+<pre><code class="language-text">Fatman Sources
+0  Disk 0  932.51 GB  Xbox 360 HDD
+1  Disk 1   32.00 GB  USB Flash Drive
+
+Selected source: Disk 0 / Hdd1
+Partitions:
+Hdd1  419.41 GB  FATX
+HddX    1.00 GB  FATX
+</code></pre>
+<h2 id="discovery-commands_1">Discovery Commands</h2>
+<h3 id="rgh-start"><code>rgh start</code></h3>
+<p>rgh start is the manual version of the discovery flow that the installer can launch immediately after setup.</p>
+<pre><code class="language-powershell">rgh start
+rgh start --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Detected Consoles
+#1  192.168.1.186  Jtag  0037XXXXXXXX190
+Default target updated to 192.168.1.186
+</code></pre>
+<h3 id="rgh-connect"><code>rgh connect</code></h3>
+<p>rgh connect is the manual follow-up when you already know the discovery result you want to target.</p>
+<pre><code class="language-powershell">rgh connect 1
+rgh connect &lt;console-ip&gt;
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Target updated
+192.168.1.186:730
+</code></pre>
+<h3 id="rgh-scan"><code>rgh scan</code></h3>
+<p>rgh scan is the discovery-only path. The installer uses a quieter variant of this flow after setup and only prompts when a console is found.</p>
+<pre><code class="language-powershell">rgh scan
+rgh scan --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Detected Consoles
+#1  192.168.1.186  Jtag  0037XXXXXXXX190  tcp+nap
+</code></pre>
+<h2 id="screenshot-commands">Screenshot Commands</h2>
+<h3 id="rgh-screenshot"><code>rgh screenshot</code></h3>
+<pre><code class="language-powershell">rgh screenshot --out .\screen.bmp
+rgh screenshot --out .\screen.bmp --force
+</code></pre>
+<p>The command emits decoded frame-buffer metadata after a successful capture.</p>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Screenshot captured
+1024x576  pitch=4096  format=0x00000012
+.\screen.bmp
+</code></pre>
+<h2 id="xbdm-root-commands">XBDM Root Commands</h2>
+<h3 id="rgh-xbdm-info"><code>rgh xbdm info</code></h3>
+<pre><code class="language-powershell">rgh xbdm info
+rgh xbdm info --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">XBDM Info
+Debug Name    Jtag
+DM Version    2.0.21076.11
+Flavor        Natelx did, of course
+</code></pre>
+<h3 id="rgh-xbdm-raw"><code>rgh xbdm raw</code></h3>
+<pre><code class="language-powershell">rgh xbdm raw --cmd &quot;modules&quot;
+rgh xbdm raw --cmd &quot;dirlist name=Hdd:\\&quot;
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">(202) multiline response follows
+name=&quot;xam.xex&quot; base=0x82000000 size=0x001C0000
+name=&quot;Aurora.xex&quot; base=0x90F00000 size=0x00480000
+</code></pre>
+<h3 id="rgh-xbdm-screenshot"><code>rgh xbdm screenshot</code></h3>
+<pre><code class="language-powershell">rgh xbdm screenshot --out .\screen.bmp
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Screenshot captured
+.\screen.bmp
+</code></pre>
+<h2 id="module-commands">Module Commands</h2>
+<h3 id="rgh-modules-list"><code>rgh modules list</code></h3>
+<pre><code class="language-powershell">rgh modules list
+rgh modules list --json
+rgh modules list --sections
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Modules
+xboxkrnl.exe   0x80010000   0x005A0000
+xam.xex        0x82000000   0x001C0000
+Aurora.xex     0x90F00000   0x00480000
+</code></pre>
+<h3 id="rgh-modules-info"><code>rgh modules info</code></h3>
+<pre><code class="language-powershell">rgh modules info --name Aurora.xex
+rgh modules info --name xam.xex --sections
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Module Info
+Name         Aurora.xex
+Base         0x90F00000
+Size         0x00480000
+Path         \Device\Harddisk0\Partition1\Aurora\Aurora.xex
+</code></pre>
+<h3 id="rgh-modules-dump"><code>rgh modules dump</code></h3>
+<pre><code class="language-powershell">rgh modules dump --name xam.xex --out .\xam.bin
+rgh modules dump --all --dir .\modules
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Module dump complete
+xam.xex -&gt; .\xam.bin
+</code></pre>
+<h3 id="rgh-modules-load"><code>rgh modules load</code></h3>
+<pre><code class="language-powershell">rgh modules load --path Hdd:\HvP2.xex
+rgh modules load --path Hdd:\HvP2.xex --system
+rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+rgh modules load --path Hdd:\HvP2.xex --dry-run
+</code></pre>
+<p>Important options:</p>
+<ul>
+<li><code>--flags &lt;N&gt;</code> kernel load flags, default <code>8</code></li>
+<li><code>--system</code> runs the load on a system thread instead of the default title thread</li>
+<li><code>--reboot-expected</code> persists pending verification if the console disconnects as part of the load</li>
+<li><code>--notify</code> sends the default console success notification</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Module loaded
+HvP2.xex at 0x91340000
+</code></pre>
+<h3 id="rgh-modules-unload"><code>rgh modules unload</code></h3>
+<pre><code class="language-powershell">rgh modules unload --name HvP2.xex --force
+rgh modules unload --handle 0x91340000 --force
+rgh modules unload --name HvP2.xex --force --notify
+</code></pre>
+<p>Important options:</p>
+<ul>
+<li><code>--force</code> is required</li>
+<li><code>--skip-mark</code> disables the sysdll unload marker write at <code>handle+0x40</code></li>
+<li><code>--dry-run</code> resolves the target without modifying memory</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Module unloaded
+0x91340000 HvP2.xex
+</code></pre>
+<h3 id="rgh-modules-pending"><code>rgh modules pending</code></h3>
+<pre><code class="language-powershell">rgh modules pending
+</code></pre>
+<p>Use this after:</p>
+<pre><code class="language-powershell">rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Pending module load verified
+HvP2.xex at 0x91340000
+</code></pre>
+<h2 id="memory-commands">Memory Commands</h2>
+<h3 id="rgh-mem-dump"><code>rgh mem dump</code></h3>
+<pre><code class="language-powershell">rgh mem dump --addr 0x82000000 --size 0x20000 --out .\mem.bin
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Memory dump complete
+0x82000000 length=0x00020000 -&gt; .\mem.bin
+</code></pre>
+<h3 id="rgh-mem-hexdump"><code>rgh mem hexdump</code></h3>
+<pre><code class="language-powershell">rgh mem hexdump --addr 0x30000000 --size 0x40
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">0x30000000 DE AD BE EF 01 02 03 04 05 06 07 08 09 0A 0B 0C  ................
+0x30000010 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F  ................
+</code></pre>
+<h3 id="rgh-mem-regions"><code>rgh mem regions</code></h3>
+<pre><code class="language-powershell">rgh mem regions
+rgh mem regions --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Memory Regions
+0x80000000  0x02000000  protect=0x00000020
+0x82000000  0x01000000  protect=0x00000004
+</code></pre>
+<h3 id="rgh-mem-peek"><code>rgh mem peek</code></h3>
+<pre><code class="language-powershell">rgh mem peek --addr 0x82000000 --type u32
+rgh mem peek --addr 0x82000000 --type ascii --len 32
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">0x82000000 = 0x12345678 (u32)
+</code></pre>
+<h3 id="rgh-mem-poke"><code>rgh mem poke</code></h3>
+<pre><code class="language-powershell">rgh mem poke --addr 0x82000000 --type u32 --value 0x12345678
+rgh mem poke --addr 0x82000000 --type float --value 1337
+rgh mem poke --addr 0x82000000 --type string --value &quot;XeCLI&quot;
+</code></pre>
+<p>Type aliases include:</p>
+<ul>
+<li><code>u8</code>, <code>u16</code>, <code>u32</code>, <code>u64</code></li>
+<li><code>s8</code>, <code>s16</code>, <code>s32</code>, <code>s64</code></li>
+<li><code>f32</code>, <code>f64</code></li>
+<li><code>byte</code>, <code>int</code>, <code>uint</code>, <code>float</code></li>
+<li><code>ascii</code>, <code>string</code>, <code>hex</code>, <code>bytes</code></li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Memory write complete
+0x82000000 &lt;= 0x12345678 (u32)
+</code></pre>
+<h3 id="rgh-mem-watch"><code>rgh mem watch</code></h3>
+<pre><code class="language-powershell">rgh mem watch --addr 0x82000000 --size 0x40
+rgh mem watch --addr 0x82000000 --size 0x40 --interval 100 --count 10
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">watch 1  0x82000000  78 56 34 12 ...
+watch 2  0x82000000  79 56 34 12 ...
+</code></pre>
+<h3 id="rgh-mem-strings"><code>rgh mem strings</code></h3>
+<pre><code class="language-powershell">rgh mem strings --addr 0x82000000 --size 0x20000 --min 6
+rgh mem strings --addr 0x82000000 --size 0x20000 --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">0x82014020  ascii    xam.xex
+0x82014210  ascii    XeKeysExecute
+</code></pre>
+<h3 id="rgh-mem-search"><code>rgh mem search</code></h3>
+<p>Alias of <code>rgh mem find</code>.</p>
+<pre><code class="language-powershell">rgh mem search --addr 0x30000000 --size 0x1000 --pattern DEADBEEF
+rgh mem search --addr 0x82000000 --size 0x20000 --ascii &quot;xam.xex&quot;
+rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --out .\hits.json
+</code></pre>
+<p>Freeze options:</p>
+<pre><code class="language-powershell">rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --freeze --freeze-type u32 --freeze-value 305419896
+rgh mem search --addr 0x82000000 --size 0x20000 --pattern 00000000 --freeze --freeze-all --freeze-count 5
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Hits
+0x82000120
+0x820004A8
+0x820019F0
+</code></pre>
+<h2 id="xex-commands">XEX Commands</h2>
+<h3 id="rgh-xex-dump"><code>rgh xex dump</code></h3>
+<pre><code class="language-powershell">rgh xex dump --out .\title.xex
+rgh xex dump --path Hdd1:\Aurora\Aurora.xex --out .\aurora.xex
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS XEX dump complete
+\Device\Harddisk0\Partition1\Aurora\Aurora.xex -&gt; .\aurora.xex
+</code></pre>
+<h3 id="rgh-xex-strings"><code>rgh xex strings</code></h3>
+<pre><code class="language-powershell">rgh xex strings --running --unicode --min 6
+rgh xex strings --ftp-path /Hdd1/Aurora/Aurora.xex --out .\strings.txt
+rgh xex strings --in .\title.xex --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">XEX Strings
+0x00000000  ascii    XEX2
+0x0005B8A0  utf16le  Aurora
+</code></pre>
+<h3 id="rgh-xex-decompile"><code>rgh xex decompile</code></h3>
+<pre><code class="language-powershell">rgh xex decompile --in .\title.xex --out .\decomp
+rgh xex decompile --running --out .\decomp --max 200
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Ghidra decompile complete
+200 function files written to .\decomp
+</code></pre>
+<h2 id="file-system-commands">File-System Commands</h2>
+<h3 id="xbdm-backed">XBDM-backed</h3>
+<pre><code class="language-powershell">rgh fs list --path Hdd:\
+rgh fs get --path Hdd:\launch.ini --out .\launch.ini
+rgh fs put --path Hdd:\launch.ini --in .\launch.ini
+rgh fs cat --path Hdd:\launch.ini
+rgh fs rm --path Hdd:\temp\old.txt
+rgh fs mkdir --path Hdd:\temp\newdir
+rgh fs mv --from Hdd:\old.txt --to Hdd:\new.txt
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Directory
+Aurora           Dir
+launch.ini       File   12794
+</code></pre>
+<h3 id="ftp-backed">FTP-backed</h3>
+<p>Target management:</p>
+<pre><code class="language-powershell">rgh ftp target
+rgh ftp target --set &lt;console-ip&gt; --user &lt;ftp-user&gt; --pass &lt;ftp-pass&gt;
+rgh ftp target --clear
+</code></pre>
+<pre><code class="language-powershell">rgh ftp list --path /Hdd1/
+rgh ftp find --path /Hdd1/ --name *.xex
+rgh ftp get --path /Hdd1/launch.ini --out .\launch.ini
+rgh ftp put --path /Hdd1/launch.ini --in .\launch.ini
+rgh ftp cat --path /Hdd1/launch.ini
+rgh ftp rm --path /Hdd1/temp/old.txt
+rgh ftp mkdir --path /Hdd1/newdir
+rgh ftp mv --from /Hdd1/old.txt --to /Hdd1/new.txt
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS FTP upload complete
+.\launch.ini -&gt; /Hdd1/launch.ini (12.49 KB)
+</code></pre>
+<h2 id="thread-and-debug-commands">Thread and Debug Commands</h2>
+<h3 id="threads">Threads</h3>
+<pre><code class="language-powershell">rgh threads list
+rgh threads context --id 0xFB000008
+rgh threads suspend --id 0xFB000008
+rgh threads resume --id 0xFB000008
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Threads
+#  ID         Image         Start Addr.  End Addr.    Stack Base  Stack Limit
+1  0xFB000008 xboxkrnl.exe  0x8012E3C0   0x801F0000   0x7A020000  0x7A010000
+2  0xF9000004 Aurora.xex    0x82458C90   0x82BF0000   0x700A0000  0x70060000
+</code></pre>
+<p><code>threads list</code> now resolves the thread start routine address and, when that address lands inside a loaded image, also shows the containing image name and end boundary. <code>End Addr.</code> is the containing image end boundary, not a recovered function end.</p>
+<p><code>rgh threads list --json</code> includes <code>ImageName</code>, <code>StartAddress</code>, and <code>EndAddress</code> for the same reason.</p>
+<h3 id="debug-control">Debug control</h3>
+<pre><code class="language-powershell">rgh debug stop
+rgh debug go
+rgh debug watch
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">execution stopped
+execution started
+</code></pre>
+<h3 id="breakpoints">Breakpoints</h3>
+<pre><code class="language-powershell">rgh debug break add --addr 0x82001000
+rgh debug break remove --addr 0x82001000
+rgh debug break clearall
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Breakpoint added
+0x82001000
+</code></pre>
+<h3 id="data-breakpoints">Data breakpoints</h3>
+<pre><code class="language-powershell">rgh debug databreak add --addr 0x82100000 --size 4 --type write
+rgh debug databreak remove --addr 0x82100000 --size 4 --type write
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Data breakpoint added
+addr=0x82100000 size=4 type=write
+</code></pre>
+<h2 id="jrpc2-commands">JRPC2 Commands</h2>
+<pre><code class="language-powershell">rgh jrpc2 cpu-key
+rgh jrpc2 temps
+rgh jrpc2 temps --sensor gpu
+rgh jrpc2 title-id
+rgh jrpc2 dashboard
+rgh jrpc2 motherboard
+rgh jrpc2 resolve --module xam.xex --ordinal 526
+rgh jrpc2 notify --message &quot;XeCLI&quot;
+rgh jrpc2 call --module xam.xex --ordinal 526 --ret int --arg int:0
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">CPU Key     587AC7...
+Dashboard   17559
+Motherboard Trinity
+</code></pre>
+<h2 id="notification-commands">Notification Commands</h2>
+<pre><code class="language-powershell">rgh notify &quot;Success :)&quot;
+rgh notify &quot;XeCLI connected&quot; 14
+rgh notify --message &quot;XeCLI connected&quot; --icon info
+rgh notify-icons list
+rgh notify-icons show 14
+rgh notify-icons add --name success --logo 0x24
+rgh notify-icons remove --name success
+</code></pre>
+<p>For the full XNotify explanation, icon IDs, direct numeric usage, and integration notes, see <a href="XNotify.html">XNotify.md</a>.</p>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Notification sent
+message=&quot;XeCLI connected&quot; logo=14 (Flashing happy face)
+</code></pre>
+<h3 id="rgh-notify-icons-show"><code>rgh notify-icons show</code></h3>
+<pre><code class="language-powershell">rgh notify-icons show 14
+rgh notify-icons show success
+rgh notify-icons show achievement
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Input     14
+Logo ID   14
+Label     Flashing happy face
+Notes     Common success/smiley icon
+</code></pre>
+<h2 id="hardware-and-session-commands">Hardware and Session Commands</h2>
+<h3 id="rgh-signin-state"><code>rgh signin state</code></h3>
+<pre><code class="language-powershell">rgh signin state
+rgh signin state --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Signed In   Yes
+State       Signed in locally
+Gamertag    ExampleUser
+XUID        0x&lt;xuid&gt;
+Slot        0
+</code></pre>
+<h3 id="rgh-led-set"><code>rgh led set</code></h3>
+<pre><code class="language-powershell">rgh led set --preset quadrant1
+rgh led set --preset all-green --notify
+rgh led set --tl green --tr off --bl off --br off
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Ring light updated
+TL=green, TR=off, BL=off, BR=off
+</code></pre>
+<h3 id="rgh-led-state"><code>rgh led state</code></h3>
+<pre><code class="language-powershell">rgh led state
+rgh led state --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Source        Last XeCLI-applied ring-light state
+Preset        quadrant1
+Top Left      green
+Top Right     off
+Bottom Left   off
+Bottom Right  off
+</code></pre>
+<h3 id="rgh-fan-set"><code>rgh fan set</code></h3>
+<pre><code class="language-powershell">rgh fan set --speed 55 --channel both
+rgh fan set --speed 45 --channel primary
+rgh fan set --speed 60 --channel secondary --notify
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Fan command sent
+50% requested for both
+</code></pre>
+<h3 id="rgh-fan-show"><code>rgh fan show</code></h3>
+<pre><code class="language-powershell">rgh fan show
+rgh fan show --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Source   Last XeCLI-applied manual setting
+Speed    50%
+Channel  both
+</code></pre>
+<h3 id="rgh-smc-version"><code>rgh smc version</code></h3>
+<pre><code class="language-powershell">rgh smc version
+rgh smc version --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS SMC version
+2.3
+</code></pre>
+<p>Read <a href="Hardware-and-System.html">Hardware-and-System.md</a> for the deeper operational notes around sign-in state, LED presets, fan command behavior, and SMC version availability.</p>
+<h3 id="rgh-tray-open-rgh-tray-close"><code>rgh tray open</code> / <code>rgh tray close</code></h3>
+<p>Open or close the physical disc tray through the JRPC/XAM path.</p>
+<pre><code class="language-powershell">rgh tray open
+rgh tray close
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Disc tray opened
+</code></pre>
+<pre><code class="language-text">SUCCESS Disc tray closed
+</code></pre>
+<h3 id="rgh-popup-show"><code>rgh popup show</code></h3>
+<p>Show a native Xbox 360 popup. This is the trainer-style popup path, not a standard XNotify toast.</p>
+<pre><code class="language-powershell">rgh popup show --title &quot;XeCLI&quot; --body &quot;Connected to console&quot;
+rgh popup show --title &quot;Warning&quot; --body &quot;Module reload required&quot; --preset warning
+rgh popup show --title &quot;Question&quot; --body &quot;Continue?&quot; --preset question
+rgh popup show --title &quot;Raw Style&quot; --body &quot;Testing&quot; --style 3
+</code></pre>
+<p>Preset values:</p>
+<ul>
+<li><code>none</code></li>
+<li><code>error</code></li>
+<li><code>warning</code></li>
+<li><code>question</code></li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Popup requested
+Title=&quot;XeCLI&quot; Preset=warning Buttons=1
+</code></pre>
+<h3 id="rgh-spoof-gt"><code>rgh spoof gt</code></h3>
+<p>Reads or writes the current in-game gamertag for supported titles. <code>gamertag</code> and <code>name</code> remain compatibility aliases, but <code>gt</code> is the canonical command group.</p>
+<p>Spoof confirmation notifications use the bottom position by default when <code>--notify</code> is supplied. The command also caches the original gamertag/XUID for the current target and title the first time you spoof, so <code>rgh spoof reset</code> can restore it later even if the signed-in user is no longer resolvable.</p>
+<p>For BO2, this is the supported local spoof path. XeCLI keeps the visible name, the local XUID surfaces, and the deeper local account block aligned during a gamertag-only spoof.</p>
+<pre><code class="language-powershell">rgh spoof gt
+rgh spoof gt ExampleTag
+rgh spoof gt set --value ExampleTag --notify
+rgh spoof gamertag ExampleTag
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Game            Call of Duty: Black Ops II
+Gamertag        ExampleTag
+Address         0x841E1B30
+</code></pre>
+<p>Write example:</p>
+<pre><code class="language-text">SUCCESS Gamertag spoof applied
+XeCliTmp
+</code></pre>
+<h3 id="rgh-spoof-xuid"><code>rgh spoof xuid</code></h3>
+<p>Reads or writes the current in-game XUID for supported titles.</p>
+<p>Spoof confirmation notifications use the bottom position by default when <code>--notify</code> is supplied. The original local identity is cached per target and title before the spoof is applied.</p>
+<pre><code class="language-powershell">rgh spoof xuid
+rgh spoof xuid &lt;xuid&gt;
+rgh spoof xuid set --value &lt;xuid&gt;
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Game            Call of Duty: Black Ops II
+XUID            &lt;xuid&gt;
+Stored          &lt;stored-xuid&gt;
+Binary Addr     0x841E1B50
+Text Addr       0x841E1B58
+</code></pre>
+<p>BO2 notes:</p>
+<ul>
+<li><code>rgh spoof xuid show</code> and <code>rgh spoof xuid set</code> are supported on BO2</li>
+<li>run them after BO2 has reached the multiplayer front-end or a live lobby</li>
+<li>XeCLI updates the visible local XUID surfaces plus the known BO2 account/persona caches</li>
+<li>this remains an in-title memory spoof, not a real signed-in Xbox Live account swap or entitlement change</li>
+</ul>
+<h3 id="rgh-spoof-remote"><code>rgh spoof remote</code></h3>
+<p>Overwrites remote-player text slots for supported titles. The simple positional form applies the same text to every supported slot in the current title. This does not change the local in-game gamertag block.</p>
+<p>Remote spoof confirmations also use the bottom position by default when <code>--notify</code> is supplied. If you later run <code>rgh spoof reset</code>, XeCLI will prefer the cached pre-spoof local identity for the same target/title when no explicit override is supplied.</p>
+<p>BO2's verified remote layout is exposed as slots 2-12 because the first title-local slot is reserved.</p>
+<p>Full feature notes, supported titles, and workflow examples are covered in <a href="Remote-Spoofing.html">Remote-Spoofing.md</a>.</p>
+<pre><code class="language-powershell">rgh spoof remote XeCliRemote
+rgh spoof remote list
+rgh spoof remote apply --slot 1 --text HostName
+rgh spoof remote apply --all --text XeCLI-{slot}
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Remote spoof applied
+Call of Duty: Black Ops II =&gt; XeCliRemote
+
+Slot  Verified       Address
+2     XeCliRemote    0x841E7334
+...
+12    XeCliRemote    0x8421E2E4
+</code></pre>
+<h3 id="rgh-spoof-reset"><code>rgh spoof reset</code></h3>
+<p>Restores the in-game identity from the signed-in user or explicit values. Use <code>--clear-remote</code> if you also want to clear supported remote slot names.</p>
+<p>If no explicit <code>--gamertag</code> or <code>--xuid</code> is provided, XeCLI first tries the cached pre-spoof identity for the same target/title, then falls back to the currently signed-in user when available.</p>
+<p>On BO2, <code>reset</code> is the supported path for restoring the local GT spoof state and optionally clearing the remote slots. It is not documented as a full BO2 account handoff, and on the live validation box it handed the session back out to Aurora after restoring the identity.</p>
+<pre><code class="language-powershell">rgh spoof reset --current-user
+rgh spoof reset --gamertag &lt;gamertag&gt; --xuid &lt;xuid&gt;
+rgh spoof reset --current-user --clear-remote
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Spoof reset applied
+Local identity restored and remote slots cleared
+</code></pre>
+<h2 id="save-commands">Save Commands</h2>
+<h3 id="rgh-save-list"><code>rgh save list</code></h3>
+<pre><code class="language-powershell">rgh save list --titleid FFFE07D1 --device Hdd1
+rgh save list --titleid 415608C3 --profile E00012AA8D7879B4
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Save Files
+/Hdd1/Content/E00012AA8D7879B4/415608C3/00010000/savegame.svg
+</code></pre>
+<h3 id="rgh-save-extract"><code>rgh save extract</code></h3>
+<pre><code class="language-powershell">rgh save extract --titleid 415608C3 --out .\saves
+rgh save extract --titleid 415608C3 --profile E00012AA8D7879B4 --device Hdd1 --overwrite
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Save extract complete
+3 file(s)  8.2 MB -&gt; .\saves\Grand Theft Auto V (0x415608C3)
+</code></pre>
+<h3 id="rgh-save-inject"><code>rgh save inject</code></h3>
+<pre><code class="language-powershell">rgh save inject --titleid 415608C3 --in .\saves --device Hdd1
+rgh save inject --titleid 415608C3 --profile E00012AA8D7879B4 --in .\save.bin --overwrite
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Save inject complete
+1 file(s)  128 KB -&gt; /Hdd1/Content/E00012AA8D7879B4/415608C3
+</code></pre>
+<h2 id="content-commands">Content Commands</h2>
+<h3 id="rgh-content-list"><code>rgh content list</code></h3>
+<pre><code class="language-powershell">rgh content list
+rgh content list --device Hdd1 --show-types
+rgh content list --titleid 415608C3
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Installed Content
+415608C3  Grand Theft Auto V  Game
+415608C3  Grand Theft Auto V  Title Update
+</code></pre>
+<h3 id="rgh-content-delete"><code>rgh content delete</code></h3>
+<pre><code class="language-powershell">rgh content delete --titleid 415608C3 --type &quot;Title Update&quot;
+</code></pre>
+<p>Treat delete operations as destructive.</p>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Content delete complete
+Title Update for 0x415608C3 removed
+</code></pre>
+<h2 id="local-content-commands">Local Content Commands</h2>
+<p>These commands operate on local files on the PC, not live console memory. A typical workflow is:</p>
+<ol>
+<li>Use <code>rgh profiles --json</code> or <code>rgh content list</code> to locate the container on the console.</li>
+<li>Pull it locally with <code>rgh ftp get</code> or <code>rgh fs get</code>.</li>
+<li>Inspect or edit it with <code>rgh con</code>, <code>rgh profile</code>, and <code>rgh xdbf</code>.</li>
+<li>Validate the result with <code>rgh con verify</code> before copying it back anywhere else.</li>
+</ol>
+<p>For profile packages, XeCLI writes changes back into the local container, refreshes STFS hashes, and preserves a valid CON signature when the package is a console-signed profile.</p>
+<h3 id="rgh-con"><code>rgh con</code></h3>
+<p>Use <code>con</code> for package-level metadata, verification, rehash, resign, and FATX-path derivation.</p>
+<pre><code class="language-powershell">rgh con info .\E00012AA8D7879B4.con
+rgh con verify .\E00012AA8D7879B4.con
+rgh con rehash .\E00012AA8D7879B4.con
+rgh con resign .\E00012AA8D7879B4-copy.con
+rgh con magic-name .\E00012AA8D7879B4.con
+rgh con fatx-path .\E00012AA8D7879B4.con --fix-name
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Path             .\E00012AA8D7879B4.con
+Signature Type   Console
+Content Type     Profile
+STFS             valid
+FATX Path        Content\E00012AA8D7879B4\FFFE07D1\00010000\E00012AA8D7879B4
+</code></pre>
+<h3 id="rgh-profile"><code>rgh profile</code></h3>
+<p>Use <code>profile</code> for decoded profile/package workflows: package summary, account extraction, embedded GPD extraction, title records, achievements, settings, and avatar colors.</p>
+<p><code>rgh profiles</code> and <code>rgh profile</code> are different:</p>
+<ul>
+<li><code>rgh profiles</code> discovers live console profiles over XBDM/JRPC/FTP/F3</li>
+<li><code>rgh profile</code> works on one local pulled profile container such as <code>E000xxxxxxxxxxxx.con</code></li>
+</ul>
+<pre><code class="language-powershell">rgh profile info .\E00012AA8D7879B4.con
+rgh profile extract .\E00012AA8D7879B4.con .\profile-files
+rgh profile account show .\E00012AA8D7879B4.con
+rgh profile account extract .\E00012AA8D7879B4.con .\Account
+rgh profile account set-gamertag .\E00012AA8D7879B4.con XeCliTest
+rgh profile gpd list .\E00012AA8D7879B4.con
+rgh profile gpd extract .\E00012AA8D7879B4.con .\FFFE07D1.gpd --dashboard
+rgh profile gpd extract .\E00012AA8D7879B4.con .\415607E7.gpd --titleid 415607E7
+rgh profile titles list .\E00012AA8D7879B4.con
+rgh profile titles add .\E00012AA8D7879B4.con --titleid 415607E7 --replace
+rgh profile achievements list .\E00012AA8D7879B4.con --titleid 415607E7
+rgh profile achievements unlock .\E00012AA8D7879B4.con --titleid 415607E7 --achievementid 0x00000004
+rgh profile achievements lock .\E00012AA8D7879B4.con --titleid 415607E7 --achievementid 0x00000004
+rgh profile settings list .\E00012AA8D7879B4.con
+rgh profile settings get .\E00012AA8D7879B4.con 0x10040006
+rgh profile settings set .\E00012AA8D7879B4.con 0x10040006 1337
+rgh profile avatar-colors get .\E00012AA8D7879B4.con
+rgh profile avatar-colors set .\E00012AA8D7879B4.con --hair 0xFF112233 --face-paint 0xFF556677
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li><code>profile account extract</code> exports the raw <code>Account</code> payload without needing a full package extract.</li>
+<li><code>profile gpd list</code> surfaces the dashboard GPD plus each embedded title GPD found in the container.</li>
+<li><code>profile gpd extract</code> is the targeted path when you only want <code>FFFE07D1.gpd</code> or one game GPD.</li>
+<li><code>profile titles add</code> can repair or replace one dashboard title record, deriving totals from the embedded title GPD when that file is present.</li>
+<li><code>profile settings set</code> can update existing records or create missing records when <code>--type</code> is supplied.</li>
+<li><code>profile avatar-colors</code> edits the dashboard avatar blob stored in setting <code>0x63E80044</code>.</li>
+<li>Mutating commands are safest on a disposable copy until you are comfortable with the exact workflow.</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">Profile Package
+Profile ID      0xE00003608D3F513F
+Signature       Console
+Gamertag        ExampleUser
+Dashboard GPD   present
+Account         present
+Titles          3
+Gamerscore      50
+</code></pre>
+<h3 id="rgh-xdbf"><code>rgh xdbf</code></h3>
+<p>Use <code>xdbf</code> when you want raw record-level access to a pulled <code>*.gpd</code> or other XDBF-backed file.</p>
+<pre><code class="language-powershell">rgh xdbf list .\FFFE07D1.gpd --show-sync
+rgh xdbf get .\FFFE07D1.gpd settings 0x0000000010040006
+rgh xdbf get .\FFFE07D1.gpd settings 0x0000000010040006 --out .\gamerscore-setting.bin
+rgh xdbf extract .\415607E7.gpd .\records
+rgh xdbf sync-status .\415607E7.gpd
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li><code>--origin profile|pec</code> controls how sync records are interpreted for profile-backed versus PEC-backed files.</li>
+<li><code>--show-sync</code> and <code>sync-status</code> are useful when you need to understand which records are dirty before or after a profile edit.</li>
+<li><code>xdbf</code> is the low-level inspection path; prefer <code>profile ...</code> when XeCLI already exposes a higher-level decoded command.</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">XDBF Records
+Namespace    Settings (0x0003)
+ID           0x0000000010040006
+Size         24
+Offset       0x0000091C
+Pending      yes
+</code></pre>
+<h2 id="avatar-commands">Avatar Commands</h2>
+<p>The avatar surface now has three operator paths:</p>
+<ul>
+<li><code>rgh avatar choose</code> for a terminal picker</li>
+<li><code>rgh avatar browse</code> for a Windows picker</li>
+<li><code>rgh avatar install</code> for direct one-item or full-title installs</li>
+</ul>
+<p>All three use the same local or hosted <code>Avatar-Item-Collection</code> index, ownership patching, caching, and upload pipeline.</p>
+<p>Validated behavior:</p>
+<ul>
+<li><code>rgh avatar install</code> patches ownership for the target XUID before upload.</li>
+<li><code>rgh avatar apply</code> is an alias of <code>rgh avatar install</code>.</li>
+<li>Standard avatar content layouts under <code>00009000</code> are supported.</li>
+<li>Irregular title-root payload layouts are also supported.</li>
+<li>If FTP is unavailable, install can fall back to XBDM upload and XBDM verification automatically.</li>
+<li><code>--remote</code> switches the browser/install flow to the hosted manifest and content cache.</li>
+<li><code>rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite</code> was validated live against <code>192.168.1.186</code>.</li>
+</ul>
+<h3 id="rgh-avatar-library-show"><code>rgh avatar library show</code></h3>
+<pre><code class="language-powershell">rgh avatar library show
+rgh avatar library show --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Mode                local
+Configured Library  auto
+Effective Library   A:\Downloads\12\em\Avatar-Item-Collection
+Configured Cache    default
+Effective Cache     C:\Users\B\AppData\Roaming\XeCLI\avatar-index.v3.json
+Manifest URL        https://raw.githubusercontent.com/SaveEditors/Avatar-Item-Collection/main/avatar-manifest.json
+Content Base URL    https://raw.githubusercontent.com/SaveEditors/Avatar-Item-Collection/main/
+</code></pre>
+<h3 id="rgh-avatar-library-set"><code>rgh avatar library set</code></h3>
+<pre><code class="language-powershell">rgh avatar library set --path A:\Downloads\12\em\Avatar-Item-Collection
+rgh avatar library set --cache C:\Users\B\AppData\Roaming\XeCLI
+rgh avatar library set --clear
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Avatar library settings updated
+Library: A:\Downloads\12\em\Avatar-Item-Collection
+Cache:   C:\Users\B\AppData\Roaming\XeCLI\avatar-index.v3.json
+</code></pre>
+<h3 id="rgh-avatar-games"><code>rgh avatar games</code></h3>
+<pre><code class="language-powershell">rgh avatar games
+rgh avatar games --search &quot;Black Ops&quot;
+rgh avatar games --remote --search &quot;Black Ops&quot;
+rgh avatar games --limit 20
+rgh avatar games --no-cache
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Avatar Games
+0x415608C3   COD: Black Ops II   37 items   7.44 MB   Activision
+</code></pre>
+<h3 id="rgh-avatar-items"><code>rgh avatar items</code></h3>
+<pre><code class="language-powershell">rgh avatar items --titleid 415608C3 --limit 10
+rgh avatar items --search hoodie
+rgh avatar items --titleid 58410A5D --limit 5
+rgh avatar items --remote --titleid 415608C3 --limit 10
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Avatar Items
+0x415608C3   COD: Black Ops II   COD: Black Ops II Logo Shirt White - Female   000000080DF3B242CAE65A52415608C3   00009000   116 KB
+0x58410A5D   Destination Arcade   A cool hoodie                                  0000020800060102C383304058410A5D   root      112 KB
+</code></pre>
+<h3 id="rgh-avatar-choose"><code>rgh avatar choose</code></h3>
+<pre><code class="language-powershell">rgh avatar choose --search &quot;Black Ops&quot; --current-user
+rgh avatar choose --remote --titleid 58410A5D --all --current-user --overwrite
+</code></pre>
+<p>What it does:</p>
+<ul>
+<li>resolves one title interactively or from <code>--titleid</code></li>
+<li>lets you select items in terminal, unless <code>--all</code> is set</li>
+<li>hands the chosen set to the same install pipeline used by <code>rgh avatar install</code></li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">Avatar download 3 item(s) file 2/3 | Destination Arcade - 0000020800069131C14650A158410A5D: 21%
+Current user: ExampleUser | XUID: 0x&lt;xuid&gt; | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+3 item(s)  512 KB -&gt; /Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D via FTP
+</code></pre>
+<h3 id="rgh-avatar-browse"><code>rgh avatar browse</code></h3>
+<pre><code class="language-powershell">rgh avatar browse --remote
+rgh avatar browse --remote --titleid 415608C3 --search hoodie
+</code></pre>
+<p>What it does:</p>
+<ul>
+<li>opens the Windows avatar picker</li>
+<li>shows title search, item search, tag filtering, multi-select, select-all, and clear</li>
+<li>displays the current signed-in user when that information can be resolved</li>
+<li>installs the selected set through the same pipeline used by <code>rgh avatar install</code></li>
+</ul>
+<p>Notes:</p>
+<ul>
+<li><code>browse</code> is Windows-only.</li>
+<li><code>gui</code> is an alias of <code>browse</code>.</li>
+<li>the picker shares the same hosted/local backend and download cache as the CLI commands.</li>
+</ul>
+<h3 id="rgh-avatar-install"><code>rgh avatar install</code></h3>
+<pre><code class="language-powershell">rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+rgh avatar install --contentid 0000020800060102C383304058410A5D --current-user
+rgh avatar install --titleid 415608C3 --all --current-user
+rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user --dry-run
+rgh avatar install --remote --titleid 415608C3 --all --current-user
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>Use <code>--current-user</code> or <code>--xuid &lt;XUID&gt;</code> for ownership targeting.</li>
+<li><code>--gamertag &lt;NAME&gt;</code> is only a local output label when <code>--xuid</code> is explicit.</li>
+<li><code>--overwrite</code> replaces an existing remote item.</li>
+<li><code>--device</code> defaults to <code>Hdd1</code>.</li>
+<li>When FTP is closed on the console, XeCLI can fall back to XBDM upload and XBDM verification automatically.</li>
+<li>Multi-item installs emit batch progress plus per-item transfer bars.</li>
+</ul>
+<p>Validated install proofs:</p>
+<ul>
+<li>Standard layout:</li>
+<li>source item:<ul>
+<li><code>A:\Downloads\12\em\Avatar-Item-Collection\415608C3\00009000\000000080DF3B242CAE65A52415608C3</code></li>
+</ul>
+</li>
+<li>verified remote path:<ul>
+<li><code>/Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3</code></li>
+</ul>
+</li>
+<li>Root layout:</li>
+<li>source item:<ul>
+<li><code>A:\Downloads\12\em\Avatar-Item-Collection\58410A5D\0000020800060102C383304058410A5D</code></li>
+</ul>
+</li>
+<li>verified remote path:<ul>
+<li><code>/Hdd1/Content/0000000000000000/58410A5D/0000020800060102C383304058410A5D</code></li>
+</ul>
+</li>
+</ul>
+<p>Example output:</p>
+<pre><code class="language-text">Current user: ExampleUser | XUID: 0x&lt;xuid&gt; | State: Signed in to Xbox Live
+SUCCESS Avatar install complete
+1 item(s)  116 KB -&gt; /Hdd1/Content/0000000000000000/415608C3/00009000/000000080DF3B242CAE65A52415608C3 via XBDM
+</code></pre>
+<h3 id="rgh-avatar-apply"><code>rgh avatar apply</code></h3>
+<p><code>rgh avatar apply</code> is an alias of <code>rgh avatar install</code>.</p>
+<pre><code class="language-powershell">rgh avatar apply --contentid 000000080DF3B242CAE65A52415608C3 --current-user
+rgh avatar apply --titleid 415608C3 --all --current-user
+</code></pre>
+<h2 id="plugin-commands">Plugin Commands</h2>
+<h3 id="rgh-plugin-list"><code>rgh plugin list</code></h3>
+<pre><code class="language-powershell">rgh plugin list
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">DashLaunch Plugins
+slot1  Hdd:\xbdm.xex
+slot5  Hdd:\XDRPC.xex
+</code></pre>
+<h3 id="rgh-plugin-enable"><code>rgh plugin enable</code></h3>
+<pre><code class="language-powershell">rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex
+rgh plugin enable --slot 5 --path Hdd:\XDRPC.xex --backup
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Plugin enabled
+slot 5 -&gt; Hdd:\XDRPC.xex
+</code></pre>
+<h3 id="rgh-plugin-disable"><code>rgh plugin disable</code></h3>
+<pre><code class="language-powershell">rgh plugin disable --slot 5
+</code></pre>
+<p>These commands edit <code>launch.ini</code> over FTP. Back up first when changing a live configuration.</p>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Plugin disabled
+slot 5 cleared
+</code></pre>
+<h2 id="god-commands">GOD Commands</h2>
+<h3 id="rgh-god-info"><code>rgh god info</code></h3>
+<pre><code class="language-powershell">rgh god info .\game.iso
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">ISO Info
+Title ID   415608C3
+Name       Grand Theft Auto V
+Media      DVD1
+</code></pre>
+<h3 id="rgh-god-build"><code>rgh god build</code></h3>
+<pre><code class="language-powershell">rgh god build .\game.iso .\god
+rgh god build .\game.iso .\god --trim end --threads 2
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS GoD build complete
+output written to .\god\415608C3
+</code></pre>
+<h3 id="rgh-god-watch"><code>rgh god watch</code></h3>
+<pre><code class="language-powershell">rgh god watch .\incoming --dest .\god
+rgh god watch .\incoming --dest .\god --recursive --move-done .\done --move-failed .\failed
+rgh god watch .\incoming --dest .\god --once
+</code></pre>
+<p>The watchdog waits for file stability before starting conversion and can process a directory once and exit for automation use.</p>
+<p>Example output:</p>
+<pre><code class="language-text">Watching .\incoming
+queued   game.iso
+done     game.iso -&gt; .\god\415608C3
+</code></pre>
+<h2 id="ghidra-commands">Ghidra Commands</h2>
+<p>Ghidra is external and documented in the CLI as <code>(Free)</code>. XeCLI does not bundle Ghidra or Java. After <code>rgh ghidra config --path &lt;dir&gt;</code>, XeCLI can install <code>XEXLoaderWV</code> into that Ghidra install with <code>rgh ghidra install-loader</code>.</p>
+<h3 id="rgh-ghidra-config"><code>rgh ghidra config</code></h3>
+<pre><code class="language-powershell">rgh ghidra config --path &quot;C:\Tools\ghidra&quot; --java &quot;C:\Java&quot;
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Ghidra config updated
+path=C:\Tools\ghidra
+java=C:\Java
+</code></pre>
+<h3 id="rgh-ghidra-install-loader"><code>rgh ghidra install-loader</code></h3>
+<pre><code class="language-powershell">rgh ghidra install-loader
+rgh ghidra install-loader --archive .\ghidra_12.0_PUBLIC_20251209_XEXLoaderWV.zip
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Ghidra XEX loader installed
+XEXLoaderWV -&gt; C:\Tools\ghidra\Ghidra\Extensions\XEXLoaderWV\lib\XEXLoaderWV.jar
+</code></pre>
+<h3 id="rgh-ghidra-analyze"><code>rgh ghidra analyze</code></h3>
+<pre><code class="language-powershell">rgh ghidra analyze --in .\title.xex
+rgh ghidra analyze --running
+rgh ghidra analyze --ftp-path /Hdd1/Aurora/Aurora.xex
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Ghidra analysis complete
+project=title  loader=xex
+</code></pre>
+<h3 id="rgh-ghidra-decompile"><code>rgh ghidra decompile</code></h3>
+<pre><code class="language-powershell">rgh ghidra decompile --in .\title.xex --out .\decomp
+rgh ghidra decompile --running --out .\decomp --max 200
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS Ghidra decompile complete
+200 function files written to .\decomp
+</code></pre>
+<h3 id="rgh-ghidra-verify"><code>rgh ghidra verify</code></h3>
+<pre><code class="language-powershell">rgh ghidra verify --dir .\decomp
+rgh ghidra verify --dir .\decomp --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">No flagged files found.
+</code></pre>
+<h2 id="ida-commands">IDA Commands</h2>
+<p>IDA is external and not bundled by XeCLI. The supported XeCLI baseline is pinned to <code>IDA Pro 9.1.250226</code> with <code>idaxex 0.42b</code>. Do not broaden that claim to <code>idaxex 0.43</code> or <code>IDA 9.2</code> until that exact combination is validated.</p>
+<h3 id="rgh-ida-config"><code>rgh ida config</code></h3>
+<pre><code class="language-powershell">rgh ida config --path &quot;C:\Program Files\IDA Professional 9.1&quot; --python python
+rgh ida config
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS IDA settings updated
+Stored IDA install, python, and backend settings were saved.
+</code></pre>
+<h3 id="rgh-ida-check"><code>rgh ida check</code></h3>
+<pre><code class="language-powershell">rgh ida check
+rgh ida check --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">Install              C:\Program Files\IDA Professional 9.1
+Batch EXE            C:\Program Files\IDA Professional 9.1\idat.exe
+IDA build            9.1.25.0226 (supported)
+idaxex               0.42b (supported)
+TIL files            present
+idalib import        ok
+</code></pre>
+<h3 id="rgh-ida-install-loader"><code>rgh ida install-loader</code></h3>
+<pre><code class="language-powershell">rgh ida install-loader
+rgh ida install-loader --archive .\idaxex-0.42b.zip
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS IDA loader installed
+idaxex 0.42b -&gt; C:\Program Files\IDA Professional 9.1\loaders\idaxex.dll
+</code></pre>
+<h3 id="rgh-ida-analyze"><code>rgh ida analyze</code></h3>
+<pre><code class="language-powershell">rgh ida analyze --in .\title.xex --out-db .\title.i64 --overwrite
+rgh ida analyze --ftp-path /Hdd1/Aurora/Aurora.xex --out-db .\Aurora.i64 --overwrite
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS IDA analysis complete
+.\Aurora.i64 segments 7 functions 40129
+</code></pre>
+<h3 id="rgh-ida-decompile"><code>rgh ida decompile</code></h3>
+<pre><code class="language-powershell">rgh ida decompile --in .\Aurora.i64 --out .\ida-decomp --backend idalib --max 50
+rgh ida decompile --running --out .\ida-decomp --out-db .\Aurora.i64 --keep-db
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">SUCCESS IDA decompile complete
+1 file(s) backend idalib output .\ida-decomp
+</code></pre>
+<h3 id="rgh-ida-verify"><code>rgh ida verify</code></h3>
+<pre><code class="language-powershell">rgh ida verify --dir .\ida-decomp
+rgh ida verify --dir .\ida-decomp --json
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">No flagged files found.
+</code></pre>
+<h3 id="rgh-xex-ida-decompile"><code>rgh xex ida-decompile</code></h3>
+<pre><code class="language-powershell">rgh xex ida-decompile --ftp-path /Hdd1/Aurora/Aurora.xex --out .\ida-decomp --max 50 --out-db .\Aurora.i64 --keep-db
+</code></pre>
+<h2 id="practical-workflows">Practical Workflows</h2>
+<h3 id="fast-console-health-check">Fast console health check</h3>
+<pre><code class="language-powershell">rgh ping
+rgh status --quick
+rgh title
+</code></pre>
+<h3 id="pull-a-running-title-for-analysis">Pull a running title for analysis</h3>
+<pre><code class="language-powershell">rgh xex dump --out .\title.xex
+rgh xex strings --in .\title.xex --unicode --min 6
+rgh ghidra decompile --in .\title.xex --out .\decomp
+rgh xex ida-decompile --in .\title.xex --out .\ida-decomp --max 50 --out-db .\title.i64 --keep-db
+</code></pre>
+<h3 id="verify-a-reboot-expected-module-load">Verify a reboot-expected module load</h3>
+<pre><code class="language-powershell">rgh modules load --path Hdd:\HvP2.xex --system --reboot-expected
+rgh modules pending
+</code></pre>
+<h3 id="capture-xell-details-and-export-the-keyvault">Capture XeLL details and export the keyvault</h3>
+<pre><code class="language-powershell">rgh xell boot
+rgh xell info
+rgh xell kv export --output .\kv_backup.bin
+</code></pre>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+      <section class="wiki-panel wiki-support">
+        <h2>Support XeCLI</h2>
+        <p class="wiki-support__text">Support our work? Buy us a coffee!</p>
+        <p class="wiki-support__button">
+          <a href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">
+            <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" alt="Support XeCLI on Ko-fi" width="180">
+          </a>
+        </p>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

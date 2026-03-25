@@ -1,0 +1,51 @@
+name: build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore XeCLI.sln
+
+      - name: Build
+        run: dotnet build XeCLI.sln -c Release --no-restore
+
+      - name: Publish win-x64
+        shell: pwsh
+        run: .\scripts\publish-release.ps1 -Output out\win-x64
+
+      - name: Verify published release
+        shell: pwsh
+        run: .\scripts\verify-release.ps1 -PublishDir out\win-x64 -BuildDir src\Xbox360.Remote.Cli\bin\Release\net10.0-windows
+
+      - name: Package win-x64
+        shell: pwsh
+        run: .\scripts\package-release.ps1 -PublishDir out\win-x64 -OutputDir out\release
+
+      - name: Smoke test packaged zip
+        shell: pwsh
+        run: .\scripts\smoke-test-release-zip.ps1 -ZipPath out\release\XeCLI-win-x64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: XeCLI-win-x64
+          path: |
+            out/win-x64
+            out/release

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentation Standards | XeCLI Wiki</title>
+  <meta name="description" content="XeCLI documentation for Xbox 360 RGH/JTAG live console workflows.">
+  <link rel="stylesheet" href="assets/wiki-site.css">
+</head>
+<body data-page="Standards.html">
+  <div class="wiki-shell">
+    <aside class="wiki-sidebar">
+      <a class="wiki-brand" href="Home.html">
+        <img src="assets/xecli-brand.jpg" alt="XeCLI logo">
+        <span>XeCLI Wiki</span>
+      </a>
+      <p class="wiki-sidebar__tagline">Terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XEX dumping, memory inspection, and automation.</p>
+      <p class="wiki-sidebar__credit">Created by Pew7s</p>
+      <label class="wiki-search">
+        <span>Filter Pages</span>
+        <input id="wiki-filter" type="text" placeholder="Type to filter navigation">
+      </label>
+      <nav class="wiki-nav" aria-label="Wiki navigation">
+        
+            <details class="wiki-nav__group" data-group="getting-started" >
+              <summary>Getting Started</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Home.html" data-page="Home.html">Home</a><a class="wiki-nav__link" href="Latest-Features.html" data-page="Latest-Features.html">Latest Features</a><a class="wiki-nav__link" href="Releases.html" data-page="Releases.html">Releases</a><a class="wiki-nav__link" href="Beginner-Guide.html" data-page="Beginner-Guide.html">Beginner Guide</a><a class="wiki-nav__link" href="FTP-and-File-Transfer.html" data-page="FTP-and-File-Transfer.html">FTP and File Transfer</a><a class="wiki-nav__link" href="Commands.html" data-page="Commands.html">Commands Reference</a><a class="wiki-nav__link" href="CLI-Help.html" data-page="CLI-Help.html">CLI Help Output</a><a class="wiki-nav__link" href="Hardware-and-System.html" data-page="Hardware-and-System.html">Hardware and System Controls</a><a class="wiki-nav__link" href="Remote-Spoofing.html" data-page="Remote-Spoofing.html">Remote Spoofing</a><a class="wiki-nav__link" href="XNotify.html" data-page="XNotify.html">XNotify</a><a class="wiki-nav__link" href="Homebrew-and-USB.html" data-page="Homebrew-and-USB.html">Homebrew and USB</a><a class="wiki-nav__link" href="Original-Xbox-Compatibility.html" data-page="Original-Xbox-Compatibility.html">Original Xbox Compatibility</a><a class="wiki-nav__link" href="FATX-Manager.html" data-page="FATX-Manager.html">Fatman</a><a class="wiki-nav__link" href="Avatar-Item-Collection.html" data-page="Avatar-Item-Collection.html">Avatar Item Collection</a><a class="wiki-nav__link" href="Troubleshooting.html" data-page="Troubleshooting.html">Troubleshooting</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="architecture-reference" open>
+              <summary>Technical Reference</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Advanced-Guide.html" data-page="Advanced-Guide.html">Advanced Guide</a><a class="wiki-nav__link" href="Frameworks.html" data-page="Frameworks.html">Frameworks and Architecture</a><a class="wiki-nav__link is-current" href="Standards.html" data-page="Standards.html">Documentation Standards</a><a class="wiki-nav__link" href="Contributing.html" data-page="Contributing.html">Contributing</a>
+              </div>
+            </details>
+            
+
+            <details class="wiki-nav__group" data-group="data-and-integrations" >
+              <summary>Data and Integrations</summary>
+              <div class="wiki-nav__items">
+                <a class="wiki-nav__link" href="Integrations.html" data-page="Integrations.html">Integrations</a><a class="wiki-nav__link" href="Title-ID-Database.html" data-page="Title-ID-Database.html">Title ID Database</a><a class="wiki-nav__link" href="FAQ.html" data-page="FAQ.html">FAQ</a>
+              </div>
+            </details>
+            
+      </nav>
+      <div class="wiki-sidebar__meta">
+        <a href="https://github.com/SaveEditors/xecli/releases/latest">Latest Release</a>
+        <a href="https://github.com/SaveEditors/xecli">Repo</a>
+        <a href="https://saveeditors.github.io/xecli/wiki/Home.html">Wiki Home</a>
+      </div>
+    </aside>
+
+    <main class="wiki-main">
+      <header class="wiki-topbar">
+        <div>
+          <div class="wiki-breadcrumbs">XeCLI / Technical Reference</div>
+          <h1>Documentation Standards</h1>
+        </div>
+        <div class="wiki-actions">
+          <a href="https://github.com/SaveEditors/xecli">Repo</a>
+          <a href="https://github.com/SaveEditors/xecli/releases/latest">Releases</a>
+        </div>
+      </header>
+
+      <section class="wiki-content-card">
+        <article id="wiki-content" class="markdown-body">
+          <h1 id="documentation-standards">Documentation Standards</h1>
+<p>This page defines how XeCLI documentation should be structured and maintained.</p>
+<h2 id="goals">Goals</h2>
+<p>The wiki should read like engineering documentation, not release marketing.</p>
+<p>Documentation should be:</p>
+<ul>
+<li>specific</li>
+<li>copy-paste friendly</li>
+<li>honest about prerequisites and limitations</li>
+<li>organized by workflow and subsystem</li>
+<li>consistent with the live <code>rgh</code> command surface</li>
+</ul>
+<h2 id="structural-rules">Structural Rules</h2>
+<h3 id="home-page">Home page</h3>
+<p><code>Home.md</code> must act as a documentation index, not a wall of prose.</p>
+<p>It should contain:</p>
+<ul>
+<li>grouped page navigation</li>
+<li>reading paths for operators, reverse engineers, and contributors</li>
+<li>a capability summary</li>
+<li>clear scope boundaries</li>
+</ul>
+<h3 id="commands-pages">Commands pages</h3>
+<p>Command documentation must include:</p>
+<ul>
+<li>the command name</li>
+<li>what it does</li>
+<li>the important options</li>
+<li>one or more realistic examples</li>
+<li>warnings when the command can destabilize the console or modify state</li>
+</ul>
+<h3 id="help-output-page">Help-output page</h3>
+<p><code>CLI-Help.md</code> should capture the actual built-in help output from the current shipped binary.</p>
+<p>It must be updated whenever:</p>
+<ul>
+<li>top-level commands change</li>
+<li>help descriptions change</li>
+<li>aliases are added or removed</li>
+<li>example lines in the command app are changed</li>
+</ul>
+<h3 id="architecturereference-pages">Architecture/reference pages</h3>
+<p>These pages should explain:</p>
+<ul>
+<li>how the CLI is structured</li>
+<li>how the transport layers fit together</li>
+<li>what is and is not guaranteed</li>
+<li>where persistent state is stored</li>
+</ul>
+<h2 id="style-rules">Style Rules</h2>
+<h3 id="wording">Wording</h3>
+<ul>
+<li>Prefer exact technical wording over broad language.</li>
+<li>Do not claim a feature works if it was not verified.</li>
+<li>Do not hide dangerous behavior under vague names.</li>
+<li>Prefer direct statements like <code>requires XBDM</code> or <code>uses FTP</code>.</li>
+</ul>
+<h3 id="examples">Examples</h3>
+<ul>
+<li>Use <code>rgh</code> in examples, not non-release executable paths.</li>
+<li>Keep examples realistic and copy-paste ready.</li>
+<li>Use placeholder values only when they are truly environment-specific.</li>
+</ul>
+<h3 id="paths-and-naming">Paths and naming</h3>
+<ul>
+<li>Prefer repository-relative paths in docs about the repo.</li>
+<li>Prefer Windows-style console paths where that matches the real console workflow.</li>
+<li>Use <code>XeCLI</code> for the project and <code>rgh</code> for the command.</li>
+</ul>
+<h2 id="maintenance-rules">Maintenance Rules</h2>
+<h3 id="when-command-behavior-changes">When command behavior changes</h3>
+<p>Update all of:</p>
+<ul>
+<li><code>README.md</code></li>
+<li><code>wiki/Commands.md</code></li>
+<li><code>wiki/CLI-Help.md</code></li>
+<li>any affected workflow page</li>
+</ul>
+<h3 id="when-a-new-subsystem-is-added">When a new subsystem is added</h3>
+<p>Add or update:</p>
+<ul>
+<li>an entry from <code>Home.md</code></li>
+<li>the relevant command reference section</li>
+<li>architecture notes in <code>Frameworks.md</code></li>
+<li>integration notes if the feature is reusable by external tools</li>
+</ul>
+<h3 id="when-a-feature-is-blocked-by-external-services">When a feature is blocked by external services</h3>
+<p>State the blocker clearly.</p>
+<p>Examples:</p>
+<ul>
+<li>console-side plugin missing</li>
+<li>XBDM service unavailable</li>
+<li>Ghidra not installed</li>
+</ul>
+<h2 id="release-readiness-checklist">Release Readiness Checklist</h2>
+<ul>
+<li>README screenshots match the current shipped build</li>
+<li>release zip exists and is attached to the current release</li>
+<li>wiki links in README resolve</li>
+<li>Pages landing page resolves</li>
+<li>command reference matches the live binary</li>
+<li>source repo does not contain dumps, screenshots from testing, or build output except intended repo assets</li>
+</ul>
+        </article>
+      </section>
+    </main>
+
+    <aside class="wiki-rightbar">
+      <section class="wiki-panel">
+        <h2>On This Page</h2>
+        <nav id="wiki-toc" class="wiki-toc" aria-label="Table of contents"></nav>
+      </section>
+      <section class="wiki-panel">
+        <h2>Documentation Workflow</h2>
+        <ul class="wiki-panel__list">
+          <li>Start with <a href="Home.html">Home</a> for page routing.</li>
+          <li>Use <a href="Commands.html">Commands Reference</a> for task-level examples.</li>
+          <li>Use <a href="CLI-Help.html">CLI Help Output</a> for exact built-in help text.</li>
+          <li>Use <a href="Standards.html">Documentation Standards</a> before changing wiki structure.</li>
+        </ul>
+      </section>
+      <section class="wiki-panel wiki-support">
+        <h2>Support XeCLI</h2>
+        <p class="wiki-support__text">Support our work? Buy us a coffee!</p>
+        <p class="wiki-support__button">
+          <a href="https://ko-fi.com/saveeditors" target="_blank" rel="noopener noreferrer">
+            <img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" alt="Support XeCLI on Ko-fi" width="180">
+          </a>
+        </p>
+      </section>
+    </aside>
+  </div>
+
+  <script src="assets/wiki-site.js"></script>
+</body>
+</html>

@@ -121,13 +121,13 @@ Patch notes should not include:
 
 ### Professional wording
 
-- Do not mention internal drafting tools, assistants, or generation workflows in docs, patch notes, release text, or commit messages.
+- Do not mention drafting tools or content-generation workflows in docs, patch notes, release text, or commit messages.
 - Keep release notes focused on what shipped and why it matters.
-- Prefer precise technical wording over internal implementation narrative.
+- Prefer precise technical wording over implementation narrative.
 
 ### Privacy and artifact safety
 
-- Never commit debug captures, dumps, temp appdata, temp localappdata, packet captures, or crash dumps unless they are explicitly sanitized and intentionally tracked.
+- Never commit debug captures, dumps, packet captures, crash dumps, or machine-specific temp files unless they are explicitly sanitized and intentionally tracked.
 - Review staged changes for personal identifiers, machine-specific paths, IPs, serials, console IDs, XUIDs, or gamertags before commit.
 
 ### When a feature is blocked by external services

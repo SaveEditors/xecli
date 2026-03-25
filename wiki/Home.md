@@ -2,7 +2,7 @@
 
 XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XTAF, XeLL-backed backups, XEX dumping, memory inspection, and automation. This GitHub wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
 
-The local source tree is the canonical behavior model for these pages. If a feature is documented here, it should match the shipped release and the current repo state unless a page says otherwise. The Markdown pages in `wiki/*.md` are the maintained source for this knowledge base.
+These pages are maintained directly in the repository's Markdown wiki source so the public documentation stays aligned with the shipped command surface.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
@@ -15,7 +15,7 @@ Avatar workflows in the shipped release now support both:
 
 Native XeLL workflows are also built into the shipped CLI now. `rgh xell ...` and `rgh nand dump` handle guided XeLL launch, keyvault export, and verified read-only NAND backup without depending on an external flasher workflow.
 
-v1.0.7 builds on that by pairing the automated NAND workflow with full Spanish localization, the new Inno Setup installer, and a single canonical GitHub wiki that replaces the HTML site.
+v1.0.8 builds on that by promoting `rgh xtaf` as the primary FATX/XTAF surface, separating `XeCLI-XellFetch` into its own standalone release path, and polishing the Windows installer and wiki for a cleaner public release.
 
 Local content workflows are built in now as well. `rgh con`, `rgh profile`, and `rgh xdbf` cover pulled CON/profile/GPD files directly, including rehash/resign, raw `Account` or GPD extraction, achievement and setting edits, and avatar color edits inside profile packages.
 
@@ -25,7 +25,7 @@ The current features worth surfacing first are:
 
 - [Releases](Releases) for the full patch-notes archive across all public versions.
 - [Latest Features](Latest-Features) for the current workflow highlights and release timeline.
-- [v1.0.7 Release Notes](Release-Notes-v1.0.7) for the installer, localization, and documentation release.
+- [v1.0.8 Release Notes](Release-Notes-v1.0.8) for the XTAF command-surface promotion, installer polish, and release packaging split.
 - [XeCLI-XellFetch](XeCLI-XellFetch) for the payload model, guided XeLL launch, keyvault export, and verified NAND backup.
 - [FTP and File Transfer](FTP-and-File-Transfer) for saved FTP targets and the full `rgh ftp ...` workflow.
 - [Avatar Item Collection](Avatar-Item-Collection) for local or hosted avatar downloads, browsing, and install planning.
@@ -40,7 +40,7 @@ The current features worth surfacing first are:
 | --- | --- |
 | [Latest Features](Latest-Features) | Current workflow highlights plus the full release timeline and feature map |
 | [Releases](Releases) | Canonical patch-notes archive for all public XeCLI releases |
-| [v1.0.7 Release Notes](Release-Notes-v1.0.7) | Spanish localization, the Inno Setup-based installer, Ko-fi support, and the GitHub wiki migration |
+| [v1.0.8 Release Notes](Release-Notes-v1.0.8) | XTAF promotion, installer polish, and the standalone XeCLI-XellFetch packaging split |
 | [Beginner Guide](Beginner-Guide) | Safe first-run workflow: install, discovery, connect, status, and basic operations |
 | [XeCLI-XellFetch](XeCLI-XellFetch) | Managed XeLL payload workflow, HTTP endpoint inspection, keyvault export, and verified read-only NAND backup |
 | [FTP and File Transfer](FTP-and-File-Transfer) | Saved FTP targets, browse/find/get/put workflows, and when to use FTP instead of `rgh fs` |
@@ -108,7 +108,7 @@ The current features worth surfacing first are:
 - Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing
 - Launch, reboot, and console notification workflows
 - Guided XeLL launch, XeLL HTTP endpoint inspection, keyvault export, and verified read-only NAND backup
-- v1.0.7 adds Spanish localization, the Inno Setup installer, and the GitHub wiki migration on top of the verified NAND dump flow
+- v1.0.8 adds XTAF-first disk workflows, cleaner standalone payload packaging, and installer polish on top of the verified NAND dump flow
 - Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 documented as a title-local spoof flow rather than a signed-in account change
 - Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs
 
@@ -172,8 +172,9 @@ That means the current `xtaf` surface focuses on disk and image analysis, repair
 
 ## Common Starting Commands
 ```powershell
-.\rgh.exe install
+.\XeCLI-1.0.8-setup-win-x64.exe
 rgh --help
+rgh language
 rgh start
 rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
@@ -220,6 +221,6 @@ That means:
 - runtime files ship beside the executable in the release folder
 - `ConsoleDependencies/`, `Assets/`, `ghidra_scripts/`, and `ida_scripts/` ship in the same release package
 - `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex` are also exposed at the repo root for direct download/reference
-- `rgh install` can copy the release to a chosen install folder, register `rgh`, and offer immediate console discovery after setup
+- the published setup executable can register `rgh`, set the initial UI language, and offer immediate console discovery after setup
 
 Only source builds require a local .NET 10 SDK/runtime.

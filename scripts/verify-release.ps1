@@ -118,74 +118,19 @@ if ($LASTEXITCODE -ne 0) {
     throw "Published rgh.exe help failed with exit code $LASTEXITCODE"
 }
 
-$installDir = Join-Path $tempRoot ("xecli-install-" + [Guid]::NewGuid().ToString("N"))
-$cmdProbeDir = Join-Path $tempRoot ("xecli-cmdprobe-" + [Guid]::NewGuid().ToString("N"))
-$shimPath = Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\rgh.cmd"
-$shimBackup = $null
-$shimExisted = Test-Path $shimPath
-if ($shimExisted) {
-    $shimBackup = Get-Content $shimPath -Raw
+& $publishExe language --help | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "Published rgh.exe language --help failed with exit code $LASTEXITCODE"
 }
-$userPathState = Get-UserPathState
-New-Item -ItemType Directory -Force -Path $cmdProbeDir | Out-Null
 
-try {
-    & $publishExe install --source $publishDir --path $installDir --quiet | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Published installer test failed with exit code $LASTEXITCODE"
-    }
-
-    Start-Sleep -Seconds 3
-
-    $installedExe = Join-Path $installDir "rgh.exe"
-    if (-not (Test-Path $installedExe)) {
-        throw "Installed rgh.exe was not found at $installedExe"
-    }
-
-    & $installedExe --version | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Installed rgh.exe --version failed with exit code $LASTEXITCODE"
-    }
-
-    $updatedUserPath = (Get-UserPathState).Value
-    if (-not (Test-PathEntry $updatedUserPath $installDir)) {
-        throw "The install command did not add the install directory to the current-user PATH."
-    }
-
-    $cmdExe = Join-Path $env:SystemRoot "System32\cmd.exe"
-    & $cmdExe /d /c "cd /d ""$cmdProbeDir"" && set ""PATH=$installDir;%SystemRoot%\System32;%SystemRoot%"" && rgh --version >nul"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Bare rgh --version did not resolve from the installed release directory."
-    }
-
-    & $publishExe install --source $publishDir --path $installDir --no-path --quiet | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Published installer no-path test failed with exit code $LASTEXITCODE"
-    }
-
-    Start-Sleep -Seconds 3
-
-    if (-not (Test-Path $shimPath)) {
-        throw "Expected the no-path install flow to register the current-user rgh.cmd shim."
-    }
+& $publishExe xtaf --help | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "Published rgh.exe xtaf --help failed with exit code $LASTEXITCODE"
 }
-finally {
-    if (Test-Path $installDir) {
-        Remove-Item -Recurse -Force $installDir
-    }
 
-    if (Test-Path $cmdProbeDir) {
-        Remove-Item -Recurse -Force $cmdProbeDir
-    }
-
-    Restore-UserPathState $userPathState
-
-    if ($shimExisted) {
-        [System.IO.File]::WriteAllText($shimPath, $shimBackup)
-    }
-    elseif (Test-Path $shimPath) {
-        Remove-Item -Force $shimPath
-    }
+& $publishExe install | Out-Null
+if ($LASTEXITCODE -eq 0) {
+    throw "Published rgh.exe still exposes the deprecated install command."
 }
 
 Write-Host "Release verification passed for $publishDir"

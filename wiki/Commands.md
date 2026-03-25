@@ -267,44 +267,26 @@ Target title: Aurora (0xFFFE07D1)
 Arguments: debug=1
 ```
 
-### `rgh install`
-`rgh install` is the XeCLI installer. It chooses an install location and optionally registers `rgh` for new terminals.
-
-For a first-time install from the release package, run it from the extracted folder as:
+### `rgh language`
+`rgh language` shows or changes the saved UI language XeCLI uses when no `--lang` override or `XECLI_LANG` environment variable is supplied.
 
 ```powershell
-.\rgh.exe install
-```
-
-```powershell
-rgh install
-rgh install --path C:\Tools\XeCLI
-rgh install --machine
-rgh install --uninstall
+rgh language
+rgh language --set es
+rgh language --set en
+rgh language --clear
 ```
 
 Example output:
 
 ```text
-XeCLI Installer
-1. Current user
-2. All users
-Choose an install scope [1]:
-Install directory: C:\Users\You\AppData\Local\Programs\XeCLI
-Add rgh to PATH for new terminals? [Y/n]:
-Continue with installation? [Y/n]:
-
-Created by Pew - Se7ensins
-SUCCESS Install complete
-Scope              Current user
-Install Directory  C:\Users\You\AppData\Local\Programs\XeCLI
-Command            rgh
-PATH               User PATH updated
-Next Step          Open a new terminal and run rgh --help.
-Jtag at 192.168.1.186 was detected, would you like to connect now? [y/N]:
+Field               Value
+Saved UI language   Español (es)
+Effective language  Español (es)
+CLI override        Use --lang en|es for one command
 ```
 
-For dashboard and homebrew package staging, use `rgh homebrew install ...`. That keeps the installer flow and the USB package workflow separate in both help and docs.
+For Windows installation and PATH registration, use the published setup executable. `rgh language` is only for the saved CLI language preference.
 
 ### `rgh homebrew install`
 Download one or more public homebrew packages onto a USB drive, staging folder, or detected console drive.

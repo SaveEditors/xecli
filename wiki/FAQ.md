@@ -15,17 +15,18 @@ The release package is self-contained. Source builds still require the .NET 10 S
 Run:
 
 ```powershell
-.\rgh.exe install
+.\XeCLI-1.0.8-setup-win-x64.exe
 ```
 
-Run that from the extracted release folder that contains `rgh.exe`.
+That is the normal Windows install path.
 
-The installer can choose the install scope, ask for the install directory, register `rgh` for new terminals, and then offer to connect to a detected console.
+The installer can choose the install scope, ask for the install directory, register `rgh` for new terminals, set the initial UI language, and then offer to connect to a detected console.
 
 After installation, open a new terminal and use:
 
 ```powershell
 rgh --help
+rgh language
 ```
 
 ## Does the installer add `rgh` to PATH

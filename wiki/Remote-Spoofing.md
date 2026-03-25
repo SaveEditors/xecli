@@ -2,8 +2,6 @@
 
 XeCLI's spoof helpers are title-aware memory tools. They are not generic trainer writes and they do not touch the console profile container or Xbox Live account data. They only change the values the running title is currently reading.
 
-The local source tree is the canonical behavior model for these docs. The shipped release is expected to mirror the same command names, layouts, and verified title-specific constraints.
-
 This page covers the currently implemented spoof surface:
 
 - local in-game gamertag spoofing

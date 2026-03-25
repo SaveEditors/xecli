@@ -112,24 +112,18 @@ If FTP commands fail while XBDM commands succeed:
 - verify the path format you are using
 
 ## The installer did not prompt the way I expected
-Use `rgh install` from a normal interactive terminal.
+Use the published setup executable, not a CLI command.
 
-The full installer wizard is intentionally skipped when:
+The full installer wizard is intentionally skipped or simplified when:
 
 - input is redirected
-- you passed explicit install flags such as `--path`, `--machine`, or `--no-path`
-- you are running a scripted or quiet install
+- you are running a scripted or very silent install
+- Windows policy suppresses interactive setup pages
 
 Manual fallback:
 
 ```powershell
-rgh install
-```
-
-If you want a specific location without the wizard:
-
-```powershell
-rgh install --path C:\Tools\XeCLI
+.\XeCLI-1.0.8-setup-win-x64.exe
 ```
 
 If the post-install console prompt did not appear, XeCLI either did not detect a console fast enough or you skipped it. Use:
@@ -160,17 +154,17 @@ If you are intentionally running from source, install the .NET 10 SDK/runtime an
 dotnet run --project src/Xbox360.Remote.Cli -- --help
 ```
 
-## `rgh install` says the selected source is not a published self-contained release
-That error means the installer was pointed at a source-build output instead of a publish/release layout.
+## The portable release is not the same as the installer
+The zip release is the portable build. The setup executable is the installer.
 
-Use one of these instead:
+Use the setup executable when you want:
 
-- the extracted GitHub release zip folder
-- a self-contained publish folder produced by `dotnet publish`
+- PATH registration
+- Start menu and uninstall integration
+- the installer-owned language selection step
 
-Do not use:
+Use the zip release when you want:
 
-- `src\Xbox360.Remote.Cli\bin\Release\...`
-- other framework-dependent build output directories
-
-If you need to generate a local release layout first, publish XeCLI before running the installer.
+- a portable folder you can run directly
+- no installation changes on the machine
+- manual control over where the files live

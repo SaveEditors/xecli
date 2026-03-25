@@ -10,7 +10,7 @@ Use this page when you need:
 
 Use [Commands.md](Commands.md) when you need task-oriented examples and expected outputs. Use [XNotify.md](XNotify.md) when you need icon IDs, notification usage, and integration notes.
 
-For first-time setup from the release package, start with `.\rgh.exe install` from the extracted release folder. After installation, use `rgh install` for maintenance or reinstall flows, `rgh homebrew install ...` for normal dashboard/homebrew staging, and `rgh ogxbox install ...` for Original Xbox compatibility files that belong on `HddX:\Compatibility`. The installer can copy XeCLI to a chosen folder, register `rgh`, silently scan for consoles, and offer to run `status` on a detected target.
+For Windows installation, use the published setup executable. After installation, use `rgh language` to review or change the saved UI language, `rgh homebrew install ...` for normal dashboard/homebrew staging, and `rgh ogxbox install ...` for Original Xbox compatibility files that belong on `HddX:\Compatibility`. The installer can register `rgh`, persist the selected UI language, scan for consoles, and offer to run `status` on a detected target.
 
 ## How to Read the Help Tree
 Use the help system in this order:
@@ -60,6 +60,7 @@ EXAMPLES:
     rgh homebrew install aurora --usb E:
     rgh homebrew install all --usb E: --auto-confirm
     rgh ogxbox install hacked --include-fixer --usb E:
+    rgh language --set es
     rgh ghidra decompile --running --out .\decomp
     rgh ida check
     rgh ida decompile --running --out .\ida-decomp
@@ -76,7 +77,7 @@ COMMANDS:
     reboot          Reboot the console (cold by default)                        
     shutdown        Power off the console                                       
     launch          Launch a XEX with optional arguments                        
-    install         Launch the XeCLI installer                                  
+    language        Show or change the saved UI language                        
     start           Discover consoles and set the default target                
     connect         Set or select the default target                            
     scan            Scan the network for consoles                               
@@ -581,27 +582,20 @@ OPTIONS:
         --notify-logo <ID>      Notification logo id (decimal or 0x hex)
 ```
 
-### `rgh install help`
+### `rgh language help`
 ```text
 DESCRIPTION:
-Launch the XeCLI installer
+Show or change the saved UI language
 
 USAGE:
-    rgh install [OPTIONS]
+    rgh language [OPTIONS]
 
 OPTIONS:
-    -h, --help            Prints help information
-        --machine         Install for all users (administrator approval
-                          required)
-        --uninstall       Remove the command registration. With --machine,
-                          remove the all-users PATH entry
-        --machine-path    Legacy path-only install for the current executable
-                          directory (admin required)
-        --path <DIR>      Install directory for XeCLI
-        --source <DIR>    Source release directory containing rgh.exe and its
-                          runtime files
-        --no-path         Do not add the install directory to PATH
-        --quiet           Suppress non-error install output
+    -h, --help          Prints help information
+        --set <LANG>    Save the default UI language (`en` or `es`)
+        --clear         Clear the saved UI language and fall back to --lang,
+                        XECLI_LANG, or the system language
+        --quiet         Suppress non-error output
 ```
 
 ### `rgh homebrew help`

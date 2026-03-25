@@ -3,7 +3,7 @@
 - [Home](Home)
 - [Latest Features](Latest-Features)
 - [Releases](Releases)
-- [v1.0.7 Release Notes](Release-Notes-v1.0.7)
+- [v1.0.8 Release Notes](Release-Notes-v1.0.8)
 
 ## Getting Started
 - [Beginner Guide](Beginner-Guide)
@@ -16,7 +16,7 @@
 - [XNotify](XNotify)
 - [Homebrew and USB](Homebrew-and-USB)
 - [Original Xbox Compatibility](Original-Xbox-Compatibility)
-- [Fatman](FATX-Manager)
+- [XTAF / FATX Manager](FATX-Manager)
 
 ## Technical Reference
 - [Advanced Guide](Advanced-Guide)

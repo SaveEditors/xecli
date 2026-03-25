@@ -73,6 +73,9 @@ Filename: "{tmp}\dotnet-runtime-{#DotNetRuntimeVersion}-win-x64.exe"; \
     StatusMsg: "{cm:InstallDotNetRuntimeStatus}"; \
     Flags: waituntilterminated runhidden; \
     Check: NeedsDotNetRuntimeInstall
+Filename: "{app}\rgh.exe"; \
+    Parameters: "language --set {code:GetCliLanguageCode} --quiet"; \
+    Flags: waituntilterminated runhidden
 
 [Code]
 const
@@ -114,6 +117,14 @@ begin
     Result := ExpandConstant('{autopf}\XeCLI')
   else
     Result := ExpandConstant('{localappdata}\Programs\XeCLI');
+end;
+
+function GetCliLanguageCode(Param: String): String;
+begin
+  if CompareText(ActiveLanguage, 'es') = 0 then
+    Result := 'es'
+  else
+    Result := 'en';
 end;
 
 function NormalizePathValue(const Value: String): String;

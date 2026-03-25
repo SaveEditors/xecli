@@ -1,6 +1,8 @@
 # Build output
 /bin/
 /obj/
+/src/**/bin/
+/src/**/obj/
 /decompiled/bin/
 /decompiled/obj/
 

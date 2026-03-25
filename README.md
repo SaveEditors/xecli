@@ -16,42 +16,44 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 - Reverse-engineering helpers for Ghidra and IDA, plus XEX dump, decompile, and analysis flows
 - Homebrew, dashboard, compatibility-pack, and USB staging workflows
 
-## v1.0.7 Highlights
+## v1.0.8 Highlights
 
-- Added full Spanish localization across CLI help, prompts, and WinForms surfaces
-- Added the automated PC-side NAND workflow with `rgh nand dump`
-- Added the verified PC-side keyvault workflow with `rgh xell kv export`
-- Added managed staging for the helper/linker assets used by the XeLL dump flow
-- Added integrated support for the standalone `XeCLI-XellFetch` XeLL payload workflow
-- Added verified-success reboot gating so the console only leaves XeLL after the PC confirms the dump is valid
-- Added same-session verification fallback for consoles that ignore XeLL reboot during the second pass
+- Promoted `rgh xtaf` to the primary FATX/XTAF disk and image command surface while keeping `fatman` and `fatx` as compatibility aliases
+- Separated XeCLI and `XeCLI-XellFetch` distribution paths so the desktop CLI and the standalone XeLL payload ship from their own repos
+- Polished the Windows installer with bundled .NET runtime prerequisite handling, installer-owned language selection, and updated copy
+- Kept the automated PC-side NAND workflow with `rgh nand dump` and the verified keyvault path with `rgh xell kv export`
+- Kept verified-success reboot gating so the console only leaves XeLL after the PC confirms the dump is valid
+- Kept same-session verification fallback for consoles that ignore XeLL reboot during the second pass
 
 **Safety note:** Auto-reboot is disabled for `--single` and `--no-verify` so the console does not leave XeLL before the operator sees that verification was skipped.
 
 ## Quick Start
 
 ```powershell
-dotnet .\rgh.dll --help
-dotnet .\rgh.dll nand dump --ip 192.168.1.186 --yes
+.\XeCLI-1.0.8-setup-win-x64.exe
+rgh --help
+rgh language --set es
+rgh nand dump --ip 192.168.1.186 --yes
 ```
+
+Portable zip users can run `rgh.exe` directly from the extracted release folder. The installer exists to register `rgh`, install the bundled .NET runtime when needed, and persist the initial UI language selection.
 
 ## Documentation
 
 - [GitHub Wiki](https://github.com/SaveEditors/xecli/wiki)
-- [Docs landing page](https://saveeditors.github.io/xecli/)
-- [Wiki home](https://saveeditors.github.io/xecli/wiki/Home.html)
-- [Latest Features](https://saveeditors.github.io/xecli/wiki/Latest-Features.html)
-- [XeLL and NAND Backups](https://saveeditors.github.io/xecli/wiki/XeLL-and-NAND-Backups.html)
-- [XTAF / FATX Manager](https://saveeditors.github.io/xecli/wiki/FATX-Manager.html)
-- [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html)
-- [CLI Help Output](https://saveeditors.github.io/xecli/wiki/CLI-Help.html)
-- [Beginner Guide](https://saveeditors.github.io/xecli/wiki/Beginner-Guide.html)
-- [Advanced Guide](https://saveeditors.github.io/xecli/wiki/Advanced-Guide.html)
-- [Reverse Engineering](https://saveeditors.github.io/xecli/wiki/Reverse-Engineering.html)
-- [Integrations](https://saveeditors.github.io/xecli/wiki/Integrations.html)
-- [Troubleshooting](https://saveeditors.github.io/xecli/wiki/Troubleshooting.html)
-- [Release Notes v1.0.6](https://saveeditors.github.io/xecli/wiki/Release-Notes-v1.0.6.html)
-- [All Releases](https://saveeditors.github.io/xecli/wiki/Releases.html)
+- [Wiki Home](https://github.com/SaveEditors/xecli/wiki/Home)
+- [Latest Features](https://github.com/SaveEditors/xecli/wiki/Latest-Features)
+- [XeCLI-XellFetch](https://github.com/SaveEditors/xecli/wiki/XeCLI-XellFetch)
+- [XTAF / FATX Manager](https://github.com/SaveEditors/xecli/wiki/FATX-Manager)
+- [Commands Reference](https://github.com/SaveEditors/xecli/wiki/Commands)
+- [CLI Help Output](https://github.com/SaveEditors/xecli/wiki/CLI-Help)
+- [Beginner Guide](https://github.com/SaveEditors/xecli/wiki/Beginner-Guide)
+- [Advanced Guide](https://github.com/SaveEditors/xecli/wiki/Advanced-Guide)
+- [Reverse Engineering](https://github.com/SaveEditors/xecli/wiki/Reverse-Engineering)
+- [Integrations](https://github.com/SaveEditors/xecli/wiki/Integrations)
+- [Troubleshooting](https://github.com/SaveEditors/xecli/wiki/Troubleshooting)
+- [Release Notes v1.0.8](https://github.com/SaveEditors/xecli/wiki/Release-Notes-v1.0.8)
+- [All Releases](https://github.com/SaveEditors/xecli/wiki/Releases)
 - [GitHub Releases](https://github.com/SaveEditors/xecli/releases)
 
 ## Tooling Notes
@@ -80,7 +82,7 @@ The standalone `XeCLI-XellFetch` repo is published at [github.com/SaveEditors/Xe
 ## Release
 
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
-- [Full Release Archive](https://saveeditors.github.io/xecli/wiki/Releases.html)
+- [Full Release Archive](https://github.com/SaveEditors/xecli/wiki/Releases)
 
 ## Screenshots
 

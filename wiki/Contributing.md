@@ -51,7 +51,7 @@ Patch notes should focus on shipped product behavior.
 - Include features, fixes, compatibility changes, and operator-relevant behavior changes.
 - Exclude README-only edits, wiki-only edits, wording cleanups, and documentation maintenance.
 - Keep release notes and commit messages professional and product-focused.
-- Do not mention internal drafting tools, assistants, or generation workflows in public docs, release notes, PR text, or commit titles.
+- Do not mention drafting tools or content-generation workflows in public docs, release notes, PR text, or commit titles.
 
 ## Validation Expectations
 
@@ -85,7 +85,7 @@ Release-facing work should include:
 - clean release archive contents
 - no machine-specific local paths in docs
 - no leftover dumps or test artifacts in the repo
-- no temp appdata, localappdata copies, captures, or personal data in the staged diff
+- no machine-specific temp files, captures, or personal data in the staged diff
 
 ## Documentation Contribution Model
 The wiki should read like a maintained technical knowledge base.

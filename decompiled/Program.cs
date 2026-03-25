@@ -1,6 +1,4 @@
 using System;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -38,7 +36,6 @@ internal static class Program
 			AnsiConsole.MarkupLine("[deepskyblue1]XeCLI[/] [white]" + Markup.Escape(GetApplicationVersion()) + "[/]");
 			return 0;
 		}
-		await HandleFirstRunPathPromptAsync(args);
 		CommandApp commandApp = new CommandApp();
 		commandApp.Configure(delegate(IConfigurator config)
 		{
@@ -156,6 +153,7 @@ internal static class Program
 			config.AddExample("homebrew", "install", "aurora", "--usb", "E:");
 			config.AddExample("homebrew", "install", "all", "--usb", "E:", "--auto-confirm");
 			config.AddExample("ogxbox", "install", "hacked", "--include-fixer", "--usb", "E:");
+			config.AddExample("language", "--set", "es");
 			config.AddExample("ghidra", "decompile", "--running", "--out", ".\\decomp");
 			config.AddExample("ida", "check");
 			config.AddExample("ida", "decompile", "--running", "--out", ".\\ida-decomp");
@@ -167,7 +165,7 @@ internal static class Program
 			config.AddCommand<RebootCommand>("reboot").WithAlias("restart").WithDescription("Reboot the console (cold by default).");
 			config.AddCommand<ShutdownCommand>("shutdown").WithAlias("poweroff").WithDescription("Power off the console.");
 			config.AddCommand<LaunchCommand>("launch").WithAlias("run").WithDescription("Launch a XEX with optional arguments.");
-			config.AddCommand<InstallCommand>("install").WithDescription("Launch the XeCLI installer.");
+			config.AddCommand<LanguageCommand>("language").WithAlias("lang").WithDescription("Show or change the saved UI language.");
 			config.AddCommand<StartCommand>("start").WithAlias("s").WithDescription("Discover consoles and set the default target.");
 			config.AddCommand<ConnectCommand>("connect").WithAlias("c").WithDescription("Set or select the default target.");
 			config.AddCommand<ScanCommand>("scan").WithAlias("discover").WithDescription("Scan the network for consoles.");
@@ -744,85 +742,7 @@ internal static class Program
 		{
 			return LocalizedText.NormalizeLanguageCode(cliConfig.UiLanguage);
 		}
-		if (ShouldPromptForLanguage(args))
-		{
-			string value = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Choose language / Elige idioma").AddChoices("English", "Español"));
-			cliConfig.UiLanguage = ((value == "Español") ? "es" : "en");
-			cliConfig.Save();
-			return cliConfig.UiLanguage;
-		}
 		return LocalizedText.GetDefaultLanguageCode();
-	}
-
-	private static Task HandleFirstRunPathPromptAsync(string[] args)
-	{
-		if (!ShouldShowPathPrompt(args))
-		{
-			return Task.CompletedTask;
-		}
-		if (!OperatingSystem.IsWindows())
-		{
-			return Task.CompletedTask;
-		}
-		CliConfig cliConfig = CliConfig.Load();
-		if (cliConfig.PathPromptHandled)
-		{
-			return Task.CompletedTask;
-		}
-		string text = InstallHelpers.NormalizeDirectory(AppContext.BaseDirectory);
-		if (InstallHelpers.IsCommandAvailable(text))
-		{
-			cliConfig.PathPromptHandled = true;
-			cliConfig.Save();
-			return Task.CompletedTask;
-		}
-		string fileName = Environment.ProcessPath ?? Path.Combine(text, "rgh.exe");
-		AnsiConsole.Write(new Panel("XeCLI can install itself to a standard folder and register the [green]rgh[/] command for terminal use.\n[grey]You can install for the current user or all users from the installer.[/]\n\n[mediumpurple3]Created by Pew - Se7ensins[/]").Header("[bold deepskyblue1]First-Run Setup[/]").BorderColor(Color.Grey));
-		string text2 = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Launch the XeCLI installer now?").AddChoices("Yes", "Not now", "Never ask again"));
-		if (text2 == "Yes")
-		{
-			try
-			{
-				using Process process = Process.Start(new ProcessStartInfo(fileName)
-				{
-					UseShellExecute = true,
-					WorkingDirectory = text,
-					ArgumentList = { "install", "--source", text }
-				});
-				int num = 1;
-				if (process != null)
-				{
-					process.WaitForExit();
-					num = process.ExitCode;
-				}
-				if (num == 0)
-				{
-					cliConfig.PathPromptHandled = true;
-					cliConfig.Save();
-					AnsiConsole.MarkupLine("[green]Installer completed.[/] Open a new terminal and run `rgh --help`.");
-				}
-				else
-				{
-					AnsiConsole.MarkupLine($"[red]Installer exited with code {num}.[/]");
-				}
-			}
-			catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
-			{
-				AnsiConsole.MarkupLine("[yellow]Installer was cancelled at the UAC prompt.[/]");
-			}
-			return Task.CompletedTask;
-		}
-		if (text2 == "Not now")
-		{
-			cliConfig.PathPromptHandled = true;
-			cliConfig.Save();
-			AnsiConsole.MarkupLine("[grey]Skipped. You can install later with `rgh install`.[/]");
-			return Task.CompletedTask;
-		}
-		cliConfig.PathPromptHandled = true;
-		cliConfig.Save();
-		AnsiConsole.MarkupLine("[grey]First-run installer prompt disabled. You can still install later with `rgh install`.[/]");
-		return Task.CompletedTask;
 	}
 
 	private static string[] NormalizeArgs(string[] args)
@@ -955,37 +875,4 @@ internal static class Program
 		return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? assembly.GetName().Version?.ToString() ?? "unknown";
 	}
 
-	private static bool ShouldPromptForLanguage(string[] args)
-	{
-		if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
-		{
-			return false;
-		}
-		if (IsVersionRequest(args))
-		{
-			return false;
-		}
-		return !args.Any((string arg) => arg.Equals("--version", StringComparison.OrdinalIgnoreCase) || arg.Equals("-v", StringComparison.OrdinalIgnoreCase));
-	}
-
-	private static bool ShouldShowPathPrompt(string[] args)
-	{
-		if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
-		{
-			return false;
-		}
-		if (IsVersionRequest(args))
-		{
-			return false;
-		}
-		if (args.Any(IsHelpToken) || args.Any((string arg) => arg.Equals("--help", StringComparison.OrdinalIgnoreCase) || arg.Equals("-h", StringComparison.OrdinalIgnoreCase)))
-		{
-			return false;
-		}
-		if (args.Length != 0 && (args[0].Equals("install", StringComparison.OrdinalIgnoreCase) || args[0].Equals("homebrew", StringComparison.OrdinalIgnoreCase) || args[0].Equals("hb", StringComparison.OrdinalIgnoreCase)))
-		{
-			return false;
-		}
-		return true;
-	}
 }

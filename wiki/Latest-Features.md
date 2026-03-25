@@ -2,9 +2,9 @@
 
 This page is the high-level product and release overview for XeCLI. It highlights the current workflow pillars, the newest public release, and the full release timeline so the wiki surfaces the entire shipped feature arc instead of a single point release.
 
-## Current Release Focus: v1.0.7
+## Current Release Focus: v1.0.8
 
-XeCLI v1.0.7 pairs the automated NAND workflow with full Spanish localization, the new Inno Setup installer (dark themed, branded, Ko-fi friendly), and the canonical GitHub wiki so operators read the latest docs without the obsolete HTML site.
+XeCLI v1.0.8 keeps the verified XeLL-backed backup workflow, promotes `rgh xtaf` as the primary FATX/XTAF disk and image surface, separates `XeCLI-XellFetch` into its own standalone release path, and tightens the Windows installer so the published package is easier to deploy cleanly.
 
 `rgh nand dump` still launches or re-attaches to XeLL, stages the helper and linker assets the backup path needs, performs the reference and verification reads, packages the result, and reboots automatically only after a verified success.
 
@@ -161,6 +161,7 @@ This is the short-form patch-notes index for the full public release line. The d
 
 | Release | Primary Themes |
 | --- | --- |
+| `v1.0.8` | XTAF command-surface promotion, standalone XeCLI-XellFetch packaging, and installer polish |
 | `v1.0.7` | Spanish localization, dark Inno Setup installer, Ko-fi support, and the canonical GitHub wiki migration |
 | `v1.0.6` | Automated NAND dumping, managed XeLL staging, verification gating, and safe reboot control |
 | `v1.0.5` | Local CON/profile/XDBF workflows, thread metadata fallback, installer hardening, and release validation |
@@ -170,14 +171,15 @@ This is the short-form patch-notes index for the full public release line. The d
 | `v1.0.1` | Avatar workflows, hardware controls, and early installer/homebrew integration |
 | `v1.0.0` | Initial public CLI release with discovery, status, debugging, FTP, and analysis workflows |
 
-## v1.0.7 Spanish Localization, Installer, and Wiki
+## v1.0.8 XTAF, Packaging, and Installer Polish
 
-- Spanish translations now cover the CLI, installer prompts, and the WinForms avatar browser, with `UiLanguage` in `config.json`, `--lang`, and `XECLI_LANG` fallbacks.
-- The Inno Setup release is dark-themed, uses the XeCLI logo, features Ko-fi support, and enforces the installer wizard layout you already verified.
-- The GitHub wiki is now the only documentation surface; the HTML wiki was removed, and `wiki/*.md` is the maintained source.
+- `rgh xtaf` is now the primary FATX/XTAF surface, with `fatman` and `fatx` preserved as compatibility aliases.
+- The XTAF docs now foreground direct physical-disk access, header scan, manual offset-open, metadata backup/restore, safe repair, and raw partition export workflows.
+- XeCLI and `XeCLI-XellFetch` now have clearly separated release paths so the desktop CLI package and the standalone XeLL payload package are not mixed together.
+- The installer path keeps the bundled runtime prerequisite flow, proper welcome screen ordering, installer-owned language selection, and release-oriented copy for the published setup package.
 
 ## Patch Notes Guidance
 
 - Use [Releases](Releases) for the canonical patch-notes archive.
-- Use [Release Notes v1.0.7](Release-Notes-v1.0.7) for the detailed breakdown of the newest release.
+- Use [Release Notes v1.0.8](Release-Notes-v1.0.8) for the detailed breakdown of the newest release.
 - Patch notes cover shipped product behavior and important fixes. They do not include README-only or wiki-only maintenance updates.

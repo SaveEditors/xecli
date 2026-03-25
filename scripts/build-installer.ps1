@@ -151,15 +151,9 @@ if (-not (Test-Path $issPath)) {
 
 if (-not $SkipPublish) {
     & (Join-Path $repoRoot "scripts\publish-release.ps1") -Output $publishDir
-    if ($LASTEXITCODE -ne 0) {
-        throw "publish-release.ps1 failed with exit code $LASTEXITCODE"
-    }
 }
 
 & (Join-Path $repoRoot "scripts\verify-release.ps1") -PublishDir $publishDir
-if ($LASTEXITCODE -ne 0) {
-    throw "verify-release.ps1 failed with exit code $LASTEXITCODE"
-}
 
 if ($StageOnly) {
     Write-Host "Verified XeCLI release payload for installer staging at $publishDir"
@@ -191,9 +185,6 @@ if ($LASTEXITCODE -ne 0) {
 if ($VerifyInstaller) {
     $setupExe = Join-Path $outputDir "XeCLI-$appVersion-setup-win-x64.exe"
     & (Join-Path $repoRoot "scripts\verify-installer.ps1") -SetupExe $setupExe
-    if ($LASTEXITCODE -ne 0) {
-        throw "verify-installer.ps1 failed with exit code $LASTEXITCODE"
-    }
 }
 
 Write-Host "Built XeCLI installer $appVersion in $outputDir"

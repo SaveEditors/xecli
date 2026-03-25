@@ -109,6 +109,9 @@ $installLog = Join-Path $tempRoot "install.log"
 $uninstallLog = Join-Path $tempRoot "uninstall.log"
 $cmdProbeDir = Join-Path $tempRoot "cmdprobe"
 $userPathState = Get-UserPathState
+$configPath = Join-Path $env:APPDATA "XeCLI\config.json"
+$configBackupPath = Join-Path $tempRoot "config-backup.json"
+$configExisted = Test-Path $configPath
 
 if (Test-Path $tempRoot) {
     Remove-Item -Recurse -Force $tempRoot
@@ -116,6 +119,10 @@ if (Test-Path $tempRoot) {
 
 New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
 New-Item -ItemType Directory -Force -Path $cmdProbeDir | Out-Null
+
+if ($configExisted) {
+    Copy-Item -Force $configPath $configBackupPath
+}
 
 try {
     $installArgs = @(
@@ -146,6 +153,15 @@ try {
     & $installedExe --lang $Language --help | Out-Null
     if ($LASTEXITCODE -ne 0) {
         throw "Installed rgh.exe --lang $Language --help failed with exit code $LASTEXITCODE"
+    }
+
+    if (-not (Test-Path $configPath)) {
+        throw "Installer did not create the XeCLI config file at $configPath"
+    }
+
+    $configJson = Get-Content $configPath -Raw | ConvertFrom-Json
+    if ($configJson.UiLanguage -ne $Language) {
+        throw "Installer did not persist the selected UI language. Expected '$Language', got '$($configJson.UiLanguage)'."
     }
 
     $updatedUserPath = (Get-UserPathState).Value
@@ -187,6 +203,16 @@ try {
 }
 finally {
     Restore-UserPathState $userPathState
+
+    if ($configExisted) {
+        if (-not (Test-Path (Split-Path $configPath -Parent))) {
+            New-Item -ItemType Directory -Force -Path (Split-Path $configPath -Parent) | Out-Null
+        }
+        Copy-Item -Force $configBackupPath $configPath
+    }
+    elseif (Test-Path $configPath) {
+        Remove-Item -Force $configPath
+    }
 
     if (Test-Path $tempRoot) {
         Remove-Item -Recurse -Force $tempRoot

@@ -8,6 +8,7 @@ Patch notes on this page describe shipped product behavior, operator-facing fixe
 
 | Release | Focus | Links |
 | --- | --- | --- |
+| `v1.0.8` | XTAF promotion, standalone XeCLI-XellFetch packaging, and installer polish | [Release notes](#v108-xtaf-packaging-and-installer-polish) |
 | `v1.0.7` | Spanish localization, dark Inno Setup installer, Ko-fi support, and the canonical GitHub wiki migration | [Release notes](#v107-spanish-localization-inno-setup-and-wiki) |
 | `v1.0.6` | Automated NAND dumping, managed XeLL/XeCLI-XellFetch staging, verified packaging, and safe reboot control | [Release notes](#v106-automated-nand-dumping-and-xecli-xellfetch) |
 | `v1.0.5` | Local content workflows, thread metadata fallback, installer fixes, and release packaging | [Release notes](#v105-local-content-and-release-polish) |
@@ -18,6 +19,13 @@ Patch notes on this page describe shipped product behavior, operator-facing fixe
 | `v1.0.0` | Initial public XeCLI release | [Release notes](#v100-initial-release) |
 
 Published GitHub releases: [All releases](https://github.com/SaveEditors/xecli/releases)
+
+## v1.0.8 XTAF, Packaging, and Installer Polish
+
+- Promoted `rgh xtaf` to the primary FATX/XTAF command family while keeping `rgh fatman` and `rgh fatx` as compatibility aliases.
+- Highlighted the XTAF workflows that matter in practice: physical-disk inspection, FATX/XTAF header scan, manual `--offset` / `--length` opens, metadata backup/restore, safe chain-map repair, and raw partition export.
+- Separated the desktop XeCLI release and the standalone `XeCLI-XellFetch` payload release so they ship from their own repos with clearer operator expectations.
+- Polished the Windows installer flow with the bundled .NET runtime prerequisite path, corrected welcome-page ordering, installer-owned language selection, and updated release-facing copy.
 
 ## v1.0.7 Spanish Localization, Inno Setup, and Wiki
 

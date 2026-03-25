@@ -29,19 +29,15 @@ Direct plugin downloads from the XeCLI repo:
 Use these if you want the exact plugin files bundled with XeCLI instead of sourcing them separately.
 
 ## 2. Run the Installer
-If you are using the published release build:
+If you are using the published Windows installer, launch the setup executable:
 
 ```powershell
-.\rgh.exe install
+.\XeCLI-1.0.8-setup-win-x64.exe
 ```
 
-The published release is self-contained. You do not need to install .NET separately for that path.
+The published release is self-contained. You do not need to install .NET separately for the normal installer or portable `win-x64` release paths.
 
-Run that command from the extracted release folder that contains `rgh.exe`.
-
-If you use `--source`, point it at the extracted published release or another self-contained publish folder. XeCLI rejects framework-dependent source-build output such as `src\Xbox360.Remote.Cli\bin\Release\...` because that install path can fail on machines without the matching desktop runtime.
-
-The installer now walks through:
+The installer walks through:
 
 - install scope: current user or all users
 - install directory selection
@@ -54,9 +50,10 @@ After installation completes, open a new terminal and use:
 ```powershell
 rgh --help
 rgh status
+rgh language
 ```
 
-The first-run setup prompt should only appear on a bare `rgh` launch. Normal commands should go straight to their command handler.
+If you prefer the portable zip instead of the installer, extract it and run `rgh.exe` directly from that folder.
 
 ## 3. Discover or Set a Target Manually
 If you skipped the post-install connection prompt, use the manual discovery path:

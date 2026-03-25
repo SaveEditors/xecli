@@ -88,14 +88,6 @@ if (Test-Path $installDir) {
     Remove-Item -Recurse -Force $installDir
 }
 
-$shimPath = Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\rgh.cmd"
-$shimBackup = $null
-$shimExisted = Test-Path $shimPath
-if ($shimExisted) {
-    $shimBackup = Get-Content $shimPath -Raw
-}
-$userPathState = Get-UserPathState
-
 try {
     Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
 
@@ -128,41 +120,19 @@ try {
         throw "Extracted rgh.exe help failed with exit code $LASTEXITCODE"
     }
 
-    & $extractExe install --source $extractDir --path $installDir --quiet | Out-Null
+    & $extractExe language --help | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        throw "Install from extracted release zip failed with exit code $LASTEXITCODE"
+        throw "Extracted rgh.exe language --help failed with exit code $LASTEXITCODE"
     }
 
-    $installedExe = Join-Path $installDir "rgh.exe"
-    if (-not (Test-Path $installedExe)) {
-        throw "Installed rgh.exe was not found at $installedExe"
-    }
-
-    & $installedExe --version | Out-Null
+    & $extractExe xtaf --help | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        throw "Installed rgh.exe --version failed with exit code $LASTEXITCODE"
+        throw "Extracted rgh.exe xtaf --help failed with exit code $LASTEXITCODE"
     }
 
-    $updatedUserPath = (Get-UserPathState).Value
-    if (-not (Test-PathEntry $updatedUserPath $installDir)) {
-        throw "The extracted release install did not add the install directory to the current-user PATH."
-    }
-
-    $cmdExe = Join-Path $env:SystemRoot "System32\cmd.exe"
-    & $cmdExe /d /c "set ""PATH=$installDir;%SystemRoot%\System32;%SystemRoot%"" && rgh --version >nul"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Bare rgh --version did not resolve from the extracted release install."
-    }
-
-    & $extractExe install --source $extractDir --path $installDir --no-path --quiet | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "No-path install from extracted release zip failed with exit code $LASTEXITCODE"
-    }
-
-    Start-Sleep -Seconds 3
-
-    if (-not (Test-Path $shimPath)) {
-        throw "Expected the no-path extracted release install flow to register the current-user rgh.cmd shim."
+    & $extractExe install | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        throw "Extracted release zip still exposes the deprecated install command."
     }
 
     Write-Host "Release zip smoke test passed for $zipPath"
@@ -174,14 +144,5 @@ finally {
 
     if (Test-Path $installDir) {
         Remove-Item -Recurse -Force $installDir
-    }
-
-    Restore-UserPathState $userPathState
-
-    if ($shimExisted) {
-        [System.IO.File]::WriteAllText($shimPath, $shimBackup)
-    }
-    elseif (Test-Path $shimPath) {
-        Remove-Item -Force $shimPath
     }
 }

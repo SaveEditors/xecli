@@ -231,7 +231,7 @@ XeCLI resolves MediaWiki file pages to the raw archive automatically when a page
 
 ## Notes
 
-- `rgh install` is the XeCLI installer
+- the Windows setup executable is the XeCLI installer
 - `rgh homebrew install ...` is the package workflow for both local staging and direct console install
 - `rgh ogxbox install ...` is the Original Xbox compatibility workflow for XeFu packs and the optional HDD Compatibility Partition Fixer
 - use `--usb` for local staging

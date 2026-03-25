@@ -21,7 +21,7 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 - Added the automated PC-side NAND workflow with `rgh nand dump`
 - Added the verified PC-side keyvault workflow with `rgh xell kv export`
 - Added managed staging for the helper/linker assets used by the XeLL dump flow
-- Added the `XeCLI-XellFetch` companion package for the standalone payload/bootstrap path
+- Added integrated support for the standalone `XeCLI-XellFetch` XeLL payload workflow
 - Added verified-success reboot gating so the console only leaves XeLL after the PC confirms the dump is valid
 - Added same-session verification fallback for consoles that ignore XeLL reboot during the second pass
 
@@ -58,9 +58,9 @@ Ghidra is an external `(Free)` dependency. XeCLI's supported Ghidra XEX import p
 
 The IDA workflow is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`.
 
-## Companion Package
+## Standalone Payload Repo
 
-The standalone `XeCLI-XellFetch` companion bundle lives in [XeCLI-XellFetch](XeCLI-XellFetch) and is also published at [github.com/SaveEditors/XeCLI-XellFetch](https://github.com/SaveEditors/XeCLI-XellFetch). It packages the custom `xell.bin`, `XellLaunch`, and `QuickBoot` assets for operators who want the XeLL-side payload with or without the full XeCLI desktop workflow.
+The standalone `XeCLI-XellFetch` repo is published at [github.com/SaveEditors/XeCLI-XellFetch](https://github.com/SaveEditors/XeCLI-XellFetch). It packages the custom `xell.bin`, `XellLaunch`, and `QuickBoot` assets for operators who want the XeLL-side payload with or without the full XeCLI desktop workflow. XeCLI integrates with that workflow, but the standalone bundle is released from its own repo.
 
 ## Release
 

@@ -8,7 +8,7 @@ XeCLI v1.0.7 pairs the automated NAND workflow with full Spanish localization, t
 
 `rgh nand dump` still launches or re-attaches to XeLL, stages the helper and linker assets the backup path needs, performs the reference and verification reads, packages the result, and reboots automatically only after a verified success.
 
-If you want the stripped boot package instead of the full desktop bundle, the standalone `XeCLI-XellFetch` companion package can serve as the minimal XeLL-side payload bundle for the same workflow.
+If you want the stripped boot package instead of the full desktop bundle, the standalone `XeCLI-XellFetch` repo can serve as the minimal XeLL-side payload bundle for the same workflow.
 
 Read [XeCLI-XellFetch](XeCLI-XellFetch) for the payload model, workflow boundaries, safety notes, and verification behavior.
 

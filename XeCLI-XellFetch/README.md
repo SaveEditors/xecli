@@ -2,7 +2,7 @@
 
 # XeCLI-XellFetch
 
-XeCLI-XellFetch is the standalone companion package for XeCLI's custom XeLL payload and launcher bundle.
+XeCLI-XellFetch is the standalone XeLL payload and launcher bundle used by XeCLI's network fetch workflow.
 
 It is called `Fetch` because it fetches NAND and keyvault data over the network.
 
@@ -15,7 +15,7 @@ It includes:
 XeCLI uses this payload as part of its automated XeLL workflows, including verified NAND dumping and verified keyvault export. You can also use this package on its own without XeCLI by launching the helper directly and pulling the exposed HTTP endpoints from your own tooling.
 
 Main XeCLI repo: [https://github.com/SaveEditors/xecli](https://github.com/SaveEditors/xecli)
-Standalone companion repo: [https://github.com/SaveEditors/XeCLI-XellFetch](https://github.com/SaveEditors/XeCLI-XellFetch)
+Standalone repo: [https://github.com/SaveEditors/XeCLI-XellFetch](https://github.com/SaveEditors/XeCLI-XellFetch)
 
 ## Layout
 
@@ -33,9 +33,6 @@ launch/
     config-flash.ini.example
 tools/
   build-quickboot.ps1
-docs/
-  XellFetch_CUSTOMIZATION.md
-  xell-preview-waiting.svg
 SHA256SUMS.txt
 ```
 
@@ -101,6 +98,4 @@ The script uses the same content metadata XeCLI uses for its QuickBoot shortcut 
 
 ## Notes
 
-- This package does not rebuild XeLL from source. It packages the already-built binaries present in this workspace.
-- `docs/XellFetch_CUSTOMIZATION.md` documents the intended UI/behavior of the custom payload.
-- `docs/xell-preview-waiting.svg` is a static preview of the waiting screen styling.
+- This package does not rebuild XeLL from source. It packages the already-built payload and launcher assets for standalone use.

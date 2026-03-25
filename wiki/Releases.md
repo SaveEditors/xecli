@@ -29,7 +29,7 @@ Published GitHub releases: [All releases](https://github.com/SaveEditors/xecli/r
 
 - Added `rgh nand dump` as a one-command PC workflow for managed XeLL launch, NAND download, verification, packaging, and verified-success reboot control.
 - Added managed helper/linker staging so the workflow can provision `XellLaunch`, `QuickBoot`, and the custom `xell.bin` payload without requiring the operator to gather them separately.
-- Added the standalone `XeCLI-XellFetch` companion package so the XeLL payload stack can be used outside the full XeCLI desktop flow when needed.
+- Added standalone `XeCLI-XellFetch` repo support so the XeLL payload stack can be used outside the full XeCLI desktop flow when needed.
 - Added explicit verification gating so auto-reboot only happens after XeCLI confirms the dump, manifest, and archive are valid.
 - Added safe same-session verification fallback when the console ignores XeLL reboot during the second-pass dump.
 - Added improved XeLL payload status sync so the console UI and the PC-side command flow report the same NAND dump and completion states.

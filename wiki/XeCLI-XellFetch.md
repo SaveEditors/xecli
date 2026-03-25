@@ -42,7 +42,7 @@ XeCLI does not assume the console is already in XeLL.
 - If the console is on the dashboard, XeCLI asks for confirmation before the first automatic transition into XeLL.
 - When available, XeCLI prefers the XellLaunch shortcut path. `--force-xell` skips that preference and forces the direct reboot path.
 - If the session is non-interactive, or if automatic launch is not available, XeCLI prints the manual eject-button fallback instead of rebooting without confirmation.
-- The standalone `XeCLI-XellFetch` companion package can be used when you want the same custom XeLL-side bootstrap without the broader desktop bundle.
+- The standalone `XeCLI-XellFetch` repo can be used when you want the same custom XeLL-side bootstrap without the broader desktop bundle.
 
 ## Payload and Staging Model
 

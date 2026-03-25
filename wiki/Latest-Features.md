@@ -81,9 +81,9 @@ rgh avatar install --remote --titleid 415608C3 --all --current-user
 
 Read [Avatar-Item-Collection.md](Avatar-Item-Collection.md) for the full command surface.
 
-## Claude, Codex, and Terminal Agents
+## Terminal Agents and Automation
 
-XeCLI works well from Claude, Codex, and other terminal agents because the command surface is explicit and many commands expose `--json`. That makes it a good fit for repeatable console automation, file collection, screenshots, and reverse-engineering pipelines.
+XeCLI works well from terminal agents and scripted workflows because the command surface is explicit and many commands expose `--json`. That makes it a good fit for repeatable console automation, file collection, screenshots, and reverse-engineering pipelines.
 
 Use:
 

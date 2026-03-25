@@ -15,8 +15,9 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 - Reverse-engineering helpers for Ghidra and IDA, plus XEX dump, decompile, and analysis flows
 - Homebrew, dashboard, compatibility-pack, and USB staging workflows
 
-## v1.0.6 Highlights
+## v1.0.7 Highlights
 
+- Added full Spanish localization across CLI help, prompts, and WinForms surfaces
 - Added the automated PC-side NAND workflow with `rgh nand dump`
 - Added the verified PC-side keyvault workflow with `rgh xell kv export`
 - Added managed staging for the helper/linker assets used by the XeLL dump flow

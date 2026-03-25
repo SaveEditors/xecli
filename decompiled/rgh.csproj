@@ -37,6 +37,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Localization\LocalizedDescriptionAttribute.cs" Link="Localization\LocalizedDescriptionAttribute.cs" />
+    <Compile Include="..\Localization\LocalizedText.cs" Link="Localization\LocalizedText.cs" />
+    <Compile Include="..\Localization\LocalizedText.Catalog.g.cs" Link="Localization\LocalizedText.Catalog.g.cs" />
+    <Compile Include="..\Localization\LocalizedConsole.cs" Link="Localization\LocalizedConsole.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="..\Assets\**\*">
       <Link>Assets\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

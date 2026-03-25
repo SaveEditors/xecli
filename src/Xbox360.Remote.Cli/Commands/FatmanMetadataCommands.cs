@@ -13,7 +13,7 @@ public sealed class FatmanMetadataBackupCommand : AsyncCommand<FatmanMetadataBac
     public sealed class Settings : FatmanImageSettings
     {
         [CommandOption("--out <DIR>")]
-        [Description("Directory to receive metadata backup files and the manifest.")]
+        [LocalizedDescription("Directory to receive metadata backup files and the manifest.")]
         public string? OutputDirectory { get; init; }
     }
 
@@ -116,11 +116,11 @@ public sealed class FatmanMetadataRestoreCommand : AsyncCommand<FatmanMetadataRe
     public sealed class Settings : FatmanImageSettings
     {
         [CommandOption("--manifest <FILE>")]
-        [Description("Manifest produced by fatman metadata backup.")]
+        [LocalizedDescription("Manifest produced by fatman metadata backup.")]
         public string? ManifestPath { get; init; }
 
         [CommandOption("--auto-confirm")]
-        [Description("Skip the destructive-action confirmation prompt.")]
+        [LocalizedDescription("Skip the destructive-action confirmation prompt.")]
         public bool AutoConfirm { get; init; }
     }
 
@@ -217,3 +217,4 @@ internal sealed record FatmanMetadataRegion(
     long Offset,
     long Length,
     string FileName);
+

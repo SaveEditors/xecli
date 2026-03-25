@@ -17,33 +17,33 @@ namespace Xbox360.Remote.Cli.Commands;
 public class FatmanBaseSettings : CommandSettings
 {
     [CommandOption("--json")]
-    [Description("Emit machine-readable JSON output.")]
+    [LocalizedDescription("Emit machine-readable JSON output.")]
     public bool Json { get; init; }
 }
 
 public class FatmanImageSettings : FatmanBaseSettings
 {
     [CommandOption("--image <FILE>")]
-    [Description("Path to a raw Xbox 360 HDD image (.img / .bin).")]
+    [LocalizedDescription("Path to a raw Xbox 360 HDD image (.img / .bin).")]
     public string? ImagePath { get; init; }
 
     [CommandOption("--disk <NUMBER|PATH>")]
-    [Description("Windows physical disk number or device path (for example 2 or \\\\.\\PhysicalDrive2).")]
+    [LocalizedDescription("Windows physical disk number or device path (for example 2 or \\\\.\\PhysicalDrive2).")]
     public string? Disk { get; init; }
 
     [CommandOption("--offset <VALUE>")]
-    [Description("Open a partition manually at a byte offset (decimal or 0x hex).")]
+    [LocalizedDescription("Open a partition manually at a byte offset (decimal or 0x hex).")]
     public string? Offset { get; init; }
 
     [CommandOption("--length <VALUE>")]
-    [Description("Limit the manually opened partition to a byte length (decimal or 0x hex).")]
+    [LocalizedDescription("Limit the manually opened partition to a byte length (decimal or 0x hex).")]
     public string? Length { get; init; }
 }
 
 public class FatmanPartitionSettings : FatmanImageSettings
 {
     [CommandOption("--partition <NAME|INDEX>")]
-    [Description("Partition name or zero-based partition index.")]
+    [LocalizedDescription("Partition name or zero-based partition index.")]
     public string? Partition { get; init; }
 }
 
@@ -119,7 +119,7 @@ public sealed class FatmanScanCommand : AsyncCommand<FatmanScanCommand.Settings>
     public sealed class Settings : FatmanImageSettings
     {
         [CommandOption("--limit <COUNT>")]
-        [Description("Maximum number of plausible FATX/XTAF header candidates to return.")]
+        [LocalizedDescription("Maximum number of plausible FATX/XTAF header candidates to return.")]
         [DefaultValue(32)]
         public int Limit { get; init; } = 32;
     }
@@ -375,7 +375,7 @@ public sealed class FatmanFindCommand : AsyncCommand<FatmanFindCommand.Settings>
     public sealed class Settings : FatmanPathSettings
     {
         [CommandOption("--query <TEXT>")]
-        [Description("Case-insensitive text to match in entry names or full FATX paths.")]
+        [LocalizedDescription("Case-insensitive text to match in entry names or full FATX paths.")]
         public string? Query { get; init; }
     }
 
@@ -532,11 +532,11 @@ public sealed class FatmanPutCommand : AsyncCommand<FatmanPutCommand.Settings>
     public sealed class Settings : FatmanPathExportSettings
     {
         [CommandOption("--in <FILE>")]
-        [Description("Host file to write into the FATX image.")]
+        [LocalizedDescription("Host file to write into the FATX image.")]
         public string? InputPath { get; init; }
 
         [CommandOption("--overwrite")]
-        [Description("Replace an existing FATX file at the target path.")]
+        [LocalizedDescription("Replace an existing FATX file at the target path.")]
         public bool Overwrite { get; init; }
     }
 
@@ -621,11 +621,11 @@ public sealed class FatmanMoveCommand : AsyncCommand<FatmanMoveCommand.Settings>
     public sealed class Settings : FatmanPathSettings
     {
         [CommandOption("--to <FATXPATH>")]
-        [Description("Destination FATX path.")]
+        [LocalizedDescription("Destination FATX path.")]
         public string? DestinationPath { get; init; }
 
         [CommandOption("--overwrite")]
-        [Description("Replace an existing destination file if it already exists.")]
+        [LocalizedDescription("Replace an existing destination file if it already exists.")]
         public bool Overwrite { get; init; }
     }
 
@@ -669,7 +669,7 @@ public sealed class FatmanDeleteCommand : AsyncCommand<FatmanDeleteCommand.Setti
     public sealed class Settings : FatmanPathSettings
     {
         [CommandOption("--recursive")]
-        [Description("Delete directory contents recursively.")]
+        [LocalizedDescription("Delete directory contents recursively.")]
         public bool Recursive { get; init; }
     }
 
@@ -706,21 +706,21 @@ public sealed class FatmanDeleteCommand : AsyncCommand<FatmanDeleteCommand.Setti
 public class FatmanPartitionDumpSettings : FatmanPartitionSettings
 {
     [CommandOption("--out <PATH>")]
-    [Description("Directory to receive dumped partition images.")]
+    [LocalizedDescription("Directory to receive dumped partition images.")]
     public string? OutputDirectory { get; init; }
 }
 
 public class FatmanPathSettings : FatmanPartitionSettings
 {
     [CommandOption("--path <FATXPATH>")]
-    [Description("Path inside the selected FATX partition.")]
+    [LocalizedDescription("Path inside the selected FATX partition.")]
     public string? Path { get; init; }
 }
 
 public class FatmanPathExportSettings : FatmanPathSettings
 {
     [CommandOption("--out <PATH>")]
-    [Description("Host output path.")]
+    [LocalizedDescription("Host output path.")]
     public string? OutputPath { get; init; }
 }
 
@@ -1136,3 +1136,4 @@ internal sealed record FatmanVolumeCandidateInfo(
     long ClusterSize,
     uint RootDirectoryCluster,
     string Notes);
+

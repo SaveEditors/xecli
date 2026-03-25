@@ -513,23 +513,23 @@ public sealed class SmcVersionCommand : AsyncCommand<ConnectionSettings> {
 public sealed class FanSetCommand : AsyncCommand<FanSetCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--speed <PERCENT>")]
-        [Description("Manual fan speed percentage (10-100).")]
+        [LocalizedDescription("Manual fan speed percentage (10-100).")]
         public int? SpeedPercent { get; init; }
 
         [CommandOption("--channel <CHANNEL>")]
-        [Description("primary|secondary|both (default: both).")]
+        [LocalizedDescription("primary|secondary|both (default: both).")]
         public string? Channel { get; init; }
 
         [CommandOption("--notify")]
-        [Description("Send a default success notification to the console.")]
+        [LocalizedDescription("Send a default success notification to the console.")]
         public bool Notify { get; init; }
 
         [CommandOption("--notify-icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [LocalizedDescription("Notification icon preset name.")]
         public string? NotifyIcon { get; init; }
 
         [CommandOption("--notify-logo <ID>")]
-        [Description("Notification logo id (decimal or 0x hex).")]
+        [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
         public string? NotifyLogo { get; init; }
     }
 
@@ -574,7 +574,7 @@ public sealed class FanSetCommand : AsyncCommand<FanSetCommand.Settings> {
 public sealed class FanShowCommand : Command<FanShowCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--json")]
-        [Description("Emit JSON output.")]
+        [LocalizedDescription("Emit JSON output.")]
         public bool Json { get; init; }
     }
 
@@ -605,35 +605,35 @@ public sealed class FanShowCommand : Command<FanShowCommand.Settings> {
 public sealed class LedSetCommand : AsyncCommand<LedSetCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--preset <NAME>")]
-        [Description("all-green|all-red|all-orange|all-off|quadrant1|quadrant2|quadrant3|quadrant4")]
+        [LocalizedDescription("all-green|all-red|all-orange|all-off|quadrant1|quadrant2|quadrant3|quadrant4")]
         public string? Preset { get; init; }
 
         [CommandOption("--tl <COLOR>")]
-        [Description("Top-left color: off|green|red|orange")]
+        [LocalizedDescription("Top-left color: off|green|red|orange")]
         public string? TopLeft { get; init; }
 
         [CommandOption("--tr <COLOR>")]
-        [Description("Top-right color: off|green|red|orange")]
+        [LocalizedDescription("Top-right color: off|green|red|orange")]
         public string? TopRight { get; init; }
 
         [CommandOption("--bl <COLOR>")]
-        [Description("Bottom-left color: off|green|red|orange")]
+        [LocalizedDescription("Bottom-left color: off|green|red|orange")]
         public string? BottomLeft { get; init; }
 
         [CommandOption("--br <COLOR>")]
-        [Description("Bottom-right color: off|green|red|orange")]
+        [LocalizedDescription("Bottom-right color: off|green|red|orange")]
         public string? BottomRight { get; init; }
 
         [CommandOption("--notify")]
-        [Description("Send a default success notification to the console.")]
+        [LocalizedDescription("Send a default success notification to the console.")]
         public bool Notify { get; init; }
 
         [CommandOption("--notify-icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [LocalizedDescription("Notification icon preset name.")]
         public string? NotifyIcon { get; init; }
 
         [CommandOption("--notify-logo <ID>")]
-        [Description("Notification logo id (decimal or 0x hex).")]
+        [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
         public string? NotifyLogo { get; init; }
     }
 
@@ -689,7 +689,7 @@ public sealed class LedSetCommand : AsyncCommand<LedSetCommand.Settings> {
 public sealed class LedStateCommand : Command<LedStateCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--json")]
-        [Description("Emit JSON output.")]
+        [LocalizedDescription("Emit JSON output.")]
         public bool Json { get; init; }
     }
 
@@ -755,15 +755,15 @@ public sealed class SignInStateCommand : AsyncCommand<ConnectionSettings> {
 public sealed class TrayOpenCommand : AsyncCommand<TrayOpenCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--notify")]
-        [Description("Send a default success notification to the console.")]
+        [LocalizedDescription("Send a default success notification to the console.")]
         public bool Notify { get; init; }
 
         [CommandOption("--notify-icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [LocalizedDescription("Notification icon preset name.")]
         public string? NotifyIcon { get; init; }
 
         [CommandOption("--notify-logo <ID>")]
-        [Description("Notification logo id (decimal or 0x hex).")]
+        [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
         public string? NotifyLogo { get; init; }
     }
 
@@ -793,15 +793,15 @@ public sealed class TrayOpenCommand : AsyncCommand<TrayOpenCommand.Settings> {
 public sealed class TrayCloseCommand : AsyncCommand<TrayCloseCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--notify")]
-        [Description("Send a default success notification to the console.")]
+        [LocalizedDescription("Send a default success notification to the console.")]
         public bool Notify { get; init; }
 
         [CommandOption("--notify-icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [LocalizedDescription("Notification icon preset name.")]
         public string? NotifyIcon { get; init; }
 
         [CommandOption("--notify-logo <ID>")]
-        [Description("Notification logo id (decimal or 0x hex).")]
+        [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
         public string? NotifyLogo { get; init; }
     }
 
@@ -831,15 +831,15 @@ public sealed class TrayCloseCommand : AsyncCommand<TrayCloseCommand.Settings> {
 public sealed class ShutdownCommand : AsyncCommand<ShutdownCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--notify")]
-        [Description("Send a default success notification to the console before shutdown.")]
+        [LocalizedDescription("Send a default success notification to the console before shutdown.")]
         public bool Notify { get; init; }
 
         [CommandOption("--notify-icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [LocalizedDescription("Notification icon preset name.")]
         public string? NotifyIcon { get; init; }
 
         [CommandOption("--notify-logo <ID>")]
-        [Description("Notification logo id (decimal or 0x hex).")]
+        [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
         public string? NotifyLogo { get; init; }
     }
 
@@ -874,27 +874,27 @@ public sealed class ShutdownCommand : AsyncCommand<ShutdownCommand.Settings> {
 public sealed class PopupMessageBoxCommand : AsyncCommand<PopupMessageBoxCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--title <TEXT>")]
-        [Description("Popup title text.")]
+        [LocalizedDescription("Popup title text.")]
         public string? Title { get; init; }
 
         [CommandOption("--body <TEXT>")]
-        [Description("Popup body text.")]
+        [LocalizedDescription("Popup body text.")]
         public string? Body { get; init; }
 
         [CommandOption("--button <TEXT>")]
-        [Description("Button label. Repeat to add multiple buttons.")]
+        [LocalizedDescription("Button label. Repeat to add multiple buttons.")]
         public string[]? Buttons { get; init; }
 
         [CommandOption("--focus <INDEX>")]
-        [Description("Focused button index (default: 0).")]
+        [LocalizedDescription("Focused button index (default: 0).")]
         public uint? FocusedButtonIndex { get; init; }
 
         [CommandOption("--preset <NAME>")]
-        [Description("Popup icon preset: none|error|warning|question (default: none).")]
+        [LocalizedDescription("Popup icon preset: none|error|warning|question (default: none).")]
         public string? Preset { get; init; }
 
         [CommandOption("--style <ID>")]
-        [Description("Raw popup style id. Overrides --preset when provided.")]
+        [LocalizedDescription("Raw popup style id. Overrides --preset when provided.")]
         public uint? MessageBoxType { get; init; }
     }
 
@@ -960,3 +960,4 @@ public sealed class PopupMessageBoxCommand : AsyncCommand<PopupMessageBoxCommand
         }, CancellationToken.None);
     }
 }
+

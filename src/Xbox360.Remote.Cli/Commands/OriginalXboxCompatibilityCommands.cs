@@ -8,7 +8,7 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class OriginalXboxCompatibilityListCommand : Command<OriginalXboxCompatibilityListCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--json")]
-        [Description("Emit machine-readable output.")]
+        [LocalizedDescription("Emit machine-readable output.")]
         public bool Json { get; init; }
     }
 
@@ -41,27 +41,27 @@ public sealed class OriginalXboxCompatibilityListCommand : Command<OriginalXboxC
 public sealed class OriginalXboxCompatibilityInstallCommand : Command<OriginalXboxCompatibilityInstallCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandArgument(0, "<SET>")]
-        [Description("Compatibility set to install: hacked, hud, or retail.")]
+        [LocalizedDescription("Compatibility set to install: hacked, hud, or retail.")]
         public string SetId { get; init; } = string.Empty;
 
         [CommandOption("--usb <TARGET>")]
-        [Description("Stage to a removable USB drive, drive letter, selection number, or host folder path.")]
+        [LocalizedDescription("Stage to a removable USB drive, drive letter, selection number, or host folder path.")]
         public string? UsbTarget { get; init; }
 
         [CommandOption("--include-fixer")]
-        [Description("Also stage or install HDD Compatibility Partition Fixer.")]
+        [LocalizedDescription("Also stage or install HDD Compatibility Partition Fixer.")]
         public bool IncludeFixer { get; init; }
 
         [CommandOption("--cache <DIR>")]
-        [Description("Download cache directory.")]
+        [LocalizedDescription("Download cache directory.")]
         public string? CacheDirectory { get; init; }
 
         [CommandOption("--force-download")]
-        [Description("Redownload archives even when they already exist in the cache.")]
+        [LocalizedDescription("Redownload archives even when they already exist in the cache.")]
         public bool ForceDownload { get; init; }
 
         [CommandOption("--auto-confirm")]
-        [Description("Skip confirmation prompts.")]
+        [LocalizedDescription("Skip confirmation prompts.")]
         public bool AutoConfirm { get; init; }
 
         public override ValidationResult Validate() {
@@ -119,3 +119,4 @@ public sealed class OriginalXboxCompatibilityInstallCommand : Command<OriginalXb
         }
     }
 }
+

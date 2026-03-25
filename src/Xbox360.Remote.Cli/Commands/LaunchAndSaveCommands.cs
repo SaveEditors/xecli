@@ -10,39 +10,39 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class LaunchCommand : AsyncCommand<LaunchCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandArgument(0, "[XEX]")]
-        [Description("XEX path to launch, for example Hdd1:\\Aurora\\Aurora.xex.")]
+        [LocalizedDescription("XEX path to launch, for example Hdd1:\\Aurora\\Aurora.xex.")]
         public string? Xex { get; init; }
 
         [CommandOption("--xex <PATH>")]
-        [Description("XEX path to launch, for example Hdd1:\\Aurora\\Aurora.xex.")]
+        [LocalizedDescription("XEX path to launch, for example Hdd1:\\Aurora\\Aurora.xex.")]
         public string? XexPath { get; init; }
 
         [CommandOption("--directory <DIR>")]
-        [Description("Working directory passed to XBDM. Defaults to the XEX folder.")]
+        [LocalizedDescription("Working directory passed to XBDM. Defaults to the XEX folder.")]
         public string? Directory { get; init; }
 
         [CommandOption("--args <TEXT>")]
-        [Description("Command-line arguments passed to the XEX.")]
+        [LocalizedDescription("Command-line arguments passed to the XEX.")]
         public string? Arguments { get; init; }
 
         [CommandOption("--titleid <TITLEID>")]
-        [Description("Optional Title ID for display/logging.")]
+        [LocalizedDescription("Optional Title ID for display/logging.")]
         public string? TitleId { get; init; }
 
         [CommandOption("--dry-run")]
-        [Description("Show the generated XBDM command without executing it.")]
+        [LocalizedDescription("Show the generated XBDM command without executing it.")]
         public bool DryRun { get; init; }
 
         [CommandOption("--notify")]
-        [Description("Send a default success notification to the console.")]
+        [LocalizedDescription("Send a default success notification to the console.")]
         public bool Notify { get; init; }
 
         [CommandOption("--notify-icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [LocalizedDescription("Notification icon preset name.")]
         public string? NotifyIcon { get; init; }
 
         [CommandOption("--notify-logo <ID>")]
-        [Description("Notification logo id (decimal or 0x hex).")]
+        [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
         public string? NotifyLogo { get; init; }
     }
 
@@ -133,15 +133,15 @@ public sealed class LaunchCommand : AsyncCommand<LaunchCommand.Settings> {
 public sealed class SaveListCommand : AsyncCommand<SaveListCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandOption("--titleid <TITLEID>")]
-        [Description("Title ID in hex (for example 4D530805).")]
+        [LocalizedDescription("Title ID in hex (for example 4D530805).")]
         public string? TitleId { get; init; }
 
         [CommandOption("--profile <PROFILE>")]
-        [Description("Restrict to one 16-character profile ID.")]
+        [LocalizedDescription("Restrict to one 16-character profile ID.")]
         public string? ProfileId { get; init; }
 
         [CommandOption("--device <ROOTS>")]
-        [Description("Optional comma-separated storage roots, for example Hdd1 or Hdd1,Usb0.")]
+        [LocalizedDescription("Optional comma-separated storage roots, for example Hdd1 or Hdd1,Usb0.")]
         public string? Devices { get; init; }
     }
 
@@ -185,23 +185,23 @@ public sealed class SaveListCommand : AsyncCommand<SaveListCommand.Settings> {
 public sealed class SaveExtractCommand : AsyncCommand<SaveExtractCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandOption("--titleid <TITLEID>")]
-        [Description("Title ID in hex (for example 4D530805).")]
+        [LocalizedDescription("Title ID in hex (for example 4D530805).")]
         public string? TitleId { get; init; }
 
         [CommandOption("--profile <PROFILE>")]
-        [Description("Restrict to one 16-character profile ID.")]
+        [LocalizedDescription("Restrict to one 16-character profile ID.")]
         public string? ProfileId { get; init; }
 
         [CommandOption("--out <DIR>")]
-        [Description("Destination directory.")]
+        [LocalizedDescription("Destination directory.")]
         public string? OutputDirectory { get; init; }
 
         [CommandOption("--overwrite")]
-        [Description("Overwrite files that already exist.")]
+        [LocalizedDescription("Overwrite files that already exist.")]
         public bool Overwrite { get; init; }
 
         [CommandOption("--device <ROOTS>")]
-        [Description("Optional comma-separated storage roots, for example Hdd1 or Hdd1,Usb0.")]
+        [LocalizedDescription("Optional comma-separated storage roots, for example Hdd1 or Hdd1,Usb0.")]
         public string? Devices { get; init; }
     }
 
@@ -272,31 +272,31 @@ public sealed class SaveExtractCommand : AsyncCommand<SaveExtractCommand.Setting
 public sealed class SaveInjectCommand : AsyncCommand<SaveInjectCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandOption("--titleid <TITLEID>")]
-        [Description("Title ID in hex (for example 4D530805).")]
+        [LocalizedDescription("Title ID in hex (for example 4D530805).")]
         public string? TitleId { get; init; }
 
         [CommandOption("--profile <PROFILE>")]
-        [Description("Destination 16-character profile ID.")]
+        [LocalizedDescription("Destination 16-character profile ID.")]
         public string? ProfileId { get; init; }
 
         [CommandOption("--device <ROOT>")]
-        [Description("Destination storage root, for example Hdd1 or Usb0 (default: Hdd1).")]
+        [LocalizedDescription("Destination storage root, for example Hdd1 or Usb0 (default: Hdd1).")]
         public string? Device { get; init; }
 
         [CommandOption("--in <PATH>")]
-        [Description("Local file or directory to upload.")]
+        [LocalizedDescription("Local file or directory to upload.")]
         public string? InputPath { get; init; }
 
         [CommandOption("--remote-path <RELATIVE>")]
-        [Description("Relative save path to use when --in points to a single file.")]
+        [LocalizedDescription("Relative save path to use when --in points to a single file.")]
         public string? RemotePath { get; init; }
 
         [CommandOption("--overwrite")]
-        [Description("Overwrite remote files that already exist.")]
+        [LocalizedDescription("Overwrite remote files that already exist.")]
         public bool Overwrite { get; init; }
 
         [CommandOption("--dry-run")]
-        [Description("Show the remote paths that would be uploaded without writing anything.")]
+        [LocalizedDescription("Show the remote paths that would be uploaded without writing anything.")]
         public bool DryRun { get; init; }
     }
 
@@ -665,3 +665,4 @@ internal static class SaveHelpers {
         Console.Error.WriteLine($"[save-debug] {message}");
     }
 }
+

@@ -8,23 +8,23 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class IdaConfigCommand : Command<IdaConfigCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--path <DIR>")]
-        [Description("IDA install directory (must contain idat.exe).")]
+        [LocalizedDescription("IDA install directory (must contain idat.exe).")]
         public string? IdaPath { get; init; }
 
         [CommandOption("--python <EXE>")]
-        [Description("Python executable or command used for idalib helpers.")]
+        [LocalizedDescription("Python executable or command used for idalib helpers.")]
         public string? PythonPath { get; init; }
 
         [CommandOption("--user <DIR>")]
-        [Description("IDA user directory override for headless runs.")]
+        [LocalizedDescription("IDA user directory override for headless runs.")]
         public string? UserPath { get; init; }
 
         [CommandOption("--backend <NAME>")]
-        [Description("Preferred backend: auto, batch, or idalib.")]
+        [LocalizedDescription("Preferred backend: auto, batch, or idalib.")]
         public string? PreferredBackend { get; init; }
 
         [CommandOption("--clear")]
-        [Description("Clear stored IDA settings.")]
+        [LocalizedDescription("Clear stored IDA settings.")]
         public bool Clear { get; init; }
     }
 
@@ -101,23 +101,23 @@ public sealed class IdaConfigCommand : Command<IdaConfigCommand.Settings> {
 public sealed class IdaCheckCommand : AsyncCommand<IdaCheckCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--path <DIR>")]
-        [Description("IDA install directory override.")]
+        [LocalizedDescription("IDA install directory override.")]
         public string? IdaPath { get; init; }
 
         [CommandOption("--python <EXE>")]
-        [Description("Python executable override.")]
+        [LocalizedDescription("Python executable override.")]
         public string? PythonPath { get; init; }
 
         [CommandOption("--user <DIR>")]
-        [Description("IDA user directory override.")]
+        [LocalizedDescription("IDA user directory override.")]
         public string? UserPath { get; init; }
 
         [CommandOption("--backend <NAME>")]
-        [Description("Preferred backend override.")]
+        [LocalizedDescription("Preferred backend override.")]
         public string? PreferredBackend { get; init; }
 
         [CommandOption("--json")]
-        [Description("Emit JSON.")]
+        [LocalizedDescription("Emit JSON.")]
         public bool Json { get; init; }
     }
 
@@ -192,15 +192,15 @@ public sealed class IdaCheckCommand : AsyncCommand<IdaCheckCommand.Settings> {
 public sealed class IdaInstallLoaderCommand : AsyncCommand<IdaInstallLoaderCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--path <DIR>")]
-        [Description("IDA install directory override.")]
+        [LocalizedDescription("IDA install directory override.")]
         public string? IdaPath { get; init; }
 
         [CommandOption("--archive <FILE>")]
-        [Description("Use a local idaxex 0.42b archive instead of downloading one.")]
+        [LocalizedDescription("Use a local idaxex 0.42b archive instead of downloading one.")]
         public string? ArchivePath { get; init; }
 
         [CommandOption("--url <URL>")]
-        [Description("Download idaxex from an explicit URL instead of the supported default.")]
+        [LocalizedDescription("Download idaxex from an explicit URL instead of the supported default.")]
         public string? Url { get; init; }
     }
 
@@ -263,35 +263,35 @@ public sealed class IdaInstallLoaderCommand : AsyncCommand<IdaInstallLoaderComma
 public sealed class IdaAnalyzeCommand : AsyncCommand<IdaAnalyzeCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--in <FILE>")]
-        [Description("Input file to analyze (XEX or existing database).")]
+        [LocalizedDescription("Input file to analyze (XEX or existing database).")]
         public string? Input { get; init; }
 
         [CommandOption("--ftp-path <PATH>")]
-        [Description("Fetch the XEX via FTP before analysis.")]
+        [LocalizedDescription("Fetch the XEX via FTP before analysis.")]
         public string? FtpPath { get; init; }
 
         [CommandOption("--running")]
-        [Description("Use the running title XEX resolved over XBDM + FTP.")]
+        [LocalizedDescription("Use the running title XEX resolved over XBDM + FTP.")]
         public bool Running { get; init; }
 
         [CommandOption("--out-db <FILE>")]
-        [Description("Output database path (.i64).")]
+        [LocalizedDescription("Output database path (.i64).")]
         public string? OutputDatabase { get; init; }
 
         [CommandOption("--overwrite")]
-        [Description("Overwrite an existing database.")]
+        [LocalizedDescription("Overwrite an existing database.")]
         public bool Overwrite { get; init; }
 
         [CommandOption("--path <DIR>")]
-        [Description("IDA install directory override.")]
+        [LocalizedDescription("IDA install directory override.")]
         public string? IdaPath { get; init; }
 
         [CommandOption("--python <EXE>")]
-        [Description("Python executable override.")]
+        [LocalizedDescription("Python executable override.")]
         public string? PythonPath { get; init; }
 
         [CommandOption("--user <DIR>")]
-        [Description("IDA user directory override.")]
+        [LocalizedDescription("IDA user directory override.")]
         public string? UserPath { get; init; }
     }
 
@@ -340,51 +340,51 @@ public sealed class IdaAnalyzeCommand : AsyncCommand<IdaAnalyzeCommand.Settings>
 public sealed class IdaDecompileCommand : AsyncCommand<IdaDecompileCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--in <FILE>")]
-        [Description("Input XEX or database path.")]
+        [LocalizedDescription("Input XEX or database path.")]
         public string? Input { get; init; }
 
         [CommandOption("--ftp-path <PATH>")]
-        [Description("Fetch the XEX via FTP before decompiling.")]
+        [LocalizedDescription("Fetch the XEX via FTP before decompiling.")]
         public string? FtpPath { get; init; }
 
         [CommandOption("--running")]
-        [Description("Use the running title XEX resolved over XBDM + FTP.")]
+        [LocalizedDescription("Use the running title XEX resolved over XBDM + FTP.")]
         public bool Running { get; init; }
 
         [CommandOption("--out <DIR>")]
-        [Description("Output directory for C files.")]
+        [LocalizedDescription("Output directory for C files.")]
         public string? OutputDirectory { get; init; }
 
         [CommandOption("--max <N>")]
-        [Description("Maximum number of functions to decompile (default: all).")]
+        [LocalizedDescription("Maximum number of functions to decompile (default: all).")]
         public int? MaxFunctions { get; init; }
 
         [CommandOption("--backend <NAME>")]
-        [Description("Backend: auto, batch, or idalib.")]
+        [LocalizedDescription("Backend: auto, batch, or idalib.")]
         public string? Backend { get; init; }
 
         [CommandOption("--out-db <FILE>")]
-        [Description("Database path to create or reuse for raw XEX input.")]
+        [LocalizedDescription("Database path to create or reuse for raw XEX input.")]
         public string? OutputDatabase { get; init; }
 
         [CommandOption("--overwrite-db")]
-        [Description("Overwrite the database when importing a raw XEX.")]
+        [LocalizedDescription("Overwrite the database when importing a raw XEX.")]
         public bool OverwriteDatabase { get; init; }
 
         [CommandOption("--keep-db")]
-        [Description("Keep the generated database even when using a temporary cache path.")]
+        [LocalizedDescription("Keep the generated database even when using a temporary cache path.")]
         public bool KeepDatabase { get; init; }
 
         [CommandOption("--path <DIR>")]
-        [Description("IDA install directory override.")]
+        [LocalizedDescription("IDA install directory override.")]
         public string? IdaPath { get; init; }
 
         [CommandOption("--python <EXE>")]
-        [Description("Python executable override.")]
+        [LocalizedDescription("Python executable override.")]
         public string? PythonPath { get; init; }
 
         [CommandOption("--user <DIR>")]
-        [Description("IDA user directory override.")]
+        [LocalizedDescription("IDA user directory override.")]
         public string? UserPath { get; init; }
     }
 
@@ -468,23 +468,23 @@ public sealed class IdaDecompileCommand : AsyncCommand<IdaDecompileCommand.Setti
 public sealed class IdaVerifyCommand : Command<IdaVerifyCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--dir <DIR>")]
-        [Description("Directory containing IDA decompiler output to verify.")]
+        [LocalizedDescription("Directory containing IDA decompiler output to verify.")]
         public string? Directory { get; init; }
 
         [CommandOption("--pattern <REGEX>")]
-        [Description("Regex pattern to flag (default: could not decompile|BAD).")]
+        [LocalizedDescription("Regex pattern to flag (default: could not decompile|BAD).")]
         public string Pattern { get; init; } = "could not decompile|BAD";
 
         [CommandOption("--ext <EXT>")]
-        [Description("File extension to scan (default: .c).")]
+        [LocalizedDescription("File extension to scan (default: .c).")]
         public string Extension { get; init; } = ".c";
 
         [CommandOption("--max <N>")]
-        [Description("Maximum matching files to display (default: 25).")]
+        [LocalizedDescription("Maximum matching files to display (default: 25).")]
         public int? MaxResults { get; init; }
 
         [CommandOption("--json")]
-        [Description("Emit JSON.")]
+        [LocalizedDescription("Emit JSON.")]
         public bool Json { get; init; }
     }
 
@@ -556,3 +556,4 @@ public sealed class IdaVerifyCommand : Command<IdaVerifyCommand.Settings> {
         return 1;
     }
 }
+

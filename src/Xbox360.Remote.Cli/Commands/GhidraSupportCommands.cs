@@ -7,15 +7,15 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class GhidraInstallLoaderCommand : AsyncCommand<GhidraInstallLoaderCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--path <DIR>")]
-        [Description("Ghidra install directory override.")]
+        [LocalizedDescription("Ghidra install directory override.")]
         public string? GhidraPath { get; init; }
 
         [CommandOption("--archive <FILE>")]
-        [Description("Use a local XEXLoaderWV archive instead of downloading one.")]
+        [LocalizedDescription("Use a local XEXLoaderWV archive instead of downloading one.")]
         public string? ArchivePath { get; init; }
 
         [CommandOption("--url <URL>")]
-        [Description("Download XEXLoaderWV from an explicit URL instead of the latest GitHub release.")]
+        [LocalizedDescription("Download XEXLoaderWV from an explicit URL instead of the latest GitHub release.")]
         public string? Url { get; init; }
     }
 
@@ -64,3 +64,4 @@ public sealed class GhidraInstallLoaderCommand : AsyncCommand<GhidraInstallLoade
         return 0;
     }
 }
+

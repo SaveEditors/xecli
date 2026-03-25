@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows.Forms;
+using XeCli.Localization;
 using Xbox360.Remote;
 using Xbox360.Remote.Cli.Avatar;
 using Color = System.Drawing.Color;
@@ -60,6 +61,7 @@ internal sealed class AvatarBrowserForm : Form {
 
         InitializeUi();
         ApplyInitialFilters();
+        WinFormsLocalizer.Apply(this);
     }
 
     public IReadOnlyList<AvatarItemRecord> SelectedItems {
@@ -121,7 +123,7 @@ internal sealed class AvatarBrowserForm : Form {
         };
 
         _summaryLabel.AutoSize = true;
-        _summaryLabel.Text = $"{_modeLabel} | {AvatarLibraryService.ListTitles(_index).Count} titles | {_index.Items.Count} items";
+        _summaryLabel.Text = $"{LocalizedText.Translate(_modeLabel)} | {AvatarLibraryService.ListTitles(_index).Count} {LocalizedText.Translate("titles")} | {_index.Items.Count} {LocalizedText.Translate("items")}";
         _summaryLabel.ForeColor = Color.Gainsboro;
         _summaryLabel.Location = new Point(2, 40);
 
@@ -139,7 +141,7 @@ internal sealed class AvatarBrowserForm : Form {
 
         Label source = new Label {
             AutoSize = true,
-            Text = _paths.RemoteMode ? _paths.EffectiveManifestUrl : _paths.EffectiveLibraryRoot ?? "local corpus",
+            Text = _paths.RemoteMode ? _paths.EffectiveManifestUrl : _paths.EffectiveLibraryRoot ?? LocalizedText.Translate("local corpus"),
             ForeColor = Color.LightSkyBlue,
             Anchor = AnchorStyles.Top | AnchorStyles.Right,
             Location = new Point(760, 34)
@@ -388,7 +390,7 @@ internal sealed class AvatarBrowserForm : Form {
         _titleSearchBox.Text = !string.IsNullOrWhiteSpace(_settings.Game) ? _settings.Game : string.Empty;
         _itemSearchBox.Text = !string.IsNullOrWhiteSpace(_settings.Search) ? _settings.Search : string.Empty;
 
-        List<string> tags = new List<string> { "All Tags" };
+        List<string> tags = new List<string> { LocalizedText.Translate("All Tags") };
         tags.AddRange(_allTags.OrderBy(tag => tag, StringComparer.OrdinalIgnoreCase));
         _tagFilterBox.BeginUpdate();
         _tagFilterBox.Items.Clear();
@@ -445,7 +447,7 @@ internal sealed class AvatarBrowserForm : Form {
                 _itemList.BeginUpdate();
                 _itemList.Items.Clear();
                 _itemList.EndUpdate();
-                _selectionLabel.Text = "Selected: 0";
+                _selectionLabel.Text = BuildSelectedText(0);
                 return;
             }
 
@@ -481,15 +483,17 @@ internal sealed class AvatarBrowserForm : Form {
                 _itemList.BeginUpdate();
                 _itemList.Items.Clear();
                 _itemList.EndUpdate();
-                _footerLabel.Text = "Select a title to view its avatar items.";
-                _selectionLabel.Text = $"Selected: {_selectedContentIds.Count}";
+                _footerLabel.Text = LocalizedText.Translate("Select a title to view its avatar items.");
+                _selectionLabel.Text = BuildSelectedText(_selectedContentIds.Count);
                 _installButton.Enabled = _selectedContentIds.Count > 0;
                 return;
             }
 
             string search = _itemSearchBox.Text?.Trim() ?? string.Empty;
             string? selectedTag = _tagFilterBox.SelectedItem as string;
-            bool useTag = !string.IsNullOrWhiteSpace(selectedTag) && !string.Equals(selectedTag, "All Tags", StringComparison.OrdinalIgnoreCase);
+            bool useTag = !string.IsNullOrWhiteSpace(selectedTag) &&
+                          !string.Equals(selectedTag, LocalizedText.Translate("All Tags"), StringComparison.OrdinalIgnoreCase) &&
+                          !string.Equals(selectedTag, "All Tags", StringComparison.OrdinalIgnoreCase);
 
             IEnumerable<AvatarItemRecord> items = _itemsByTitle.TryGetValue(selectedTitle.TitleId, out List<AvatarItemRecord>? titleItems)
                 ? titleItems
@@ -526,8 +530,8 @@ internal sealed class AvatarBrowserForm : Form {
             _itemList.ItemChecked += ItemListOnItemChecked;
             _itemList.EndUpdate();
 
-            _footerLabel.Text = $"{selectedTitle.TitleName} | {filtered.Count} visible item(s)";
-            _selectionLabel.Text = $"Selected: {_selectedContentIds.Count}";
+            _footerLabel.Text = $"{selectedTitle.TitleName} | {BuildVisibleItemsText(filtered.Count)}";
+            _selectionLabel.Text = BuildSelectedText(_selectedContentIds.Count);
             _installButton.Enabled = _selectedContentIds.Count > 0;
         }
         finally {
@@ -553,7 +557,7 @@ internal sealed class AvatarBrowserForm : Form {
 
     private void InstallSelected(object? sender, EventArgs e) {
         if (_selectedContentIds.Count == 0) {
-            MessageBox.Show(this, "Select at least one avatar item first.", "XeCLI Avatar Browser", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(this, LocalizedText.Translate("Select at least one avatar item first."), LocalizedText.Translate("XeCLI Avatar Browser"), MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
 
@@ -574,9 +578,17 @@ internal sealed class AvatarBrowserForm : Form {
     }
 
     private void RefreshSelectionLabel() {
-        _selectionLabel.Text = $"Selected: {_selectedContentIds.Count}";
-        _headerSelectionLabel.Text = $"Selected: {_selectedContentIds.Count}";
+        _selectionLabel.Text = BuildSelectedText(_selectedContentIds.Count);
+        _headerSelectionLabel.Text = BuildSelectedText(_selectedContentIds.Count);
         _installButton.Enabled = _selectedContentIds.Count > 0;
+    }
+
+    private static string BuildSelectedText(int count) {
+        return LocalizedText.Translate("Selected") + ": " + count.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static string BuildVisibleItemsText(int count) {
+        return count.ToString(CultureInfo.InvariantCulture) + " " + LocalizedText.Translate("visible item(s)");
     }
 
     private AvatarTitleSummary? GetSelectedTitle() {

@@ -6,10 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>rgh</AssemblyName>
-    <Version>1.0.5</Version>
-    <AssemblyVersion>1.0.5.0</AssemblyVersion>
-    <FileVersion>1.0.5.0</FileVersion>
-    <InformationalVersion>1.0.5</InformationalVersion>
+    <Version>1.0.6</Version>
+    <AssemblyVersion>1.0.6.0</AssemblyVersion>
+    <FileVersion>1.0.6.0</FileVersion>
+    <InformationalVersion>1.0.6</InformationalVersion>
     <UseWindowsForms>true</UseWindowsForms>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
@@ -30,6 +30,13 @@
     <PackageReference Include="Spectre.Console.Cli" Version="0.50.0" />
     <PackageReference Include="FluentFTP" Version="52.1.0" />
     <PackageReference Include="System.Management" Version="10.0.0-preview.3.25171.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Localization\LocalizedDescriptionAttribute.cs" Link="Localization\LocalizedDescriptionAttribute.cs" />
+    <Compile Include="..\..\Localization\LocalizedText.cs" Link="Localization\LocalizedText.cs" />
+    <Compile Include="..\..\Localization\LocalizedText.Catalog.g.cs" Link="Localization\LocalizedText.Catalog.g.cs" />
+    <Compile Include="..\..\Localization\LocalizedConsole.cs" Link="Localization\LocalizedConsole.cs" />
   </ItemGroup>
 
   <ItemGroup>

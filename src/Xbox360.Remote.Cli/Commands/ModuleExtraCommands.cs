@@ -10,11 +10,11 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class XbdmModulesInfoCommand : AsyncCommand<XbdmModulesInfoCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--name <MODULE>")]
-        [Description("Module name, e.g. default.xex or xam.xex.")]
+        [LocalizedDescription("Module name, e.g. default.xex or xam.xex.")]
         public string? Name { get; init; }
 
         [CommandOption("--sections")]
-        [Description("Include section details.")]
+        [LocalizedDescription("Include section details.")]
         public bool Sections { get; init; }
     }
 
@@ -74,35 +74,35 @@ public sealed class XbdmModulesInfoCommand : AsyncCommand<XbdmModulesInfoCommand
 public sealed class XbdmModuleLoadCommand : AsyncCommand<XbdmModuleLoadCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--path <PATH>")]
-        [Description("Remote XEX path to load, e.g. Hdd:\\XDRPC.xex.")]
+        [LocalizedDescription("Remote XEX path to load, e.g. Hdd:\\XDRPC.xex.")]
         public string? Path { get; init; }
 
         [CommandOption("--flags <N>")]
-        [Description("Kernel load flags (default 8).")]
+        [LocalizedDescription("Kernel load flags (default 8).")]
         public int? Flags { get; init; }
 
         [CommandOption("--system")]
-        [Description("Run the load RPC on a system thread instead of the default title thread.")]
+        [LocalizedDescription("Run the load RPC on a system thread instead of the default title thread.")]
         public bool SystemThread { get; init; }
 
         [CommandOption("--reboot-expected")]
-        [Description("Treat a console disconnect/reboot as an expected part of the load and persist pending verification.")]
+        [LocalizedDescription("Treat a console disconnect/reboot as an expected part of the load and persist pending verification.")]
         public bool RebootExpected { get; init; }
 
         [CommandOption("--dry-run")]
-        [Description("Show the resolved call without writing anything.")]
+        [LocalizedDescription("Show the resolved call without writing anything.")]
         public bool DryRun { get; init; }
 
         [CommandOption("--notify")]
-        [Description("Send a default success notification to the console.")]
+        [LocalizedDescription("Send a default success notification to the console.")]
         public bool Notify { get; init; }
 
         [CommandOption("--notify-icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [LocalizedDescription("Notification icon preset name.")]
         public string? NotifyIcon { get; init; }
 
         [CommandOption("--notify-logo <ID>")]
-        [Description("Notification logo id (decimal or 0x hex).")]
+        [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
         public string? NotifyLogo { get; init; }
     }
 
@@ -246,35 +246,35 @@ public sealed class XbdmModuleLoadCommand : AsyncCommand<XbdmModuleLoadCommand.S
 public sealed class XbdmModuleUnloadCommand : AsyncCommand<XbdmModuleUnloadCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--name <MODULE>")]
-        [Description("Loaded module name, e.g. XDRPC.xex.")]
+        [LocalizedDescription("Loaded module name, e.g. XDRPC.xex.")]
         public string? Name { get; init; }
 
         [CommandOption("--handle <HANDLE>")]
-        [Description("Explicit module handle as hex or decimal.")]
+        [LocalizedDescription("Explicit module handle as hex or decimal.")]
         public string? Handle { get; init; }
 
         [CommandOption("--skip-mark")]
-        [Description("Do not set the sysdll unload marker at handle+0x40 before unloading.")]
+        [LocalizedDescription("Do not set the sysdll unload marker at handle+0x40 before unloading.")]
         public bool SkipMark { get; init; }
 
         [CommandOption("--dry-run")]
-        [Description("Show the resolved unload target without writing anything.")]
+        [LocalizedDescription("Show the resolved unload target without writing anything.")]
         public bool DryRun { get; init; }
 
         [CommandOption("--force")]
-        [Description("Required. Module unload can wedge the console if the target rejects live unload.")]
+        [LocalizedDescription("Required. Module unload can wedge the console if the target rejects live unload.")]
         public bool Force { get; init; }
 
         [CommandOption("--notify")]
-        [Description("Send a default success notification to the console.")]
+        [LocalizedDescription("Send a default success notification to the console.")]
         public bool Notify { get; init; }
 
         [CommandOption("--notify-icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [LocalizedDescription("Notification icon preset name.")]
         public string? NotifyIcon { get; init; }
 
         [CommandOption("--notify-logo <ID>")]
-        [Description("Notification logo id (decimal or 0x hex).")]
+        [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
         public string? NotifyLogo { get; init; }
     }
 
@@ -683,3 +683,4 @@ internal static class OperationFeedback {
         AnsiConsole.MarkupLine(detail);
     }
 }
+

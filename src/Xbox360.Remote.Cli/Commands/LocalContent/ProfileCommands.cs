@@ -113,11 +113,11 @@ public sealed class ProfileInfoCommand : Command<ProfileInfoCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -217,19 +217,19 @@ public sealed class ProfileExtractCommand : Command<ProfileExtractCommand.Settin
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandArgument(1, "<OUTDIR>")]
-		[Description("Destination directory.")]
+		[LocalizedDescription("Destination directory.")]
 		public string OutputDirectory { get; init; } = string.Empty;
 
 		[CommandOption("--overwrite")]
-		[Description("Overwrite files that already exist.")]
+		[LocalizedDescription("Overwrite files that already exist.")]
 		public bool Overwrite { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -269,11 +269,11 @@ public sealed class ProfileAccountShowCommand : Command<ProfileAccountShowComman
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -332,11 +332,11 @@ public sealed class ProfileTitlesListCommand : Command<ProfileTitlesListCommand.
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -420,15 +420,15 @@ public sealed class ProfileAchievementsListCommand : Command<ProfileAchievements
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Title ID in hex, for example 4D530805.")]
+		[LocalizedDescription("Title ID in hex, for example 4D530805.")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -518,11 +518,11 @@ public sealed class ProfileSettingsListCommand : Command<ProfileSettingsListComm
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -572,15 +572,15 @@ public sealed class ProfileSettingsGetCommand : Command<ProfileSettingsGetComman
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandArgument(1, "<SETTINGID>")]
-		[Description("Setting ID in hex, for example 0x10040006.")]
+		[LocalizedDescription("Setting ID in hex, for example 0x10040006.")]
 		public string SettingId { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -633,3 +633,4 @@ public sealed class ProfileSettingsGetCommand : Command<ProfileSettingsGetComman
 		});
 	}
 }
+

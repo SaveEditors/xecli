@@ -1145,19 +1145,19 @@ internal static class SpoofNotifyHelpers {
 
 public abstract class SpoofIdentitySettingsBase : ConnectionSettings {
     [CommandOption("--current-user")]
-    [Description("Use the currently signed-in user value.")]
+    [LocalizedDescription("Use the currently signed-in user value.")]
     public bool CurrentUser { get; init; }
 
     [CommandOption("--notify")]
-    [Description("Send a default success notification to the console.")]
+    [LocalizedDescription("Send a default success notification to the console.")]
     public bool Notify { get; init; }
 
     [CommandOption("--notify-icon <NAME>")]
-    [Description("Notification icon preset name.")]
+    [LocalizedDescription("Notification icon preset name.")]
     public string? NotifyIcon { get; init; }
 
     [CommandOption("--notify-logo <ID>")]
-    [Description("Notification logo id (decimal or 0x hex).")]
+    [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
     public string? NotifyLogo { get; init; }
 }
 
@@ -1197,7 +1197,7 @@ public sealed class GamertagSpoofShowCommand : AsyncCommand<ConnectionSettings> 
 public sealed class GamertagSpoofSetCommand : AsyncCommand<GamertagSpoofSetCommand.Settings> {
     public sealed class Settings : SpoofIdentitySettingsBase {
         [CommandOption("--value <TEXT>")]
-        [Description("Gamertag to write into the running supported title.")]
+        [LocalizedDescription("Gamertag to write into the running supported title.")]
         public string? Value { get; init; }
     }
 
@@ -1275,7 +1275,7 @@ public sealed class XuidSpoofShowCommand : AsyncCommand<ConnectionSettings> {
 public sealed class XuidSpoofSetCommand : AsyncCommand<XuidSpoofSetCommand.Settings> {
     public sealed class Settings : SpoofIdentitySettingsBase {
         [CommandOption("--value <HEX>")]
-        [Description("16-character XUID to write into the running supported title.")]
+        [LocalizedDescription("16-character XUID to write into the running supported title.")]
         public string? Value { get; init; }
     }
 
@@ -1371,31 +1371,31 @@ public sealed class RemoteSpoofListCommand : AsyncCommand<ConnectionSettings> {
 public sealed class RemoteSpoofApplyCommand : AsyncCommand<RemoteSpoofApplyCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--slot <N>")]
-        [Description("1-based client slot to overwrite.")]
+        [LocalizedDescription("1-based client slot to overwrite.")]
         public int? Slot { get; init; }
 
         [CommandOption("--all")]
-        [Description("Overwrite every supported slot.")]
+        [LocalizedDescription("Overwrite every supported slot.")]
         public bool All { get; init; }
 
         [CommandOption("--text <TEXT>")]
-        [Description("Replacement name text. Use {slot} to inject the 1-based slot number.")]
+        [LocalizedDescription("Replacement name text. Use {slot} to inject the 1-based slot number.")]
         public string? Text { get; init; }
 
         [CommandOption("--xuid <HEX>")]
-        [Description("16-character XUID to write into each target slot's identity field alongside the name.")]
+        [LocalizedDescription("16-character XUID to write into each target slot's identity field alongside the name.")]
         public string? Xuid { get; init; }
 
         [CommandOption("--notify")]
-        [Description("Send a default success notification to the console.")]
+        [LocalizedDescription("Send a default success notification to the console.")]
         public bool Notify { get; init; }
 
         [CommandOption("--notify-icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [LocalizedDescription("Notification icon preset name.")]
         public string? NotifyIcon { get; init; }
 
         [CommandOption("--notify-logo <ID>")]
-        [Description("Notification logo id (decimal or 0x hex).")]
+        [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
         public string? NotifyLogo { get; init; }
     }
 
@@ -1468,15 +1468,15 @@ public sealed class RemoteSpoofApplyCommand : AsyncCommand<RemoteSpoofApplyComma
 public sealed class SpoofResetCommand : AsyncCommand<SpoofResetCommand.Settings> {
     public sealed class Settings : SpoofIdentitySettingsBase {
         [CommandOption("--gamertag <TEXT>")]
-        [Description("Explicit gamertag to restore instead of the signed-in user.")]
+        [LocalizedDescription("Explicit gamertag to restore instead of the signed-in user.")]
         public string? Gamertag { get; init; }
 
         [CommandOption("--xuid <HEX>")]
-        [Description("Explicit XUID to restore instead of the signed-in user.")]
+        [LocalizedDescription("Explicit XUID to restore instead of the signed-in user.")]
         public string? Xuid { get; init; }
 
         [CommandOption("--clear-remote")]
-        [Description("Clear every supported remote slot after restoring the local identity.")]
+        [LocalizedDescription("Clear every supported remote slot after restoring the local identity.")]
         public bool ClearRemote { get; init; }
     }
 
@@ -1523,3 +1523,4 @@ public sealed class SpoofResetCommand : AsyncCommand<SpoofResetCommand.Settings>
         }, CancellationToken.None);
     }
 }
+

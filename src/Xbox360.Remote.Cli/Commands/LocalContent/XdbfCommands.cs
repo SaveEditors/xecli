@@ -40,23 +40,23 @@ public sealed class XdbfListCommand : Command<XdbfListCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<FILE>")]
-		[Description("Path to the GPD/XDBF file.")]
+		[LocalizedDescription("Path to the GPD/XDBF file.")]
 		public string FilePath { get; init; } = string.Empty;
 
 		[CommandOption("--namespace <NAMESPACE>")]
-		[Description("Optional namespace filter: achievements, images, settings, titles, strings, avatar, or the numeric namespace ID.")]
+		[LocalizedDescription("Optional namespace filter: achievements, images, settings, titles, strings, avatar, or the numeric namespace ID.")]
 		public string? Namespace { get; init; }
 
 		[CommandOption("--origin <ORIGIN>")]
-		[Description("Sync record origin: profile or pec (default: profile).")]
+		[LocalizedDescription("Sync record origin: profile or pec (default: profile).")]
 		public string? Origin { get; init; }
 
 		[CommandOption("--show-sync")]
-		[Description("Include pending-sync status for each record.")]
+		[LocalizedDescription("Include pending-sync status for each record.")]
 		public bool ShowSync { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -145,27 +145,27 @@ public sealed class XdbfGetCommand : Command<XdbfGetCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<FILE>")]
-		[Description("Path to the GPD/XDBF file.")]
+		[LocalizedDescription("Path to the GPD/XDBF file.")]
 		public string FilePath { get; init; } = string.Empty;
 
 		[CommandArgument(1, "<NAMESPACE>")]
-		[Description("Namespace name or numeric ID.")]
+		[LocalizedDescription("Namespace name or numeric ID.")]
 		public string Namespace { get; init; } = string.Empty;
 
 		[CommandArgument(2, "<ID>")]
-		[Description("Record ID, in decimal or hex.")]
+		[LocalizedDescription("Record ID, in decimal or hex.")]
 		public string Id { get; init; } = string.Empty;
 
 		[CommandOption("--origin <ORIGIN>")]
-		[Description("Sync record origin: profile or pec (default: profile).")]
+		[LocalizedDescription("Sync record origin: profile or pec (default: profile).")]
 		public string? Origin { get; init; }
 
 		[CommandOption("--out <FILE>")]
-		[Description("Write the record payload to a file instead of rendering a hex preview.")]
+		[LocalizedDescription("Write the record payload to a file instead of rendering a hex preview.")]
 		public string? OutFile { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -266,19 +266,19 @@ public sealed class XdbfExtractCommand : Command<XdbfExtractCommand.Settings>
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<FILE>")]
-		[Description("Path to the GPD/XDBF file.")]
+		[LocalizedDescription("Path to the GPD/XDBF file.")]
 		public string FilePath { get; init; } = string.Empty;
 
 		[CommandArgument(1, "<OUTDIR>")]
-		[Description("Directory to write extracted records into.")]
+		[LocalizedDescription("Directory to write extracted records into.")]
 		public string OutDir { get; init; } = string.Empty;
 
 		[CommandOption("--namespace <NAMESPACE>")]
-		[Description("Optional namespace filter: achievements, images, settings, titles, strings, avatar, or the numeric namespace ID.")]
+		[LocalizedDescription("Optional namespace filter: achievements, images, settings, titles, strings, avatar, or the numeric namespace ID.")]
 		public string? Namespace { get; init; }
 
 		[CommandOption("--origin <ORIGIN>")]
-		[Description("Sync record origin: profile or pec (default: profile).")]
+		[LocalizedDescription("Sync record origin: profile or pec (default: profile).")]
 		public string? Origin { get; init; }
 	}
 
@@ -331,19 +331,19 @@ public sealed class XdbfSyncStatusCommand : Command<XdbfSyncStatusCommand.Settin
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<FILE>")]
-		[Description("Path to the GPD/XDBF file.")]
+		[LocalizedDescription("Path to the GPD/XDBF file.")]
 		public string FilePath { get; init; } = string.Empty;
 
 		[CommandOption("--namespace <NAMESPACE>")]
-		[Description("Optional namespace filter: achievements, images, settings, titles, strings, avatar, or the numeric namespace ID.")]
+		[LocalizedDescription("Optional namespace filter: achievements, images, settings, titles, strings, avatar, or the numeric namespace ID.")]
 		public string? Namespace { get; init; }
 
 		[CommandOption("--origin <ORIGIN>")]
-		[Description("Sync record origin: profile or pec (default: profile).")]
+		[LocalizedDescription("Sync record origin: profile or pec (default: profile).")]
 		public string? Origin { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -411,3 +411,4 @@ public sealed class XdbfSyncStatusCommand : Command<XdbfSyncStatusCommand.Settin
 		});
 	}
 }
+

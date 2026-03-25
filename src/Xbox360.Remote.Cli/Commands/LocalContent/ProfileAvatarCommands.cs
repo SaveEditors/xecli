@@ -39,11 +39,11 @@ public sealed class ProfileAvatarColorsGetCommand : Command<ProfileAvatarColorsG
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -98,47 +98,47 @@ public sealed class ProfileAvatarColorsSetCommand : Command<ProfileAvatarColorsS
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--skin <ARGB>")]
-		[Description("ARGB color for the avatar skin.")]
+		[LocalizedDescription("ARGB color for the avatar skin.")]
 		public string? Skin { get; init; }
 
 		[CommandOption("--hair <ARGB>")]
-		[Description("ARGB color for the avatar hair.")]
+		[LocalizedDescription("ARGB color for the avatar hair.")]
 		public string? Hair { get; init; }
 
 		[CommandOption("--lip <ARGB>")]
-		[Description("ARGB color for the avatar lips.")]
+		[LocalizedDescription("ARGB color for the avatar lips.")]
 		public string? Lip { get; init; }
 
 		[CommandOption("--eye <ARGB>")]
-		[Description("ARGB color for the avatar eyes.")]
+		[LocalizedDescription("ARGB color for the avatar eyes.")]
 		public string? Eye { get; init; }
 
 		[CommandOption("--eyebrow <ARGB>")]
-		[Description("ARGB color for the avatar eyebrows.")]
+		[LocalizedDescription("ARGB color for the avatar eyebrows.")]
 		public string? Eyebrow { get; init; }
 
 		[CommandOption("--eyeshadow <ARGB>")]
-		[Description("ARGB color for the avatar eye shadow.")]
+		[LocalizedDescription("ARGB color for the avatar eye shadow.")]
 		public string? Eyeshadow { get; init; }
 
 		[CommandOption("--facial-hair <ARGB>")]
-		[Description("ARGB color for the avatar facial hair.")]
+		[LocalizedDescription("ARGB color for the avatar facial hair.")]
 		public string? FacialHair { get; init; }
 
 		[CommandOption("--face-paint <ARGB>")]
-		[Description("ARGB color for the primary face paint slot.")]
+		[LocalizedDescription("ARGB color for the primary face paint slot.")]
 		public string? FacePaintPrimary { get; init; }
 
 		[CommandOption("--face-paint-2 <ARGB>")]
-		[Description("ARGB color for the secondary face paint slot.")]
+		[LocalizedDescription("ARGB color for the secondary face paint slot.")]
 		public string? FacePaintSecondary { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -241,3 +241,4 @@ public sealed class ProfileAvatarColorsSetCommand : Command<ProfileAvatarColorsS
 		return true;
 	}
 }
+

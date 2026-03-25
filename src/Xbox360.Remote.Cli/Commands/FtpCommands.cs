@@ -347,7 +347,7 @@ internal static class FtpHelpers {
 public sealed class FtpListCommand : AsyncCommand<FtpListCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandOption("--path <PATH>")]
-        [Description("Remote directory path (default: /).")]
+        [LocalizedDescription("Remote directory path (default: /).")]
         public string? Path { get; init; }
     }
 
@@ -393,23 +393,23 @@ public sealed class FtpListCommand : AsyncCommand<FtpListCommand.Settings> {
 public sealed class FtpFindCommand : AsyncCommand<FtpFindCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandOption("--path <PATH>")]
-        [Description("Root path to search (default: /).")]
+        [LocalizedDescription("Root path to search (default: /).")]
         public string? Path { get; init; }
 
         [CommandOption("--name <PATTERN>")]
-        [Description("File or folder name pattern (supports * and ? wildcards).")]
+        [LocalizedDescription("File or folder name pattern (supports * and ? wildcards).")]
         public string? Name { get; init; }
 
         [CommandOption("--regex")]
-        [Description("Interpret --name as a regular expression.")]
+        [LocalizedDescription("Interpret --name as a regular expression.")]
         public bool Regex { get; init; }
 
         [CommandOption("--depth <N>")]
-        [Description("Maximum recursion depth (default: 6).")]
+        [LocalizedDescription("Maximum recursion depth (default: 6).")]
         public int? Depth { get; init; }
 
         [CommandOption("--max <N>")]
-        [Description("Maximum results to return (default: 200).")]
+        [LocalizedDescription("Maximum results to return (default: 200).")]
         public int? Max { get; init; }
     }
 
@@ -533,23 +533,23 @@ public sealed class FtpFindCommand : AsyncCommand<FtpFindCommand.Settings> {
 public sealed class FtpTargetCommand : Command<FtpTargetCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--set <IP>")]
-        [Description("Set the default FTP IP.")]
+        [LocalizedDescription("Set the default FTP IP.")]
         public string? Ip { get; init; }
 
         [CommandOption("--port <PORT>")]
-        [Description("Set the default FTP port (default: 21).")]
+        [LocalizedDescription("Set the default FTP port (default: 21).")]
         public int? Port { get; init; }
 
         [CommandOption("--user <USER>")]
-        [Description("Set the default FTP username.")]
+        [LocalizedDescription("Set the default FTP username.")]
         public string? User { get; init; }
 
         [CommandOption("--pass <PASS>")]
-        [Description("Set the default FTP password.")]
+        [LocalizedDescription("Set the default FTP password.")]
         public string? Pass { get; init; }
 
         [CommandOption("--clear")]
-        [Description("Clear saved FTP target settings.")]
+        [LocalizedDescription("Clear saved FTP target settings.")]
         public bool Clear { get; init; }
     }
 
@@ -793,11 +793,11 @@ public sealed class FtpCatCommand : AsyncCommand<FtpCatCommand.Settings> {
         public string? Path { get; init; }
 
         [CommandOption("--max <BYTES>")]
-        [Description("Maximum bytes to read (default: 65536).")]
+        [LocalizedDescription("Maximum bytes to read (default: 65536).")]
         public string? MaxBytes { get; init; }
 
         [CommandOption("--encoding <ENC>")]
-        [Description("ascii|utf8 (default: utf8).")]
+        [LocalizedDescription("ascii|utf8 (default: utf8).")]
         public string? EncodingName { get; init; }
     }
 
@@ -839,3 +839,4 @@ public sealed class FtpCatCommand : AsyncCommand<FtpCatCommand.Settings> {
         }, CancellationToken.None);
     }
 }
+

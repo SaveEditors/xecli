@@ -11,19 +11,19 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class GhidraConfigCommand : Command<GhidraConfigCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--path <DIR>")]
-        [Description("Ghidra install directory (contains support/analyzeHeadless.bat).")]
+        [LocalizedDescription("Ghidra install directory (contains support/analyzeHeadless.bat).")]
         public string? Path { get; init; }
 
         [CommandOption("--java <DIR>")]
-        [Description("JAVA_HOME to use for Ghidra.")]
+        [LocalizedDescription("JAVA_HOME to use for Ghidra.")]
         public string? JavaPath { get; init; }
 
         [CommandOption("--projects <DIR>")]
-        [Description("Default Ghidra projects directory.")]
+        [LocalizedDescription("Default Ghidra projects directory.")]
         public string? ProjectsPath { get; init; }
 
         [CommandOption("--clear")]
-        [Description("Clear stored Ghidra settings.")]
+        [LocalizedDescription("Clear stored Ghidra settings.")]
         public bool Clear { get; init; }
     }
 
@@ -72,47 +72,47 @@ public sealed class GhidraConfigCommand : Command<GhidraConfigCommand.Settings> 
 public sealed class GhidraAnalyzeCommand : AsyncCommand<GhidraAnalyzeCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--in <FILE>")]
-        [Description("Input file to analyze (XEX).")]
+        [LocalizedDescription("Input file to analyze (XEX).")]
         public string? Input { get; init; }
 
         [CommandOption("--ftp-path <PATH>")]
-        [Description("Fetch the XEX via FTP before analysis (e.g. /Hdd1/Aurora/Aurora.xex).")]
+        [LocalizedDescription("Fetch the XEX via FTP before analysis (e.g. /Hdd1/Aurora/Aurora.xex).")]
         public string? FtpPath { get; init; }
 
         [CommandOption("--running")]
-        [Description("Use the running title XEX (resolved via XBDM + FTP).")]
+        [LocalizedDescription("Use the running title XEX (resolved via XBDM + FTP).")]
         public bool Running { get; init; }
 
         [CommandOption("--project <NAME>")]
-        [Description("Project name (default: <file>_headless).")]
+        [LocalizedDescription("Project name (default: <file>_headless).")]
         public string? ProjectName { get; init; }
 
         [CommandOption("--projects <DIR>")]
-        [Description("Project root directory override.")]
+        [LocalizedDescription("Project root directory override.")]
         public string? ProjectsPath { get; init; }
 
         [CommandOption("--path <DIR>")]
-        [Description("Ghidra install directory override.")]
+        [LocalizedDescription("Ghidra install directory override.")]
         public string? GhidraPath { get; init; }
 
         [CommandOption("--java <DIR>")]
-        [Description("JAVA_HOME override.")]
+        [LocalizedDescription("JAVA_HOME override.")]
         public string? JavaPath { get; init; }
 
         [CommandOption("--loader <NAME>")]
-        [Description("Explicit loader name.")]
+        [LocalizedDescription("Explicit loader name.")]
         public string? Loader { get; init; }
 
         [CommandOption("--timeout <SEC>")]
-        [Description("Analysis timeout per file (seconds, default: 5000).")]
+        [LocalizedDescription("Analysis timeout per file (seconds, default: 5000).")]
         public int? TimeoutSeconds { get; init; } = 5000;
 
         [CommandOption("--delete-project")]
-        [Description("Delete the project before import.")]
+        [LocalizedDescription("Delete the project before import.")]
         public bool DeleteProject { get; init; }
 
         [CommandOption("--overwrite")]
-        [Description("Overwrite existing file in project.")]
+        [LocalizedDescription("Overwrite existing file in project.")]
         public bool Overwrite { get; init; }
     }
 
@@ -241,63 +241,63 @@ public sealed class GhidraAnalyzeCommand : AsyncCommand<GhidraAnalyzeCommand.Set
 public sealed class GhidraDecompileCommand : AsyncCommand<GhidraDecompileCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--in <FILE>")]
-        [Description("Input file to analyze (XEX).")]
+        [LocalizedDescription("Input file to analyze (XEX).")]
         public string? Input { get; init; }
 
         [CommandOption("--ftp-path <PATH>")]
-        [Description("Fetch the XEX via FTP before analysis (e.g. /Hdd1/Aurora/Aurora.xex).")]
+        [LocalizedDescription("Fetch the XEX via FTP before analysis (e.g. /Hdd1/Aurora/Aurora.xex).")]
         public string? FtpPath { get; init; }
 
         [CommandOption("--running")]
-        [Description("Use the running title XEX (resolved via XBDM + FTP).")]
+        [LocalizedDescription("Use the running title XEX (resolved via XBDM + FTP).")]
         public bool Running { get; init; }
 
         [CommandOption("--out <DIR>")]
-        [Description("Output directory for decompiled C files.")]
+        [LocalizedDescription("Output directory for decompiled C files.")]
         public string? Output { get; init; }
 
         [CommandOption("--max <N>")]
-        [Description("Maximum number of functions to decompile (default: all).")]
+        [LocalizedDescription("Maximum number of functions to decompile (default: all).")]
         public int? MaxFunctions { get; init; }
 
         [CommandOption("--func-timeout <SEC>")]
-        [Description("Decompile timeout per function (seconds, default: 5000).")]
+        [LocalizedDescription("Decompile timeout per function (seconds, default: 5000).")]
         public int? FunctionTimeoutSeconds { get; init; } = 5000;
 
         [CommandOption("--project <NAME>")]
-        [Description("Project name (default: <file>_headless).")]
+        [LocalizedDescription("Project name (default: <file>_headless).")]
         public string? ProjectName { get; init; }
 
         [CommandOption("--projects <DIR>")]
-        [Description("Project root directory override.")]
+        [LocalizedDescription("Project root directory override.")]
         public string? ProjectsPath { get; init; }
 
         [CommandOption("--path <DIR>")]
-        [Description("Ghidra install directory override.")]
+        [LocalizedDescription("Ghidra install directory override.")]
         public string? GhidraPath { get; init; }
 
         [CommandOption("--java <DIR>")]
-        [Description("JAVA_HOME override.")]
+        [LocalizedDescription("JAVA_HOME override.")]
         public string? JavaPath { get; init; }
 
         [CommandOption("--loader <NAME>")]
-        [Description("Explicit loader name.")]
+        [LocalizedDescription("Explicit loader name.")]
         public string? Loader { get; init; }
 
         [CommandOption("--timeout <SEC>")]
-        [Description("Analysis timeout per file (seconds, default: 5000).")]
+        [LocalizedDescription("Analysis timeout per file (seconds, default: 5000).")]
         public int? TimeoutSeconds { get; init; } = 5000;
 
         [CommandOption("--delete-project")]
-        [Description("Delete the project before import.")]
+        [LocalizedDescription("Delete the project before import.")]
         public bool DeleteProject { get; init; }
 
         [CommandOption("--overwrite")]
-        [Description("Overwrite existing file in project.")]
+        [LocalizedDescription("Overwrite existing file in project.")]
         public bool Overwrite { get; init; }
 
         [CommandOption("--script-path <DIR>")]
-        [Description("Override script path (default: ghidra_scripts next to rgh.exe).")]
+        [LocalizedDescription("Override script path (default: ghidra_scripts next to rgh.exe).")]
         public string? ScriptPath { get; init; }
     }
 
@@ -452,23 +452,23 @@ public sealed class GhidraDecompileCommand : AsyncCommand<GhidraDecompileCommand
 public sealed class GhidraVerifyCommand : Command<GhidraVerifyCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--dir <DIR>")]
-        [Description("Directory containing decompiled output to verify.")]
+        [LocalizedDescription("Directory containing decompiled output to verify.")]
         public string? Directory { get; init; }
 
         [CommandOption("--pattern <REGEX>")]
-        [Description("Regex pattern to flag (default: baddata|Bad instruction).")]
+        [LocalizedDescription("Regex pattern to flag (default: baddata|Bad instruction).")]
         public string Pattern { get; init; } = "baddata|Bad instruction";
 
         [CommandOption("--ext <EXT>")]
-        [Description("File extension to scan (default: .c).")]
+        [LocalizedDescription("File extension to scan (default: .c).")]
         public string Extension { get; init; } = ".c";
 
         [CommandOption("--max <N>")]
-        [Description("Maximum matching files to display (default: 25).")]
+        [LocalizedDescription("Maximum matching files to display (default: 25).")]
         public int? MaxResults { get; init; }
 
         [CommandOption("--json")]
-        [Description("Output JSON.")]
+        [LocalizedDescription("Output JSON.")]
         public bool Json { get; init; }
     }
 
@@ -674,3 +674,4 @@ internal static class GhidraLoaderHelpers {
         }
     }
 }
+

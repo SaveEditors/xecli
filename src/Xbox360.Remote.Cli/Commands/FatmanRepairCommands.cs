@@ -20,7 +20,7 @@ public sealed class FatmanRepairCommand : AsyncCommand<FatmanRepairCommand.Setti
     public sealed class Settings : FatmanPartitionSettings
     {
         [CommandOption("--auto-confirm")]
-        [Description("Skip the destructive-action confirmation prompt when applying repairs.")]
+        [LocalizedDescription("Skip the destructive-action confirmation prompt when applying repairs.")]
         public bool AutoConfirm { get; init; }
     }
 
@@ -91,3 +91,4 @@ public sealed class FatmanRepairCommand : AsyncCommand<FatmanRepairCommand.Setti
         return 0;
     }
 }
+

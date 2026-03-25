@@ -7,6 +7,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using XeCli.Localization;
 using Xbox360.Remote;
 using Xbox360.Remote.Cli.Homebrew;
 using Color = Spectre.Console.Color;
@@ -17,19 +18,19 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--quick")]
-        [Description("Skip JRPC2, drive, and user checks for a fast snapshot.")]
+        [LocalizedDescription("Skip JRPC2, drive, and user checks for a fast snapshot.")]
         public bool Quick { get; init; }
 
         [CommandOption("--no-jrpc")]
-        [Description("Skip JRPC2 queries (temps, CPU key, dashboard, title id).")]
+        [LocalizedDescription("Skip JRPC2 queries (temps, CPU key, dashboard, title id).")]
         public bool NoJrpc { get; init; }
 
         [CommandOption("--no-drives")]
-        [Description("Skip drive and USB size reporting.")]
+        [LocalizedDescription("Skip drive and USB size reporting.")]
         public bool NoDrives { get; init; }
 
         [CommandOption("--no-users")]
-        [Description("Skip user list and signed-in detection.")]
+        [LocalizedDescription("Skip user list and signed-in detection.")]
         public bool NoUsers { get; init; }
     }
 
@@ -499,15 +500,15 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
 public sealed class TargetCommand : Command<TargetCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--set <IP>")]
-        [Description("Set the default console IP.")]
+        [LocalizedDescription("Set the default console IP.")]
         public string? Ip { get; init; }
 
         [CommandOption("--port <PORT>")]
-        [Description("Set the default port (default: 730).")]
+        [LocalizedDescription("Set the default port (default: 730).")]
         public int? Port { get; init; }
 
         [CommandOption("--clear")]
-        [Description("Clear the saved target.")]
+        [LocalizedDescription("Clear the saved target.")]
         public bool Clear { get; init; }
     }
 
@@ -565,19 +566,19 @@ public sealed class PingCommand : AsyncCommand<ConnectionSettings> {
 public sealed class RebootCommand : AsyncCommand<RebootCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--title")]
-        [Description("Restart the current title instead of a cold reboot.")]
+        [LocalizedDescription("Restart the current title instead of a cold reboot.")]
         public bool Title { get; init; }
 
         [CommandOption("--notify")]
-        [Description("Send a default success notification to the console.")]
+        [LocalizedDescription("Send a default success notification to the console.")]
         public bool Notify { get; init; }
 
         [CommandOption("--notify-icon <NAME>")]
-        [Description("Notification icon preset name.")]
+        [LocalizedDescription("Notification icon preset name.")]
         public string? NotifyIcon { get; init; }
 
         [CommandOption("--notify-logo <ID>")]
-        [Description("Notification logo id (decimal or 0x hex).")]
+        [LocalizedDescription("Notification logo id (decimal or 0x hex).")]
         public string? NotifyLogo { get; init; }
     }
 
@@ -601,31 +602,31 @@ public sealed class RebootCommand : AsyncCommand<RebootCommand.Settings> {
 public sealed class InstallCommand : Command<InstallCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--machine")]
-        [Description("Install for all users (administrator approval required).")]
+        [LocalizedDescription("Install for all users (administrator approval required).")]
         public bool Machine { get; init; }
 
         [CommandOption("--uninstall")]
-        [Description("Remove the command registration. With --machine, remove the all-users PATH entry.")]
+        [LocalizedDescription("Remove the command registration. With --machine, remove the all-users PATH entry.")]
         public bool Uninstall { get; init; }
 
         [CommandOption("--machine-path")]
-        [Description("Legacy path-only install for the current executable directory (admin required).")]
+        [LocalizedDescription("Legacy path-only install for the current executable directory (admin required).")]
         public bool MachinePath { get; init; }
 
         [CommandOption("--path <DIR>")]
-        [Description("Install directory for XeCLI.")]
+        [LocalizedDescription("Install directory for XeCLI.")]
         public string? Path { get; init; }
 
         [CommandOption("--source <DIR>")]
-        [Description("Source release directory containing rgh.exe and its runtime files.")]
+        [LocalizedDescription("Source release directory containing rgh.exe and its runtime files.")]
         public string? Source { get; init; }
 
         [CommandOption("--no-path")]
-        [Description("Do not add the install directory to PATH.")]
+        [LocalizedDescription("Do not add the install directory to PATH.")]
         public bool NoPath { get; init; }
 
         [CommandOption("--quiet")]
-        [Description("Suppress non-error install output.")]
+        [LocalizedDescription("Suppress non-error install output.")]
         public bool Quiet { get; init; }
     }
 
@@ -910,9 +911,9 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
                 return defaultYes;
 
             answer = answer.Trim().ToLowerInvariant();
-            if (answer is "y" or "yes")
+            if (LocalizedText.IsAffirmative(answer))
                 return true;
-            if (answer is "n" or "no")
+            if (LocalizedText.IsNegative(answer))
                 return false;
 
             AnsiConsole.MarkupLine("[red]Please enter Y or N.[/]");
@@ -1112,3 +1113,4 @@ public sealed class InstallCommand : Command<InstallCommand.Settings> {
 
     private sealed record InstallPlan(bool AllUsers, string InstallDirectory, bool AddToPath);
 }
+

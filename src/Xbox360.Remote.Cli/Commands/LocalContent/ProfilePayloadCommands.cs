@@ -13,15 +13,15 @@ public sealed class ProfileAccountExtractCommand : Command<ProfileAccountExtract
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandArgument(1, "<OUT>")]
-		[Description("Path to write the raw Account payload.")]
+		[LocalizedDescription("Path to write the raw Account payload.")]
 		public string OutputPath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -67,11 +67,11 @@ public sealed class ProfileGpdListCommand : Command<ProfileGpdListCommand.Settin
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -172,23 +172,23 @@ public sealed class ProfileGpdExtractCommand : Command<ProfileGpdExtractCommand.
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandArgument(1, "<OUT>")]
-		[Description("Path to write the selected GPD.")]
+		[LocalizedDescription("Path to write the selected GPD.")]
 		public string OutputPath { get; init; } = string.Empty;
 
 		[CommandOption("--dashboard")]
-		[Description("Extract the dashboard GPD (FFFE07D1.gpd).")]
+		[LocalizedDescription("Extract the dashboard GPD (FFFE07D1.gpd).")]
 		public bool Dashboard { get; init; }
 
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Extract a specific title GPD by title ID.")]
+		[LocalizedDescription("Extract a specific title GPD by title ID.")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -261,3 +261,4 @@ public sealed class ProfileGpdExtractCommand : Command<ProfileGpdExtractCommand.
 		});
 	}
 }
+

@@ -494,42 +494,42 @@ internal static class AvatarCommandHelpers {
 
 public abstract class AvatarLibrarySettings : CommandSettings {
     [CommandOption("--library <DIR>")]
-    [Description("Avatar item library root. Defaults to config or Avatar-Item-Collection.")]
+    [LocalizedDescription("Avatar item library root. Defaults to config or Avatar-Item-Collection.")]
     public string? LibraryRoot { get; init; }
 
     [CommandOption("--cache <PATH>")]
-    [Description("Avatar index cache file or directory.")]
+    [LocalizedDescription("Avatar index cache file or directory.")]
     public string? CachePath { get; init; }
 
     [CommandOption("--remote")]
-    [Description("Use the hosted avatar library instead of the local corpus.")]
+    [LocalizedDescription("Use the hosted avatar library instead of the local corpus.")]
     public bool Remote { get; init; }
 
     [CommandOption("--manifest-url <URL>")]
-    [Description("Override the hosted avatar manifest URL.")]
+    [LocalizedDescription("Override the hosted avatar manifest URL.")]
     public string? ManifestUrl { get; init; }
 
     [CommandOption("--title-map-url <URL>")]
-    [Description("Override the hosted avatar title map URL.")]
+    [LocalizedDescription("Override the hosted avatar title map URL.")]
     public string? TitleMapUrl { get; init; }
 
     [CommandOption("--content-base-url <URL>")]
-    [Description("Override the hosted avatar content base URL.")]
+    [LocalizedDescription("Override the hosted avatar content base URL.")]
     public string? ContentBaseUrl { get; init; }
 
     [CommandOption("--download-cache <DIR>")]
-    [Description("Directory used to cache downloaded avatar packages.")]
+    [LocalizedDescription("Directory used to cache downloaded avatar packages.")]
     public string? DownloadCachePath { get; init; }
 
     [CommandOption("--json")]
-    [Description("Emit JSON output.")]
+    [LocalizedDescription("Emit JSON output.")]
     public bool Json { get; init; }
 }
 
 public sealed class AvatarLibraryShowCommand : Command<AvatarLibraryShowCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--json")]
-        [Description("Emit JSON output.")]
+        [LocalizedDescription("Emit JSON output.")]
         public bool Json { get; init; }
     }
 
@@ -582,31 +582,31 @@ public sealed class AvatarLibraryShowCommand : Command<AvatarLibraryShowCommand.
 public sealed class AvatarLibrarySetCommand : Command<AvatarLibrarySetCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--path <DIR>")]
-        [Description("Set the default Avatar-Item-Collection root.")]
+        [LocalizedDescription("Set the default Avatar-Item-Collection root.")]
         public string? Path { get; init; }
 
         [CommandOption("--cache <PATH>")]
-        [Description("Set the avatar index cache file or directory.")]
+        [LocalizedDescription("Set the avatar index cache file or directory.")]
         public string? CachePath { get; init; }
 
         [CommandOption("--manifest-url <URL>")]
-        [Description("Set the hosted avatar manifest URL.")]
+        [LocalizedDescription("Set the hosted avatar manifest URL.")]
         public string? ManifestUrl { get; init; }
 
         [CommandOption("--title-map-url <URL>")]
-        [Description("Set the hosted avatar title map URL.")]
+        [LocalizedDescription("Set the hosted avatar title map URL.")]
         public string? TitleMapUrl { get; init; }
 
         [CommandOption("--content-base-url <URL>")]
-        [Description("Set the hosted avatar content base URL.")]
+        [LocalizedDescription("Set the hosted avatar content base URL.")]
         public string? ContentBaseUrl { get; init; }
 
         [CommandOption("--download-cache <DIR>")]
-        [Description("Set the cache directory for downloaded avatar packages.")]
+        [LocalizedDescription("Set the cache directory for downloaded avatar packages.")]
         public string? DownloadCachePath { get; init; }
 
         [CommandOption("--clear")]
-        [Description("Clear saved avatar library settings.")]
+        [LocalizedDescription("Clear saved avatar library settings.")]
         public bool Clear { get; init; }
     }
 
@@ -653,15 +653,15 @@ public sealed class AvatarLibrarySetCommand : Command<AvatarLibrarySetCommand.Se
 public sealed class AvatarGamesCommand : AsyncCommand<AvatarGamesCommand.Settings> {
     public sealed class Settings : AvatarLibrarySettings {
         [CommandOption("--search <TEXT>")]
-        [Description("Filter titles by name, publisher, or title id.")]
+        [LocalizedDescription("Filter titles by name, publisher, or title id.")]
         public string? Search { get; init; }
 
         [CommandOption("--limit <N>")]
-        [Description("Maximum titles to show (default: 100, 0 = no limit).")]
+        [LocalizedDescription("Maximum titles to show (default: 100, 0 = no limit).")]
         public int? Limit { get; init; }
 
         [CommandOption("--no-cache")]
-        [Description("Force a fresh library scan instead of using the cache.")]
+        [LocalizedDescription("Force a fresh library scan instead of using the cache.")]
         public bool NoCache { get; init; }
     }
 
@@ -719,31 +719,31 @@ public sealed class AvatarGamesCommand : AsyncCommand<AvatarGamesCommand.Setting
 public sealed class AvatarItemsCommand : AsyncCommand<AvatarItemsCommand.Settings> {
     public sealed class Settings : AvatarLibrarySettings {
         [CommandOption("--titleid <TITLEID>")]
-        [Description("Restrict items to a Title ID.")]
+        [LocalizedDescription("Restrict items to a Title ID.")]
         public string? TitleId { get; init; }
 
         [CommandOption("--game <TEXT>")]
-        [Description("Restrict items to a game name match.")]
+        [LocalizedDescription("Restrict items to a game name match.")]
         public string? Game { get; init; }
 
         [CommandOption("--search <TEXT>")]
-        [Description("Search by item name, game name, or content id.")]
+        [LocalizedDescription("Search by item name, game name, or content id.")]
         public string? Search { get; init; }
 
         [CommandOption("--publisher <TEXT>")]
-        [Description("Restrict items to one publisher.")]
+        [LocalizedDescription("Restrict items to one publisher.")]
         public string? Publisher { get; init; }
 
         [CommandOption("--tag <TEXT>")]
-        [Description("Restrict items to one derived tag.")]
+        [LocalizedDescription("Restrict items to one derived tag.")]
         public string? Tag { get; init; }
 
         [CommandOption("--limit <N>")]
-        [Description("Maximum items to show (default: 100, 0 = no limit).")]
+        [LocalizedDescription("Maximum items to show (default: 100, 0 = no limit).")]
         public int? Limit { get; init; }
 
         [CommandOption("--no-cache")]
-        [Description("Force a fresh library scan instead of using the cache.")]
+        [LocalizedDescription("Force a fresh library scan instead of using the cache.")]
         public bool NoCache { get; init; }
     }
 
@@ -817,3 +817,4 @@ public sealed class AvatarInstallCommand : AsyncCommand<AvatarInstallCommand.Set
         return await AvatarInstallFlow.RunAsync(paths, settings, items, CancellationToken.None);
     }
 }
+

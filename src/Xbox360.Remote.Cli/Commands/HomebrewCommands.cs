@@ -8,35 +8,35 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class HomebrewInstallCommand : Command<HomebrewInstallCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandArgument(0, "<PACKAGE>")]
-        [Description("Package to install or stage: aurora, dashlaunch, xexmenu, fsd, xm360, timefixer, simple360, xelllaunch, or all.")]
+        [LocalizedDescription("Package to install or stage: aurora, dashlaunch, xexmenu, fsd, xm360, timefixer, simple360, xelllaunch, or all.")]
         public string Package { get; init; } = string.Empty;
 
         [CommandOption("--usb <TARGET>")]
-        [Description("Stage to a removable USB drive, drive letter, selection number, or host folder path.")]
+        [LocalizedDescription("Stage to a removable USB drive, drive letter, selection number, or host folder path.")]
         public string? UsbTarget { get; init; }
 
         [CommandOption("--device <DEVICE>")]
-        [Description("Install directly to a detected console device such as Hdd1, Usb0, Usb1, or Usb2.")]
+        [LocalizedDescription("Install directly to a detected console device such as Hdd1, Usb0, Usb1, or Usb2.")]
         public string? Device { get; init; }
 
         [CommandOption("--ini-mode <MODE>")]
-        [Description("Console install launch.ini behavior: generated, merge, or skip.")]
+        [LocalizedDescription("Console install launch.ini behavior: generated, merge, or skip.")]
         public string? IniMode { get; init; }
 
         [CommandOption("--ini <PATH>")]
-        [Description("Console launch.ini path (default: /Hdd1/launch.ini).")]
+        [LocalizedDescription("Console launch.ini path (default: /Hdd1/launch.ini).")]
         public string? IniPath { get; init; }
 
         [CommandOption("--cache <DIR>")]
-        [Description("Package download cache directory.")]
+        [LocalizedDescription("Package download cache directory.")]
         public string? CacheDirectory { get; init; }
 
         [CommandOption("--force-download")]
-        [Description("Redownload archives even when they already exist in the cache.")]
+        [LocalizedDescription("Redownload archives even when they already exist in the cache.")]
         public bool ForceDownload { get; init; }
 
         [CommandOption("--auto-confirm")]
-        [Description("Skip confirmation prompts.")]
+        [LocalizedDescription("Skip confirmation prompts.")]
         public bool AutoConfirm { get; init; }
 
         public override ValidationResult Validate() {
@@ -133,7 +133,7 @@ public sealed class HomebrewInstallCommand : Command<HomebrewInstallCommand.Sett
 public sealed class HomebrewListCommand : Command<HomebrewListCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--json")]
-        [Description("Emit machine-readable output.")]
+        [LocalizedDescription("Emit machine-readable output.")]
         public bool Json { get; init; }
     }
 
@@ -165,3 +165,4 @@ public sealed class HomebrewListCommand : Command<HomebrewListCommand.Settings> 
         return 0;
     }
 }
+

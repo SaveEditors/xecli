@@ -52,19 +52,19 @@ public sealed class FatmanFormatCommand : AsyncCommand<FatmanFormatCommand.Setti
     public sealed class Settings : FatmanPartitionSettings
     {
         [CommandOption("--label <TEXT>")]
-        [Description("Volume label to apply when formatting a single selected partition.")]
+        [LocalizedDescription("Volume label to apply when formatting a single selected partition.")]
         public string? Label { get; init; }
 
         [CommandOption("--full-zero")]
-        [Description("Zero the full target partition instead of performing a quick FATX initialization.")]
+        [LocalizedDescription("Zero the full target partition instead of performing a quick FATX initialization.")]
         public bool FullZero { get; init; }
 
         [CommandOption("--sectors-per-cluster <COUNT>")]
-        [Description("Override the FATX sectors-per-cluster value (must be a power of two).")]
+        [LocalizedDescription("Override the FATX sectors-per-cluster value (must be a power of two).")]
         public uint? SectorsPerCluster { get; init; }
 
         [CommandOption("--auto-confirm")]
-        [Description("Skip the destructive-action confirmation prompt.")]
+        [LocalizedDescription("Skip the destructive-action confirmation prompt.")]
         public bool AutoConfirm { get; init; }
     }
 
@@ -180,3 +180,4 @@ public sealed class FatmanFormatCommand : AsyncCommand<FatmanFormatCommand.Setti
         return partition.Name;
     }
 }
+

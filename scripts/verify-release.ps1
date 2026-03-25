@@ -132,6 +132,7 @@ if (Test-Path $buildExe) {
 }
 
 $installDir = Join-Path $tempRoot ("xecli-install-" + [Guid]::NewGuid().ToString("N"))
+$cmdProbeDir = Join-Path $tempRoot ("xecli-cmdprobe-" + [Guid]::NewGuid().ToString("N"))
 $shimPath = Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\rgh.cmd"
 $shimBackup = $null
 $shimExisted = Test-Path $shimPath
@@ -139,6 +140,7 @@ if ($shimExisted) {
     $shimBackup = Get-Content $shimPath -Raw
 }
 $userPathState = Get-UserPathState
+New-Item -ItemType Directory -Force -Path $cmdProbeDir | Out-Null
 
 try {
     & $publishExe install --source $publishDir --path $installDir --quiet | Out-Null
@@ -164,7 +166,7 @@ try {
     }
 
     $cmdExe = Join-Path $env:SystemRoot "System32\cmd.exe"
-    & $cmdExe /d /c "set ""PATH=$installDir;%SystemRoot%\System32;%SystemRoot%"" && rgh --version >nul"
+    & $cmdExe /d /c "cd /d ""$cmdProbeDir"" && set ""PATH=$installDir;%SystemRoot%\System32;%SystemRoot%"" && rgh --version >nul"
     if ($LASTEXITCODE -ne 0) {
         throw "Bare rgh --version did not resolve from the installed release directory."
     }
@@ -183,6 +185,10 @@ try {
 finally {
     if (Test-Path $installDir) {
         Remove-Item -Recurse -Force $installDir
+    }
+
+    if (Test-Path $cmdProbeDir) {
+        Remove-Item -Recurse -Force $cmdProbeDir
     }
 
     Restore-UserPathState $userPathState

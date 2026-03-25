@@ -237,35 +237,35 @@ public sealed class ProfileTitlesAddCommand : Command<ProfileTitlesAddCommand.Se
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Title ID in hex, for example 415607E7.")]
+		[LocalizedDescription("Title ID in hex, for example 415607E7.")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--name <NAME>")]
-		[Description("Optional title name override.")]
+		[LocalizedDescription("Optional title name override.")]
 		public string? Name { get; init; }
 
 		[CommandOption("--achievements-possible <COUNT>")]
-		[Description("Optional possible-achievement count. Defaults to the embedded title GPD when available.")]
+		[LocalizedDescription("Optional possible-achievement count. Defaults to the embedded title GPD when available.")]
 		public string? AchievementsPossible { get; init; }
 
 		[CommandOption("--credit-possible <COUNT>")]
-		[Description("Optional possible gamerscore total. Defaults to the embedded title GPD when available.")]
+		[LocalizedDescription("Optional possible gamerscore total. Defaults to the embedded title GPD when available.")]
 		public string? CreditPossible { get; init; }
 
 		[CommandOption("--last-loaded <TIMESTAMP>")]
-		[Description("Optional ISO-8601 UTC timestamp to store as the last-loaded time.")]
+		[LocalizedDescription("Optional ISO-8601 UTC timestamp to store as the last-loaded time.")]
 		public string? LastLoaded { get; init; }
 
 		[CommandOption("--replace")]
-		[Description("Replace an existing dashboard title record instead of failing.")]
+		[LocalizedDescription("Replace an existing dashboard title record instead of failing.")]
 		public bool Replace { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -409,15 +409,15 @@ public sealed class ProfileAccountSetGamertagCommand : Command<ProfileAccountSet
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandArgument(1, "<GAMERTAG>")]
-		[Description("Replacement gamertag.")]
+		[LocalizedDescription("Replacement gamertag.")]
 		public string Gamertag { get; init; } = string.Empty;
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -453,27 +453,27 @@ public sealed class ProfileSettingsSetCommand : Command<ProfileSettingsSetComman
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandArgument(1, "<SETTINGID>")]
-		[Description("Setting ID in hex, for example 0x10040006.")]
+		[LocalizedDescription("Setting ID in hex, for example 0x10040006.")]
 		public string SettingId { get; init; } = string.Empty;
 
 		[CommandArgument(2, "<VALUE>")]
-		[Description("New setting value.")]
+		[LocalizedDescription("New setting value.")]
 		public string Value { get; init; } = string.Empty;
 
 		[CommandOption("--type <TYPE>")]
-		[Description("Setting type for missing records: int32, int64, double, unicode, float, binary, datetime, or null.")]
+		[LocalizedDescription("Setting type for missing records: int32, int64, double, unicode, float, binary, datetime, or null.")]
 		public string? Type { get; init; }
 
 		[CommandOption("--binary-flags <FLAGS>")]
-		[Description("Optional binary/unicode flags value.")]
+		[LocalizedDescription("Optional binary/unicode flags value.")]
 		public string? BinaryFlags { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -557,27 +557,27 @@ public sealed class ProfileAchievementsUnlockCommand : Command<ProfileAchievemen
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Title ID in hex, for example 4D530805.")]
+		[LocalizedDescription("Title ID in hex, for example 4D530805.")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--achievementid <ACHIEVEMENTID>")]
-		[Description("Achievement ID in decimal or hex.")]
+		[LocalizedDescription("Achievement ID in decimal or hex.")]
 		public string? AchievementId { get; init; }
 
 		[CommandOption("--online")]
-		[Description("Mark the achievement as unlocked online.")]
+		[LocalizedDescription("Mark the achievement as unlocked online.")]
 		public bool Online { get; init; }
 
 		[CommandOption("--time <TIMESTAMP>")]
-		[Description("Optional ISO-8601 UTC timestamp for online unlocks.")]
+		[LocalizedDescription("Optional ISO-8601 UTC timestamp for online unlocks.")]
 		public string? Time { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -647,19 +647,19 @@ public sealed class ProfileAchievementsLockCommand : Command<ProfileAchievements
 	public sealed class Settings : CommandSettings
 	{
 		[CommandArgument(0, "<PACKAGE>")]
-		[Description("Path to the profile package.")]
+		[LocalizedDescription("Path to the profile package.")]
 		public string PackagePath { get; init; } = string.Empty;
 
 		[CommandOption("--titleid <TITLEID>")]
-		[Description("Title ID in hex, for example 4D530805.")]
+		[LocalizedDescription("Title ID in hex, for example 4D530805.")]
 		public string? TitleId { get; init; }
 
 		[CommandOption("--achievementid <ACHIEVEMENTID>")]
-		[Description("Achievement ID in decimal or hex.")]
+		[LocalizedDescription("Achievement ID in decimal or hex.")]
 		public string? AchievementId { get; init; }
 
 		[CommandOption("--json")]
-		[Description("Output JSON.")]
+		[LocalizedDescription("Output JSON.")]
 		public bool Json { get; init; }
 	}
 
@@ -717,3 +717,4 @@ public sealed class ProfileAchievementsLockCommand : Command<ProfileAchievements
 		});
 	}
 }
+

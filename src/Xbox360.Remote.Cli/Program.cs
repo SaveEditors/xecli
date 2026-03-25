@@ -1,11 +1,14 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Cli.Help;
+using XeCli.Localization;
 using Xbox360.Remote.Cli;
 using Xbox360.Remote.Cli.Commands;
 using Xbox360.Remote.Cli.Homebrew;
@@ -15,7 +18,14 @@ using Panel = Spectre.Console.Panel;
 internal static class Program {
     [STAThread]
     public static async Task<int> Main(string[] args) {
+        args = LocalizedText.ExtractLanguageArgument(args, out string? requestedLanguage);
         args = NormalizeArgs(args);
+        LocalizedText.Initialize(ResolveLanguageCode(args, requestedLanguage));
+        Console.InputEncoding = Encoding.UTF8;
+        Console.OutputEncoding = Encoding.UTF8;
+        LocalizedConsole.Initialize();
+        CultureInfo.CurrentUICulture = LocalizedText.Culture;
+        CultureInfo.DefaultThreadCurrentUICulture = LocalizedText.Culture;
         if (IsVersionRequest(args)) {
             AnsiConsole.MarkupLine($"[deepskyblue1]XeCLI[/] [white]{Markup.Escape(GetApplicationVersion())}[/]");
             return 0;
@@ -24,6 +34,8 @@ internal static class Program {
         CommandApp app = new CommandApp();
         app.Configure(config => {
             config.SetApplicationName("rgh");
+            config.Settings.Culture = LocalizedText.Culture;
+            config.Settings.Console = AnsiConsole.Console;
             config.Settings.ShowOptionDefaultValues = true;
             config.Settings.MaximumIndirectExamples = 2;
             config.Settings.HelpProviderStyles = new HelpProviderStyle {
@@ -638,6 +650,31 @@ internal static class Program {
         return await app.RunAsync(args);
     }
 
+    private static string ResolveLanguageCode(string[] args, string? requestedLanguage) {
+        if (!string.IsNullOrWhiteSpace(requestedLanguage))
+            return LocalizedText.NormalizeLanguageCode(requestedLanguage);
+
+        string? environmentLanguage = Environment.GetEnvironmentVariable("XECLI_LANG");
+        if (!string.IsNullOrWhiteSpace(environmentLanguage))
+            return LocalizedText.NormalizeLanguageCode(environmentLanguage);
+
+        CliConfig config = CliConfig.Load();
+        if (!string.IsNullOrWhiteSpace(config.UiLanguage))
+            return LocalizedText.NormalizeLanguageCode(config.UiLanguage);
+
+        if (ShouldPromptForLanguage(args)) {
+            string choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Choose language / Elige idioma")
+                    .AddChoices("English", "Español"));
+            config.UiLanguage = choice == "Español" ? "es" : "en";
+            config.Save();
+            return config.UiLanguage;
+        }
+
+        return LocalizedText.GetDefaultLanguageCode();
+    }
+
     private static Task HandleFirstRunPathPromptAsync(string[] args) {
         if (!ShouldShowPathPrompt(args))
             return Task.CompletedTask;
@@ -841,6 +878,18 @@ internal static class Program {
         return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? assembly.GetName().Version?.ToString()
             ?? "unknown";
+    }
+
+    private static bool ShouldPromptForLanguage(string[] args) {
+        if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
+            return false;
+
+        if (IsVersionRequest(args))
+            return false;
+
+        return !args.Any(arg =>
+            arg.Equals("--version", StringComparison.OrdinalIgnoreCase) ||
+            arg.Equals("-v", StringComparison.OrdinalIgnoreCase));
     }
 
     private static Exception UnwrapException(Exception ex) {

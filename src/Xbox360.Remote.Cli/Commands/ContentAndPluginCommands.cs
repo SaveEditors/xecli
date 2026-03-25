@@ -10,15 +10,15 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class ContentListCommand : AsyncCommand<ContentListCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandOption("--device <ROOTS>")]
-        [Description("Comma-separated content roots, for example Hdd1 or Hdd1,Usb0 (default: Hdd1,Usb0,Usb1,HddX).")]
+        [LocalizedDescription("Comma-separated content roots, for example Hdd1 or Hdd1,Usb0 (default: Hdd1,Usb0,Usb1,HddX).")]
         public string? Devices { get; init; }
 
         [CommandOption("--titleid <TITLEID>")]
-        [Description("Restrict to one Title ID.")]
+        [LocalizedDescription("Restrict to one Title ID.")]
         public string? TitleId { get; init; }
 
         [CommandOption("--show-types")]
-        [Description("Include content-type breakdowns per title.")]
+        [LocalizedDescription("Include content-type breakdowns per title.")]
         public bool ShowTypes { get; init; }
     }
 
@@ -68,15 +68,15 @@ public sealed class ContentListCommand : AsyncCommand<ContentListCommand.Setting
 public sealed class ContentDeleteCommand : AsyncCommand<ContentDeleteCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandOption("--titleid <TITLEID>")]
-        [Description("Title ID to remove.")]
+        [LocalizedDescription("Title ID to remove.")]
         public string? TitleId { get; init; }
 
         [CommandOption("--device <ROOTS>")]
-        [Description("Comma-separated content roots, for example Hdd1 or Hdd1,Usb0.")]
+        [LocalizedDescription("Comma-separated content roots, for example Hdd1 or Hdd1,Usb0.")]
         public string? Devices { get; init; }
 
         [CommandOption("--yes")]
-        [Description("Delete without interactive confirmation.")]
+        [LocalizedDescription("Delete without interactive confirmation.")]
         public bool Yes { get; init; }
     }
 
@@ -116,7 +116,7 @@ public sealed class ContentDeleteCommand : AsyncCommand<ContentDeleteCommand.Set
 public sealed class PluginListCommand : AsyncCommand<PluginListCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandOption("--ini <PATH>")]
-        [Description("DashLaunch config path (default: /Hdd1/launch.ini).")]
+        [LocalizedDescription("DashLaunch config path (default: /Hdd1/launch.ini).")]
         public string? IniPath { get; init; }
     }
 
@@ -146,19 +146,19 @@ public sealed class PluginListCommand : AsyncCommand<PluginListCommand.Settings>
 public sealed class PluginEnableCommand : AsyncCommand<PluginEnableCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandOption("--slot <N>")]
-        [Description("Plugin slot number, usually 1-5.")]
+        [LocalizedDescription("Plugin slot number, usually 1-5.")]
         public int? Slot { get; init; }
 
         [CommandOption("--path <PATH>")]
-        [Description("Plugin XEX path.")]
+        [LocalizedDescription("Plugin XEX path.")]
         public string? PluginPath { get; init; }
 
         [CommandOption("--ini <PATH>")]
-        [Description("DashLaunch config path (default: /Hdd1/launch.ini).")]
+        [LocalizedDescription("DashLaunch config path (default: /Hdd1/launch.ini).")]
         public string? IniPath { get; init; }
 
         [CommandOption("--backup")]
-        [Description("Create a .bak copy before writing.")]
+        [LocalizedDescription("Create a .bak copy before writing.")]
         public bool Backup { get; init; }
     }
 
@@ -180,15 +180,15 @@ public sealed class PluginEnableCommand : AsyncCommand<PluginEnableCommand.Setti
 public sealed class PluginDisableCommand : AsyncCommand<PluginDisableCommand.Settings> {
     public sealed class Settings : FtpConnectionSettings {
         [CommandOption("--slot <N>")]
-        [Description("Plugin slot number, usually 1-5.")]
+        [LocalizedDescription("Plugin slot number, usually 1-5.")]
         public int? Slot { get; init; }
 
         [CommandOption("--ini <PATH>")]
-        [Description("DashLaunch config path (default: /Hdd1/launch.ini).")]
+        [LocalizedDescription("DashLaunch config path (default: /Hdd1/launch.ini).")]
         public string? IniPath { get; init; }
 
         [CommandOption("--backup")]
-        [Description("Create a .bak copy before writing.")]
+        [LocalizedDescription("Create a .bak copy before writing.")]
         public bool Backup { get; init; }
     }
 
@@ -491,3 +491,4 @@ internal static class PluginHelpers {
         return FtpHelpers.NormalizePath(string.IsNullOrWhiteSpace(path) ? "/Hdd1/launch.ini" : path);
     }
 }
+

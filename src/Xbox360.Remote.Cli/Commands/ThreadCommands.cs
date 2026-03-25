@@ -8,7 +8,7 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class XbdmThreadsListCommand : AsyncCommand<XbdmThreadsListCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--no-names")]
-        [Description("Compatibility flag. Thread list now uses start-address metadata instead of thread names.")]
+        [LocalizedDescription("Compatibility flag. Thread list now uses start-address metadata instead of thread names.")]
         public bool NoNames { get; init; }
     }
 
@@ -141,7 +141,7 @@ public sealed class XbdmThreadsListCommand : AsyncCommand<XbdmThreadsListCommand
 public sealed class XbdmThreadContextCommand : AsyncCommand<XbdmThreadContextCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--id <ID>")]
-        [Description("Thread ID in hex or decimal.")]
+        [LocalizedDescription("Thread ID in hex or decimal.")]
         public string? ThreadId { get; init; }
     }
 
@@ -175,7 +175,7 @@ public sealed class XbdmThreadContextCommand : AsyncCommand<XbdmThreadContextCom
 public sealed class XbdmThreadSuspendCommand : AsyncCommand<XbdmThreadSuspendCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--id <ID>")]
-        [Description("Thread ID in hex or decimal.")]
+        [LocalizedDescription("Thread ID in hex or decimal.")]
         public string? ThreadId { get; init; }
     }
 
@@ -197,7 +197,7 @@ public sealed class XbdmThreadSuspendCommand : AsyncCommand<XbdmThreadSuspendCom
 public sealed class XbdmThreadResumeCommand : AsyncCommand<XbdmThreadResumeCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--id <ID>")]
-        [Description("Thread ID in hex or decimal.")]
+        [LocalizedDescription("Thread ID in hex or decimal.")]
         public string? ThreadId { get; init; }
     }
 
@@ -215,3 +215,4 @@ public sealed class XbdmThreadResumeCommand : AsyncCommand<XbdmThreadResumeComma
         }, CancellationToken.None);
     }
 }
+

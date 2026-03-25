@@ -241,15 +241,15 @@ public sealed class XbdmMemPeekCommand : AsyncCommand<XbdmMemPeekCommand.Setting
         public string? Address { get; init; }
 
         [CommandOption("--type <TYPE>")]
-        [Description("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii plus byte/int/float/string aliases")]
+        [LocalizedDescription("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii plus byte/int/float/string aliases")]
         public string? Type { get; init; }
 
         [CommandOption("--len <N>")]
-        [Description("Length for ascii reads (default 32).")]
+        [LocalizedDescription("Length for ascii reads (default 32).")]
         public int? Length { get; init; }
 
         [CommandOption("--le")]
-        [Description("Interpret as little-endian (default is big-endian).")]
+        [LocalizedDescription("Interpret as little-endian (default is big-endian).")]
         public bool LittleEndian { get; init; }
     }
 
@@ -282,14 +282,14 @@ public sealed class XbdmMemPokeCommand : AsyncCommand<XbdmMemPokeCommand.Setting
         public string? Address { get; init; }
 
         [CommandOption("--type <TYPE>")]
-        [Description("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii|hex plus byte/int/float/string/bytes aliases")]
+        [LocalizedDescription("u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|ascii|hex plus byte/int/float/string/bytes aliases")]
         public string? Type { get; init; }
 
         [CommandOption("--value <VALUE>")]
         public string? Value { get; init; }
 
         [CommandOption("--le")]
-        [Description("Write little-endian (default is big-endian).")]
+        [LocalizedDescription("Write little-endian (default is big-endian).")]
         public bool LittleEndian { get; init; }
     }
 
@@ -319,15 +319,15 @@ public sealed class XbdmMemWatchCommand : AsyncCommand<XbdmMemWatchCommand.Setti
         public string? Size { get; init; }
 
         [CommandOption("--interval <MS>")]
-        [Description("Poll interval in milliseconds (default 500).")]
+        [LocalizedDescription("Poll interval in milliseconds (default 500).")]
         public int? IntervalMs { get; init; }
 
         [CommandOption("--count <N>")]
-        [Description("Number of iterations (default 0 = infinite).")]
+        [LocalizedDescription("Number of iterations (default 0 = infinite).")]
         public int? Count { get; init; }
 
         [CommandOption("--clear")]
-        [Description("Clear the screen between updates.")]
+        [LocalizedDescription("Clear the screen between updates.")]
         public bool Clear { get; init; }
     }
 
@@ -368,11 +368,11 @@ public sealed class XbdmMemStringsCommand : AsyncCommand<XbdmMemStringsCommand.S
         public string? Size { get; init; }
 
         [CommandOption("--min <N>")]
-        [Description("Minimum string length (default 4).")]
+        [LocalizedDescription("Minimum string length (default 4).")]
         public int? MinLength { get; init; }
 
         [CommandOption("--max <N>")]
-        [Description("Maximum strings to return (default 200).")]
+        [LocalizedDescription("Maximum strings to return (default 200).")]
         public int? MaxCount { get; init; }
     }
 
@@ -479,51 +479,51 @@ public sealed class XbdmMemFindCommand : AsyncCommand<XbdmMemFindCommand.Setting
         public string? Size { get; init; }
 
         [CommandOption("--chunk <SIZE>")]
-        [Description("Read chunk size (hex or dec, default: 0x4000).")]
+        [LocalizedDescription("Read chunk size (hex or dec, default: 0x4000).")]
         public string? ChunkSize { get; init; }
 
         [CommandOption("--pattern <HEX>")]
-        [Description("Hex pattern, e.g. DEADBEEF or 0xDE AD BE EF.")]
+        [LocalizedDescription("Hex pattern, e.g. DEADBEEF or 0xDE AD BE EF.")]
         public string? Pattern { get; init; }
 
         [CommandOption("--ascii <TEXT>")]
-        [Description("ASCII text pattern.")]
+        [LocalizedDescription("ASCII text pattern.")]
         public string? Ascii { get; init; }
 
         [CommandOption("--max <N>")]
-        [Description("Maximum matches to return (default 20).")]
+        [LocalizedDescription("Maximum matches to return (default 20).")]
         public int? MaxCount { get; init; }
 
         [CommandOption("--out <FILE>")]
-        [Description("Write the hit list to a file (.json for JSON, otherwise text).")]
+        [LocalizedDescription("Write the hit list to a file (.json for JSON, otherwise text).")]
         public string? Output { get; init; }
 
         [CommandOption("--freeze")]
-        [Description("Continuously rewrite a value to the selected hit(s). Requires --freeze-type and --freeze-value.")]
+        [LocalizedDescription("Continuously rewrite a value to the selected hit(s). Requires --freeze-type and --freeze-value.")]
         public bool Freeze { get; init; }
 
         [CommandOption("--freeze-type <TYPE>")]
-        [Description("Value type for freeze writes: int|uint|float|string|bytes|u32|f32|ascii|hex, etc.")]
+        [LocalizedDescription("Value type for freeze writes: int|uint|float|string|bytes|u32|f32|ascii|hex, etc.")]
         public string? FreezeType { get; init; }
 
         [CommandOption("--freeze-value <VALUE>")]
-        [Description("Value to freeze to the selected hit(s).")]
+        [LocalizedDescription("Value to freeze to the selected hit(s).")]
         public string? FreezeValue { get; init; }
 
         [CommandOption("--freeze-interval <MS>")]
-        [Description("Freeze write interval in milliseconds (default 250).")]
+        [LocalizedDescription("Freeze write interval in milliseconds (default 250).")]
         public int? FreezeIntervalMs { get; init; }
 
         [CommandOption("--freeze-count <N>")]
-        [Description("Number of freeze write passes (default 0 = until Ctrl+C).")]
+        [LocalizedDescription("Number of freeze write passes (default 0 = until Ctrl+C).")]
         public int? FreezeCount { get; init; }
 
         [CommandOption("--freeze-all")]
-        [Description("Freeze all hits instead of just one selected hit.")]
+        [LocalizedDescription("Freeze all hits instead of just one selected hit.")]
         public bool FreezeAll { get; init; }
 
         [CommandOption("--hit <N>")]
-        [Description("1-based hit index to freeze when --freeze-all is not used (default 1).")]
+        [LocalizedDescription("1-based hit index to freeze when --freeze-all is not used (default 1).")]
         public int? HitIndex { get; init; }
     }
 
@@ -707,3 +707,4 @@ public sealed class XbdmMemFindCommand : AsyncCommand<XbdmMemFindCommand.Setting
         return new List<uint> { matches[hitIndex - 1] };
     }
 }
+

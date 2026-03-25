@@ -12,15 +12,15 @@ public sealed class XbdmFsCatCommand : AsyncCommand<XbdmFsCatCommand.Settings> {
         public string? Path { get; init; }
 
         [CommandOption("--max <BYTES>")]
-        [Description("Maximum bytes to display (default 65536).")]
+        [LocalizedDescription("Maximum bytes to display (default 65536).")]
         public int? MaxBytes { get; init; }
 
         [CommandOption("--hex")]
-        [Description("Render as hex instead of text.")]
+        [LocalizedDescription("Render as hex instead of text.")]
         public bool Hex { get; init; }
 
         [CommandOption("--encoding <ENC>")]
-        [Description("Text encoding: utf8|ascii (default utf8).")]
+        [LocalizedDescription("Text encoding: utf8|ascii (default utf8).")]
         public string? EncodingName { get; init; }
     }
 
@@ -121,3 +121,4 @@ public sealed class XbdmFsMoveCommand : AsyncCommand<XbdmFsMoveCommand.Settings>
         }, CancellationToken.None);
     }
 }
+

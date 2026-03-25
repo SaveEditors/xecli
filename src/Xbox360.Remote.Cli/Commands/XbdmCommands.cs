@@ -140,7 +140,7 @@ public sealed class XbdmInfoCommand : AsyncCommand<ConnectionSettings> {
 public sealed class XbdmModulesListCommand : AsyncCommand<XbdmModulesListCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--sections")]
-        [Description("Include section details.")]
+        [LocalizedDescription("Include section details.")]
         public bool Sections { get; init; }
     }
 
@@ -206,19 +206,19 @@ public sealed class XbdmModulesListCommand : AsyncCommand<XbdmModulesListCommand
 public sealed class XbdmModulesDumpCommand : AsyncCommand<XbdmModulesDumpCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--name <MODULE>")]
-        [Description("Module name, e.g. default.xex or xam.xex.")]
+        [LocalizedDescription("Module name, e.g. default.xex or xam.xex.")]
         public string? Name { get; init; }
 
         [CommandOption("--out <FILE>")]
-        [Description("Output file path.")]
+        [LocalizedDescription("Output file path.")]
         public string? Output { get; init; }
 
         [CommandOption("--all")]
-        [Description("Dump all modules to a directory.")]
+        [LocalizedDescription("Dump all modules to a directory.")]
         public bool All { get; init; }
 
         [CommandOption("--dir <DIR>")]
-        [Description("Output directory for --all.")]
+        [LocalizedDescription("Output directory for --all.")]
         public string? Directory { get; init; }
     }
 
@@ -285,11 +285,11 @@ public sealed class XbdmModulesDumpCommand : AsyncCommand<XbdmModulesDumpCommand
 public sealed class XbdmXexDumpCommand : AsyncCommand<XbdmXexDumpCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--path <XEX>")]
-        [Description("Explicit XEX path. If omitted, uses the running title.")]
+        [LocalizedDescription("Explicit XEX path. If omitted, uses the running title.")]
         public string? Path { get; init; }
 
         [CommandOption("--out <FILE>")]
-        [Description("Output file path.")]
+        [LocalizedDescription("Output file path.")]
         public string? Output { get; init; }
     }
 
@@ -491,3 +491,4 @@ public sealed class XbdmRawCommand : AsyncCommand<XbdmRawCommand.Settings> {
         }, CancellationToken.None);
     }
 }
+

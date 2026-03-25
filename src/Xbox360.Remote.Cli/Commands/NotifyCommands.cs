@@ -142,27 +142,27 @@ internal static class NotifyHelpers {
 public sealed class NotifySendCommand : AsyncCommand<NotifySendCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandArgument(0, "[message]")]
-        [Description("Notification text.")]
+        [LocalizedDescription("Notification text.")]
         public string? MessageArgument { get; init; }
 
         [CommandArgument(1, "[logo]")]
-        [Description("Optional icon id or built-in icon name.")]
+        [LocalizedDescription("Optional icon id or built-in icon name.")]
         public string? LogoArgument { get; init; }
 
         [CommandOption("--message <TEXT>")]
-        [Description("Notification text.")]
+        [LocalizedDescription("Notification text.")]
         public string? Message { get; init; }
 
         [CommandOption("--logo <ID>")]
-        [Description("Notification logo id or built-in icon name.")]
+        [LocalizedDescription("Notification logo id or built-in icon name.")]
         public string? Logo { get; init; }
 
         [CommandOption("--icon <NAME>")]
-        [Description("Notification icon preset name from config.")]
+        [LocalizedDescription("Notification icon preset name from config.")]
         public string? Icon { get; init; }
 
         [CommandOption("--position <POS>")]
-        [Description("Notification position (top|bottom|center|left|right|top-left|top-right|bottom-left|bottom-right).")]
+        [LocalizedDescription("Notification position (top|bottom|center|left|right|top-left|top-right|bottom-left|bottom-right).")]
         public string? Position { get; init; }
     }
 
@@ -201,11 +201,11 @@ public sealed class NotifySendCommand : AsyncCommand<NotifySendCommand.Settings>
 public sealed class NotifyIconsListCommand : Command<NotifyIconsListCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--builtins-only")]
-        [Description("Show only the built-in XNotify icon catalog.")]
+        [LocalizedDescription("Show only the built-in XNotify icon catalog.")]
         public bool BuiltinsOnly { get; init; }
 
         [CommandOption("--presets-only")]
-        [Description("Show only user-defined preset aliases from config.")]
+        [LocalizedDescription("Show only user-defined preset aliases from config.")]
         public bool PresetsOnly { get; init; }
     }
 
@@ -260,7 +260,7 @@ public sealed class NotifyIconsListCommand : Command<NotifyIconsListCommand.Sett
 public sealed class NotifyIconsShowCommand : Command<NotifyIconsShowCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandArgument(0, "<value>")]
-        [Description("A built-in icon name, preset alias, decimal id, or 0x hex id.")]
+        [LocalizedDescription("A built-in icon name, preset alias, decimal id, or 0x hex id.")]
         public string? Value { get; init; }
     }
 
@@ -352,3 +352,4 @@ public sealed class NotifyIconsRemoveCommand : Command<NotifyIconsRemoveCommand.
         return 1;
     }
 }
+

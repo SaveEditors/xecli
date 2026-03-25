@@ -8,35 +8,35 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class XexStringsCommand : AsyncCommand<XexStringsCommand.Settings> {
     public sealed class Settings : CommandSettings {
         [CommandOption("--in <FILE>")]
-        [Description("Input XEX file.")]
+        [LocalizedDescription("Input XEX file.")]
         public string? Input { get; init; }
 
         [CommandOption("--ftp-path <PATH>")]
-        [Description("Fetch the XEX via FTP before scanning (e.g. /Hdd1/Aurora/Aurora.xex).")]
+        [LocalizedDescription("Fetch the XEX via FTP before scanning (e.g. /Hdd1/Aurora/Aurora.xex).")]
         public string? FtpPath { get; init; }
 
         [CommandOption("--running")]
-        [Description("Use the running title XEX (resolved via XBDM + FTP).")]
+        [LocalizedDescription("Use the running title XEX (resolved via XBDM + FTP).")]
         public bool Running { get; init; }
 
         [CommandOption("--min <N>")]
-        [Description("Minimum string length (default: 4).")]
+        [LocalizedDescription("Minimum string length (default: 4).")]
         public int? MinLength { get; init; }
 
         [CommandOption("--max <N>")]
-        [Description("Maximum strings to return (default: 200).")]
+        [LocalizedDescription("Maximum strings to return (default: 200).")]
         public int? MaxCount { get; init; }
 
         [CommandOption("--unicode")]
-        [Description("Include UTF-16 (LE/BE) strings.")]
+        [LocalizedDescription("Include UTF-16 (LE/BE) strings.")]
         public bool Unicode { get; init; }
 
         [CommandOption("--out <FILE>")]
-        [Description("Write output to a text file.")]
+        [LocalizedDescription("Write output to a text file.")]
         public string? Output { get; init; }
 
         [CommandOption("--json")]
-        [Description("Output JSON.")]
+        [LocalizedDescription("Output JSON.")]
         public bool Json { get; init; }
     }
 
@@ -199,3 +199,4 @@ public sealed class XexStringsCommand : AsyncCommand<XexStringsCommand.Settings>
 
     private readonly record struct StringHit(int Offset, string Kind, string Text);
 }
+

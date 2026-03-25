@@ -30,23 +30,23 @@ public sealed class XbdmDebugGoCommand : AsyncCommand<ConnectionSettings> {
 public sealed class XbdmDebugWatchCommand : AsyncCommand<XbdmDebugWatchCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--duration <SEC>")]
-        [Description("How long to wait for notifications before exiting (default: 30).")]
+        [LocalizedDescription("How long to wait for notifications before exiting (default: 30).")]
         public int? DurationSeconds { get; init; }
 
         [CommandOption("--max <N>")]
-        [Description("Maximum notifications to print before exiting.")]
+        [LocalizedDescription("Maximum notifications to print before exiting.")]
         public int? MaxEvents { get; init; }
 
         [CommandOption("--raw")]
-        [Description("Print raw notify lines instead of parsed summaries.")]
+        [LocalizedDescription("Print raw notify lines instead of parsed summaries.")]
         public bool Raw { get; init; }
 
         [CommandOption("--stopon-fce")]
-        [Description("Ask XBDM to stop on first-chance exceptions.")]
+        [LocalizedDescription("Ask XBDM to stop on first-chance exceptions.")]
         public bool StopOnFce { get; init; }
 
         [CommandOption("--name <NAME>")]
-        [Description("Debugger session name (default: XeCLI).")]
+        [LocalizedDescription("Debugger session name (default: XeCLI).")]
         public string? DebuggerName { get; init; }
     }
 
@@ -213,11 +213,11 @@ public sealed class XbdmDataBreakpointAddCommand : AsyncCommand<XbdmDataBreakpoi
         public string? Address { get; init; }
 
         [CommandOption("--size <SIZE>")]
-        [Description("Size in bytes (default 4).")]
+        [LocalizedDescription("Size in bytes (default 4).")]
         public string? Size { get; init; }
 
         [CommandOption("--type <TYPE>")]
-        [Description("write|read|exec|rw (default write).")]
+        [LocalizedDescription("write|read|exec|rw (default write).")]
         public string? Type { get; init; }
     }
 
@@ -253,11 +253,11 @@ public sealed class XbdmDataBreakpointRemoveCommand : AsyncCommand<XbdmDataBreak
         public string? Address { get; init; }
 
         [CommandOption("--size <SIZE>")]
-        [Description("Size in bytes (default 4).")]
+        [LocalizedDescription("Size in bytes (default 4).")]
         public string? Size { get; init; }
 
         [CommandOption("--type <TYPE>")]
-        [Description("write|read|exec|rw (default write).")]
+        [LocalizedDescription("write|read|exec|rw (default write).")]
         public string? Type { get; init; }
     }
 
@@ -372,3 +372,4 @@ internal sealed class XbdmNotifyEvent {
         return tokens;
     }
 }
+

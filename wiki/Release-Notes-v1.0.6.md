@@ -12,7 +12,7 @@ That means the operator does not need to break the flow into separate console-si
 
 The release package carries the helper/linker assets that the automated dump path expects, so the user does not have to gather them separately before starting the backup.
 
-If you prefer the minimal boot package, the standalone `Xell-NoN` companion package can be used as the stripped XeLL-side bootstrap for the same automated NAND flow.
+If you prefer the minimal boot package, the standalone `Xell-NoN` companion package can be used as the stripped XeLL-side bootstrap for the same automated NAND flow. Published repo: [github.com/SaveEditors/Xell-NoN](https://github.com/SaveEditors/Xell-NoN).
 
 ## Verification and Reboot
 

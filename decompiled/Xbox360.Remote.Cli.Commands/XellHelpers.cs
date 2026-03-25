@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,10 @@ internal enum XellConsoleMode
 internal sealed record XellDetectionResult(XellConsoleMode Mode, string PreferredIp, XellHttpEndpoint? Endpoint);
 
 internal sealed record XellHttpEndpoint(string Ip, string BaseUrl, string RawFlashPath, string? CpuKeyPath, string? KeyVaultPath, string? RawKeyVaultPath, string? RebootPath, string? StartupLogPath, string? HomePageHtml);
+
+internal sealed record XellCustomStatus(string State, string? Title, long? HeartbeatTicks, string Path, string RawText);
+
+internal sealed record XellHttpPortDiagnostic(bool PortOpen, bool HttpResponseReceived, string Summary);
 
 internal sealed record XellLaunchPreflight(string LauncherPath, string SiblingXellBinPath, bool SiblingXellBinPresent, bool CheckedCommonFallbackPaths, IReadOnlyList<string> AlternateXellBinPathsPresent, IReadOnlyList<string> CheckedPaths);
 
@@ -55,6 +60,14 @@ internal static class XellHelpers
 	private static readonly string[] DefaultRebootPaths = new string[2] { "/reboot", "/REBOOT" };
 
 	private static readonly string[] DefaultStartupLogPaths = new string[2] { "/log", "/LOG" };
+
+	private const string FinalRebootToken = "RBT";
+
+	private static readonly string[] DefaultCustomStatusPaths = new string[2] { "/XECLI_STATUS", "/xecli_status" };
+
+	private static readonly string[] DefaultCompletionRebootPaths = new string[4] { "/XECLI_DONE", "/xecli_done", "/XECLI_REBOOT", "/xecli_reboot" };
+
+	private static readonly string[] DefaultCompletionRebootUnverifiedPaths = new string[2] { "/XECLI_DONE_UNVERIFIED", "/xecli_done_unverified" };
 
 	private static readonly string[] XellLaunchCandidates = new string[21]
 	{
@@ -143,25 +156,63 @@ internal static class XellHelpers
 		{
 			return null;
 		}
-		try
+		XellCustomStatus xellCustomStatus = await TryReadCustomStatusDirectAsync(ip, requestTimeout, cancellationToken);
+		if (xellCustomStatus != null)
 		{
-			using HttpClient httpClient = CreateHttpClient(requestTimeout);
-			string baseUrl = "http://" + ip;
-			using HttpResponseMessage response = await httpClient.GetAsync(baseUrl + "/", cancellationToken);
-			if (!response.IsSuccessStatusCode)
-			{
-				return null;
-			}
-			string text = await response.Content.ReadAsStringAsync(cancellationToken);
-			if (!LooksLikeXell(text))
-			{
-				return null;
-			}
+			return CreateEndpoint(ip, string.Empty);
+		}
+		string text = await TryReadHttpTextDirectAsync(ip, "/", requestTimeout, cancellationToken);
+		if (!string.IsNullOrWhiteSpace(text) && LooksLikeXell(text))
+		{
 			return CreateEndpoint(ip, text);
 		}
-		catch
+		return null;
+	}
+
+	public static async Task<XellHttpPortDiagnostic> DiagnoseHttpPortAsync(string ip, TimeSpan timeout, CancellationToken cancellationToken)
+	{
+		if (!IPAddress.TryParse(ip, out var address) || address.AddressFamily != AddressFamily.InterNetwork)
 		{
-			return null;
+			return new XellHttpPortDiagnostic(PortOpen: false, HttpResponseReceived: false, "Port 80 probe was skipped because the target IP was invalid.");
+		}
+		using CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		cancellationTokenSource.CancelAfter(timeout);
+		try
+		{
+			using TcpClient tcpClient = new TcpClient();
+			await tcpClient.ConnectAsync(ip, 80, cancellationTokenSource.Token);
+			using NetworkStream networkStream = tcpClient.GetStream();
+			byte[] bytes = Encoding.ASCII.GetBytes("GET / HTTP/1.0\r\nHost: " + ip + "\r\nUser-Agent: XeCLI/1.0.6\r\n\r\n");
+			await networkStream.WriteAsync(bytes, cancellationTokenSource.Token);
+			await networkStream.FlushAsync(cancellationTokenSource.Token);
+			byte[] array = new byte[512];
+			int num = await networkStream.ReadAsync(array, cancellationTokenSource.Token);
+			if (num <= 0)
+			{
+				return new XellHttpPortDiagnostic(PortOpen: true, HttpResponseReceived: false, "Port 80 accepted a TCP connection but closed without returning any HTTP data.");
+			}
+			string @string = Encoding.ASCII.GetString(array, 0, num);
+			if (@string.StartsWith("HTTP/", StringComparison.OrdinalIgnoreCase))
+			{
+				return new XellHttpPortDiagnostic(PortOpen: true, HttpResponseReceived: true, "Port 80 accepted a TCP connection and returned HTTP headers.");
+			}
+			return new XellHttpPortDiagnostic(PortOpen: true, HttpResponseReceived: false, "Port 80 accepted a TCP connection and returned non-HTTP data: " + @string.Replace("\r", "\\r").Replace("\n", "\\n").Trim());
+		}
+		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+		{
+			return new XellHttpPortDiagnostic(PortOpen: false, HttpResponseReceived: false, "Port 80 did not complete a TCP/HTTP probe before the timeout expired.");
+		}
+		catch (SocketException ex)
+		{
+			return new XellHttpPortDiagnostic(PortOpen: false, HttpResponseReceived: false, "Port 80 was not reachable: " + ex.SocketErrorCode);
+		}
+		catch (IOException ex)
+		{
+			return new XellHttpPortDiagnostic(PortOpen: true, HttpResponseReceived: false, "Port 80 accepted a TCP connection, but the HTTP response failed: " + ex.Message);
+		}
+		catch (Exception ex)
+		{
+			return new XellHttpPortDiagnostic(PortOpen: false, HttpResponseReceived: false, "Port 80 probe failed: " + ex.Message);
 		}
 	}
 
@@ -245,6 +296,34 @@ internal static class XellHelpers
 		return new XellBootRequest(ForceDirectBoot: true, null, null, UsedQuickBoot: false, null, null, null, readOnlyList);
 	}
 
+	public static async Task<bool> TryRelaunchBootRequestAsync(XbdmClient client, XellBootRequest bootRequest, CancellationToken cancellationToken)
+	{
+		if (bootRequest.UsedQuickBoot && !string.IsNullOrWhiteSpace(bootRequest.QuickBootLauncherPath))
+		{
+			await client.SendCommandAsync(BuildMagicBootCommand(bootRequest.QuickBootLauncherPath), cancellationToken);
+			return true;
+		}
+		if (!bootRequest.ForceDirectBoot && !string.IsNullOrWhiteSpace(bootRequest.LauncherPath))
+		{
+			await client.SendCommandAsync(BuildMagicBootCommand(bootRequest.LauncherPath), cancellationToken);
+			return true;
+		}
+		if (!bootRequest.ForceDirectBoot)
+		{
+			return false;
+		}
+		await HardwareHelpers.ExecuteXamShortcutAsync(client, XamShortcutOrdinal.OpenTray, cancellationToken);
+		await Task.Delay(900, cancellationToken);
+		try
+		{
+			await client.SendCommandAsync("magicboot cold", cancellationToken);
+		}
+		catch
+		{
+		}
+		return true;
+	}
+
 	private static async Task<string?> ResolveLauncherPathAsync(XbdmClient client, XellCommandSettings settings, string targetIp, CancellationToken cancellationToken)
 	{
 		if (!string.IsNullOrWhiteSpace(settings.StageLauncherPath) || !string.IsNullOrWhiteSpace(settings.StageXellBinPath))
@@ -300,6 +379,16 @@ internal static class XellHelpers
 			string text2 = BuildXellBinPath(text);
 			await FtpHelpers.UploadFileVerifiedAsync(ip, port, user, pass, timeoutMs, settings.StageXellBinPath, text2, ensureRemoteDirectory: true, null, cancellationToken);
 			AnsiConsole.MarkupLine("[grey]Staged xell.bin:[/] [cyan]" + Markup.Escape(text2) + "[/]");
+			XellAssetHelpers.XellLaunchAssetResolution xellLaunchAssetResolution = XellAssetHelpers.DescribeLocalXellBinary(settings.StageXellBinPath);
+			AnsiConsole.MarkupLine("[grey]Payload source:[/] [white]" + Markup.Escape(xellLaunchAssetResolution.SourceDescription) + "[/]");
+			if (!string.IsNullOrWhiteSpace(xellLaunchAssetResolution.Sha256))
+			{
+				AnsiConsole.MarkupLine("[grey]Payload SHA-256:[/] [white]" + Markup.Escape(xellLaunchAssetResolution.Sha256) + "[/]");
+			}
+			if (!string.IsNullOrWhiteSpace(xellLaunchAssetResolution.BehaviorSummary))
+			{
+				AnsiConsole.MarkupLine("[grey]Expected behavior:[/] " + Markup.Escape(xellLaunchAssetResolution.BehaviorSummary));
+			}
 		}
 		return text;
 	}
@@ -354,9 +443,20 @@ internal static class XellHelpers
 	private static async Task<string> ProvisionBundledLauncherAsync(XbdmClient client, XellCommandSettings settings, string targetIp, CancellationToken cancellationToken)
 	{
 		string text = ResolveLauncherPath(null);
-		await UploadBundledHelperAssetAsync(targetIp, settings.TimeoutMs ?? 5000, GetBundledXellLaunchAssetPath("default.xex"), text, "Auto-installing bundled XellLaunch", cancellationToken);
-		await UploadBundledHelperAssetAsync(targetIp, settings.TimeoutMs ?? 5000, GetBundledXellLaunchAssetPath("xell.bin"), BuildXellBinPath(text), "Auto-installing bundled xell.bin", cancellationToken);
-		OperationFeedback.WriteSuccess("Bundled XellLaunch installed", "[cyan]" + Markup.Escape(text) + "[/]\n[grey]Payload:[/] [springgreen3_1]" + Markup.Escape(BuildXellBinPath(text)) + "[/]");
+		XellAssetHelpers.XellLaunchAssetResolution xellLaunchAssetResolution = await XellAssetHelpers.ResolveXellLaunchAssetAsync("default.xex", cancellationToken);
+		XellAssetHelpers.XellLaunchAssetResolution xellLaunchAssetResolution2 = await XellAssetHelpers.ResolveXellLaunchAssetAsync("xell.bin", cancellationToken);
+		await UploadBundledHelperAssetAsync(targetIp, settings.TimeoutMs ?? 5000, xellLaunchAssetResolution.Path, text, "Auto-installing managed XellLaunch", cancellationToken);
+		await UploadBundledHelperAssetAsync(targetIp, settings.TimeoutMs ?? 5000, xellLaunchAssetResolution2.Path, BuildXellBinPath(text), "Auto-installing managed xell.bin", cancellationToken);
+		string text2 = "[cyan]" + Markup.Escape(text) + "[/]\n[grey]Helper source:[/] [white]" + Markup.Escape(xellLaunchAssetResolution.SourceDescription) + "[/]\n[grey]Payload:[/] [springgreen3_1]" + Markup.Escape(BuildXellBinPath(text)) + "[/]\n[grey]Payload source:[/] [white]" + Markup.Escape(xellLaunchAssetResolution2.SourceDescription) + "[/]";
+		if (!string.IsNullOrWhiteSpace(xellLaunchAssetResolution2.Sha256))
+		{
+			text2 = text2 + "\n[grey]Payload SHA-256:[/] [white]" + Markup.Escape(xellLaunchAssetResolution2.Sha256) + "[/]";
+		}
+		OperationFeedback.WriteSuccess("Managed XellLaunch installed", text2);
+		if (!string.IsNullOrWhiteSpace(xellLaunchAssetResolution2.BehaviorSummary))
+		{
+			AnsiConsole.MarkupLine("[grey]Expected behavior:[/] " + Markup.Escape(xellLaunchAssetResolution2.BehaviorSummary));
+		}
 		return text;
 	}
 
@@ -367,8 +467,18 @@ internal static class XellHelpers
 			return false;
 		}
 		string text = BuildXellBinPath(launcherPath);
-		await UploadBundledHelperAssetAsync(targetIp, settings.TimeoutMs ?? 5000, GetBundledXellLaunchAssetPath("xell.bin"), text, "Auto-installing bundled xell.bin", cancellationToken);
-		OperationFeedback.WriteSuccess("Bundled xell.bin installed", "[cyan]" + Markup.Escape(text) + "[/]");
+		XellAssetHelpers.XellLaunchAssetResolution xellLaunchAssetResolution = await XellAssetHelpers.ResolveXellLaunchAssetAsync("xell.bin", cancellationToken);
+		await UploadBundledHelperAssetAsync(targetIp, settings.TimeoutMs ?? 5000, xellLaunchAssetResolution.Path, text, "Auto-installing managed xell.bin", cancellationToken);
+		string text2 = "[cyan]" + Markup.Escape(text) + "[/]\n[grey]Payload source:[/] [white]" + Markup.Escape(xellLaunchAssetResolution.SourceDescription) + "[/]";
+		if (!string.IsNullOrWhiteSpace(xellLaunchAssetResolution.Sha256))
+		{
+			text2 = text2 + "\n[grey]Payload SHA-256:[/] [white]" + Markup.Escape(xellLaunchAssetResolution.Sha256) + "[/]";
+		}
+		OperationFeedback.WriteSuccess("Managed xell.bin installed", text2);
+		if (!string.IsNullOrWhiteSpace(xellLaunchAssetResolution.BehaviorSummary))
+		{
+			AnsiConsole.MarkupLine("[grey]Expected behavior:[/] " + Markup.Escape(xellLaunchAssetResolution.BehaviorSummary));
+		}
 		return true;
 	}
 
@@ -410,48 +520,80 @@ internal static class XellHelpers
 		OperationFeedback.WriteWarning("No sibling xell.bin", "No xell.bin was found beside the helper. This helper may depend on its own fallback behavior.");
 	}
 
-	public static async Task DownloadRawFlashAsync(XellHttpEndpoint endpoint, string destinationPath, string title, CancellationToken cancellationToken)
-	{
-		await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.RawFlashPath, DefaultRawFlashPaths), destinationPath, title, "XeLL did not expose a readable flash dump endpoint.", cancellationToken);
-	}
+public static async Task DownloadRawFlashAsync(XellHttpEndpoint endpoint, string destinationPath, string title, CancellationToken cancellationToken)
+{
+	await DownloadRawFlashAsync(endpoint, destinationPath, title, cancellationToken, null);
+}
+
+public static async Task DownloadRawFlashAsync(XellHttpEndpoint endpoint, string destinationPath, string title, CancellationToken cancellationToken, Func<int, Task>? progressSyncCallback)
+{
+	await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.RawFlashPath, DefaultRawFlashPaths), destinationPath, title, "XeLL did not expose a readable flash dump endpoint.", cancellationToken, progressSyncCallback);
+}
 
 	public static async Task DownloadKeyVaultAsync(XellHttpEndpoint endpoint, string destinationPath, bool raw, string title, CancellationToken cancellationToken)
 	{
-		if (raw)
-		{
-			await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.RawKeyVaultPath, DefaultRawKeyVaultPaths), destinationPath, title, "XeLL did not expose a readable raw keyvault endpoint.", cancellationToken);
-			return;
-		}
-		await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.KeyVaultPath, DefaultKeyVaultPaths), destinationPath, title, "XeLL did not expose a readable keyvault endpoint.", cancellationToken);
-	}
-
-	public static async Task DownloadBinaryAsync(XellHttpEndpoint endpoint, string relativePath, string destinationPath, string title, CancellationToken cancellationToken)
+	if (raw)
 	{
-		Directory.CreateDirectory(Path.GetDirectoryName(destinationPath) ?? Environment.CurrentDirectory);
-		using HttpClient httpClient = CreateHttpClient(TimeSpan.FromMinutes(30.0));
-		using HttpResponseMessage response = await httpClient.GetAsync(BuildUri(endpoint, relativePath), HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-		response.EnsureSuccessStatusCode();
-		long? contentLength = response.Content.Headers.ContentLength;
+		await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.RawKeyVaultPath, DefaultRawKeyVaultPaths), destinationPath, title, "XeLL did not expose a readable raw keyvault endpoint.", cancellationToken, null);
+		return;
+	}
+	await DownloadFromCandidatePathsAsync(endpoint, CombinePaths(endpoint.KeyVaultPath, DefaultKeyVaultPaths), destinationPath, title, "XeLL did not expose a readable keyvault endpoint.", cancellationToken, null);
+}
+
+public static async Task DownloadBinaryAsync(XellHttpEndpoint endpoint, string relativePath, string destinationPath, string title, CancellationToken cancellationToken)
+{
+	await DownloadBinaryAsync(endpoint, relativePath, destinationPath, title, cancellationToken, null);
+}
+
+public static async Task DownloadBinaryAsync(XellHttpEndpoint endpoint, string relativePath, string destinationPath, string title, CancellationToken cancellationToken, Func<int, Task>? progressSyncCallback)
+{
+	Directory.CreateDirectory(Path.GetDirectoryName(destinationPath) ?? Environment.CurrentDirectory);
+	using HttpClient httpClient = CreateHttpClient(TimeSpan.FromMinutes(30.0));
+	using HttpResponseMessage response = await httpClient.GetAsync(BuildUri(endpoint, relativePath), HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+	response.EnsureSuccessStatusCode();
+	long? contentLength = response.Content.Headers.ContentLength;
 		await CliOutput.RunWithProgressAsync(title, contentLength, async delegate(IProgress<CliOutput.TransferProgressUpdate> progress)
 		{
-			await using Stream responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-			await using FileStream fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
-			byte[] buffer = new byte[65536];
-			long total = 0L;
-			while (true)
+		await using Stream responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+		await using FileStream fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
+		byte[] buffer = new byte[65536];
+		long total = 0L;
+		int lastReportedPercent = -1;
+		long lastSyncTick = Environment.TickCount64;
+		if (contentLength.HasValue && contentLength.Value > 0L)
+		{
+			await TryReportPayloadProgressAsync(progressSyncCallback, 0);
+			lastReportedPercent = 0;
+		}
+		while (true)
+		{
+			int read = await responseStream.ReadAsync(buffer, cancellationToken);
+			if (read <= 0)
 			{
-				int read = await responseStream.ReadAsync(buffer, cancellationToken);
-				if (read <= 0)
-				{
 					break;
-				}
-				await fileStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
-				total += read;
-				progress.Report(new CliOutput.TransferProgressUpdate(total, "downloading"));
 			}
-			await fileStream.FlushAsync(cancellationToken);
-		});
-	}
+			await fileStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+			total += read;
+			progress.Report(new CliOutput.TransferProgressUpdate(total, "downloading"));
+			if (contentLength.HasValue && contentLength.Value > 0L)
+			{
+				int num = (int)Math.Min(100L, (total * 100L + contentLength.Value - 1L) / contentLength.Value);
+				long tickCount = Environment.TickCount64;
+				if (num != lastReportedPercent && (num >= 100 || lastReportedPercent < 0 || tickCount - lastSyncTick >= 250L))
+				{
+					await TryReportPayloadProgressAsync(progressSyncCallback, num);
+					lastReportedPercent = num;
+					lastSyncTick = tickCount;
+				}
+			}
+		}
+		if (contentLength.HasValue && contentLength.Value > 0L && lastReportedPercent < 100)
+		{
+			await TryReportPayloadProgressAsync(progressSyncCallback, 100);
+		}
+		await fileStream.FlushAsync(cancellationToken);
+	});
+}
 
 	public static async Task<string?> TryReadCpuKeyAsync(XellHttpEndpoint endpoint, CancellationToken cancellationToken)
 	{
@@ -499,26 +641,103 @@ internal static class XellHelpers
 		return null;
 	}
 
+	public static async Task<XellCustomStatus?> TryReadCustomStatusAsync(XellHttpEndpoint endpoint, CancellationToken cancellationToken)
+	{
+		foreach (string item in DistinctNonEmptyPaths(DefaultCustomStatusPaths))
+		{
+			string text = await TryReadHttpTextDirectAsync(endpoint.Ip, item, TimeSpan.FromSeconds(3.0), cancellationToken);
+			XellCustomStatus xellCustomStatus = ParseCustomStatus(text, item);
+			if (xellCustomStatus != null)
+			{
+				return xellCustomStatus;
+			}
+		}
+		return null;
+	}
+
+public static Task<bool> TrySyncDumpStartedAsync(XellHttpEndpoint endpoint, CancellationToken cancellationToken)
+{
+	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("dump", null, null, null, null, null, null, null), cancellationToken);
+}
+
+public static Task<bool> TrySyncVerificationProgressAsync(XellHttpEndpoint endpoint, int pass, int total, CancellationToken cancellationToken)
+{
+	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("verify", null, pass, total, null, null, null, null), cancellationToken);
+}
+
+public static Task<bool> TrySyncDumpProgressAsync(XellHttpEndpoint endpoint, int percent, CancellationToken cancellationToken)
+{
+	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("dump", null, null, null, null, null, null, percent), cancellationToken);
+}
+
+public static Task<bool> TrySyncVerificationPercentAsync(XellHttpEndpoint endpoint, int percent, CancellationToken cancellationToken)
+{
+	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("verify", null, null, null, null, null, null, percent), cancellationToken);
+}
+
 	public static async Task<bool> TryRequestRebootAsync(XellHttpEndpoint endpoint, CancellationToken cancellationToken)
 	{
-		foreach (string item in DistinctNonEmptyPaths(CombinePaths(endpoint.RebootPath, DefaultRebootPaths)))
+	foreach (string item in DistinctNonEmptyPaths(CombinePaths(endpoint.RebootPath, DefaultRebootPaths)))
+	{
+		try
 		{
-			try
-			{
-				using HttpClient httpClient = CreateHttpClient(TimeSpan.FromSeconds(3.0));
-				using HttpResponseMessage response = await httpClient.GetAsync(BuildUri(endpoint, item), cancellationToken);
-				if ((int)response.StatusCode < 500)
-				{
-					return true;
-				}
-			}
-			catch
+			using HttpClient httpClient = CreateHttpClient(TimeSpan.FromSeconds(3.0));
+			using HttpResponseMessage response = await httpClient.GetAsync(BuildUri(endpoint, item), cancellationToken);
+			if (response.IsSuccessStatusCode)
 			{
 				return true;
 			}
 		}
+		catch
+			{
+				await Task.Delay(500, cancellationToken);
+				if (await TryProbeXellAsync(endpoint.Ip, TimeSpan.FromMilliseconds(800.0), cancellationToken) == null)
+				{
+					return true;
+				}
+			}
+		}
 		return false;
 	}
+
+public static async Task<bool> TryRequestCompletionRebootAsync(XellHttpEndpoint endpoint, bool verified, int verificationPass, int verificationTotal, string? path, CancellationToken cancellationToken)
+{
+	if (await TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("complete", verified, verificationPass, verificationTotal, path, null, verified ? FinalRebootToken : null, null), cancellationToken))
+	{
+		return true;
+	}
+		if (!verified)
+		{
+			return false;
+		}
+		string[] paths = verified ? DefaultCompletionRebootPaths : DefaultCompletionRebootUnverifiedPaths;
+	foreach (string item in DistinctNonEmptyPaths(paths))
+	{
+		try
+		{
+			using HttpClient httpClient = CreateHttpClient(TimeSpan.FromSeconds(3.0));
+			using HttpResponseMessage response = await httpClient.GetAsync(BuildUri(endpoint, item), cancellationToken);
+			if (response.IsSuccessStatusCode)
+			{
+				return true;
+			}
+		}
+			catch
+			{
+				await Task.Delay(500, cancellationToken);
+				if (await TryProbeXellAsync(endpoint.Ip, TimeSpan.FromMilliseconds(800.0), cancellationToken) == null)
+				{
+					return true;
+				}
+			}
+		}
+		return await TryRequestRebootAsync(endpoint, cancellationToken);
+	}
+
+public static Task<bool> TryNotifyFailureAsync(XellHttpEndpoint endpoint, string reason, int verificationPass, int verificationTotal, string? path, CancellationToken cancellationToken)
+{
+	return TryRequestPayloadSyncAsync(endpoint, BuildPayloadSyncPath("failed", verified: false, verificationPass, verificationTotal, path, reason, null, null), cancellationToken);
+}
 
 	public static IReadOnlyList<string> BuildCandidateIps(string preferredIp, bool includeSubnetSweep)
 	{
@@ -599,6 +818,35 @@ internal static class XellHelpers
 		return new XellHttpEndpoint(ip, "http://" + ip, text, text2, text3, text4, text5, text6, html);
 	}
 
+	private static XellCustomStatus? ParseCustomStatus(string? text, string path)
+	{
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			return null;
+		}
+		string[] array = text.Replace("\r", string.Empty).Split('\n', StringSplitOptions.RemoveEmptyEntries);
+		Dictionary<string, string> dictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		string[] array2 = array;
+		foreach (string text2 in array2)
+		{
+			int num = text2.IndexOf('=');
+			if (num <= 0)
+			{
+				continue;
+			}
+			dictionary[text2.Substring(0, num).Trim()] = text2.Substring(num + 1).Trim();
+		}
+		if (!dictionary.ContainsKey("state") && !dictionary.ContainsKey("payload"))
+		{
+			return null;
+		}
+		dictionary.TryGetValue("state", out var value);
+		dictionary.TryGetValue("title", out var value2);
+		long result;
+		long? heartbeatTicks = (dictionary.TryGetValue("heartbeat_ticks", out var value3) && long.TryParse(value3, NumberStyles.Integer, CultureInfo.InvariantCulture, out result)) ? new long?(result) : null;
+		return new XellCustomStatus(string.IsNullOrWhiteSpace(value) ? "unknown" : value, value2, heartbeatTicks, path, text.Trim());
+	}
+
 	private static string ResolveEndpointPath(string html, IReadOnlyList<string> preferredPaths, params string[] tokens)
 	{
 		string text = FindLinkPath(html, tokens);
@@ -622,6 +870,10 @@ internal static class XellHelpers
 		foreach (Match item in LinkRegex.Matches(html))
 		{
 			string value = item.Groups["href"].Value;
+			if (string.IsNullOrWhiteSpace(value) || !value.StartsWith("/", StringComparison.Ordinal))
+			{
+				continue;
+			}
 			string text = NormalizeLabel(item.Groups["label"].Value);
 			if (tokens.Any((string token) => text.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0 || value.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0))
 			{
@@ -642,6 +894,40 @@ internal static class XellHelpers
 		return new Uri(new Uri(endpoint.BaseUrl.TrimEnd('/') + "/"), relativePath.TrimStart('/'));
 	}
 
+private static string BuildPayloadSyncPath(string stage, bool? verified, int? verificationPass, int? verificationTotal, string? path, string? reason, string? finalToken, int? percent)
+{
+	List<string> list = new List<string> { "stage=" + Uri.EscapeDataString(stage) };
+		if (verified.HasValue)
+		{
+			list.Add("verified=" + (verified.Value ? "1" : "0"));
+		}
+		if (verificationPass.HasValue && verificationPass.Value > 0)
+		{
+			list.Add("pass=" + verificationPass.Value.ToString(CultureInfo.InvariantCulture));
+		}
+		if (verificationTotal.HasValue && verificationTotal.Value > 0)
+		{
+			list.Add("total=" + verificationTotal.Value.ToString(CultureInfo.InvariantCulture));
+		}
+		if (!string.IsNullOrWhiteSpace(path))
+		{
+			list.Add("path=" + Uri.EscapeDataString(path));
+		}
+		if (!string.IsNullOrWhiteSpace(reason))
+		{
+			list.Add("reason=" + Uri.EscapeDataString(reason));
+		}
+	if (!string.IsNullOrWhiteSpace(finalToken))
+	{
+		list.Add("final=" + Uri.EscapeDataString(finalToken));
+	}
+	if (percent.HasValue && percent.Value >= 0)
+	{
+		list.Add("percent=" + Math.Clamp(percent.Value, 0, 100).ToString(CultureInfo.InvariantCulture));
+	}
+	return "/XECLI_SYNC?" + string.Join("&", list);
+}
+
 	private static HttpClient CreateHttpClient(TimeSpan timeout)
 	{
 		SocketsHttpHandler socketsHttpHandler = new SocketsHttpHandler
@@ -651,8 +937,22 @@ internal static class XellHelpers
 		};
 		HttpClient httpClient = new HttpClient(socketsHttpHandler);
 		httpClient.Timeout = timeout;
-		httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("XeCLI/1.0.2");
+		httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("XeCLI/1.0.6");
 		return httpClient;
+	}
+
+	private static async Task<bool> TryRequestPayloadSyncAsync(XellHttpEndpoint endpoint, string relativePath, CancellationToken cancellationToken)
+	{
+		try
+		{
+			using HttpClient httpClient = CreateHttpClient(TimeSpan.FromSeconds(3.0));
+			using HttpResponseMessage response = await httpClient.GetAsync(BuildUri(endpoint, relativePath), cancellationToken);
+			return (int)response.StatusCode < 500;
+		}
+		catch
+		{
+			return false;
+		}
 	}
 
 	private static async Task<IReadOnlyList<string>> TryGetAttachedUsbStorageAsync(XbdmClient client, CancellationToken cancellationToken)
@@ -720,11 +1020,9 @@ internal static class XellHelpers
 		OperationFeedback.WriteWarning("USB safety override enabled", "[grey]Continuing because [cyan]--allow-usb[/] was set. If this console stops at [white]Fat mount uda0[/], remove removable USB and retry without the override.[/]");
 	}
 
-	private static async Task SendPreLaunchNotificationsAsync(XbdmClient client, CancellationToken cancellationToken)
+	private static Task SendPreLaunchNotificationsAsync(XbdmClient client, CancellationToken cancellationToken)
 	{
-		await NotifyHelpers.TrySendOperationNotificationAsync(client, enabled: true, null, "14", "Launching XeLL", cancellationToken, useBottomPosition: true);
-		await Task.Delay(250, cancellationToken);
-		await NotifyHelpers.TrySendOperationNotificationAsync(client, enabled: true, null, "14", "Do not touch it. Wait 3 min.", cancellationToken, useBottomPosition: true);
+		return Task.CompletedTask;
 	}
 
 	private static async Task<string?> TryReadTextAsync(XellHttpEndpoint endpoint, string relativePath, CancellationToken cancellationToken)
@@ -743,6 +1041,79 @@ internal static class XellHelpers
 		{
 			return null;
 		}
+	}
+
+	private static async Task<XellCustomStatus?> TryReadCustomStatusDirectAsync(string ip, TimeSpan requestTimeout, CancellationToken cancellationToken)
+	{
+		foreach (string item in DistinctNonEmptyPaths(DefaultCustomStatusPaths))
+		{
+			string text = await TryReadHttpTextDirectAsync(ip, item, requestTimeout, cancellationToken);
+			XellCustomStatus xellCustomStatus = ParseCustomStatus(text, item);
+			if (xellCustomStatus != null)
+			{
+				return xellCustomStatus;
+			}
+		}
+		return null;
+	}
+
+	private static async Task<string?> TryReadHttpTextDirectAsync(string ip, string relativePath, TimeSpan requestTimeout, CancellationToken cancellationToken)
+	{
+		if (string.IsNullOrWhiteSpace(relativePath))
+		{
+			return null;
+		}
+		using CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		cancellationTokenSource.CancelAfter(requestTimeout);
+		try
+		{
+			using TcpClient tcpClient = new TcpClient();
+			await tcpClient.ConnectAsync(ip, 80, cancellationTokenSource.Token);
+			using NetworkStream networkStream = tcpClient.GetStream();
+			byte[] bytes = Encoding.ASCII.GetBytes("GET " + relativePath + " HTTP/1.0\r\nHost: " + ip + "\r\nUser-Agent: XeCLI/1.0.6\r\nConnection: close\r\n\r\n");
+			await networkStream.WriteAsync(bytes, cancellationTokenSource.Token);
+			await networkStream.FlushAsync(cancellationTokenSource.Token);
+			using MemoryStream memoryStream = new MemoryStream();
+			byte[] array = new byte[4096];
+			while (memoryStream.Length < 65536L)
+			{
+				int num = await networkStream.ReadAsync(array, cancellationTokenSource.Token);
+				if (num <= 0)
+				{
+					break;
+				}
+				memoryStream.Write(array, 0, num);
+			}
+			return ExtractHttpBody(Encoding.ASCII.GetString(memoryStream.ToArray()));
+		}
+		catch
+		{
+			return null;
+		}
+	}
+
+	private static string? ExtractHttpBody(string responseText)
+	{
+		if (string.IsNullOrWhiteSpace(responseText))
+		{
+			return null;
+		}
+		if (!responseText.StartsWith("HTTP/", StringComparison.OrdinalIgnoreCase))
+		{
+			return responseText;
+		}
+		int num = responseText.IndexOf("\r\n", StringComparison.Ordinal);
+		string text = (num >= 0) ? responseText.Substring(0, num) : responseText;
+		if (text.IndexOf(" 200 ", StringComparison.Ordinal) < 0)
+		{
+			return null;
+		}
+		int num2 = responseText.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+		if (num2 < 0)
+		{
+			return null;
+		}
+		return responseText.Substring(num2 + 4);
 	}
 
 	private static string? NormalizeCpuKey(string? text)
@@ -776,25 +1147,40 @@ internal static class XellHelpers
 		return false;
 	}
 
-	private static async Task DownloadFromCandidatePathsAsync(XellHttpEndpoint endpoint, string?[] candidatePaths, string destinationPath, string title, string failureMessage, CancellationToken cancellationToken)
+private static async Task DownloadFromCandidatePathsAsync(XellHttpEndpoint endpoint, string?[] candidatePaths, string destinationPath, string title, string failureMessage, CancellationToken cancellationToken, Func<int, Task>? progressSyncCallback)
+{
+	Exception? ex = null;
+	string[] array = DistinctNonEmptyPaths(candidatePaths).ToArray();
+	for (int i = 0; i < array.Length; i++)
 	{
-		Exception? ex = null;
-		string[] array = DistinctNonEmptyPaths(candidatePaths).ToArray();
-		for (int i = 0; i < array.Length; i++)
+		try
 		{
-			try
-			{
-				await DownloadBinaryAsync(endpoint, array[i], destinationPath, title, cancellationToken);
-				return;
-			}
+			await DownloadBinaryAsync(endpoint, array[i], destinationPath, title, cancellationToken, progressSyncCallback);
+			return;
+		}
 			catch (Exception ex2)
 			{
 				ex = ex2;
 				TryDeleteFile(destinationPath);
 			}
-		}
-		throw new InvalidOperationException(failureMessage + " Tried: " + string.Join(", ", array), ex);
 	}
+	throw new InvalidOperationException(failureMessage + " Tried: " + string.Join(", ", array), ex);
+}
+
+private static async Task TryReportPayloadProgressAsync(Func<int, Task>? progressSyncCallback, int percent)
+{
+	if (progressSyncCallback == null)
+	{
+		return;
+	}
+	try
+	{
+		await progressSyncCallback(percent);
+	}
+	catch
+	{
+	}
+}
 
 	private static string?[] CombinePaths(string? preferredPath, IReadOnlyList<string> fallbackPaths)
 	{
@@ -896,16 +1282,6 @@ internal static class XellHelpers
 	private static bool LooksLikeXellLaunchPath(string launcherPath)
 	{
 		return launcherPath.IndexOf("xelllaunch", StringComparison.OrdinalIgnoreCase) >= 0;
-	}
-
-	private static string GetBundledXellLaunchAssetPath(string fileName)
-	{
-		string text = Path.Combine(AppContext.BaseDirectory, "Assets", "XellLaunch", fileName);
-		if (!File.Exists(text))
-		{
-			throw new FileNotFoundException("XeCLI XeLL launch asset not found: " + text, text);
-		}
-		return text;
 	}
 
 	private static string DeriveDirectory(string xexPath)

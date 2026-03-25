@@ -6,11 +6,17 @@ using Spectre.Console;
 
 namespace Xbox360.Remote.Cli.Commands;
 
-internal sealed record XellSessionResult(XellHttpEndpoint Endpoint, XellConsoleMode InitialMode);
+internal sealed record XellSessionResult(XellHttpEndpoint Endpoint, XellConsoleMode InitialMode, XellBootRequest? BootRequest);
 
 internal static class XellWorkflowHelpers
 {
 	private sealed record DashboardSnapshot(bool Reachable, string? RunningXex);
+
+	private static readonly TimeSpan InitialXellProbeDelay = TimeSpan.FromSeconds(6.0);
+
+	private static readonly TimeSpan VerificationReturnTimeout = TimeSpan.FromSeconds(45.0);
+
+	private static readonly TimeSpan VerificationPollInterval = TimeSpan.FromSeconds(2.0);
 
 	private static string BuildBootTimeoutPrefix()
 	{
@@ -25,17 +31,17 @@ internal static class XellWorkflowHelpers
 		if (xellDetectionResult.Mode == XellConsoleMode.Xell && xellDetectionResult.Endpoint != null)
 		{
 			AnsiConsole.MarkupLine("[grey]XeLL detected at[/] [springgreen3_1]" + Markup.Escape(xellDetectionResult.Endpoint.Ip) + "[/]");
-			return new XellSessionResult(xellDetectionResult.Endpoint, xellDetectionResult.Mode);
+			return new XellSessionResult(xellDetectionResult.Endpoint, xellDetectionResult.Mode, null);
 		}
 		if (xellDetectionResult.Mode != XellConsoleMode.Dashboard)
 		{
 			throw new InvalidOperationException("This command requires XeLL, but the console was not reachable on XBDM or the XeLL web interface. Boot XeLL manually with the eject button and rerun the command.");
 		}
 		ConfirmFirstXellLaunch(target.Ip, actionDescription, settings);
-		return new XellSessionResult(await BootDashboardIntoXellAsync(target, settings, cancellationToken), xellDetectionResult.Mode);
+		return await BootDashboardIntoXellAsync(target, settings, xellDetectionResult.Mode, cancellationToken);
 	}
 
-	public static async Task<XellHttpEndpoint> BootDashboardIntoXellAsync((string Ip, int Port, int TimeoutMs) target, XellCommandSettings settings, CancellationToken cancellationToken)
+	public static async Task<XellSessionResult> BootDashboardIntoXellAsync((string Ip, int Port, int TimeoutMs) target, XellCommandSettings settings, XellConsoleMode initialMode, CancellationToken cancellationToken)
 	{
 		XellBootRequest? xellBootRequest = null;
 		await using (XbdmClient client = await XbdmClient.ConnectAsync(new XbdmConnectionOptions
@@ -47,8 +53,75 @@ internal static class XellWorkflowHelpers
 		{
 			xellBootRequest = await XellHelpers.RequestXellBootAsync(client, settings, target.Ip, cancellationToken);
 		}
+		XellHttpEndpoint endpoint = await AwaitBootedXellAsync(target, settings, xellBootRequest, cancellationToken);
+		return new XellSessionResult(endpoint, initialMode, xellBootRequest);
+	}
+
+	public static async Task<XellHttpEndpoint> RecoverVerificationSessionAsync((string Ip, int Port, int TimeoutMs) target, XellCommandSettings settings, string previousXellIp, XellBootRequest? bootRequest, CancellationToken cancellationToken)
+	{
+		DateTime deadlineUtc = DateTime.UtcNow + VerificationReturnTimeout;
+		while (DateTime.UtcNow < deadlineUtc)
+		{
+			XellDetectionResult xellDetectionResult = await XellHelpers.DetectConsoleModeAsync(target, cancellationToken);
+			if (xellDetectionResult.Mode == XellConsoleMode.Xell && xellDetectionResult.Endpoint != null)
+			{
+				return xellDetectionResult.Endpoint;
+			}
+			if (xellDetectionResult.Mode == XellConsoleMode.Dashboard)
+			{
+				OperationFeedback.WriteWarning("XeLL reboot returned to dashboard", "The helper-loaded payload rebooted cleanly to the dashboard. Re-launching XeLL automatically for verification.");
+				return await RelaunchDashboardIntoXellAsync(target, settings, bootRequest, cancellationToken);
+			}
+			await Task.Delay(VerificationPollInterval, cancellationToken);
+		}
+		XellHttpEndpoint xellHttpEndpoint = await XellHelpers.WaitForXellAsync(previousXellIp, TimeSpan.FromSeconds(15.0), scanSubnet: true, cancellationToken);
+		if (xellHttpEndpoint != null)
+		{
+			return xellHttpEndpoint;
+		}
+		throw new TimeoutException("Timed out waiting for the console to return to XeLL or the dashboard after rebooting for verification.");
+	}
+
+	private static async Task<XellHttpEndpoint> RelaunchDashboardIntoXellAsync((string Ip, int Port, int TimeoutMs) target, XellCommandSettings settings, XellBootRequest? bootRequest, CancellationToken cancellationToken)
+	{
+		XellBootRequest? xellBootRequest = null;
+		await using (XbdmClient client = await XbdmClient.ConnectAsync(new XbdmConnectionOptions
+		{
+			Host = target.Ip,
+			Port = target.Port,
+			TimeoutMs = Math.Max(target.TimeoutMs, 5000)
+		}, cancellationToken))
+		{
+			if (bootRequest != null && await XellHelpers.TryRelaunchBootRequestAsync(client, bootRequest, cancellationToken))
+			{
+				if (bootRequest.UsedQuickBoot && !string.IsNullOrWhiteSpace(bootRequest.QuickBootLauncherPath))
+				{
+					AnsiConsole.MarkupLine("[grey]Verification relaunch:[/] [springgreen3_1]reusing staged QuickBoot XeLL launcher[/] [grey](" + Markup.Escape(bootRequest.QuickBootLauncherPath) + ")[/]");
+				}
+				else if (!bootRequest.ForceDirectBoot && !string.IsNullOrWhiteSpace(bootRequest.LauncherPath))
+				{
+					AnsiConsole.MarkupLine("[grey]Verification relaunch:[/] [springgreen3_1]reusing staged XellLaunch helper[/] [grey](" + Markup.Escape(bootRequest.LauncherPath) + ")[/]");
+				}
+				else if (bootRequest.ForceDirectBoot)
+				{
+					AnsiConsole.MarkupLine("[grey]Verification relaunch:[/] [gold1]reusing direct XeLL reboot path[/]");
+				}
+				xellBootRequest = bootRequest;
+			}
+			else
+			{
+				xellBootRequest = await XellHelpers.RequestXellBootAsync(client, settings, target.Ip, cancellationToken);
+			}
+		}
+		return await AwaitBootedXellAsync(target, settings, xellBootRequest, cancellationToken);
+	}
+
+	private static async Task<XellHttpEndpoint> AwaitBootedXellAsync((string Ip, int Port, int TimeoutMs) target, XellCommandSettings settings, XellBootRequest? xellBootRequest, CancellationToken cancellationToken)
+	{
 		AnsiConsole.MarkupLine("[grey]Waiting for XeLL HTTP:[/] polling port 80 for up to [white]" + XellHelpers.DefaultBootTimeoutSeconds + "s[/]");
-		AnsiConsole.MarkupLine("[grey]XeLL note:[/] after the splash screen it can look idle for [white]about 3 minutes[/] while it mounts devices and searches local media/TFTP.");
+		AnsiConsole.MarkupLine("[grey]XeLL note:[/] when the custom payload is on-screen, use the payload's displayed IP to confirm where XeCLI should probe. The helper-loaded XeCLI path should reach that screen much faster than stock XeLL.");
+		AnsiConsole.MarkupLine("[grey]Settle delay:[/] waiting [white]" + InitialXellProbeDelay.TotalSeconds.ToString("0") + "s[/] before the first probe so the payload network stack can finish coming up.");
+		await Task.Delay(InitialXellProbeDelay, cancellationToken);
 		XellHttpEndpoint xellHttpEndpoint = await XellHelpers.WaitForXellAsync(target.Ip, XellHelpers.DefaultBootTimeout, scanSubnet: true, cancellationToken);
 		if (xellHttpEndpoint == null)
 		{
@@ -56,6 +129,12 @@ internal static class XellWorkflowHelpers
 			throw new TimeoutException(text);
 		}
 		AnsiConsole.MarkupLine("[grey]XeLL detected at[/] [springgreen3_1]" + Markup.Escape(xellHttpEndpoint.Ip) + "[/]");
+		XellCustomStatus? xellCustomStatus = await XellHelpers.TryReadCustomStatusAsync(xellHttpEndpoint, cancellationToken);
+		if (xellCustomStatus != null)
+		{
+			AnsiConsole.MarkupLine("[grey]XeCLI payload:[/] [white]" + Markup.Escape(xellCustomStatus.Title ?? xellCustomStatus.State) + "[/]");
+			AnsiConsole.MarkupLine("[grey]State:[/] [springgreen3_1]" + Markup.Escape(xellCustomStatus.State) + "[/] [grey]|[/] [grey]Heartbeat:[/] [white]" + Markup.Escape(xellCustomStatus.HeartbeatTicks?.ToString() ?? "n/a") + "[/]");
+		}
 		return xellHttpEndpoint;
 	}
 
@@ -126,12 +205,14 @@ internal static class XellWorkflowHelpers
 	private static async Task<string> DiagnoseBootFailureAsync((string Ip, int Port, int TimeoutMs) target, XellCommandSettings settings, XellBootRequest? bootRequest, CancellationToken cancellationToken)
 	{
 		DashboardSnapshot dashboardSnapshot = await TryGetDashboardSnapshotAsync(target, cancellationToken);
+		XellHttpPortDiagnostic xellHttpPortDiagnostic = await XellHelpers.DiagnoseHttpPortAsync(target.Ip, TimeSpan.FromSeconds(3.0), cancellationToken);
 		string text;
 		if (dashboardSnapshot.Reachable)
 		{
 			if (LooksLikeXellLaunchHelper(dashboardSnapshot.RunningXex, settings, bootRequest))
 			{
 				text = BuildHelperFailureMessage(dashboardSnapshot.RunningXex!, bootRequest?.Preflight);
+				text = AppendHttpPortHint(text, xellHttpPortDiagnostic);
 				return AppendUsbHangHint(text, bootRequest);
 			}
 			if (!string.IsNullOrWhiteSpace(dashboardSnapshot.RunningXex))
@@ -139,40 +220,49 @@ internal static class XellWorkflowHelpers
 				if (bootRequest?.UsedQuickBoot == true)
 				{
 					text = BuildBootTimeoutPrefix() + "The QuickBoot XeLL launcher ran, but the console stayed on a normal XEX instead of transitioning to XeLL. QuickBoot target: " + (bootRequest.QuickBootTargetPath ?? "unknown") + ". Running XEX: " + dashboardSnapshot.RunningXex;
+					text = AppendHttpPortHint(text, xellHttpPortDiagnostic);
 					return AppendUsbHangHint(text, bootRequest);
 				}
 				if (settings.ForceXell)
 				{
 					text = BuildBootTimeoutPrefix() + "The tray-assisted direct reboot path returned to a normal XEX instead of XeLL: " + dashboardSnapshot.RunningXex;
+					text = AppendHttpPortHint(text, xellHttpPortDiagnostic);
 					return AppendUsbHangHint(text, bootRequest);
 				}
 				text = BuildBootTimeoutPrefix() + "The console stayed on a normal XEX instead of transitioning to XeLL: " + dashboardSnapshot.RunningXex;
+				text = AppendHttpPortHint(text, xellHttpPortDiagnostic);
 				return AppendUsbHangHint(text, bootRequest);
 			}
 			if (bootRequest?.UsedQuickBoot == true)
 			{
 				text = BuildBootTimeoutPrefix() + "XBDM stayed reachable after the QuickBoot XeLL launcher ran, but XeCLI could not confirm a helper transition or a XeLL HTTP endpoint. QuickBoot target: " + (bootRequest.QuickBootTargetPath ?? "unknown") + ".";
+				text = AppendHttpPortHint(text, xellHttpPortDiagnostic);
 				return AppendUsbHangHint(text, bootRequest);
 			}
 			text = BuildBootTimeoutPrefix() + "XBDM stayed reachable, but XeCLI could not confirm a helper transition or a XeLL HTTP endpoint.";
+			text = AppendHttpPortHint(text, xellHttpPortDiagnostic);
 			return AppendUsbHangHint(text, bootRequest);
 		}
 		if (settings.ForceXell)
 		{
 			text = BuildBootTimeoutPrefix() + "The console dropped off both XBDM and HTTP after the direct reboot request, which looks like a hang, crash, or long reboot rather than a clean XeLL boot.";
+			text = AppendHttpPortHint(text, xellHttpPortDiagnostic);
 			return AppendUsbHangHint(text, bootRequest);
 		}
 		if (bootRequest?.UsedQuickBoot == true)
 		{
 			text = BuildBootTimeoutPrefix() + "The console dropped off both XBDM and HTTP after the QuickBoot XeLL launcher ran, which looks like a hang, crash, or long reboot. QuickBoot target: " + (bootRequest.QuickBootTargetPath ?? "unknown") + ".";
+			text = AppendHttpPortHint(text, xellHttpPortDiagnostic);
 			return AppendUsbHangHint(text, bootRequest);
 		}
 		if (bootRequest?.Preflight != null && bootRequest.Preflight.CheckedCommonFallbackPaths && !bootRequest.Preflight.SiblingXellBinPresent && bootRequest.Preflight.AlternateXellBinPathsPresent.Count == 0)
 		{
 			text = BuildBootTimeoutPrefix() + "The console dropped off both XBDM and HTTP after the XeLL launch request, which looks like a hang, crash, or long reboot. XeCLI had already confirmed there was no xell.bin beside the helper or in the common HDD/USB fallback locations, so flash XeLL fallback is the most likely crash path.";
+			text = AppendHttpPortHint(text, xellHttpPortDiagnostic);
 			return AppendUsbHangHint(text, bootRequest);
 		}
 		text = BuildBootTimeoutPrefix() + "The console dropped off both XBDM and HTTP after the XeLL launch request, which looks like a hang, crash, or long reboot. If you are using XellLaunch, stage a matching xell.bin beside the helper or verify the flash XeLL fallback on this console.";
+		text = AppendHttpPortHint(text, xellHttpPortDiagnostic);
 		return AppendUsbHangHint(text, bootRequest);
 	}
 
@@ -206,6 +296,23 @@ internal static class XellWorkflowHelpers
 			return message;
 		}
 		return message + " External USB was connected before launch (" + string.Join(", ", usbStorage) + "). XeLL starts HTTP before it mounts storage, so a later freeze at 'Fat mount uda0' points at removable USB. USB is optional unless XeLL needs to read a file from it. XeCLI now blocks this by default unless --allow-usb is set.";
+	}
+
+	private static string AppendHttpPortHint(string message, XellHttpPortDiagnostic diagnostic)
+	{
+		if (diagnostic == null || string.IsNullOrWhiteSpace(diagnostic.Summary))
+		{
+			return message;
+		}
+		if (diagnostic.PortOpen && !diagnostic.HttpResponseReceived)
+		{
+			return message + " Port 80 is still accepting TCP connections, so the payload/network stack is at least partially alive, but the XeLL HTTP handler is not serving valid pages yet. " + diagnostic.Summary;
+		}
+		if (diagnostic.HttpResponseReceived)
+		{
+			return message + " Port 80 responded during the post-timeout probe. " + diagnostic.Summary;
+		}
+		return message + " " + diagnostic.Summary;
 	}
 
 	private static bool LooksLikeXellLaunchHelper(string? runningXex, XellCommandSettings settings, XellBootRequest? bootRequest)

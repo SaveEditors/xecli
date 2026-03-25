@@ -1,8 +1,8 @@
 # XeCLI Wiki
 
-XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, Fatman, XeLL-backed backups, XEX dumping, memory inspection, and automation. This wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
+XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, Fatman, XeLL-backed backups, XEX dumping, memory inspection, and automation. This GitHub wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
 
-The local source tree is the canonical behavior model for these pages. If a feature is documented here, it should match the shipped release and the current repo state unless a page says otherwise.
+The local source tree is the canonical behavior model for these pages. If a feature is documented here, it should match the shipped release and the current repo state unless a page says otherwise. The Markdown pages in `wiki/*.md` are the maintained source for this knowledge base.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
@@ -15,7 +15,7 @@ Avatar workflows in the shipped release now support both:
 
 Native XeLL workflows are also built into the shipped CLI now. `rgh xell ...` and `rgh nand dump` handle guided XeLL launch, keyvault export, and verified read-only NAND backup without depending on an external flasher workflow.
 
-v1.0.6 expands that into a one-command PC workflow for automated NAND dumping, with the release notes documenting the packaging and safety model in more detail.
+v1.0.6 expands that into a one-command PC workflow for automated NAND dumping, with the release archive documenting the packaging and safety model in more detail.
 
 Local content workflows are built in now as well. `rgh con`, `rgh profile`, and `rgh xdbf` cover pulled CON/profile/GPD files directly, including rehash/resign, raw `Account` or GPD extraction, achievement and setting edits, and avatar color edits inside profile packages.
 
@@ -23,78 +23,82 @@ Local content workflows are built in now as well. `rgh con`, `rgh profile`, and 
 
 The current features worth surfacing first are:
 
-- [XeLL and NAND Backups](XeLL-and-NAND-Backups.md) for guided XeLL launch, keyvault export, and verified NAND backup.
-- [FTP and File Transfer](FTP-and-File-Transfer.md) for saved FTP targets and the full `rgh ftp ...` workflow.
-- [Avatar Item Collection](Avatar-Item-Collection.md) for local or hosted avatar downloads, browsing, and install planning.
-- [Integrations](Integrations.md) for terminal-agent, script-driven, and companion-tool workflows.
-- [Advanced Guide](Advanced-Guide.md) for live debugging, memory inspection, XEX dumping, and reverse-engineering workflows.
-- [Reverse Engineering](Reverse-Engineering.md) for Ghidra and IDA headless support, requirements, and helper-loader install notes.
-- [Latest Features](Latest-Features.md) for a concise overview page that links these workflows together.
+- [Releases](Releases) for the full patch-notes archive across all public versions.
+- [Latest Features](Latest-Features) for the current workflow highlights and release timeline.
+- [v1.0.6 Release Notes](Release-Notes-v1.0.6) for the detailed NAND-dumping and XeLL staging update.
+- [XeCLI-XeLL](XeCLI-XeLL) for the payload model, guided XeLL launch, keyvault export, and verified NAND backup.
+- [FTP and File Transfer](FTP-and-File-Transfer) for saved FTP targets and the full `rgh ftp ...` workflow.
+- [Avatar Item Collection](Avatar-Item-Collection) for local or hosted avatar downloads, browsing, and install planning.
+- [Integrations](Integrations) for terminal-agent, script-driven, and companion-tool workflows.
+- [Advanced Guide](Advanced-Guide) for live debugging, memory inspection, XEX dumping, and reverse-engineering workflows.
+- [Reverse Engineering](Reverse-Engineering) for Ghidra and IDA headless support, requirements, and helper-loader install notes.
 
 ## Documentation Index
 
 ### Getting Started
 | Page | Purpose |
 | --- | --- |
-| [Latest Features](Latest-Features.md) | Current standout workflows to surface in the README, sidebar, and docs landing pages |
-| [v1.0.6 Release Notes](Release-Notes-v1.0.6.md) | Automated NAND dumping, managed staging, verification behavior, and the optional Xell-NoN companion package |
-| [Beginner Guide](Beginner-Guide.md) | Safe first-run workflow: install, discovery, connect, status, and basic operations |
-| [XeLL and NAND Backups](XeLL-and-NAND-Backups.md) | Guided XeLL launch, HTTP endpoint inspection, keyvault export, and verified read-only NAND backup |
-| [FTP and File Transfer](FTP-and-File-Transfer.md) | Saved FTP targets, browse/find/get/put workflows, and when to use FTP instead of `rgh fs` |
-| [Commands Reference](Commands.md) | Full command-by-command reference with examples |
-| [CLI Help Output](CLI-Help.md) | Exact built-in `rgh help` output and top-level branch help screens |
-| [Hardware and System Controls](Hardware-and-System.md) | Sign-in state, ring-light LEDs, fan commands, and SMC version notes |
-| [Remote Spoofing](Remote-Spoofing.md) | In-game gamertag, XUID, and remote-slot spoofing for supported titles; BO2 local GT, local XUID, and remote spoofing are supported as in-title memory writes |
-| [XNotify](XNotify.md) | Notification usage, icon IDs, and direct integration notes |
-| [Homebrew and USB](Homebrew-and-USB.md) | USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch |
-| [Original Xbox Compatibility](Original-Xbox-Compatibility.md) | XeFu pack selection, HddX targeting, and optional HDD Compatibility Partition Fixer staging |
-| [Fatman](FATX-Manager.md) | Read-only FATX image and storage recovery with `rgh fatman` or the `rgh fatx` alias |
-| [Avatar Item Collection](Avatar-Item-Collection.md) | Local and hosted avatar corpus naming, browser flows, layout, and install model |
-| [Troubleshooting](Troubleshooting.md) | Failure cases, common console/plugin issues, and recovery paths |
+| [Latest Features](Latest-Features) | Current workflow highlights plus the full release timeline and feature map |
+| [Releases](Releases) | Canonical patch-notes archive for all public XeCLI releases |
+| [v1.0.6 Release Notes](Release-Notes-v1.0.6) | Automated NAND dumping, managed staging, verification behavior, and the optional XeCLI-XeLL companion package |
+| [Beginner Guide](Beginner-Guide) | Safe first-run workflow: install, discovery, connect, status, and basic operations |
+| [XeCLI-XeLL](XeCLI-XeLL) | Managed XeLL payload workflow, HTTP endpoint inspection, keyvault export, and verified read-only NAND backup |
+| [FTP and File Transfer](FTP-and-File-Transfer) | Saved FTP targets, browse/find/get/put workflows, and when to use FTP instead of `rgh fs` |
+| [Commands Reference](Commands) | Full command-by-command reference with examples |
+| [CLI Help Output](CLI-Help) | Exact built-in `rgh help` output and top-level branch help screens |
+| [Hardware and System Controls](Hardware-and-System) | Sign-in state, ring-light LEDs, fan commands, and SMC version notes |
+| [Remote Spoofing](Remote-Spoofing) | In-game gamertag, XUID, and remote-slot spoofing for supported titles; BO2 local GT, local XUID, and remote spoofing are supported as in-title memory writes |
+| [XNotify](XNotify) | Notification usage, icon IDs, and direct integration notes |
+| [Homebrew and USB](Homebrew-and-USB) | USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch |
+| [Original Xbox Compatibility](Original-Xbox-Compatibility) | XeFu pack selection, HddX targeting, and optional HDD Compatibility Partition Fixer staging |
+| [Fatman](FATX-Manager) | Read-only FATX image and storage recovery with `rgh fatman` or the `rgh fatx` alias |
+| [Avatar Item Collection](Avatar-Item-Collection) | Local and hosted avatar corpus naming, browser flows, layout, and install model |
+| [Troubleshooting](Troubleshooting) | Failure cases, common console/plugin issues, and recovery paths |
 
 ### Technical Reference
 | Page | Purpose |
 | --- | --- |
-| [Advanced Guide](Advanced-Guide.md) | Reverse engineering, memory workflows, debugger control, and automation usage |
-| [Reverse Engineering](Reverse-Engineering.md) | Ghidra and IDA headless support, external requirements, and helper-loader install flows |
-| [Frameworks and Architecture](Frameworks.md) | Command architecture, transport layers, and design decisions |
-| [Documentation Standards](Standards.md) | Structure, conventions, and maintenance rules for this wiki |
-| [Contributing](Contributing.md) | Contribution expectations for code, docs, validation, and release prep |
+| [Advanced Guide](Advanced-Guide) | Reverse engineering, memory workflows, debugger control, and automation usage |
+| [Reverse Engineering](Reverse-Engineering) | Ghidra and IDA headless support, external requirements, and helper-loader install flows |
+| [Frameworks and Architecture](Frameworks) | Command architecture, transport layers, and design decisions |
+| [Documentation Standards](Standards) | Structure, conventions, and maintenance rules for this wiki |
+| [Contributing](Contributing) | Contribution expectations for code, docs, validation, and release prep |
 
 ### Data and Integrations
 | Page | Purpose |
 | --- | --- |
-| [Integrations](Integrations.md) | Reusing XeCLI from scripts, terminal-agent sessions, and external tools |
-| [Title ID Database](Title-ID-Database.md) | Bundled metadata files and how other tools can consume them |
-| [FAQ](FAQ.md) | Short answers to common setup and usage questions |
+| [Integrations](Integrations) | Reusing XeCLI from scripts, terminal-agent sessions, and external tools |
+| [Title ID Database](Title-ID-Database) | Bundled metadata files and how other tools can consume them |
+| [FAQ](FAQ) | Short answers to common setup and usage questions |
 
 ## Recommended Reading Paths
 
 ### New user path
-1. [Beginner Guide](Beginner-Guide.md)
-2. [Latest Features](Latest-Features.md)
-3. [XeLL and NAND Backups](XeLL-and-NAND-Backups.md)
-4. [Commands Reference](Commands.md)
-5. [Hardware and System Controls](Hardware-and-System.md)
-6. [Remote Spoofing](Remote-Spoofing.md)
-7. [XNotify](XNotify.md)
-8. [CLI Help Output](CLI-Help.md)
-9. [Troubleshooting](Troubleshooting.md)
-10. [Homebrew and USB](Homebrew-and-USB.md)
-11. [Original Xbox Compatibility](Original-Xbox-Compatibility.md)
-12. [Fatman](FATX-Manager.md)
+1. [Beginner Guide](Beginner-Guide)
+2. [Latest Features](Latest-Features)
+3. [XeCLI-XeLL](XeCLI-XeLL)
+4. [Commands Reference](Commands)
+5. [Hardware and System Controls](Hardware-and-System)
+6. [Remote Spoofing](Remote-Spoofing)
+7. [XNotify](XNotify)
+8. [CLI Help Output](CLI-Help)
+9. [Troubleshooting](Troubleshooting)
+10. [Homebrew and USB](Homebrew-and-USB)
+11. [Original Xbox Compatibility](Original-Xbox-Compatibility)
+12. [Fatman](FATX-Manager)
 
 ### Reverse-engineering path
-1. [Advanced Guide](Advanced-Guide.md)
-2. [Frameworks and Architecture](Frameworks.md)
-3. [Commands Reference](Commands.md)
-4. [Title ID Database](Title-ID-Database.md)
+1. [Advanced Guide](Advanced-Guide)
+2. [Frameworks and Architecture](Frameworks)
+3. [Commands Reference](Commands)
+4. [Title ID Database](Title-ID-Database)
 
 ### Contributor path
-1. [Contributing](Contributing.md)
-2. [Documentation Standards](Standards.md)
-3. [Frameworks and Architecture](Frameworks.md)
-4. [CLI Help Output](CLI-Help.md)
+1. [Contributing](Contributing)
+2. [Documentation Standards](Standards)
+3. [Releases](Releases)
+4. [Frameworks and Architecture](Frameworks)
+5. [CLI Help Output](CLI-Help)
 
 ## Capability Map
 
@@ -200,11 +204,10 @@ rgh mem hexdump --addr 0x30000000 --size 0x40
 rgh screenshot --out .\screen.bmp
 ```
 
-## Release and Docs Entry Points
+## Release and Documentation Entry Points
 - [Repository](https://github.com/SaveEditors/xecli)
+- [GitHub Wiki](https://github.com/SaveEditors/xecli/wiki)
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
-- [Docs Landing Page](https://saveeditors.github.io/xecli/)
-- [Published Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)
 
 ## Release Packaging
 The published Windows release is a self-contained `win-x64` package.

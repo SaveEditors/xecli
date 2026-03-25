@@ -2,6 +2,9 @@ changelog:
   exclude:
     labels:
       - skip-changelog
+      - documentation
+      - wiki
+      - readme
   categories:
     - title: Core CLI
       labels:
@@ -32,10 +35,6 @@ changelog:
       labels:
         - title-db
         - metadata
-    - title: Documentation
-      labels:
-        - documentation
-        - wiki
     - title: Build and Packaging
       labels:
         - build

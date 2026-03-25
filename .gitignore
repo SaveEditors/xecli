@@ -13,9 +13,14 @@
 /out/
 /tmp/
 /tmp-*/
+/tmp-tests/
+/tmp-qb/
+/tmp-xelllaunch-inspect/
 /ext-publish/
 /ext-stage/
 /re-cache/
+/temp-appdata/
+/temp-localappdata/
 /wrapper/bin/
 /wrapper/obj/
 
@@ -65,6 +70,12 @@
 /capture.err
 /capture.out
 /hs_err_pid*.log
+*.dmp
+*.mdmp
+*.etl
+*.pcap
+*.pcapng
+*.har
 *.bmp
 *.raw
 *.bin

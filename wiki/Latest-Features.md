@@ -1,18 +1,20 @@
 # Latest Features
 
-This page highlights the current XeCLI workflows that are most worth surfacing in the README, the wiki sidebar, and the docs landing page.
+This page is the high-level product and release overview for XeCLI. It highlights the current workflow pillars, the newest public release, and the full release timeline so the wiki surfaces the entire shipped feature arc instead of a single point release.
 
-## v1.0.6 Automated NAND Dumping
+## Current Release Focus: v1.0.6
 
-XeCLI v1.0.6 turns NAND dumping into a PC-side one-command workflow. `rgh nand dump` launches or re-attaches to XeLL, stages the helper/linker assets the backup path needs, performs the reference and verification reads, packages the result, and reboots automatically only after a verified success.
+XeCLI v1.0.6 turns NAND dumping into a PC-side one-command workflow. `rgh nand dump` launches or re-attaches to XeLL, stages the helper and linker assets the backup path needs, performs the reference and verification reads, packages the result, and reboots automatically only after a verified success.
 
-If you want the stripped boot package instead of the full desktop bundle, the standalone `Xell-NoN` companion package can serve as the minimal XeLL-side bootstrap for the same workflow.
+If you want the stripped boot package instead of the full desktop bundle, the standalone `XeCLI-XeLL` companion package can serve as the minimal XeLL-side payload bundle for the same workflow.
 
-Read [XeLL and NAND Backups](XeLL-and-NAND-Backups.md) for the full flow, safety notes, and verification model.
+Read [XeCLI-XeLL](XeCLI-XeLL) for the payload model, workflow boundaries, safety notes, and verification behavior.
 
-## Native XeLL Backup Workflows
+## Current Workflow Pillars
 
-XeCLI now has a native XeLL workflow instead of treating NAND and key backup as an external afterthought. `rgh xell ...` detects whether the console is on the dashboard or already in XeLL, asks before the first automatic launch into XeLL, and then works against the XeLL HTTP service directly.
+### XeCLI-XeLL Workflow
+
+XeCLI has a native XeLL workflow instead of treating NAND and key backup as an external handoff. `rgh xell ...` detects whether the console is on the dashboard or already in XeLL, asks before the first automatic launch into XeLL, and then works against the XeLL HTTP service directly.
 
 Use:
 
@@ -27,9 +29,9 @@ The backup path is intentionally read-only. `rgh nand dump` takes a reference du
 
 XeCLI supports both the older `/rawflash` style and the current XeLL Reloaded endpoint set `/FLASH`, `/FUSE`, `/KV`, `/KVRAW`, `/KVRAW2`, `/LOG`, and `/REBOOT`.
 
-Read [XeLL and NAND Backups](XeLL-and-NAND-Backups.md) for the full workflow and safety model.
+Read [XeCLI-XeLL](XeCLI-XeLL) for the full workflow, payload model, and safety boundaries.
 
-## Local CON, Profile, and GPD Workflows
+### Local CON, Profile, and GPD Workflows
 
 XeCLI now has a practical local-content surface for pulled Xbox 360 containers instead of forcing that work into external tools. `rgh con` handles package metadata, verification, rehash, resign, magic-name, and FATX-path derivation. `rgh profile` handles decoded profile editing. `rgh xdbf` handles raw record inspection when you need to drop down to the GPD/XDBF level.
 
@@ -51,7 +53,7 @@ The profile path includes targeted extraction for the raw `Account` payload and 
 
 This surface has been validated against real pulled profile containers rather than only synthetic fixtures.
 
-## FTP and File Work
+### FTP, Console Content, and Device Work
 
 XeCLI includes a practical FTP workflow instead of treating FTP as an afterthought. The current command set covers saved targets, browsing, search, file pull and push, directory creation, rename/move, delete, and file printing.
 
@@ -65,9 +67,11 @@ rgh ftp get --path /Hdd1/launch.ini --out .\launch.ini
 rgh ftp put --in .\plugin.xex --path /Hdd1/Plugins/plugin.xex
 ```
 
-Read [FTP-and-File-Transfer.md](FTP-and-File-Transfer.md) for the full workflow.
+That file-transfer surface sits beside `rgh fs`, `rgh content`, `rgh save`, `rgh plugin`, `rgh homebrew`, `rgh ogxbox`, and the broader Fatman storage workflow.
 
-## Avatar Downloader and Installer
+Read [FTP and File Transfer](FTP-and-File-Transfer), [Homebrew and USB](Homebrew-and-USB), [Original Xbox Compatibility](Original-Xbox-Compatibility), and [FATX Manager](FATX-Manager) for the full storage and deployment surface.
+
+### Avatar Downloader and Installer
 
 XeCLI can work from a local `Avatar-Item-Collection` corpus or the hosted GitHub-backed collection. `--remote` turns the avatar commands into a downloader-backed workflow with local caching and the same ownership patch and install path used by local packages.
 
@@ -79,9 +83,9 @@ rgh avatar browse --remote
 rgh avatar install --remote --titleid 415608C3 --all --current-user
 ```
 
-Read [Avatar-Item-Collection.md](Avatar-Item-Collection.md) for the full command surface.
+Read [Avatar Item Collection](Avatar-Item-Collection) for the full command surface.
 
-## Terminal Agents and Automation
+### Console Operations and Automation
 
 XeCLI works well from terminal agents and scripted workflows because the command surface is explicit and many commands expose `--json`. That makes it a good fit for repeatable console automation, file collection, screenshots, and reverse-engineering pipelines.
 
@@ -94,9 +98,9 @@ rgh screenshot --out .\screen.bmp
 rgh xex dump --out .\title.xex
 ```
 
-Read [Integrations.md](Integrations.md) for guidance on agent and external-tool usage.
+Read [Integrations](Integrations) for guidance on agent and external-tool usage.
 
-## Live Debugging and Reverse Engineering
+### Live Debugging and Reverse Engineering
 
 XeCLI remains strongest in live console inspection and reverse-engineering handoff:
 
@@ -122,4 +126,24 @@ rgh xex ida-decompile --running --out .\ida-decomp --max 10
 
 Ghidra is external and `(Free)`. IDA Pro `9.1.250226` is external and required for the IDA debugger/decompiler path. After you configure the tool path, XeCLI can install the supported XEX loader helpers with `rgh ghidra install-loader` and `rgh ida install-loader`.
 
-Read [Advanced-Guide.md](Advanced-Guide.md) for the broader workflow guidance.
+Read [Advanced Guide](Advanced-Guide) for the broader workflow guidance.
+
+## Release Timeline
+
+This is the short-form patch-notes index for the full public release line. The detailed archive lives in [Releases](Releases).
+
+| Release | Primary Themes |
+| --- | --- |
+| `v1.0.6` | Automated NAND dumping, managed XeLL staging, verification gating, and safe reboot control |
+| `v1.0.5` | Local CON/profile/XDBF workflows, thread metadata fallback, installer hardening, and release validation |
+| `v1.0.4` | IDA support, Ghidra helper-loader polish, and broad Fatman/FATX expansion |
+| `v1.0.3` | Original Xbox compatibility staging and install workflows |
+| `v1.0.2` | Installer split, homebrew package staging, and install-flow polish |
+| `v1.0.1` | Avatar workflows, hardware controls, and early installer/homebrew integration |
+| `v1.0.0` | Initial public CLI release with discovery, status, debugging, FTP, and analysis workflows |
+
+## Patch Notes Guidance
+
+- Use [Releases](Releases) for the canonical patch-notes archive.
+- Use [Release Notes v1.0.6](Release-Notes-v1.0.6) for the detailed breakdown of the newest release.
+- Patch notes cover shipped product behavior and important fixes. They do not include README-only or wiki-only maintenance updates.

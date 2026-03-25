@@ -1,6 +1,26 @@
-# XeLL and NAND Backups
+# XeCLI-XeLL
 
-This page documents XeCLI's native XeLL-backed backup workflows. XeCLI v1.0.6 turns NAND backup into a PC-side one-command flow, while keeping the underlying operations read-only and verified before success is reported.
+This page documents the `XeCLI-XeLL` workflow layer: XeCLI's managed XeLL bootstrap, endpoint detection, keyvault export path, and verified read-only NAND dump flow.
+
+XeCLI v1.0.6 does not treat XeLL as a loose external handoff. It uses a defined PC-side workflow that can launch or re-attach to XeLL, inspect the active endpoint surface, export keys, drive repeated dump verification, and only reboot automatically after the safety checks pass.
+
+## What XeCLI-XeLL Covers
+
+`XeCLI-XeLL` is the operator-facing name for the XeLL payload and workflow model used by:
+
+- `rgh xell boot`
+- `rgh xell info`
+- `rgh xell kv export`
+- `rgh nand dump`
+
+That surface covers:
+
+- guided transition from dashboard to XeLL
+- XeLL HTTP endpoint inspection and compatibility detection
+- packaged keyvault export with CPU key capture
+- verified read-only NAND backup
+- managed reboot control after success
+- optional use of the standalone `XeCLI-XeLL` payload bundle outside the full desktop package
 
 ## Command Surface
 
@@ -22,7 +42,18 @@ XeCLI does not assume the console is already in XeLL.
 - If the console is on the dashboard, XeCLI asks for confirmation before the first automatic transition into XeLL.
 - When available, XeCLI prefers the XellLaunch shortcut path. `--force-xell` skips that preference and forces the direct reboot path.
 - If the session is non-interactive, or if automatic launch is not available, XeCLI prints the manual eject-button fallback instead of rebooting without confirmation.
-- The standalone `Xell-NoN` companion package can be used when you want the minimal XeLL-side bootstrap for the same automated NAND workflow.
+- The standalone `XeCLI-XeLL` companion package can be used when you want the same custom XeLL-side bootstrap without the broader desktop bundle.
+
+## Payload and Staging Model
+
+The managed workflow can stage and use the helper/linker assets needed by the automated dump path instead of requiring the operator to assemble them manually before starting.
+
+In practical terms, the release line now supports two operator models:
+
+- the full XeCLI desktop package, where `rgh nand dump` manages the XeLL-side handoff itself
+- the standalone `XeCLI-XeLL` package, where you want the payload stack available separately for the same XeCLI-managed XeLL tasks
+
+The point of the payload layer is consistency. XeCLI and the active XeLL-side components report the same state transitions for dump start, verification, and completion instead of leaving that coordination to manual timing.
 
 All XeLL-backed commands wait up to 30 seconds for the XeLL HTTP server on port 80. If the dashboard IP changes after the reboot, XeCLI also scans the local subnet and common XeLL fallback addresses such as `192.168.88.99`.
 
@@ -41,7 +72,7 @@ Use `rgh xell info` when you want to see which of those endpoints the active XeL
 
 ## Keyvault Export
 
-`rgh xell kv export` downloads the XeLL keyvault output and refuses to finish unless a CPU key is also available.
+`rgh xell kv export` downloads the XeLL keyvault output, verifies repeated reads by default, and refuses to finish unless a CPU key is also available.
 
 ```powershell
 rgh xell kv export
@@ -50,6 +81,8 @@ rgh xell kv export --raw
 ```
 
 Default mode exports the decrypted keyvault from `/KV`. `--raw` switches to the raw keyvault block.
+
+By default, XeCLI performs a second same-session keyvault read and compares it byte-for-byte before it reports success or allows the payload to leave XeLL. `--single` and `--no-verify` skip that verification loop and intentionally disable auto-reboot.
 
 Host-side output includes:
 
@@ -70,7 +103,7 @@ Inside the archive, XeCLI uses stable names:
 
 The final zip is verified by reopening it and comparing every entry against the source files byte-for-byte.
 
-## NAND Backup Verification
+## Verified NAND Dumping
 
 `rgh nand dump` is the high-safety backup path. It does not write anything to NAND and, in v1.0.6, is the single PC-side command that drives the automated NAND workflow.
 
@@ -107,6 +140,19 @@ When the verified path completes, XeCLI prints `NAND verified — safe to flash`
 
 `--single` and `--no-verify` skip the repeated second-dump loop, but XeCLI still validates the copied output, manifest, and zip archive. Auto-reboot stays disabled in those modes so the console does not leave XeLL before the operator can see that verification was skipped.
 
+## Safety Boundaries
+
+`XeCLI-XeLL` is intentionally a read-only workflow surface.
+
+It does not claim to be:
+
+- a NAND flashing path
+- a XeBuild replacement
+- a dashboard patching flow
+- a glitch-chip programming tool
+
+The shipped path is for inspection, export, verification, and packaging.
+
 ## Failure Behavior
 
 XeCLI fails closed for backup work.
@@ -123,4 +169,4 @@ rgh xell kv export --output .\kv_backup.bin
 rgh nand dump --output .\nand_backup.bin
 ```
 
-This gives you an inspected XeLL session, a packaged KV plus CPU key set, and a verified NAND backup set from the same XeLL workflow.
+This gives you an inspected XeLL session, a packaged KV plus CPU key set, and a verified NAND backup set through the same `XeCLI-XeLL` workflow.

@@ -34,12 +34,24 @@ Every contribution should leave the command surface clearer, safer, or easier to
 ## Documentation Expectations
 Any command or behavior change should update the relevant docs in the same change set.
 
+The Markdown GitHub wiki under `wiki/*.md` is the canonical documentation surface. Do not add or maintain parallel `.html` wiki pages.
+
 Minimum docs coverage:
 
 - `README.md` for user-visible feature additions
 - `wiki/Commands.md` for new commands or flags
 - `wiki/CLI-Help.md` when help output changes
 - `wiki/Frameworks.md` when implementation behavior meaningfully changes
+- `wiki/Releases.md` or the current release-notes page when shipped product behavior changes in a release-facing way
+
+## Release Notes and Patch-Note Scope
+
+Patch notes should focus on shipped product behavior.
+
+- Include features, fixes, compatibility changes, and operator-relevant behavior changes.
+- Exclude README-only edits, wiki-only edits, wording cleanups, and documentation maintenance.
+- Keep release notes and commit messages professional and product-focused.
+- Do not mention internal drafting tools, assistants, or generation workflows in public docs, release notes, PR text, or commit titles.
 
 ## Validation Expectations
 
@@ -69,10 +81,11 @@ Acceptable:
 Release-facing work should include:
 
 - current screenshots
-- current README links
+- current wiki links
 - clean release archive contents
 - no machine-specific local paths in docs
 - no leftover dumps or test artifacts in the repo
+- no temp appdata, localappdata copies, captures, or personal data in the staged diff
 
 ## Documentation Contribution Model
 The wiki should read like a maintained technical knowledge base.
@@ -80,6 +93,7 @@ The wiki should read like a maintained technical knowledge base.
 That means:
 
 - grouped page navigation
+- complete release history, not only the newest patch notes
 - operator path and integration path
 - subsystem explanation
 - standards for future documentation updates

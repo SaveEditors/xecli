@@ -2,11 +2,12 @@
 
 - [Home](Home)
 - [Latest Features](Latest-Features)
+- [Releases](Releases)
 - [v1.0.6 Release Notes](Release-Notes-v1.0.6)
 
 ## Getting Started
 - [Beginner Guide](Beginner-Guide)
-- [XeLL and NAND Backups](XeLL-and-NAND-Backups)
+- [XeCLI-XeLL](XeCLI-XeLL)
 - [FTP and File Transfer](FTP-and-File-Transfer)
 - [Commands Reference](Commands)
 - [CLI Help Output](CLI-Help)
@@ -35,4 +36,3 @@
 
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
 - [Repository](https://github.com/SaveEditors/xecli)
-- [Docs Landing Page](https://saveeditors.github.io/xecli/)

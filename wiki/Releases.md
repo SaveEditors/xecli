@@ -1,12 +1,14 @@
 # Releases
 
-This page is the full public XeCLI patch-notes history. The README only summarizes the latest two releases and links here for the complete release archive.
+This page is the canonical XeCLI patch-notes archive.
+
+Patch notes on this page describe shipped product behavior, operator-facing fixes, and release-relevant technical changes. They intentionally exclude README-only edits, wiki-only edits, formatting cleanup, and documentation housekeeping.
 
 ## Release Index
 
 | Release | Focus | Links |
 | --- | --- | --- |
-| `v1.0.6` | Automated NAND dumping, managed XeLL/Xell-NoN staging, verified packaging, and safe reboot control | [Release notes](#v106-automated-nand-dumping-and-xell-non) |
+| `v1.0.6` | Automated NAND dumping, managed XeLL/XeCLI-XeLL staging, verified packaging, and safe reboot control | [Release notes](#v106-automated-nand-dumping-and-xecli-xell) |
 | `v1.0.5` | Local content workflows, thread metadata fallback, installer fixes, and release packaging | [Release notes](#v105-local-content-and-release-polish) |
 | `v1.0.4` | IDA debugger/decompiler support and the expanded Fatman/FATX workflow | [Release notes](#v104-ida-and-fatman-expansion) |
 | `v1.0.3` | Original Xbox compatibility staging and install workflows | [Release notes](#v103-original-xbox-compatibility-update) |
@@ -16,11 +18,11 @@ This page is the full public XeCLI patch-notes history. The README only summariz
 
 Published GitHub releases: [All releases](https://github.com/SaveEditors/xecli/releases)
 
-## v1.0.6 Automated NAND Dumping and Xell-NoN
+## v1.0.6 Automated NAND Dumping and XeCLI-XeLL
 
 - Added `rgh nand dump` as a one-command PC workflow for managed XeLL launch, NAND download, verification, packaging, and verified-success reboot control.
 - Added managed helper/linker staging so the workflow can provision `XellLaunch`, `QuickBoot`, and the custom `xell.bin` payload without requiring the operator to gather them separately.
-- Added the standalone `Xell-NoN` companion package so the XeLL payload stack can be used outside the full XeCLI desktop flow when needed.
+- Added the standalone `XeCLI-XeLL` companion package so the XeLL payload stack can be used outside the full XeCLI desktop flow when needed.
 - Added explicit verification gating so auto-reboot only happens after XeCLI confirms the dump, manifest, and archive are valid.
 - Added safe same-session verification fallback when the console ignores XeLL reboot during the second-pass dump.
 - Added improved XeLL payload status sync so the console UI and the PC-side command flow report the same NAND dump and completion states.

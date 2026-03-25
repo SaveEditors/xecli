@@ -69,7 +69,7 @@ High-traffic aliases:
 - `rgh avatar apply` = `rgh avatar install`
 - `rgh fatx` = alias of `rgh fatman`
 
-For the exact top-level help screen and the exact help output of every top-level command group, see [CLI-Help.md](CLI-Help.md).
+For the exact top-level help screen and the exact help output of every top-level command group, see [CLI Help Output](CLI-Help).
 
 ## Common Options
 ### XBDM-backed commands
@@ -433,7 +433,7 @@ Notes:
 - If the console is already in XeLL, the command reuses the active XeLL session.
 - If the console is on the dashboard, XeCLI asks before launching XeLL automatically.
 - If auto-launch is unavailable, XeCLI tells you to boot XeLL manually with eject and rerun the command.
-- The standalone `Xell-NoN` companion package can be used as the minimal XeLL-side bootstrap when you want the automated NAND flow without the broader desktop bundle.
+- The standalone `XeCLI-XeLL` companion package can be used as the minimal XeLL-side bootstrap when you want the automated NAND flow without the broader desktop bundle. See [XeCLI-XeLL](XeCLI-XeLL) for the payload model and workflow boundaries.
 
 Example output:
 
@@ -1109,7 +1109,7 @@ rgh notify-icons add --name success --logo 0x24
 rgh notify-icons remove --name success
 ```
 
-For the full XNotify explanation, icon IDs, direct numeric usage, and integration notes, see [XNotify.md](XNotify.md).
+For the full XNotify explanation, icon IDs, direct numeric usage, and integration notes, see [XNotify](XNotify).
 
 Example output:
 
@@ -1223,7 +1223,7 @@ SUCCESS SMC version
 2.3
 ```
 
-Read [Hardware-and-System.md](Hardware-and-System.md) for the deeper operational notes around sign-in state, LED presets, fan command behavior, and SMC version availability.
+Read [Hardware and System Controls](Hardware-and-System) for the deeper operational notes around sign-in state, LED presets, fan command behavior, and SMC version availability.
 
 ### `rgh tray open` / `rgh tray close`
 Open or close the physical disc tray through the JRPC/XAM path.
@@ -1331,7 +1331,7 @@ Remote spoof confirmations also use the bottom position by default when `--notif
 
 BO2's verified remote layout is exposed as slots 2-12 because the first title-local slot is reserved.
 
-Full feature notes, supported titles, and workflow examples are covered in [Remote-Spoofing.md](Remote-Spoofing.md).
+Full feature notes, supported titles, and workflow examples are covered in [Remote Spoofing](Remote-Spoofing).
 
 ```powershell
 rgh spoof remote XeCliRemote

@@ -2,6 +2,8 @@
 
 XeCLI v1.0.6 makes XeLL-backed NAND dumping a first-class automated workflow instead of a manual multi-step handoff.
 
+These notes cover shipped product behavior for v1.0.6. They intentionally exclude documentation-only and README-only maintenance changes.
+
 ## Automated NAND Dumping
 
 `rgh nand dump` is now the PC-side entry point for the full backup path. It launches or re-attaches to XeLL, stages the helper/linker assets the workflow needs, downloads the reference dump, performs the verification pass, packages the output, and reboots the console after the backup is verified.
@@ -12,7 +14,7 @@ That means the operator does not need to break the flow into separate console-si
 
 The release package carries the helper/linker assets that the automated dump path expects, so the user does not have to gather them separately before starting the backup.
 
-If you prefer the minimal boot package, the standalone `Xell-NoN` companion package can be used as the stripped XeLL-side bootstrap for the same automated NAND flow. Published repo: [github.com/SaveEditors/Xell-NoN](https://github.com/SaveEditors/Xell-NoN).
+If you prefer the standalone payload bundle, the `XeCLI-XeLL` companion package can be used as the stripped XeLL-side bootstrap for the same automated NAND flow and related XeCLI-managed XeLL tasks. Published repo: [github.com/SaveEditors/XeCLI-XeLL](https://github.com/SaveEditors/XeCLI-XeLL).
 
 ## Verification and Reboot
 
@@ -34,7 +36,7 @@ The verification path remains read-only.
 
 ## Related Docs
 
-- [XeLL and NAND Backups](https://saveeditors.github.io/xecli/wiki/XeLL-and-NAND-Backups.html)
-- [Commands Reference](https://saveeditors.github.io/xecli/wiki/Commands.html)
-- [Latest Features](https://saveeditors.github.io/xecli/wiki/Latest-Features.html)
-- [Release Archive](https://saveeditors.github.io/xecli/wiki/Releases.html)
+- [XeCLI-XeLL](XeCLI-XeLL)
+- [Commands Reference](Commands)
+- [Latest Features](Latest-Features)
+- [Release Archive](Releases)

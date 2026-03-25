@@ -56,6 +56,8 @@ en.SupportUsButton=Support Us
 es.SupportUsButton=Apoyanos
 en.InstallDotNetRuntimeStatus=Installing .NET runtime {#DotNetRuntimeVersion} (x64)...
 es.InstallDotNetRuntimeStatus=Instalando .NET runtime {#DotNetRuntimeVersion} (x64)...
+en.InstallSummary=XeCLI is a powerful terminal-first toolkit built for Xbox 360 RGH and JTAG users.%n%nIt brings together everything you need for live console work: console discovery and control, memory inspection and debugging, file system operations through XBDM and FTP, save and profile editing, avatar management, homebrew and dashboard staging, FATX disk handling, XEX dumping, reverse engineering helpers for Ghidra and IDA, and XeLL-backed NAND and keyvault tools.%n%nAll of it is wrapped in one consistent, fast command-line experience named rgh. Whether you are doing quick checks, heavy debugging, content transfers, or full automation scripts, XeCLI keeps your workflow smooth and reliable on modified Xbox 360 consoles.
+es.InstallSummary=XeCLI es un toolkit potente orientado a terminal para usuarios de Xbox 360 RGH y JTAG.%n%nReune todo lo necesario para trabajo en consola en vivo: descubrimiento y control de consola, inspeccion de memoria y depuracion, operaciones de sistema de archivos mediante XBDM y FTP, edicion de saves y perfiles, gestion de avatares, staging de homebrew y dashboard, manejo de discos FATX, volcado de XEX, ayudas de ingenieria inversa para Ghidra e IDA, y herramientas de NAND y keyvault con XeLL.%n%nTodo esta unificado en una experiencia de linea de comandos consistente y rapida llamada rgh. Ya sea para comprobaciones rapidas, depuracion intensiva, transferencias de contenido o scripts de automatizacion completos, XeCLI mantiene tu flujo de trabajo fluido y confiable en consolas Xbox 360 modificadas.
 
 [Tasks]
 Name: "modifypath"; Description: "{cm:AddToPathTask}"; Flags: checkedonce
@@ -224,6 +226,10 @@ end;
 
 procedure InitializeWizard;
 begin
+  WizardForm.WelcomeLabel2.Caption := ExpandConstant('{cm:InstallSummary}');
+  WizardForm.WelcomeLabel2.AutoSize := False;
+  WizardForm.WelcomeLabel2.Height := ScaleY(200);
+
   SupportButton := TNewButton.Create(WizardForm);
   SupportButton.Parent := WizardForm;
   SupportButton.Caption := ExpandConstant('{cm:SupportUsButton}');

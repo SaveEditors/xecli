@@ -28,6 +28,7 @@ AppUpdatesURL=https://github.com/SaveEditors/xecli/releases
 SetupIconFile=assets\xecli.ico
 DefaultDirName={code:GetDefaultDir}
 DisableProgramGroupPage=yes
+DisableWelcomePage=no
 LicenseFile=..\LICENSE
 OutputDir={#OutputDir}
 OutputBaseFilename=XeCLI-{#AppVersion}-setup-win-x64

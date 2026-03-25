@@ -26,7 +26,7 @@ The current features worth surfacing first are:
 - [XeLL and NAND Backups](XeLL-and-NAND-Backups.md) for guided XeLL launch, keyvault export, and verified NAND backup.
 - [FTP and File Transfer](FTP-and-File-Transfer.md) for saved FTP targets and the full `rgh ftp ...` workflow.
 - [Avatar Item Collection](Avatar-Item-Collection.md) for local or hosted avatar downloads, browsing, and install planning.
-- [Integrations](Integrations.md) for Claude, Codex, and other terminal-agent or script-driven workflows.
+- [Integrations](Integrations.md) for terminal-agent, script-driven, and companion-tool workflows.
 - [Advanced Guide](Advanced-Guide.md) for live debugging, memory inspection, XEX dumping, and reverse-engineering workflows.
 - [Reverse Engineering](Reverse-Engineering.md) for Ghidra and IDA headless support, requirements, and helper-loader install notes.
 - [Latest Features](Latest-Features.md) for a concise overview page that links these workflows together.
@@ -64,7 +64,7 @@ The current features worth surfacing first are:
 ### Data and Integrations
 | Page | Purpose |
 | --- | --- |
-| [Integrations](Integrations.md) | Reusing XeCLI from scripts, Claude/Codex sessions, and external tools |
+| [Integrations](Integrations.md) | Reusing XeCLI from scripts, terminal-agent sessions, and external tools |
 | [Title ID Database](Title-ID-Database.md) | Bundled metadata files and how other tools can consume them |
 | [FAQ](FAQ.md) | Short answers to common setup and usage questions |
 
@@ -132,7 +132,7 @@ The current features worth surfacing first are:
 - IDA Pro 9.1.250226 headless import, decompile, and verification workflows
 - ISO to Games on Demand conversion with watchdog mode
 - Bundled Title ID metadata for richer output and external tool reuse
-- Command-based reuse from scripts, Claude/Codex, and companion tools
+- Command-based reuse from scripts, terminal agents, and companion tools
 - Avatar item catalog reuse for external launchers, installers, and companion tools
 
 ## Scope Boundaries

@@ -1,0 +1,45 @@
+using System.ComponentModel;
+using System.Threading;
+using System.Threading.Tasks;
+using Spectre.Console;
+using Spectre.Console.Cli;
+
+namespace Xbox360.Remote.Cli.Commands;
+
+public sealed class PluginDisableCommand : AsyncCommand<PluginDisableCommand.Settings>
+{
+	public sealed class Settings : FtpConnectionSettings
+	{
+		[CommandOption("--slot <N>")]
+		[Description("Plugin slot number, usually 1-5.")]
+		public int? Slot { get; init; }
+
+		[CommandOption("--ini <PATH>")]
+		[Description("DashLaunch config path (default: /Hdd1/launch.ini).")]
+		public string? IniPath { get; init; }
+
+		[CommandOption("--backup")]
+		[Description("Create a .bak copy before writing.")]
+		public bool Backup { get; init; }
+	}
+
+	public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+	{
+		if (!settings.Slot.HasValue || settings.Slot.Value <= 0)
+		{
+			AnsiConsole.MarkupLine("[red]--slot is required.[/]");
+			return 1;
+		}
+		(string, int, string, string, int) tuple = await FtpHelpers.ResolveAsync(settings, CancellationToken.None);
+		string ip = tuple.Item1;
+		int port = tuple.Item2;
+		string user = tuple.Item3;
+		string pass = tuple.Item4;
+		int timeout = tuple.Item5;
+		PluginHelpers.PluginConfig pluginConfig = await PluginHelpers.LoadAsync(ip, port, user, pass, timeout, settings.IniPath);
+		pluginConfig.SetSlot(settings.Slot.Value, string.Empty);
+		await PluginHelpers.SaveAsync(ip, port, user, pass, timeout, pluginConfig, settings.Backup);
+		AnsiConsole.MarkupLine($"[green]Disabled[/] plugin{settings.Slot.Value}");
+		return 0;
+	}
+}

@@ -44,12 +44,16 @@ internal static class XellQuickBootHelpers
 	public static string? DescribeConsoleFileChanges(XellCommandSettings settings)
 	{
 		string? text = null;
+		if (!settings.ForceXell && !TargetsFlash(settings) && string.IsNullOrWhiteSpace(settings.LauncherPath) && string.IsNullOrWhiteSpace(settings.StageLauncherPath))
+		{
+			text = AppendChange(text, XellAssetHelpers.DescribeManagedHelperProvision());
+		}
 		if (IsEnabled(settings))
 		{
 			text = "[cyan]Upload a QuickBoot XeLL launcher to[/] [springgreen3_1]" + Markup.Escape(LauncherRoot) + "[/] [cyan]and a dashboard shortcut to[/] [springgreen3_1]" + Markup.Escape(ContentRoot) + "[/]";
-			if (!TargetsFlash(settings) && string.IsNullOrWhiteSpace(settings.LauncherPath) && string.IsNullOrWhiteSpace(settings.StageLauncherPath))
+			if (!settings.ForceXell && !TargetsFlash(settings) && string.IsNullOrWhiteSpace(settings.LauncherPath) && string.IsNullOrWhiteSpace(settings.StageLauncherPath))
 			{
-				text = AppendChange(text, "[cyan]Install bundled XellLaunch and its matching xell.bin automatically if the console does not already have them[/]");
+				text = AppendChange(text, XellAssetHelpers.DescribeManagedHelperProvision());
 			}
 		}
 		if (!string.IsNullOrWhiteSpace(settings.StageLauncherPath))
@@ -81,7 +85,13 @@ internal static class XellQuickBootHelpers
 			if (LooksLikeBundleManagedLauncher(text2) && string.IsNullOrWhiteSpace(settings.StageXellBinPath))
 			{
 				string text14 = BuildSiblingXellBinPath(text2);
-				await UploadLooseLauncherAsync(client, "Refreshing bundled xell.bin", GetBundledHelperAssetPath("xell.bin"), text14, cancellationToken);
+				XellAssetHelpers.XellLaunchAssetResolution xellLaunchAssetResolution = await XellAssetHelpers.ResolveXellLaunchAssetAsync("xell.bin", cancellationToken);
+				await UploadLooseLauncherAsync(client, "Refreshing managed xell.bin", xellLaunchAssetResolution.Path, text14, cancellationToken);
+				AnsiConsole.MarkupLine("[grey]Payload source:[/] [white]" + Markup.Escape(xellLaunchAssetResolution.SourceDescription) + "[/]");
+				if (!string.IsNullOrWhiteSpace(xellLaunchAssetResolution.Sha256))
+				{
+					AnsiConsole.MarkupLine("[grey]Payload SHA-256:[/] [white]" + Markup.Escape(xellLaunchAssetResolution.Sha256) + "[/]");
+				}
 				xellLaunchPreflight = await preflightAsync(text2);
 			}
 		}
@@ -265,16 +275,6 @@ internal static class XellQuickBootHelpers
 		if (!File.Exists(text))
 		{
 			throw new FileNotFoundException("XeCLI QuickBoot asset not found: " + text, text);
-		}
-		return text;
-	}
-
-	private static string GetBundledHelperAssetPath(string fileName)
-	{
-		string text = Path.Combine(AppContext.BaseDirectory, "Assets", "XellLaunch", fileName);
-		if (!File.Exists(text))
-		{
-			throw new FileNotFoundException("XeCLI XellLaunch asset not found: " + text, text);
 		}
 		return text;
 	}

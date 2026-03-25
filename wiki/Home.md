@@ -122,7 +122,7 @@ The current features worth surfacing first are:
 - XBDM file-system operations
 - FTP-based browsing, transfer, search, and content discovery
 - Local CON/profile/GPD inspection and editing with `rgh con`, `rgh profile`, and `rgh xdbf`
-- XTAF device discovery, partition inspection, directory browsing, search, file export, and metadata workflows
+- XTAF device discovery, partition inspection, header scan, manual offset-open for strange images, retail-layout format, metadata backup/restore, safe repair, directory export, and raw partition dump workflows
 - Save extraction and injection
 - DashLaunch plugin slot management
 - XeLL-backed read-only NAND backup, keyvault export, CPU key capture, startup-log capture, and packaged SHA-256 manifests
@@ -154,6 +154,8 @@ Current out-of-scope areas:
 - glitch timing programming
 - trace/step debugging
 - direct Windows mount-driver workflows
+
+That means the current `xtaf` surface focuses on disk and image analysis, repair, and export rather than a driver-backed mount model.
 
 ## Important Paths
 

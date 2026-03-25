@@ -2,6 +2,19 @@
 
 XTAF is XeCLI's FATX recovery, extraction, repair, and Windows-first disk-management layer for local Xbox 360 disks and images. The primary command name is `rgh xtaf`; `rgh fatman` and `rgh fatx` remain as compatibility aliases. It supports image-backed and raw-disk reads, exports, directory creation, file injection, rename/move, delete operations, retail-layout FATX formatting, low-level metadata backup/restore, and safe chain-map repair.
 
+## Why It Stands Out
+
+XTAF is meant to cover the awkward cases that normal FATX browsers leave behind. The standout workflows are:
+
+- Open Windows physical disks directly instead of forcing everything through exported images first
+- Scan for plausible FATX/XTAF headers, then open a volume manually by `--offset` and optional `--length`
+- Back up low-level disk-prefix and partition metadata before you repair, format, or otherwise mutate a source
+- Audit and repair safe chain-map issues such as orphaned allocations instead of only listing files
+- Format a clean retail Xbox 360 layout when rebuilding a blank or recovered HDD image
+- Dump whole partitions or extract directory trees when you need recovery output, not just one-off file copies
+
+The goal is a practical disk and image workflow, not just a viewer.
+
 Use it when you want to:
 
 - detect FATX-capable disks or image sources
@@ -80,6 +93,13 @@ Today XTAF can:
 - restore low-level metadata regions from an XTAF metadata manifest
 - scan and repair safe chain-map issues such as orphaned allocations
 
+The current XeCLI implementation is strongest at:
+
+- raw-disk and raw-image inspection from the same command family
+- weird-image recovery by scan plus manual offset open
+- pre-mutation safety with metadata backup and restore
+- retail-layout rebuild, validation, and selective export
+
 It does not claim to:
 
 - mount a virtual filesystem
@@ -149,6 +169,8 @@ rgh xtaf dump --image .\Hdd1.img --out .\recovery
 
 XTAF is separate from the live-console `fs`, `ftp`, `save`, and `content` workflows.
 Those branches operate on the console over XBDM or FTP. FATX is for local disks and images.
+
+`rgh xtaf` is also where XeCLI now surfaces the former `fatman` workflow. If you already use `rgh fatman` or `rgh fatx`, those names still resolve, but the docs and future surface are `xtaf` first.
 
 Validation note:
 

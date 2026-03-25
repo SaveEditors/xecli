@@ -73,6 +73,31 @@ That file-transfer surface sits beside `rgh fs`, `rgh content`, `rgh save`, `rgh
 
 Read [FTP and File Transfer](FTP-and-File-Transfer), [Homebrew and USB](Homebrew-and-USB), [Original Xbox Compatibility](Original-Xbox-Compatibility), and [FATX Manager](FATX-Manager) for the full storage and deployment surface.
 
+### XTAF Disk and Image Workflows
+
+XeCLI's `rgh xtaf` branch is the current FATX/XTAF-first local disk workflow. It is designed for more than ordinary directory browsing:
+
+- it can inspect Windows physical disks directly, not only exported images
+- it can scan for plausible FATX/XTAF headers and then open a volume by manual `--offset` and optional `--length`
+- it can back up low-level metadata regions before destructive work
+- it can format a retail Xbox 360 HDD layout
+- it can check and safely repair chain-map issues such as orphaned allocations
+- it can dump raw partitions or extract directory trees for recovery and analysis
+
+Use:
+
+```powershell
+rgh xtaf disks
+rgh xtaf scan --image .\unknown.img
+rgh xtaf info --image .\unknown.img --offset 0xB6600000
+rgh xtaf metadata backup --disk 2 --out .\xtaf-meta
+rgh xtaf check --disk 2 --partition Content
+rgh xtaf repair --disk 2 --partition Content --auto-confirm
+rgh xtaf dump --image .\hdd.img --out .\xtaf-dump
+```
+
+`rgh fatman` and `rgh fatx` remain compatibility aliases, but `xtaf` is the primary surface going forward.
+
 ### Avatar Downloader and Installer
 
 XeCLI can work from a local `Avatar-Item-Collection` corpus or the hosted GitHub-backed collection. `--remote` turns the avatar commands into a downloader-backed workflow with local caching and the same ownership patch and install path used by local packages.

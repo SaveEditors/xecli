@@ -147,6 +147,12 @@ internal static class Program
 			config.AddExample("profile", "titles", "list", ".\\E000000000000000.con");
 			config.AddExample("xdbf", "list", ".\\415608C3.gpd", "--show-sync");
 			config.AddExample("xdbf", "get", ".\\415608C3.gpd", "strings", "0x0000000000008000", "--out", ".\\title-name.bin");
+			config.AddExample("xtaf", "devices");
+			config.AddExample("xtaf", "partitions", "--image", ".\\hdd.img");
+			config.AddExample("xtaf", "scan", "--image", ".\\hdd.img");
+			config.AddExample("xtaf", "info", "--image", ".\\hdd.img", "--partition", "Content");
+			config.AddExample("xtaf", "list", "--image", ".\\hdd.img", "--partition", "Content", "--path", "/");
+			config.AddExample("xtaf", "metadata", "backup", "--image", ".\\hdd.img", "--out", ".\\xtaf-meta");
 			config.AddExample("homebrew", "install", "aurora", "--usb", "E:");
 			config.AddExample("homebrew", "install", "all", "--usb", "E:", "--auto-confirm");
 			config.AddExample("ogxbox", "install", "hacked", "--include-fixer", "--usb", "E:");
@@ -606,6 +612,54 @@ internal static class Program
 				xdbf.AddCommand<XdbfExtractCommand>("extract").WithDescription("Extract records to a directory.");
 				xdbf.AddCommand<XdbfSyncStatusCommand>("sync-status").WithDescription("Show records that are pending sync.");
 			});
+			ConfiguratorExtensions.AddBranch(config, "xtaf", delegate(IConfigurator<CommandSettings> xtaf)
+			{
+				xtaf.SetDescription("XTAF is XeCLI's FATX image and storage manager.");
+				xtaf.AddExample("xtaf", "devices");
+				xtaf.AddExample("xtaf", "disks");
+				xtaf.AddExample("xtaf", "partitions", "--image", ".\\hdd.img");
+				xtaf.AddExample("xtaf", "partitions", "--disk", "2");
+				xtaf.AddExample("xtaf", "scan", "--image", ".\\hdd.img");
+				xtaf.AddExample("xtaf", "info", "--image", ".\\hdd.img", "--partition", "Content");
+				xtaf.AddExample("xtaf", "info", "--image", ".\\hdd.img", "--offset", "0xB6600000");
+				xtaf.AddExample("xtaf", "list", "--image", ".\\hdd.img", "--partition", "Content", "--path", "/");
+				xtaf.AddExample("xtaf", "list", "--image", ".\\hdd.img", "--offset", "0xB6600000", "--path", "/");
+				xtaf.AddExample("xtaf", "mkdir", "--image", ".\\hdd.img", "--partition", "Content", "--path", "/XeCLI");
+				xtaf.AddExample("xtaf", "put", "--image", ".\\hdd.img", "--partition", "Content", "--path", "/XeCLI/readme.txt", "--in", ".\\readme.txt", "--overwrite");
+				xtaf.AddExample("xtaf", "mv", "--image", ".\\hdd.img", "--partition", "Content", "--path", "/XeCLI/readme.txt", "--to", "/XeCLI/readme-old.txt");
+				xtaf.AddExample("xtaf", "rm", "--image", ".\\hdd.img", "--partition", "Content", "--path", "/XeCLI", "--recursive");
+				xtaf.AddExample("xtaf", "format", "--disk", "2", "--auto-confirm");
+				xtaf.AddExample("xtaf", "check", "--image", ".\\hdd.img", "--partition", "Content");
+				xtaf.AddExample("xtaf", "repair", "--image", ".\\hdd.img", "--partition", "Content", "--auto-confirm");
+				xtaf.AddExample("xtaf", "metadata", "backup", "--image", ".\\hdd.img", "--out", ".\\xtaf-meta");
+				xtaf.AddExample("xtaf", "extract", "--image", ".\\hdd.img", "--partition", "Content", "--path", "/Content", "--out", ".\\Content");
+				xtaf.AddExample("xtaf", "dump", "--image", ".\\hdd.img", "--offset", "0xB6600000", "--length", "0x10000000", "--out", ".\\partition-dump");
+				xtaf.AddExample("xtaf", "dump", "--image", ".\\hdd.img", "--out", ".\\xtaf-dump");
+				xtaf.AddCommand<FatmanDevicesCommand>("devices").WithDescription("List host storage devices visible to XTAF.");
+				xtaf.AddCommand<FatmanDisksCommand>("disks").WithDescription("List Windows physical disks that XTAF can open directly.");
+				xtaf.AddCommand<FatmanPartitionsCommand>("partitions").WithAlias("parts").WithDescription("Detect partitions inside a raw Xbox 360 HDD image or physical disk.");
+				xtaf.AddCommand<FatmanScanCommand>("scan").WithAlias("probe").WithDescription("Scan an image or physical disk for plausible FATX/XTAF volume headers.");
+				xtaf.AddCommand<FatmanInfoCommand>("info").WithDescription("Inspect one detected FATX partition.");
+				xtaf.AddCommand<FatmanListCommand>("list").WithAlias("ls").WithDescription("List entries inside a FATX partition.");
+				xtaf.AddCommand<FatmanFindCommand>("find").WithDescription("Search a FATX partition for matching paths.");
+				xtaf.AddCommand<FatmanGetCommand>("get").WithDescription("Extract a single file from a FATX partition.");
+				xtaf.AddCommand<FatmanCatCommand>("cat").WithDescription("Print a text file from a FATX partition.");
+				xtaf.AddCommand<FatmanMkdirCommand>("mkdir").WithDescription("Create a directory inside a FATX image.");
+				xtaf.AddCommand<FatmanPutCommand>("put").WithAlias("inject").WithDescription("Write a host file into a FATX image.");
+				xtaf.AddCommand<FatmanMoveCommand>("mv").WithAlias("rename").WithDescription("Move or rename a FATX entry.");
+				xtaf.AddCommand<FatmanDeleteCommand>("rm").WithAlias("del").WithDescription("Remove a FATX entry from the image.");
+				xtaf.AddCommand<FatmanFormatCommand>("format").WithAlias("initialize").WithDescription("Format one or more FATX partitions inside an image or physical disk.");
+				xtaf.AddCommand<FatmanCheckCommand>("check").WithAlias("verify").WithDescription("Scan a FATX partition for orphaned and invalid chain-map state.");
+				xtaf.AddCommand<FatmanRepairCommand>("repair").WithDescription("Repair safe FATX chain-map issues such as orphaned allocations.");
+				xtaf.AddCommand<FatmanExtractCommand>("extract").WithDescription("Extract a directory tree from a FATX partition.");
+				xtaf.AddCommand<FatmanDumpCommand>("dump").WithDescription("Dump one or more raw FATX partitions to host files.");
+				ConfiguratorExtensions.AddBranch(xtaf, "metadata", delegate(IConfigurator<CommandSettings> metadata)
+				{
+					metadata.SetDescription("Back up or restore low-level FATX and partition metadata regions.");
+					metadata.AddCommand<FatmanMetadataBackupCommand>("backup").WithDescription("Back up disk-prefix and partition-header metadata regions.");
+					metadata.AddCommand<FatmanMetadataRestoreCommand>("restore").WithDescription("Restore metadata regions from a prior XTAF metadata backup.");
+				});
+			}).WithAlias("fatman").WithAlias("fatx");
 			ConfiguratorExtensions.AddBranch(config, "avatar", delegate(IConfigurator<CommandSettings> avatar)
 			{
 				avatar.SetDescription("Avatar item library and install helpers.");

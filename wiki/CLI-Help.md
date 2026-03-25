@@ -122,38 +122,38 @@ Original Xbox compatibility is intentionally separate from normal homebrew insta
 
 `rgh xell ...` and `rgh nand ...` are native XeCLI branches. They prompt before the first automatic dashboard-to-XeLL transition, attach to XeLL's HTTP service once it comes up, and keep all backup operations read-only.
 
-## Fatman
-Fatman is XeCLI's read-only FATX manager for local Xbox 360 disks and images. The current release cut focuses on image recovery, partition dumping, inspection, search, and export, not on write, mount, format, or repair operations.
+## XTAF
+XTAF is XeCLI's FATX/XTAF manager for local Xbox 360 disks and images. The primary command name is `rgh xtaf`; `rgh fatman` and `rgh fatx` remain as compatibility aliases.
 
 Current command surface:
 
 ```text
-rgh fatman devices
-rgh fatman partitions
-rgh fatman scan
-rgh fatman info
-rgh fatman list
-rgh fatman find
-rgh fatman cat
-rgh fatman get
-rgh fatman extract
-rgh fatman dump
+rgh xtaf devices
+rgh xtaf partitions
+rgh xtaf scan
+rgh xtaf info
+rgh xtaf list
+rgh xtaf find
+rgh xtaf cat
+rgh xtaf get
+rgh xtaf extract
+rgh xtaf dump
 ```
 
-`rgh fatx` is the documented alias for the same command group.
+`rgh fatman` and `rgh fatx` are compatibility aliases for the same command group.
 
 Manual-open workflow:
 
 - use `--offset` to open a FATX/XTAF volume directly from a byte offset
 - use `--length` with `--offset` when you want to clamp the manual partition size
 - both values accept decimal bytes or `0x`-prefixed hex
-- use `rgh fatman scan` first when you need candidate offsets for a nonstandard image
+- use `rgh xtaf scan` first when you need candidate offsets for a nonstandard image
 
 ```powershell
-rgh fatman scan --image .\Unknown.img
-rgh fatman info --image .\Unknown.img --offset 0xB6600000
-rgh fatman list --image .\Unknown.img --offset 0xB6600000 --path /
-rgh fatman dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --out .\partition-dump
+rgh xtaf scan --image .\Unknown.img
+rgh xtaf info --image .\Unknown.img --offset 0xB6600000
+rgh xtaf list --image .\Unknown.img --offset 0xB6600000 --path /
+rgh xtaf dump --image .\Unknown.img --offset 0xB6600000 --length 0x10000000 --out .\partition-dump
 ```
 
 What it does:
@@ -169,7 +169,7 @@ What it does:
 Validation note:
 
 - the runtime has been verified against a synthetic FATX fixture image
-- manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where Fatman surfaced real `XTAF` offsets and opened the compatibility volume by bounded offset
+- manual-open and scan flows were also validated against a nonstandard AMPED HDD image, where XTAF surfaced real `XTAF` offsets and opened the compatibility volume by bounded offset
 
 What it does not do in the first cut:
 

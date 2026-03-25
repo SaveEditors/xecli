@@ -1,6 +1,6 @@
 # XeCLI Wiki
 
-XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, Fatman, XeLL-backed backups, XEX dumping, memory inspection, and automation. This GitHub wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
+XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XTAF, XeLL-backed backups, XEX dumping, memory inspection, and automation. This GitHub wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
 
 The local source tree is the canonical behavior model for these pages. If a feature is documented here, it should match the shipped release and the current repo state unless a page says otherwise. The Markdown pages in `wiki/*.md` are the maintained source for this knowledge base.
 
@@ -51,7 +51,7 @@ The current features worth surfacing first are:
 | [XNotify](XNotify) | Notification usage, icon IDs, and direct integration notes |
 | [Homebrew and USB](Homebrew-and-USB) | USB/folder staging or direct console installs for Aurora, DashLaunch, XeXMenu, Freestyle Dash, XM360, TimeFixer, Simple 360 NAND Flasher, and XellLaunch |
 | [Original Xbox Compatibility](Original-Xbox-Compatibility) | XeFu pack selection, HddX targeting, and optional HDD Compatibility Partition Fixer staging |
-| [Fatman](FATX-Manager) | Read-only FATX image and storage recovery with `rgh fatman` or the `rgh fatx` alias |
+| [XTAF](FATX-Manager) | FATX/XTAF image and storage recovery with `rgh xtaf`, plus `rgh fatman` / `rgh fatx` compatibility aliases |
 | [Avatar Item Collection](Avatar-Item-Collection) | Local and hosted avatar corpus naming, browser flows, layout, and install model |
 | [Troubleshooting](Troubleshooting) | Failure cases, common console/plugin issues, and recovery paths |
 
@@ -85,7 +85,7 @@ The current features worth surfacing first are:
 9. [Troubleshooting](Troubleshooting)
 10. [Homebrew and USB](Homebrew-and-USB)
 11. [Original Xbox Compatibility](Original-Xbox-Compatibility)
-12. [Fatman](FATX-Manager)
+12. [XTAF](FATX-Manager)
 
 ### Reverse-engineering path
 1. [Advanced Guide](Advanced-Guide)
@@ -122,7 +122,7 @@ The current features worth surfacing first are:
 - XBDM file-system operations
 - FTP-based browsing, transfer, search, and content discovery
 - Local CON/profile/GPD inspection and editing with `rgh con`, `rgh profile`, and `rgh xdbf`
-- Fatman device discovery, partition inspection, directory browsing, read-only search, and file export
+- XTAF device discovery, partition inspection, directory browsing, search, file export, and metadata workflows
 - Save extraction and injection
 - DashLaunch plugin slot management
 - XeLL-backed read-only NAND backup, keyvault export, CPU key capture, startup-log capture, and packaged SHA-256 manifests
@@ -153,7 +153,7 @@ Current out-of-scope areas:
 - image building or dashboard patching
 - glitch timing programming
 - trace/step debugging
-- Fatman write, format, mount, repartition, or repair workflows
+- direct Windows mount-driver workflows
 
 ## Important Paths
 
@@ -177,12 +177,12 @@ rgh homebrew install all --usb E: --auto-confirm
 rgh homebrew install aurora --device Hdd1 --ini-mode merge
 rgh ogxbox list
 rgh ogxbox install hacked --include-fixer --usb E:
-rgh fatman devices
-rgh fatman partitions --image .\hdd.img
-rgh fatman scan --image .\hdd.img
-rgh fatman list --image .\hdd.img --partition Content --path /
-rgh fatman get --image .\hdd.img --partition Content --path /launch.ini --out .\launch.ini
-rgh fatman cat --image .\hdd.img --partition Content --path /launch.ini
+rgh xtaf devices
+rgh xtaf partitions --image .\hdd.img
+rgh xtaf scan --image .\hdd.img
+rgh xtaf list --image .\hdd.img --partition Content --path /
+rgh xtaf get --image .\hdd.img --partition Content --path /launch.ini --out .\launch.ini
+rgh xtaf cat --image .\hdd.img --partition Content --path /launch.ini
 rgh ping
 rgh status
 rgh title

@@ -37,10 +37,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\src\Xbox360.Fatx\Xbox360.Fatx.csproj" />
+    <PackageReference Include="System.Management" Version="10.0.0-preview.3.25171.5" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\Localization\LocalizedDescriptionAttribute.cs" Link="Localization\LocalizedDescriptionAttribute.cs" />
     <Compile Include="..\Localization\LocalizedText.cs" Link="Localization\LocalizedText.cs" />
     <Compile Include="..\Localization\LocalizedText.Catalog.g.cs" Link="Localization\LocalizedText.Catalog.g.cs" />
     <Compile Include="..\Localization\LocalizedConsole.cs" Link="Localization\LocalizedConsole.cs" />
+    <Compile Include="..\src\Xbox360.Remote.Cli\Commands\FatmanCommands.cs" Link="Xbox360.Remote.Cli.Commands\FatmanCommands.cs" />
+    <Compile Include="..\src\Xbox360.Remote.Cli\Commands\FatmanDiskCommands.cs" Link="Xbox360.Remote.Cli.Commands\FatmanDiskCommands.cs" />
+    <Compile Include="..\src\Xbox360.Remote.Cli\Commands\FatmanMetadataCommands.cs" Link="Xbox360.Remote.Cli.Commands\FatmanMetadataCommands.cs" />
+    <Compile Include="..\src\Xbox360.Remote.Cli\Commands\FatmanRepairCommands.cs" Link="Xbox360.Remote.Cli.Commands\FatmanRepairCommands.cs" />
+    <Compile Include="..\src\Xbox360.Remote.Cli\Fatman\FatmanWindowsStorage.cs" Link="Xbox360.Remote.Cli.Fatman\FatmanWindowsStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Assets\**\*">

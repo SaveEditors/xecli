@@ -21,7 +21,7 @@ Use this table when you know the job you need done but not the exact command nam
 | Inspect or edit local CON/profile/GPD files | `rgh con ...`, `rgh profile ...`, `rgh xdbf ...` |
 | Manage title content or DashLaunch plugins | `rgh content ...`, `rgh plugin ...` |
 | Back up NAND or export XeLL keys | `rgh xell boot`, `rgh xell info`, `rgh xell kv export`, `rgh nand dump` |
-| Inspect local Fatman disks or images | `rgh fatman devices`, `rgh fatman partitions`, `rgh fatman scan`, `rgh fatman info`, `rgh fatman list`, `rgh fatman find`, `rgh fatman cat`, `rgh fatman get`, `rgh fatman extract`, `rgh fatman dump` |
+| Inspect local XTAF/FATX disks or images | `rgh xtaf devices`, `rgh xtaf partitions`, `rgh xtaf scan`, `rgh xtaf info`, `rgh xtaf list`, `rgh xtaf find`, `rgh xtaf cat`, `rgh xtaf get`, `rgh xtaf extract`, `rgh xtaf dump` |
 | Stage Original Xbox compatibility packs | `rgh ogxbox list`, `rgh ogxbox install hacked|hud|retail` |
 | Browse or install avatar items from the local or hosted collection | `rgh avatar library ...`, `rgh avatar games`, `rgh avatar items`, `rgh avatar choose`, `rgh avatar browse`, `rgh avatar install` |
 | Send visible console messages | `rgh notify`, `rgh notify-icons`, `rgh jrpc2 notify` |
@@ -37,7 +37,7 @@ XeCLI is organized into a few major namespaces:
 - XeLL-backed backup commands: XeLL inspection, keyvault export, and read-only NAND backup over the XeLL HTTP service
 - FTP-backed commands: file access, saves, content, and plugin management
 - Local content commands: CON package inspection, profile editing, and raw XDBF/GPD record access
-- Fatman manager: read-only local disk or image inspection and export
+- XTAF manager: local disk or image inspection, export, mutation, metadata, and repair workflows
 - Analysis commands: XEX, Ghidra, IDA, metadata
 - Packaging commands: Games on Demand conversion and watchdog mode
 
@@ -50,8 +50,9 @@ Shortcut equivalence:
 - `rgh fs` = `rgh xbdm fs`
 - `rgh threads` = `rgh xbdm threads`
 - `rgh debug` = `rgh xbdm debug`
-- `rgh fatman` = local FATX manager for disks and images
-- `rgh fatx` = alias of `rgh fatman`
+- `rgh xtaf` = primary FATX/XTAF manager for disks and images
+- `rgh fatman` = compatibility alias of `rgh xtaf`
+- `rgh fatx` = compatibility alias of `rgh xtaf`
 
 High-traffic aliases:
 
@@ -67,7 +68,8 @@ High-traffic aliases:
 - `rgh module remove` = `rgh modules unload`
 - `rgh module verify` = `rgh modules pending`
 - `rgh avatar apply` = `rgh avatar install`
-- `rgh fatx` = alias of `rgh fatman`
+- `rgh fatman` = compatibility alias of `rgh xtaf`
+- `rgh fatx` = compatibility alias of `rgh xtaf`
 
 For the exact top-level help screen and the exact help output of every top-level command group, see [CLI Help Output](CLI-Help).
 

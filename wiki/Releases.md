@@ -11,7 +11,7 @@ Patch notes on this page describe shipped product behavior, operator-facing fixe
 | `v1.0.7` | Spanish localization, dark Inno Setup installer, Ko-fi support, and the canonical GitHub wiki migration | [Release notes](#v107-spanish-localization-inno-setup-and-wiki) |
 | `v1.0.6` | Automated NAND dumping, managed XeLL/XeCLI-XellFetch staging, verified packaging, and safe reboot control | [Release notes](#v106-automated-nand-dumping-and-xecli-xellfetch) |
 | `v1.0.5` | Local content workflows, thread metadata fallback, installer fixes, and release packaging | [Release notes](#v105-local-content-and-release-polish) |
-| `v1.0.4` | IDA debugger/decompiler support and the expanded Fatman/FATX workflow | [Release notes](#v104-ida-and-fatman-expansion) |
+| `v1.0.4` | IDA debugger/decompiler support and the expanded XTAF/FATX workflow | [Release notes](#v104-ida-and-xtaf-expansion) |
 | `v1.0.3` | Original Xbox compatibility staging and install workflows | [Release notes](#v103-original-xbox-compatibility-update) |
 | `v1.0.2` | Installer split and homebrew package staging | [Release notes](#v102-installer-and-homebrew-update) |
 | `v1.0.1` | Avatar library/install workflows and hardware controls | [Release notes](#v101-avatar-update) |
@@ -47,11 +47,11 @@ Published GitHub releases: [All releases](https://github.com/SaveEditors/xecli/r
 - Fixed the first-run installer prompt so only a bare `rgh` launch offers setup, while normal commands like `rgh status` and `rgh threads list` run directly.
 - Added release publish, verification, packaging, and zip smoke-test scripts so the `win-x64` archive is validated as a fresh install before release.
 
-## v1.0.4 IDA and Fatman Expansion
+## v1.0.4 IDA and XTAF Expansion
 
 - Added headless IDA Pro `9.1.250226` support with `rgh ida config`, `rgh ida check`, `rgh ida install-loader`, `rgh ida analyze`, `rgh ida decompile`, `rgh ida verify`, and `rgh xex ida-decompile`.
 - Clarified the Ghidra path as an external `(Free)` dependency and added helper-loader install flows through `rgh ghidra install-loader`.
-- Expanded Fatman into XeCLI's FATX image and storage workflow, with `rgh fatman` as the primary name and `rgh fatx` retained as the alias.
+- Expanded XeCLI's FATX image and storage workflow, now surfaced as `rgh xtaf` with `rgh fatman` and `rgh fatx` kept as compatibility aliases.
 - Added FATX/XTAF discovery, partition inspection, scan, info, list, find, cat, get, extract, dump, mkdir, put, mv, and rm flows.
 - Added Windows-first physical disk support, manual-open by `--offset` / `--length`, metadata backup/restore, and safe chain-map `check` / `repair` workflows.
 

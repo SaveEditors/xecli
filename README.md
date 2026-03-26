@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Assets/readme/header.png" alt="XeCLI logo" width="">
+  <img src="Assets/readme/header.png" alt="XeCLI logo" width="350">
 </p>
 
 # XeCLI

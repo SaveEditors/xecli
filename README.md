@@ -50,7 +50,7 @@ Portable zip users can run `rgh.exe` directly from the extracted release folder.
 - [XTAF / FATX Manager](https://github.com/SaveEditors/xecli/wiki/FATX-Manager)
 - [XeCLI-XellFetch](https://github.com/SaveEditors/xecli/wiki/XeCLI-XellFetch)
 - [Troubleshooting](https://github.com/SaveEditors/xecli/wiki/Troubleshooting)
-- [Release Notes v1.0.8](https://github.com/SaveEditors/xecli/wiki/Release-Notes-v1.0.8)
+- [Release Notes](https://github.com/SaveEditors/xecli/wiki/Releases)
 
 ## Tooling Notes
 

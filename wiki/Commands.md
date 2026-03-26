@@ -1862,7 +1862,7 @@ No flagged files found.
 ```
 
 ## IDA Commands
-IDA is external and not bundled by XeCLI. The supported XeCLI baseline is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`. Do not broaden that claim to `idaxex 0.43` or `IDA 9.2` until that exact combination is validated.
+IDA is external and not bundled by XeCLI. The supported XeCLI baseline is pinned to `IDA Pro 9.1.250226` with the maintained [SaveEditors/idaxex](https://github.com/SaveEditors/idaxex/releases/tag/0.42b-compat) `0.42b-compat` line. Do not broaden that claim to `idaxex 0.43` or `IDA 9.2` until that exact combination is validated.
 
 ### `rgh ida config`
 ```powershell
@@ -1889,7 +1889,7 @@ Example output:
 Install              C:\Program Files\IDA Professional 9.1
 Batch EXE            C:\Program Files\IDA Professional 9.1\idat.exe
 IDA build            9.1.25.0226 (supported)
-idaxex               0.42b (supported)
+idaxex               0.42b-compat / ida91 (supported)
 TIL files            present
 idalib import        ok
 ```
@@ -1897,14 +1897,14 @@ idalib import        ok
 ### `rgh ida install-loader`
 ```powershell
 rgh ida install-loader
-rgh ida install-loader --archive .\idaxex-0.42b.zip
+rgh ida install-loader --archive .\idaxex-0.42b-compat.zip
 ```
 
 Example output:
 
 ```text
 SUCCESS IDA loader installed
-idaxex 0.42b -> C:\Program Files\IDA Professional 9.1\loaders\idaxex.dll
+SaveEditors idaxex 0.42b-compat -> C:\Program Files\IDA Professional 9.1\loaders\idaxex.dll
 ```
 
 ### `rgh ida analyze`

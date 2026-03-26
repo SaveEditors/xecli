@@ -46,7 +46,7 @@ XeCLI does not bundle Ghidra, IDA Pro, Java, or XEX loader plugins. Reverse-engi
 ### Supported baseline
 
 - Supported IDA build: `IDA Pro 9.1.250226`
-- Supported XEX loader build: `idaxex 0.42b`
+- Supported XEX loader build: [`SaveEditors/idaxex 0.42b-compat`](https://github.com/SaveEditors/idaxex/releases/tag/0.42b-compat)
 - Do not claim support for `idaxex 0.43` or `IDA 9.2` until that exact combination is validated in XeCLI.
 
 ### Current command surface
@@ -64,7 +64,7 @@ XeCLI does not bundle Ghidra, IDA Pro, Java, or XEX loader plugins. Reverse-engi
 - Treats IDA Pro as an external headless backend.
 - Stores the IDA install path, Python command, `IDAUSR`, and preferred backend.
 - Validates the configured runtime with `rgh ida check`.
-- Installs the pinned `idaxex 0.42b` loader set with `rgh ida install-loader`.
+- Installs the pinned `SaveEditors idaxex 0.42b-compat` loader set with `rgh ida install-loader`.
 - Ships the helper scripts in `src/Xbox360.Remote.Cli/ida_scripts/`.
 - Imports raw `.xex` files through `idat.exe` batch mode.
 - Uses `idalib` for database-backed decompilation when available.
@@ -76,7 +76,7 @@ XeCLI does not bundle Ghidra, IDA Pro, Java, or XEX loader plugins. Reverse-engi
 - IDA Pro is external and not shipped by XeCLI.
 - XeCLI documents `IDA Pro 9.1.250226` as the supported baseline.
 - A valid local IDA install and license are required for `idat` and `idalib`.
-- `idaxex 0.42b` must be present for `.xex` loading.
+- `SaveEditors idaxex 0.42b-compat` must be present for `.xex` loading.
 - Python is required for `idalib` workflows.
 - After `rgh ida config --path <dir>`, XeCLI can install the supported loader helper for you with `rgh ida install-loader`.
 

@@ -54,7 +54,7 @@ Portable zip users can run `rgh.exe` directly from the extracted release folder.
 
 Ghidra is an external `(Free)` dependency. XeCLI's supported Ghidra XEX import path uses the maintained [SaveEditors/XEXLoaderWV](https://github.com/SaveEditors/XEXLoaderWV) fork.
 
-The IDA workflow is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`.
+The IDA workflow is pinned to `IDA Pro 9.1.250226` with the maintained [SaveEditors/idaxex](https://github.com/SaveEditors/idaxex/releases/tag/0.42b-compat) `0.42b-compat` loader line.
 
 ## Why XTAF Matters
 

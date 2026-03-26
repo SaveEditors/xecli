@@ -4,7 +4,7 @@ XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with X
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
-Ghidra is an external `(Free)` dependency, and XeCLI's supported Ghidra XEX import path uses the maintained [SaveEditors/XEXLoaderWV](https://github.com/SaveEditors/XEXLoaderWV) fork. The IDA workflow is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`, and IDA Pro is required for the IDA debugger/decompiler workflow.
+Ghidra is an external `(Free)` dependency, and XeCLI's supported Ghidra XEX import path uses the maintained [SaveEditors/XEXLoaderWV](https://github.com/SaveEditors/XEXLoaderWV) fork. The IDA workflow is pinned to `IDA Pro 9.1.250226` with the maintained [SaveEditors/idaxex](https://github.com/SaveEditors/idaxex/releases/tag/0.42b-compat) `0.42b-compat` line, and IDA Pro is required for the IDA debugger/decompiler workflow.
 
 ## Start Here
 - [Wiki Home](https://saveeditors.github.io/xecli/wiki/Home.html)

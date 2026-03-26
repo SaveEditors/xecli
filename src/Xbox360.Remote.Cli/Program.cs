@@ -639,8 +639,8 @@ internal static class Program {
                 ida.AddExample(new[] { "ida", "install-loader" });
                 ida.AddExample(new[] { "ida", "decompile", "--running", "--out", ".\\ida-decomp", "--max", "25" });
                 ida.AddCommand<IdaConfigCommand>("config").WithDescription("Configure IDA install, python, and backend paths.");
-                ida.AddCommand<IdaCheckCommand>("check").WithAlias("doctor").WithDescription("Verify the configured IDA 9.1 + idaxex 0.42b environment.");
-                ida.AddCommand<IdaInstallLoaderCommand>("install-loader").WithDescription("Download or install the supported idaxex 0.42b loader set into IDA.");
+                ida.AddCommand<IdaCheckCommand>("check").WithAlias("doctor").WithDescription("Verify the configured IDA 9.1 + SaveEditors idaxex 0.42b-compat environment.");
+                ida.AddCommand<IdaInstallLoaderCommand>("install-loader").WithDescription("Download or install the supported SaveEditors idaxex 0.42b-compat loader set into IDA.");
                 ida.AddCommand<IdaAnalyzeCommand>("analyze").WithDescription("Import a XEX into an IDA database headlessly.");
                 ida.AddCommand<IdaDecompileCommand>("decompile").WithDescription("Decompile a XEX or IDA database to C.");
                 ida.AddCommand<IdaVerifyCommand>("verify").WithDescription("Verify IDA decompiler output for obvious failures.");

@@ -185,7 +185,7 @@ For a one-shot XEX-driven IDA path, use:
 rgh xex ida-decompile --in .\title.xex --out .\ida-decomp --out-db .\title.i64 --keep-db
 ```
 
-Use the Ghidra path when you want the `(Free)` external backend or a looser environment requirement. Use the IDA path when you want the pinned `IDA Pro 9.1.250226` plus `idaxex 0.42b` workflow documented by XeCLI.
+Use the Ghidra path when you want the `(Free)` external backend or a looser environment requirement. Use the IDA path when you want the pinned `IDA Pro 9.1.250226` plus `SaveEditors idaxex 0.42b-compat` workflow documented by XeCLI.
 
 ## Notification Integration Pattern
 If your app needs visible console-side feedback, use XeCLI as the notification layer rather than hardcoding icon IDs in multiple places.

@@ -151,7 +151,7 @@ rgh ghidra verify --dir .\decomp
 `ghidra verify` exists because a decompile folder full of placeholder stubs is worse than no result at all if you do not catch it.
 
 ### IDA headless pipeline
-IDA support is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`. XeCLI does not bundle IDA Pro, but it can install the pinned loader helper after you configure the tool path.
+IDA support is pinned to `IDA Pro 9.1.250226` with the maintained [SaveEditors/idaxex](https://github.com/SaveEditors/idaxex/releases/tag/0.42b-compat) `0.42b-compat` line. XeCLI does not bundle IDA Pro, but it can install the pinned loader helper after you configure the tool path.
 
 ```powershell
 rgh ida config --path "C:\Program Files\IDA Professional 9.1" --python python

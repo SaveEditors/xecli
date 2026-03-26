@@ -1290,8 +1290,8 @@ OPTIONS:
 
 COMMANDS:
     config            Configure IDA install, python, and backend paths
-    check             Verify the configured IDA 9.1 + idaxex 0.42b environment
-    install-loader    Download or install the supported idaxex 0.42b loader set into IDA
+    check             Verify the configured IDA 9.1 + SaveEditors idaxex 0.42b-compat environment
+    install-loader    Download or install the supported SaveEditors idaxex 0.42b-compat loader set into IDA
     analyze           Import a XEX into an IDA database headlessly
     decompile         Decompile a XEX or IDA database to C
     verify            Verify IDA decompiler output for obvious failures

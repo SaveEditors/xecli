@@ -45,15 +45,10 @@ Portable zip users can run `rgh.exe` directly from the extracted release folder.
 ## Documentation
 
 - [GitHub Wiki](https://github.com/SaveEditors/xecli/wiki)
-- [Wiki Home](https://github.com/SaveEditors/xecli/wiki/Home)
-- [XeCLI-XellFetch](https://github.com/SaveEditors/xecli/wiki/XeCLI-XellFetch)
-- [XTAF / FATX Manager](https://github.com/SaveEditors/xecli/wiki/FATX-Manager)
-- [Commands Reference](https://github.com/SaveEditors/xecli/wiki/Commands)
-- [CLI Help Output](https://github.com/SaveEditors/xecli/wiki/CLI-Help)
 - [Beginner Guide](https://github.com/SaveEditors/xecli/wiki/Beginner-Guide)
-- [Advanced Guide](https://github.com/SaveEditors/xecli/wiki/Advanced-Guide)
-- [Reverse Engineering](https://github.com/SaveEditors/xecli/wiki/Reverse-Engineering)
-- [Integrations](https://github.com/SaveEditors/xecli/wiki/Integrations)
+- [Commands Reference](https://github.com/SaveEditors/xecli/wiki/Commands)
+- [XTAF / FATX Manager](https://github.com/SaveEditors/xecli/wiki/FATX-Manager)
+- [XeCLI-XellFetch](https://github.com/SaveEditors/xecli/wiki/XeCLI-XellFetch)
 - [Troubleshooting](https://github.com/SaveEditors/xecli/wiki/Troubleshooting)
 - [Release Notes v1.0.8](https://github.com/SaveEditors/xecli/wiki/Release-Notes-v1.0.8)
 

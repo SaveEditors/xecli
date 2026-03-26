@@ -2,13 +2,11 @@
   <img src="Assets/readme/header.png" alt="XeCLI logo" width="350">
 </p>
 
-# XeCLI
-
+[![Support XeCLI on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/saveeditors)</p>
 XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with XBDM, JRPC2, FTP, XeLL-backed NAND dumping, XEX tooling, memory inspection, content workflows, reverse-engineering helpers, and release packaging.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
-[![Support XeCLI on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/saveeditors)
 
 ## What XeCLI Covers
 

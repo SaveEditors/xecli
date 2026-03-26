@@ -82,4 +82,4 @@ The standalone `XeCLI-XellFetch` repo is published at [github.com/SaveEditors/Xe
 
 ![XeCLI help](assets/readme/rgh-help.png)
 
-![XeCLI status](assets/readme/rgh-status.png)
+![XeCLI status](assets/readme/rgh-examples.png)

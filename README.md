@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Assets/readme/xecli-logo.jpg" alt="XeCLI logo" width="280">
+</p>
+
 # XeCLI
 
 XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with XBDM, JRPC2, FTP, XeLL-backed NAND dumping, XEX tooling, memory inspection, content workflows, reverse-engineering helpers, and release packaging.
@@ -42,7 +46,6 @@ Portable zip users can run `rgh.exe` directly from the extracted release folder.
 
 - [GitHub Wiki](https://github.com/SaveEditors/xecli/wiki)
 - [Wiki Home](https://github.com/SaveEditors/xecli/wiki/Home)
-- [Latest Features](https://github.com/SaveEditors/xecli/wiki/Latest-Features)
 - [XeCLI-XellFetch](https://github.com/SaveEditors/xecli/wiki/XeCLI-XellFetch)
 - [XTAF / FATX Manager](https://github.com/SaveEditors/xecli/wiki/FATX-Manager)
 - [Commands Reference](https://github.com/SaveEditors/xecli/wiki/Commands)
@@ -53,8 +56,6 @@ Portable zip users can run `rgh.exe` directly from the extracted release folder.
 - [Integrations](https://github.com/SaveEditors/xecli/wiki/Integrations)
 - [Troubleshooting](https://github.com/SaveEditors/xecli/wiki/Troubleshooting)
 - [Release Notes v1.0.8](https://github.com/SaveEditors/xecli/wiki/Release-Notes-v1.0.8)
-- [All Releases](https://github.com/SaveEditors/xecli/wiki/Releases)
-- [GitHub Releases](https://github.com/SaveEditors/xecli/releases)
 
 ## Tooling Notes
 

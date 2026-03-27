@@ -2,7 +2,7 @@
   <img src="Assets/readme/header.png" alt="XeCLI logo" width="350">
 </p>
 
-[![Support XeCLI on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/saveeditors)</p>
+[![Support XeCLI on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/saveeditors)
 XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with XBDM, JRPC2, FTP, XeLL-backed NAND dumping, XEX tooling, memory inspection, content workflows, reverse-engineering helpers, and release packaging.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
@@ -54,7 +54,7 @@ Portable zip users can run `rgh.exe` directly from the extracted release folder.
 
 Ghidra is an external `(Free)` dependency. XeCLI's supported Ghidra XEX import path uses the maintained [SaveEditors/XEXLoaderWV](https://github.com/SaveEditors/XEXLoaderWV) fork.
 
-The IDA workflow is pinned to `IDA Pro 9.1.250226` with the maintained [SaveEditors/idaxex](https://github.com/SaveEditors/idaxex/releases/tag/0.42b-compat) `0.42b-compat` loader line.
+The IDA workflow uses the maintained [SaveEditors/idaxex](https://github.com/SaveEditors/idaxex/releases/tag/0.42b-compat) `0.42b-compat` baseline on `IDA Pro 9.1.250226`, and XeCLI also supports later matching `idaxex` lines such as `0.43` on `IDA Pro 9.2`.
 
 ## Why XTAF Matters
 

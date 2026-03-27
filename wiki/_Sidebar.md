@@ -1,9 +1,7 @@
 ## XeCLI Wiki
 
 - [Home](Home)
-- [Latest Features](Latest-Features)
 - [Releases](Releases)
-- [v1.0.8 Release Notes](Release-Notes-v1.0.8)
 
 ## Getting Started
 - [Beginner Guide](Beginner-Guide)

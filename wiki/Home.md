@@ -1,5 +1,9 @@
 # XeCLI Wiki
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SaveEditors/xecli/main/Assets/readme/header.png" alt="XeCLI logo" width="350">
+</p>
+
 XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XTAF, XeLL-backed backups, XEX dumping, memory inspection, and automation. This GitHub wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
 
 These pages are maintained directly in the repository's Markdown wiki source so the public documentation stays aligned with the shipped command surface.
@@ -15,17 +19,15 @@ Avatar workflows in the shipped release now support both:
 
 Native XeLL workflows are also built into the shipped CLI now. `rgh xell ...` and `rgh nand dump` handle guided XeLL launch, keyvault export, and verified read-only NAND backup without depending on an external flasher workflow.
 
-v1.0.8 builds on that by promoting `rgh xtaf` as the primary FATX/XTAF surface, separating `XeCLI-XellFetch` into its own standalone release path, and polishing the Windows installer and wiki for a cleaner public release.
+v1.0.8 builds on that by promoting `rgh xtaf` as the primary FATX/XTAF surface, separating `XeCLI-XellFetch` into its own standalone release path, and polishing the Windows installer and documentation for a cleaner public release.
 
 Local content workflows are built in now as well. `rgh con`, `rgh profile`, and `rgh xdbf` cover pulled CON/profile/GPD files directly, including rehash/resign, raw `Account` or GPD extraction, achievement and setting edits, and avatar color edits inside profile packages.
 
-## Latest Features
+## Start Here
 
-The current features worth surfacing first are:
+Use these pages first:
 
-- [Releases](Releases) for the full patch-notes archive across all public versions.
-- [Latest Features](Latest-Features) for the current workflow highlights and release timeline.
-- [v1.0.8 Release Notes](Release-Notes-v1.0.8) for the XTAF command-surface promotion, installer polish, and release packaging split.
+- [Releases](Releases) for the current release highlights and the full patch-notes archive across all public versions.
 - [XeCLI-XellFetch](XeCLI-XellFetch) for the payload model, guided XeLL launch, keyvault export, and verified NAND backup.
 - [FTP and File Transfer](FTP-and-File-Transfer) for saved FTP targets and the full `rgh ftp ...` workflow.
 - [Avatar Item Collection](Avatar-Item-Collection) for local or hosted avatar downloads, browsing, and install planning.
@@ -38,9 +40,7 @@ The current features worth surfacing first are:
 ### Getting Started
 | Page | Purpose |
 | --- | --- |
-| [Latest Features](Latest-Features) | Current workflow highlights plus the full release timeline and feature map |
-| [Releases](Releases) | Canonical patch-notes archive for all public XeCLI releases |
-| [v1.0.8 Release Notes](Release-Notes-v1.0.8) | XTAF promotion, installer polish, and the standalone XeCLI-XellFetch packaging split |
+| [Releases](Releases) | Canonical patch-notes archive and current release-highlights page for all public XeCLI releases |
 | [Beginner Guide](Beginner-Guide) | Safe first-run workflow: install, discovery, connect, status, and basic operations |
 | [XeCLI-XellFetch](XeCLI-XellFetch) | Managed XeLL payload workflow, HTTP endpoint inspection, keyvault export, and verified read-only NAND backup |
 | [FTP and File Transfer](FTP-and-File-Transfer) | Saved FTP targets, browse/find/get/put workflows, and when to use FTP instead of `rgh fs` |
@@ -75,7 +75,7 @@ The current features worth surfacing first are:
 
 ### New user path
 1. [Beginner Guide](Beginner-Guide)
-2. [Latest Features](Latest-Features)
+2. [Releases](Releases)
 3. [XeCLI-XellFetch](XeCLI-XellFetch)
 4. [Commands Reference](Commands)
 5. [Hardware and System Controls](Hardware-and-System)
@@ -133,7 +133,7 @@ The current features worth surfacing first are:
 ### Analysis and packaging
 - Running XEX dump and string extraction
 - Ghidra headless analysis and decompile export
-- IDA Pro 9.1.250226 headless import, decompile, and verification workflows
+- IDA Pro headless import, decompile, and verification workflows
 - ISO to Games on Demand conversion with watchdog mode
 - Bundled Title ID metadata for richer output and external tool reuse
 - Command-based reuse from scripts, terminal agents, and companion tools

@@ -54,15 +54,9 @@ These pages should explain:
 - where persistent state is stored
 
 ### Release pages
-`Releases.md` is the canonical public patch-notes archive.
+`Releases.md` is the canonical public release-history and current-highlights page.
 
-`Latest-Features.md` must surface:
-
-- the current release focus
-- the current workflow pillars
-- the full public release timeline
-
-It must not read like a single-release landing page when multiple public releases already exist.
+Do not maintain separate "latest features" or version-specific release-note pages in the wiki when the same information belongs on `Releases.md`.
 
 ## Style Rules
 
@@ -82,7 +76,8 @@ It must not read like a single-release landing page when multiple public release
 - Prefer Windows-style console paths where that matches the real console workflow.
 - Use `XeCLI` for the project and `rgh` for the command.
 - Treat `wiki/*.md` as the maintained source for the GitHub wiki.
-- Do not introduce parallel `.html` wiki pages.
+- GitHub wiki pages are the only supported public wiki surface.
+- Do not introduce parallel `.html` wiki pages, generated wiki sites, or GitHub Pages-style wiki mirrors.
 
 ## Maintenance Rules
 
@@ -93,7 +88,7 @@ Update all of:
 - `wiki/Commands.md`
 - `wiki/CLI-Help.md`
 - any affected workflow page
-- `wiki/Releases.md` or the current release-notes page when the change is release-relevant
+- `wiki/Releases.md` when the change is release-relevant
 
 ### When a new subsystem is added
 Add or update:
@@ -145,5 +140,6 @@ Examples:
 - release zip exists and is attached to the current release
 - wiki links in README resolve
 - GitHub wiki pages resolve and the sidebar reflects the current page set
+- release links point to `Releases.md`, not deleted version-specific pages
 - command reference matches the live binary
 - source repo does not contain dumps, screenshots from testing, or build output except intended repo assets

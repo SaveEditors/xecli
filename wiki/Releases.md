@@ -1,8 +1,16 @@
 # Releases
 
-This page is the canonical XeCLI patch-notes archive.
+This page is the canonical XeCLI release-history and current-highlights page.
 
 Patch notes on this page describe shipped product behavior, operator-facing fixes, and release-relevant technical changes. They intentionally exclude README-only edits, wiki-only edits, formatting cleanup, and documentation housekeeping.
+
+Use this page as the single public entry point for release highlights and the full patch-notes archive.
+
+## Current Release Focus
+
+`v1.0.8` keeps the verified XeLL-backed NAND and keyvault workflow, promotes `rgh xtaf` as the primary FATX/XTAF surface, keeps `fatman` and `fatx` as compatibility aliases, and ships the standalone `XeCLI-XellFetch` payload from its own repo instead of mixing it into the desktop XeCLI release.
+
+The current release also keeps the Windows installer as the only install path, persists the initial language choice from setup, and documents the maintained `SaveEditors/idaxex` baseline for the IDA workflow.
 
 ## Release Index
 

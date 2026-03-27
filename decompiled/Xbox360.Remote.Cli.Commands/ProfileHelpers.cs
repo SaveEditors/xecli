@@ -48,6 +48,12 @@ internal static class ProfileHelpers
 		public string? Xuid { get; set; }
 	}
 
+	private sealed class AuroraAuthResponse
+	{
+		[JsonPropertyName("token")]
+		public string? Token { get; set; }
+	}
+
 	private static readonly string[] ProfileRoots = new string[7] { "Hdd1", "Usb0", "Usb1", "Usb2", "Mu", "IntMu", "MmcMu" };
 
 	private const uint XamUserGetNameOrdinal = 526u;
@@ -56,14 +62,46 @@ internal static class ProfileHelpers
 
 	private const uint XamUserGetSigninInfoOrdinal = 551u;
 
+	private readonly struct RpcMode
+	{
+		public bool SystemThread { get; }
+
+		public bool Vm { get; }
+
+		public RpcMode(bool systemThread, bool vm)
+		{
+			SystemThread = systemThread;
+			Vm = vm;
+		}
+	}
+
+	private static readonly RpcMode[] XamRpcModes = new RpcMode[4]
+	{
+		new RpcMode(systemThread: false, vm: false),
+		new RpcMode(systemThread: true, vm: false),
+		new RpcMode(systemThread: false, vm: true),
+		new RpcMode(systemThread: true, vm: true)
+	};
+
 	internal static async Task<List<string>> TryGetFtpProfilesAsync(string ip)
 	{
 		List<string> results = new List<string>();
-		await FtpHelpers.WithClientAsync(new FtpConnectionSettings
+		using CancellationTokenSource timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(8.0));
+		try
 		{
-			Ip = ip
-		}, async delegate(AsyncFtpClient client)
-		{
+			(string, int, string, string, int) tuple = await FtpHelpers.ResolveAsync(new FtpConnectionSettings
+			{
+				Ip = ip,
+				TimeoutMs = 2500
+			}, timeoutCts.Token);
+			string item = tuple.Item1;
+			int item2 = tuple.Item2;
+			string item3 = tuple.Item3;
+			string item4 = tuple.Item4;
+			int item5 = tuple.Item5;
+			await using AsyncFtpClient client = FtpHelpers.CreateClient(item, item2, item3, item4, item5);
+			client.Config.RetryAttempts = 0;
+			await client.Connect(timeoutCts.Token);
 			string[] profileRoots = ProfileRoots;
 			foreach (string root in profileRoots)
 			{
@@ -91,8 +129,10 @@ internal static class ProfileHelpers
 					}
 				}
 			}
-			return 0;
-		}, CancellationToken.None);
+		}
+		catch
+		{
+		}
 		return results;
 	}
 
@@ -100,8 +140,38 @@ internal static class ProfileHelpers
 	{
 		using HttpClient client = new HttpClient();
 		client.Timeout = TimeSpan.FromSeconds(2L);
-		string requestUri = "http://" + ip + ":9999/getProfileInfo";
-		using HttpResponseMessage response = await client.GetAsync(requestUri);
+		try
+		{
+			List<F3ProfileInfo> list = await TryGetProfilesFromEndpointAsync(client, "http://" + ip + ":9999/getProfileInfo");
+			if (list.Count != 0)
+			{
+				return list;
+			}
+			list = await TryGetProfilesFromEndpointAsync(client, "http://" + ip + ":9999/profile");
+			if (list.Count != 0)
+			{
+				return list;
+			}
+			list = await TryGetAuthenticatedAuroraProfilesAsync(client, ip);
+			if (list.Count != 0)
+			{
+				return list;
+			}
+		}
+		catch
+		{
+		}
+		return new List<F3ProfileInfo>();
+	}
+
+	private static async Task<List<F3ProfileInfo>> TryGetProfilesFromEndpointAsync(HttpClient client, string requestUri, string? bearerToken = null)
+	{
+		using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+		if (!string.IsNullOrWhiteSpace(bearerToken))
+		{
+			request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + bearerToken);
+		}
+		using HttpResponseMessage response = await client.SendAsync(request);
 		if (!response.IsSuccessStatusCode)
 		{
 			return new List<F3ProfileInfo>();
@@ -121,6 +191,81 @@ internal static class ProfileHelpers
 		catch
 		{
 			return new List<F3ProfileInfo>();
+		}
+	}
+
+	private static async Task<List<F3ProfileInfo>> TryGetAuthenticatedAuroraProfilesAsync(HttpClient client, string ip)
+	{
+		List<(string Username, string Password)> list = new List<(string, string)>();
+		string text = Environment.GetEnvironmentVariable("XECLI_HTTP_USER") ?? string.Empty;
+		string text2 = Environment.GetEnvironmentVariable("XECLI_HTTP_PASS") ?? string.Empty;
+		if (!string.IsNullOrWhiteSpace(text) && !string.IsNullOrWhiteSpace(text2))
+		{
+			list.Add((text.Trim(), text2));
+		}
+		(string, string)[] array = new(string, string)[4]
+		{
+			("xboxhttp", "xboxhttp"),
+			("xboxhttp", "xbox"),
+			("admin", "admin"),
+			("aurora", "aurora")
+		};
+		(string, string)[] array2 = array;
+		for (int i = 0; i < array2.Length; i++)
+		{
+			(string, string) tuple = array2[i];
+			(string, string) item = tuple;
+			if (!list.Any((ValueTuple<string, string> e) => string.Equals(e.Item1, item.Item1, StringComparison.OrdinalIgnoreCase) && string.Equals(e.Item2, item.Item2, StringComparison.Ordinal)))
+			{
+				list.Add(item);
+			}
+		}
+		foreach ((string Username, string Password) item2 in list)
+		{
+			string token = await TryAuthenticateAuroraAsync(client, ip, item2.Username, item2.Password);
+			if (!string.IsNullOrWhiteSpace(token))
+			{
+				List<F3ProfileInfo> list2 = await TryGetProfilesFromEndpointAsync(client, "http://" + ip + ":9999/profile", token);
+				if (list2.Count != 0)
+				{
+					return list2;
+				}
+			}
+		}
+		return new List<F3ProfileInfo>();
+	}
+
+	private static async Task<string?> TryAuthenticateAuroraAsync(HttpClient client, string ip, string username, string password)
+	{
+		using FormUrlEncodedContent formUrlEncodedContent = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+		{
+			new KeyValuePair<string, string>("username", username),
+			new KeyValuePair<string, string>("password", password)
+		});
+		using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "http://" + ip + ":9999/authenticate")
+		{
+			Content = formUrlEncodedContent
+		};
+		using HttpResponseMessage response = await client.SendAsync(request);
+		if (!response.IsSuccessStatusCode)
+		{
+			return null;
+		}
+		string text = await response.Content.ReadAsStringAsync();
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			return null;
+		}
+		try
+		{
+			return JsonSerializer.Deserialize<AuroraAuthResponse>(text, new JsonSerializerOptions
+			{
+				PropertyNameCaseInsensitive = true
+			})?.Token;
+		}
+		catch
+		{
+			return null;
 		}
 	}
 
@@ -151,18 +296,18 @@ internal static class ProfileHelpers
 	{
 		int signedInSlot = -1;
 		uint signedInState = 0u;
+		RpcMode selectedRpcMode = XamRpcModes[0];
 		await WithFreshClientAsync(ip, port, timeoutMs, async delegate(XbdmClient client)
 		{
 			Jrpc2Client jrpc = new Jrpc2Client(client);
 			for (int slot = 0; slot < 4; slot++)
 			{
-				if (TryParseRpcUInt32(await jrpc.CallAsync(RpcDataType.Int, null, "xam.xex", 528, systemThread: false, vm: false, new RpcArgument[1]
-				{
-					new RpcArgument(RpcArgType.Int, slot)
-				}, cancellationToken), out var value) && value != 0)
+				(bool parsed, uint value, RpcMode mode) tuple = await ProbeSignInStateAsync(jrpc, slot, cancellationToken);
+				if (tuple.parsed && tuple.value != 0)
 				{
 					signedInSlot = slot;
-					signedInState = value;
+					signedInState = tuple.value;
+					selectedRpcMode = tuple.mode;
 					break;
 				}
 			}
@@ -185,23 +330,15 @@ internal static class ProfileHelpers
 			await ZeroMemoryRawAsync(client, infoBuffer, 256, cancellationToken);
 			return 0;
 		}, cancellationToken);
-		await WithFreshClientAsync(ip, port, timeoutMs, async delegate(XbdmClient client)
+		bool populated = await WithFreshClientAsync(ip, port, timeoutMs, async delegate(XbdmClient client)
 		{
 			Jrpc2Client jrpc = new Jrpc2Client(client);
-			await jrpc.CallAsync(RpcDataType.Int, null, "xam.xex", 526, systemThread: false, vm: false, new RpcArgument[3]
-			{
-				new RpcArgument(RpcArgType.Int, signedInSlot),
-				new RpcArgument(RpcArgType.UInt, nameBuffer),
-				new RpcArgument(RpcArgType.Int, 256)
-			}, cancellationToken);
-			await jrpc.CallAsync(RpcDataType.Int, null, "xam.xex", 551, systemThread: false, vm: false, new RpcArgument[3]
-			{
-				new RpcArgument(RpcArgType.Int, signedInSlot),
-				new RpcArgument(RpcArgType.Int, 1),
-				new RpcArgument(RpcArgType.UInt, infoBuffer)
-			}, cancellationToken);
-			return 0;
+			return await PopulateXamUserInfoBuffersAsync(jrpc, signedInSlot, nameBuffer, infoBuffer, selectedRpcMode, cancellationToken);
 		}, cancellationToken);
+		if (!populated)
+		{
+			return null;
+		}
 		byte[] nameBytes = await WithFreshClientAsync(ip, port, timeoutMs, (XbdmClient client) => ReadMemoryRawAsync(client, nameBuffer, 64, cancellationToken), cancellationToken);
 		byte[] array = await WithFreshClientAsync(ip, port, timeoutMs, (XbdmClient client) => ReadMemoryRawAsync(client, infoBuffer, 64, cancellationToken), cancellationToken);
 		string text = ReadAsciiString(nameBytes);
@@ -232,15 +369,15 @@ internal static class ProfileHelpers
 		Jrpc2Client jrpc = new Jrpc2Client(client);
 		int signedInSlot = -1;
 		uint signedInState = 0u;
+		RpcMode selectedRpcMode = XamRpcModes[0];
 		for (int slot = 0; slot < 4; slot++)
 		{
-			if (TryParseRpcUInt32(await jrpc.CallAsync(RpcDataType.Int, null, "xam.xex", 528, systemThread: false, vm: false, new RpcArgument[1]
-			{
-				new RpcArgument(RpcArgType.Int, slot)
-			}, cancellationToken), out var value) && value != 0)
+			(bool parsed, uint value, RpcMode mode) tuple = await ProbeSignInStateAsync(jrpc, slot, cancellationToken);
+			if (tuple.parsed && tuple.value != 0)
 			{
 				signedInSlot = slot;
-				signedInState = value;
+				signedInState = tuple.value;
+				selectedRpcMode = tuple.mode;
 				break;
 			}
 		}
@@ -259,18 +396,11 @@ internal static class ProfileHelpers
 		{
 			await ZeroMemoryRawAsync(client, nameBuffer, 256, cancellationToken);
 			await ZeroMemoryRawAsync(client, infoBuffer, 256, cancellationToken);
-			await jrpc.CallAsync(RpcDataType.Int, null, "xam.xex", 526, systemThread: false, vm: false, new RpcArgument[3]
+			bool flag = await PopulateXamUserInfoBuffersAsync(jrpc, signedInSlot, nameBuffer, infoBuffer, selectedRpcMode, cancellationToken);
+			if (!flag)
 			{
-				new RpcArgument(RpcArgType.Int, signedInSlot),
-				new RpcArgument(RpcArgType.UInt, nameBuffer),
-				new RpcArgument(RpcArgType.Int, 256)
-			}, cancellationToken);
-			await jrpc.CallAsync(RpcDataType.Int, null, "xam.xex", 551, systemThread: false, vm: false, new RpcArgument[3]
-			{
-				new RpcArgument(RpcArgType.Int, signedInSlot),
-				new RpcArgument(RpcArgType.Int, 1),
-				new RpcArgument(RpcArgType.UInt, infoBuffer)
-			}, cancellationToken);
+				return null;
+			}
 			byte[] nameBytes = await ReadMemoryRawAsync(client, nameBuffer, 64, cancellationToken);
 			byte[] array = await ReadMemoryRawAsync(client, infoBuffer, 64, cancellationToken);
 			string text = ReadAsciiString(nameBytes);
@@ -298,6 +428,85 @@ internal static class ProfileHelpers
 		catch
 		{
 			return null;
+		}
+	}
+
+	private static async Task<(bool parsed, uint value, RpcMode mode)> ProbeSignInStateAsync(Jrpc2Client jrpc, int slot, CancellationToken cancellationToken)
+	{
+		bool flag = false;
+		uint num = 0u;
+		RpcMode result = XamRpcModes[0];
+		RpcMode[] xamRpcModes = XamRpcModes;
+		foreach (RpcMode rpcMode in xamRpcModes)
+		{
+			try
+			{
+				string text = await jrpc.CallAsync(RpcDataType.Int, null, "xam.xex", (int)XamUserGetSigninStateOrdinal, rpcMode.SystemThread, rpcMode.Vm, new RpcArgument[1]
+				{
+					new RpcArgument(RpcArgType.Int, slot)
+				}, cancellationToken);
+				if (TryParseRpcUInt32(text, out var value))
+				{
+					if (!flag)
+					{
+						flag = true;
+						num = value;
+						result = rpcMode;
+					}
+					if (value != 0)
+					{
+						return (parsed: true, value, rpcMode);
+					}
+				}
+			}
+			catch
+			{
+			}
+		}
+		if (flag)
+		{
+			return (parsed: true, num, result);
+		}
+		return (parsed: false, 0u, XamRpcModes[0]);
+	}
+
+	private static async Task<bool> PopulateXamUserInfoBuffersAsync(Jrpc2Client jrpc, int signedInSlot, uint nameBuffer, uint infoBuffer, RpcMode preferredMode, CancellationToken cancellationToken)
+	{
+		foreach (RpcMode item in GetRpcModesForRetry(preferredMode))
+		{
+			try
+			{
+				await jrpc.CallAsync(RpcDataType.Int, null, "xam.xex", (int)XamUserGetNameOrdinal, item.SystemThread, item.Vm, new RpcArgument[3]
+				{
+					new RpcArgument(RpcArgType.Int, signedInSlot),
+					new RpcArgument(RpcArgType.UInt, nameBuffer),
+					new RpcArgument(RpcArgType.Int, 256)
+				}, cancellationToken);
+				await jrpc.CallAsync(RpcDataType.Int, null, "xam.xex", (int)XamUserGetSigninInfoOrdinal, item.SystemThread, item.Vm, new RpcArgument[3]
+				{
+					new RpcArgument(RpcArgType.Int, signedInSlot),
+					new RpcArgument(RpcArgType.Int, 1),
+					new RpcArgument(RpcArgType.UInt, infoBuffer)
+				}, cancellationToken);
+				return true;
+			}
+			catch
+			{
+			}
+		}
+		return false;
+	}
+
+	private static IEnumerable<RpcMode> GetRpcModesForRetry(RpcMode preferredMode)
+	{
+		yield return preferredMode;
+		RpcMode[] xamRpcModes = XamRpcModes;
+		foreach (RpcMode rpcMode in xamRpcModes)
+		{
+			if (rpcMode.SystemThread != preferredMode.SystemThread || rpcMode.Vm != preferredMode.Vm)
+			{
+				yield return rpcMode;
+			}
 		}
 	}
 
@@ -329,16 +538,36 @@ internal static class ProfileHelpers
 
 	private static async Task<uint?> FindScratchBaseAsync(XbdmClient client, CancellationToken cancellationToken)
 	{
+		uint[] array = new uint[3] { 805306368u, 805306624u, 805310464u };
+		uint[] array2 = array;
+		foreach (uint candidate in array2)
+		{
+			try
+			{
+				if ((await ReadMemoryRawAsync(client, candidate, 32, cancellationToken)).Length == 32)
+				{
+					return candidate;
+				}
+			}
+			catch
+			{
+			}
+		}
 		IEnumerable<XbdmMemoryRegion> enumerable = from r in await client.GetMemoryRegionsAsync(cancellationToken)
-			where r.Protect == 4 && r.Size >= 512
+			where r.Protect == 4 && r.Size >= 64
 			orderby Math.Abs((long)r.BaseAddress - 805306368L)
 			select r;
 		foreach (XbdmMemoryRegion region in enumerable)
 		{
-			byte[] array = await ReadMemoryRawAsync(client, region.BaseAddress, 256, cancellationToken);
-			if (array.Length >= 256 && array.Count((byte b) => b != 0) == 0)
+			try
 			{
-				return region.BaseAddress;
+				if ((await ReadMemoryRawAsync(client, region.BaseAddress, 32, cancellationToken)).Length == 32)
+				{
+					return region.BaseAddress;
+				}
+			}
+			catch
+			{
 			}
 		}
 		return null;

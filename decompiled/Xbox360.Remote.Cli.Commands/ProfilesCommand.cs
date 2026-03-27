@@ -26,11 +26,12 @@ public sealed class ProfilesCommand : AsyncCommand<ProfilesCommand.Settings>
 	public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
 	{
 		var (ip, port, timeout) = await CliHelpers.ResolveTargetAsync(settings, CancellationToken.None);
-		return await CliHelpers.WithClientAsync((Ip: ip, Port: port, TimeoutMs: timeout), settings, async delegate(XbdmClient client)
+		return await CliHelpers.WithClientOnceAsync((Ip: ip, Port: port, TimeoutMs: timeout), settings, async delegate(XbdmClient client)
 		{
+			bool allowXamProbe = string.Equals(Environment.GetEnvironmentVariable("XECLI_ALLOW_XAM_PROBE"), "1", StringComparison.OrdinalIgnoreCase);
 			IReadOnlyList<XbdmUserInfo> users = await client.GetUserListAsync(CancellationToken.None);
 			ProfileHelpers.XamUserInfo xamUser = null;
-			if (users.Count == 0)
+			if (allowXamProbe && users.Count == 0)
 			{
 				try
 				{

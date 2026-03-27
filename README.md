@@ -1,12 +1,10 @@
-<p align="center">
-  <img src="Assets/readme/header.png" alt="XeCLI logo" width="350">
-</p>
+# XeCLI
 
-[![Support XeCLI on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/saveeditors)
 XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with XBDM, JRPC2, FTP, XeLL-backed NAND dumping, XEX tooling, memory inspection, content workflows, reverse-engineering helpers, and release packaging.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
+[![Support XeCLI on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/saveeditors)
 
 ## What XeCLI Covers
 
@@ -43,18 +41,26 @@ Portable zip users can run `rgh.exe` directly from the extracted release folder.
 ## Documentation
 
 - [GitHub Wiki](https://github.com/SaveEditors/xecli/wiki)
-- [Beginner Guide](https://github.com/SaveEditors/xecli/wiki/Beginner-Guide)
-- [Commands Reference](https://github.com/SaveEditors/xecli/wiki/Commands)
-- [XTAF / FATX Manager](https://github.com/SaveEditors/xecli/wiki/FATX-Manager)
+- [Wiki Home](https://github.com/SaveEditors/xecli/wiki/Home)
+- [Latest Features](https://github.com/SaveEditors/xecli/wiki/Latest-Features)
 - [XeCLI-XellFetch](https://github.com/SaveEditors/xecli/wiki/XeCLI-XellFetch)
+- [XTAF / FATX Manager](https://github.com/SaveEditors/xecli/wiki/FATX-Manager)
+- [Commands Reference](https://github.com/SaveEditors/xecli/wiki/Commands)
+- [CLI Help Output](https://github.com/SaveEditors/xecli/wiki/CLI-Help)
+- [Beginner Guide](https://github.com/SaveEditors/xecli/wiki/Beginner-Guide)
+- [Advanced Guide](https://github.com/SaveEditors/xecli/wiki/Advanced-Guide)
+- [Reverse Engineering](https://github.com/SaveEditors/xecli/wiki/Reverse-Engineering)
+- [Integrations](https://github.com/SaveEditors/xecli/wiki/Integrations)
 - [Troubleshooting](https://github.com/SaveEditors/xecli/wiki/Troubleshooting)
-- [Release Notes](https://github.com/SaveEditors/xecli/wiki/Releases)
+- [Release Notes v1.0.8](https://github.com/SaveEditors/xecli/wiki/Release-Notes-v1.0.8)
+- [All Releases](https://github.com/SaveEditors/xecli/wiki/Releases)
+- [GitHub Releases](https://github.com/SaveEditors/xecli/releases)
 
 ## Tooling Notes
 
 Ghidra is an external `(Free)` dependency. XeCLI's supported Ghidra XEX import path uses the maintained [SaveEditors/XEXLoaderWV](https://github.com/SaveEditors/XEXLoaderWV) fork.
 
-The IDA workflow uses the maintained [SaveEditors/idaxex](https://github.com/SaveEditors/idaxex/releases/tag/0.42b-compat) `0.42b-compat` baseline on `IDA Pro 9.1.250226`, and XeCLI also supports later matching `idaxex` lines such as `0.43` on `IDA Pro 9.2`.
+The IDA workflow is pinned to `IDA Pro 9.1.250226` with `idaxex 0.42b`.
 
 ## Why XTAF Matters
 
@@ -82,4 +88,4 @@ The standalone `XeCLI-XellFetch` repo is published at [github.com/SaveEditors/Xe
 
 ![XeCLI help](assets/readme/rgh-help.png)
 
-![XeCLI status](assets/readme/rgh-examples.png)
+![XeCLI status](assets/readme/rgh-status.png)

@@ -350,7 +350,7 @@ internal static partial class LocalizedText
         ["IDAUSR override for plugins/loaders."] = "Anulación de IDAUSR para complementos/cargadores.",
         ["idaxex loader not found. Install it into your IDA folder or IDAUSR before analyzing XEX files."] = "idaxex cargador no encontrado. Instálelo en su carpeta IDA o IDAUSR antes de analizar los archivos XEX.",
         ["idaxex loader not found. Install it into your IDA folder or IDAUSR before decompiling XEX files."] = "idaxex cargador no encontrado. Instálelo en su carpeta IDA o IDAUSR antes de descompilar los archivos XEX.",
-        ["idaxex loader not found. Install the 0.42b-compat ida91 release into your IDA folder or IDAUSR before analyzing XEX files."] = "idaxex cargador no encontrado. Instale la versión 0.42b-compat ida91 en su carpeta IDA o IDAUSR antes de analizar los archivos XEX.",
+        ["idaxex loader not found. Install the 0.42b ida91 release into your IDA folder or IDAUSR before analyzing XEX files."] = "idaxex cargador no encontrado. Instale la versión 0.42b ida91 en su carpeta IDA o IDAUSR antes de analizar los archivos XEX.",
         ["Include content-type breakdowns per title."] = "Incluya desgloses por tipo de contenido por título.",
         ["Include pending-sync status for each record."] = "Incluya el estado de sincronización pendiente para cada registro.",
         ["Include section details."] = "Incluya detalles de la sección.",

@@ -12,8 +12,8 @@ namespace Xbox360.Remote.Cli.Commands;
 internal static class ReverseEngineeringSupportConstants {
     public const string SupportedIdaDisplayVersion = "IDA Pro 9.1.250226";
     public const string SupportedIdaProductVersion = "9.1.25.0226";
-    public const string SupportedIdaxexLabel = "SaveEditors idaxex 0.42b-compat";
-    public const string SupportedIdaxexArchiveUrl = "https://github.com/SaveEditors/idaxex/releases/download/0.42b-compat/idaxex%2Bxex1tool-0.42b-compat_ida91.zip";
+    public const string SupportedIdaxexLabel = "idaxex 0.42b";
+    public const string SupportedIdaxexArchiveUrl = "https://github.com/emoose/idaxex/releases/download/0.42b/idaxex%2Bxex1tool-0.42b_ida91.zip";
     public const string SupportedIdaxexDllSha256 = "97581B47D3E1C7306B8BAA289C6A4EF68D736078C87ACCC63F70A396CC497946";
     public const string KnownIdaxex43DllSha256 = "DA2BC0245A3A06721CCE3804777D63E31B3CF33A4507A1B3B07A966B16F09030";
     public const string GhidraLatestLoaderApiUrl = "https://api.github.com/repos/SaveEditors/XEXLoaderWV/releases/latest";
@@ -246,7 +246,7 @@ internal static class IdaRuntimeHelpers {
 
         string sha256 = ReverseEngineeringDownloadHelpers.ComputeSha256(loaderPath);
         if (string.Equals(sha256, ReverseEngineeringSupportConstants.SupportedIdaxexDllSha256, StringComparison.OrdinalIgnoreCase))
-            return new IdaLoaderStatus(loaderPath, sha256, "0.42b-compat / ida91 (supported)", true, false);
+            return new IdaLoaderStatus(loaderPath, sha256, "0.42b (supported)", true, false);
         if (string.Equals(sha256, ReverseEngineeringSupportConstants.KnownIdaxex43DllSha256, StringComparison.OrdinalIgnoreCase))
             return new IdaLoaderStatus(loaderPath, sha256, "0.43 / ida 9.2 build detected", false, true);
         return new IdaLoaderStatus(loaderPath, sha256, "present but unrecognized", false, false);

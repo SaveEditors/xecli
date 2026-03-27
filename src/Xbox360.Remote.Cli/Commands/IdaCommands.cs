@@ -196,11 +196,11 @@ public sealed class IdaInstallLoaderCommand : AsyncCommand<IdaInstallLoaderComma
         public string? IdaPath { get; init; }
 
         [CommandOption("--archive <FILE>")]
-        [LocalizedDescription("Use a local SaveEditors idaxex 0.42b-compat archive instead of downloading one.")]
+        [LocalizedDescription("Use a local idaxex 0.42b archive instead of downloading one.")]
         public string? ArchivePath { get; init; }
 
         [CommandOption("--url <URL>")]
-        [LocalizedDescription("Download idaxex from an explicit URL instead of the supported SaveEditors default.")]
+        [LocalizedDescription("Download idaxex from an explicit URL instead of the supported default.")]
         public string? Url { get; init; }
     }
 
@@ -233,7 +233,7 @@ public sealed class IdaInstallLoaderCommand : AsyncCommand<IdaInstallLoaderComma
                 ? settings.Url
                 : ReverseEngineeringSupportConstants.SupportedIdaxexArchiveUrl;
             archivePath = await ReverseEngineeringDownloadHelpers.DownloadToCacheAsync(
-                "Download SaveEditors idaxex 0.42b-compat",
+                "Download idaxex 0.42b",
                 url,
                 ReverseEngineeringDownloadHelpers.GetDownloadCacheDirectory("ida"),
                 CancellationToken.None);

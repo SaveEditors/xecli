@@ -1,7 +1,8 @@
 param(
-    [string]$PublishDir = "out\win-x64",
+    [string]$PublishDir = "",
     [string]$OutputDir = "out\release",
-    [string]$Version = ""
+    [string]$Version = "",
+    [string]$Runtime = "win-x64"
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,6 +17,10 @@ function Resolve-RepoPath([string]$Path) {
     return Join-Path $repoRoot $Path
 }
 
+if ([string]::IsNullOrWhiteSpace($PublishDir)) {
+    $PublishDir = "out\$Runtime"
+}
+
 $publishDir = Resolve-RepoPath $PublishDir
 $outputDir = Resolve-RepoPath $OutputDir
 
@@ -25,7 +30,7 @@ if (-not (Test-Path (Join-Path $publishDir "rgh.exe"))) {
 
 New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
 
-$suffix = if ([string]::IsNullOrWhiteSpace($Version)) { "win-x64" } else { "$Version-win-x64" }
+$suffix = if ([string]::IsNullOrWhiteSpace($Version)) { $Runtime } else { "$Version-$Runtime" }
 $baseName = "XeCLI-$suffix"
 $zipPath = Join-Path $outputDir "$baseName.zip"
 $hashPath = "$zipPath.sha256"
@@ -43,5 +48,5 @@ Compress-Archive -Path (Join-Path $publishDir "*") -DestinationPath $zipPath -Fo
 $hash = (Get-FileHash $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
 Set-Content -Path $hashPath -Value "$hash *$([System.IO.Path]::GetFileName($zipPath))"
 
-Write-Host "Packaged XeCLI release to $zipPath"
+Write-Host "Packaged XeCLI $Runtime release to $zipPath"
 Write-Host "Wrote SHA256 to $hashPath"

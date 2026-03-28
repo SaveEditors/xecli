@@ -1,6 +1,6 @@
 param(
     [string]$PublishDir = "out\win-x64",
-    [string]$BuildDir = "decompiled\bin\Release\net10.0-windows"
+    [string]$BuildDir = "src\Xbox360.Remote.Cli\bin\Release\net10.0-windows"
 )
 
 $ErrorActionPreference = "Stop"
@@ -118,19 +118,9 @@ if ($LASTEXITCODE -ne 0) {
     throw "Published rgh.exe help failed with exit code $LASTEXITCODE"
 }
 
-& $publishExe language --help | Out-Null
+& $publishExe fatman --help | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    throw "Published rgh.exe language --help failed with exit code $LASTEXITCODE"
-}
-
-& $publishExe xtaf --help | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    throw "Published rgh.exe xtaf --help failed with exit code $LASTEXITCODE"
-}
-
-& $publishExe install | Out-Null
-if ($LASTEXITCODE -eq 0) {
-    throw "Published rgh.exe still exposes the deprecated install command."
+    throw "Published rgh.exe fatman --help failed with exit code $LASTEXITCODE"
 }
 
 Write-Host "Release verification passed for $publishDir"

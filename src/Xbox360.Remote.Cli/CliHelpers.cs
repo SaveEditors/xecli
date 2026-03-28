@@ -109,9 +109,9 @@ internal static class CliHelpers {
     }
 
     private static bool IsTransient(Exception ex) {
-        return ex is IOException ||
-               ex is SocketException ||
-               ex is TimeoutException;
+        return ex is SocketException ||
+               ex is TimeoutException ||
+               ex is IOException ioException && LooksLikeConnectionFailure(ioException.Message);
     }
 
     private static bool IsConnectionFailure(Exception ex) {

@@ -302,9 +302,10 @@ public sealed class XbdmMemPokeCommand : AsyncCommand<XbdmMemPokeCommand.Setting
         }
 
         return await CliHelpers.WithClientAsync(settings, async client => {
+            using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
             byte[] bytes = MemoryValueCodec.BuildBytes(settings.Type, settings.Value, settings.LittleEndian);
-            await client.WriteMemoryAsync(address, bytes, CancellationToken.None);
-            AnsiConsole.MarkupLine("[green]Wrote memory.[/]");
+            await client.WriteMemoryVerifiedAsync(address, bytes, cts.Token);
+            AnsiConsole.MarkupLine($"[green]Wrote and verified[/] 0x{address:X8} ({bytes.Length} byte(s))");
             return 0;
         }, CancellationToken.None);
     }
@@ -676,7 +677,7 @@ public sealed class XbdmMemFindCommand : AsyncCommand<XbdmMemFindCommand.Setting
                     while (count == 0 || pass < count) {
                         freezeCts.Token.ThrowIfCancellationRequested();
                         foreach (uint target in targets) {
-                            await freezeClient.WriteMemoryAsync(target, freezeBytes, freezeCts.Token);
+                            await freezeClient.WriteMemoryVerifiedAsync(target, freezeBytes, freezeCts.Token);
                         }
                         pass++;
                         if (count > 0 && pass >= count)
@@ -684,7 +685,7 @@ public sealed class XbdmMemFindCommand : AsyncCommand<XbdmMemFindCommand.Setting
                         await Task.Delay(interval, freezeCts.Token);
                     }
 
-                    AnsiConsole.MarkupLine("[green]Freeze loop completed.[/]");
+                    AnsiConsole.MarkupLine("[green]Freeze loop completed with verified writes.[/]");
                     return 0;
                 }
                 catch (OperationCanceledException) {

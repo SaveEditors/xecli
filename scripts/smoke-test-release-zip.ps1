@@ -120,19 +120,9 @@ try {
         throw "Extracted rgh.exe help failed with exit code $LASTEXITCODE"
     }
 
-    & $extractExe language --help | Out-Null
+    & $extractExe fatman --help | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        throw "Extracted rgh.exe language --help failed with exit code $LASTEXITCODE"
-    }
-
-    & $extractExe xtaf --help | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Extracted rgh.exe xtaf --help failed with exit code $LASTEXITCODE"
-    }
-
-    & $extractExe install | Out-Null
-    if ($LASTEXITCODE -eq 0) {
-        throw "Extracted release zip still exposes the deprecated install command."
+        throw "Extracted rgh.exe fatman --help failed with exit code $LASTEXITCODE"
     }
 
     Write-Host "Release zip smoke test passed for $zipPath"

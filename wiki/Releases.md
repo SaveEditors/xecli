@@ -8,14 +8,15 @@ Use this page as the single public entry point for release highlights and the fu
 
 ## Current Release Focus
 
-`v1.0.8` keeps the verified XeLL-backed NAND and keyvault workflow, promotes `rgh xtaf` as the primary FATX/XTAF surface, keeps `fatman` and `fatx` as compatibility aliases, and ships the standalone `XeCLI-XellFetch` payload from its own repo instead of mixing it into the desktop XeCLI release.
+`v1.0.9` fixes the live-debugging trust failures that matter most in practice: small memory reads now line up across `mem peek`, `mem hexdump`, and small dumps; memory writes and freeze loops verify readback before reporting success; and debugger-control commands fail fast when XBDM rejects them instead of printing false-positive success.
 
-The current release also keeps the Windows installer as the only install path, persists the initial language choice from setup, and documents the maintained `SaveEditors/idaxex` baseline for the IDA workflow.
+The current release also adds a self-contained `win-x86` portable package alongside the existing self-contained `win-x64` portable package and keeps the `win-x64` setup installer for machine install and PATH registration.
 
 ## Release Index
 
 | Release | Focus | Links |
 | --- | --- | --- |
+| `v1.0.9` | Critical debugging bug fixes and expanded portable release assets | [Release notes](#v109-critical-debugging-bug-fixes) |
 | `v1.0.8` | XTAF promotion, standalone XeCLI-XellFetch packaging, and installer polish | [Release notes](#v108-xtaf-packaging-and-installer-polish) |
 | `v1.0.7` | Spanish localization, dark Inno Setup installer, Ko-fi support, and the canonical GitHub wiki migration | [Release notes](#v107-spanish-localization-inno-setup-and-wiki) |
 | `v1.0.6` | Automated NAND dumping, managed XeLL/XeCLI-XellFetch staging, verified packaging, and safe reboot control | [Release notes](#v106-automated-nand-dumping-and-xecli-xellfetch) |
@@ -27,6 +28,14 @@ The current release also keeps the Windows installer as the only install path, p
 | `v1.0.0` | Initial public XeCLI release | [Release notes](#v100-initial-release) |
 
 Published GitHub releases: [All releases](https://github.com/SaveEditors/xecli/releases)
+
+## v1.0.9 Critical Debugging Bug Fixes
+
+- Fixed the false-zero small-read path so `rgh mem peek`, `rgh mem hexdump`, and small `rgh mem dump` reads agree on the same live memory instead of silently trusting bad `getmemex` results.
+- Added write verification for `rgh mem poke` and freeze loops so XeCLI reads the target bytes back and fails if the write is rejected or the readback does not match.
+- Hardened debugger-control commands so `rgh debug stop`, `rgh debug go`, breakpoints, and data breakpoints only print success after XBDM returns an accepted response.
+- Corrected the `rgh debug databreak --type rw` mapping so it emits a real read/write data breakpoint instead of silently degrading to read-only.
+- Added self-contained portable packages for both `win-x64` and `win-x86`, with SHA-256 files for each portable zip and the existing `win-x64` setup installer retained for the installer workflow.
 
 ## v1.0.8 XTAF, Packaging, and Installer Polish
 

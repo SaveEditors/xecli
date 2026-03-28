@@ -19,7 +19,7 @@ Avatar workflows in the shipped release now support both:
 
 Native XeLL workflows are also built into the shipped CLI now. `rgh xell ...` and `rgh nand dump` handle guided XeLL launch, keyvault export, and verified read-only NAND backup without depending on an external flasher workflow.
 
-v1.0.8 builds on that by promoting `rgh xtaf` as the primary FATX/XTAF surface, separating `XeCLI-XellFetch` into its own standalone release path, and polishing the Windows installer and documentation for a cleaner public release.
+v1.0.9 hardens the live-debugging path by aligning small memory reads across `mem peek`, `mem hexdump`, and small dumps, verifying memory writes before success is printed, and rejecting false-positive debugger control responses. It also adds a self-contained `win-x86` portable package alongside the self-contained `win-x64` portable package.
 
 Local content workflows are built in now as well. `rgh con`, `rgh profile`, and `rgh xdbf` cover pulled CON/profile/GPD files directly, including rehash/resign, raw `Account` or GPD extraction, achievement and setting edits, and avatar color edits inside profile packages.
 
@@ -108,7 +108,7 @@ Use these pages first:
 - Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing
 - Launch, reboot, and console notification workflows
 - Guided XeLL launch, XeLL HTTP endpoint inspection, keyvault export, and verified read-only NAND backup
-- v1.0.8 adds XTAF-first disk workflows, cleaner standalone payload packaging, and installer polish on top of the verified NAND dump flow
+- v1.0.9 adds verified memory/debugger behavior and dual-architecture portable packaging on top of the verified NAND dump flow
 - Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 documented as a title-local spoof flow rather than a signed-in account change
 - Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs
 
@@ -172,7 +172,7 @@ That means the current `xtaf` surface focuses on disk and image analysis, repair
 
 ## Common Starting Commands
 ```powershell
-.\XeCLI-1.0.8-setup-win-x64.exe
+.\XeCLI-v1.0.9-setup-win-x64.exe
 rgh --help
 rgh language
 rgh start
@@ -213,14 +213,15 @@ rgh screenshot --out .\screen.bmp
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
 
 ## Release Packaging
-The published Windows release is a self-contained `win-x64` package.
+The published Windows release includes self-contained portable packages for `win-x64` and `win-x86`, plus the `win-x64` setup installer.
 
 That means:
 
-- `rgh.exe` runs without a separate .NET install
-- runtime files ship beside the executable in the release folder
+- `rgh.exe` runs without a separate .NET install in either portable package
+- runtime files ship beside the executable in each release folder
 - `ConsoleDependencies/`, `Assets/`, `ghidra_scripts/`, and `ida_scripts/` ship in the same release package
 - `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex` are also exposed at the repo root for direct download/reference
-- the published setup executable can register `rgh`, set the initial UI language, and offer immediate console discovery after setup
+- each portable zip ships with a matching SHA-256 file
+- the published `win-x64` setup executable can register `rgh`, set the initial UI language, and offer immediate console discovery after setup
 
 Only source builds require a local .NET 10 SDK/runtime.

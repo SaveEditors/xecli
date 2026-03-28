@@ -177,10 +177,12 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
             DateTime? timestampDate = timestamp == 0 ? null : DateTimeOffset.FromUnixTimeSeconds(timestamp).UtcDateTime;
 
             uint? entryPoint = null;
-            (XbdmResponse entryResponse, IReadOnlyList<string>? entryLines) = await SendCommandMaybeLinesAsync($"xexfield module=\"{name}\" field=0x10100", cancellationToken);
-            if (entryLines != null) {
-                if (entryLines.Count == 2 && uint.TryParse(entryLines[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint ep)) {
-                    entryPoint = ep;
+            if (includeSections) {
+                (XbdmResponse entryResponse, IReadOnlyList<string>? entryLines) = await SendCommandMaybeLinesAsync($"xexfield module=\"{name}\" field=0x10100", cancellationToken);
+                if (entryLines != null) {
+                    if (entryLines.Count == 2 && uint.TryParse(entryLines[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint ep)) {
+                        entryPoint = ep;
+                    }
                 }
             }
 
@@ -327,32 +329,35 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
     public async Task DeleteAsync(string path, CancellationToken cancellationToken) {
         XbdmResponse response = await SendCommandAsync($"delete name=\"{path}\"", cancellationToken);
         if (response.StatusCode == 414) {
-            await SendCommandAsync($"delete name=\"{path}\" dir", cancellationToken);
+            await SendCommandExpectOkAsync($"delete name=\"{path}\" dir", cancellationToken);
+            return;
         }
+
+        EnsureOkResponse(response, "delete");
     }
 
     public Task DebugStopAsync(CancellationToken cancellationToken) {
-        return SendCommandAsync("stop", cancellationToken);
+        return SendCommandExpectOkAsync("stop", cancellationToken);
     }
 
     public Task DebugGoAsync(CancellationToken cancellationToken) {
-        return SendCommandAsync("go", cancellationToken);
+        return SendCommandExpectOkAsync("go", cancellationToken);
     }
 
     public Task SuspendThreadAsync(uint threadId, CancellationToken cancellationToken) {
-        return SendCommandAsync($"suspend thread=0x{threadId:X8}", cancellationToken);
+        return SendCommandExpectOkAsync($"suspend thread=0x{threadId:X8}", cancellationToken);
     }
 
     public Task ResumeThreadAsync(uint threadId, CancellationToken cancellationToken) {
-        return SendCommandAsync($"resume thread=0x{threadId:X8}", cancellationToken);
+        return SendCommandExpectOkAsync($"resume thread=0x{threadId:X8}", cancellationToken);
     }
 
     public Task MoveAsync(string oldPath, string newPath, CancellationToken cancellationToken) {
-        return SendCommandAsync($"rename name=\"{oldPath}\" newname=\"{newPath}\"", cancellationToken);
+        return SendCommandExpectOkAsync($"rename name=\"{oldPath}\" newname=\"{newPath}\"", cancellationToken);
     }
 
     public Task CreateDirectoryAsync(string path, CancellationToken cancellationToken) {
-        return SendCommandAsync($"mkdir name=\"{path}\"", cancellationToken);
+        return SendCommandExpectOkAsync($"mkdir name=\"{path}\"", cancellationToken);
     }
 
     public async Task DownloadFileAsync(string remotePath, Stream destination, IProgress<long>? progress, CancellationToken cancellationToken) {
@@ -396,6 +401,27 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
     }
 
     public async Task ReadMemoryAsync(uint address, uint length, Stream destination, IProgress<long>? progress, CancellationToken cancellationToken) {
+        if (length == 0)
+            return;
+
+        if (length <= 0x4000) {
+            try {
+                byte[] legacy = await ReadMemoryLegacyBytesAsync(address, checked((int) length), cancellationToken);
+                if (legacy.Length == length) {
+                    await destination.WriteAsync(legacy, cancellationToken);
+                    progress?.Report(legacy.Length);
+                    return;
+                }
+            }
+            catch {
+                // Fall back to getmemex streaming when legacy getmem is unavailable.
+            }
+        }
+
+        await ReadMemoryTransportAsync(address, length, destination, progress, cancellationToken);
+    }
+
+    private async Task ReadMemoryTransportAsync(uint address, uint length, Stream destination, IProgress<long>? progress, CancellationToken cancellationToken) {
         await ioLock.WaitAsync(cancellationToken);
         try {
             await WriteLineAsync($"getmemex addr=0x{address:X8} length=0x{length:X8}", cancellationToken);
@@ -411,9 +437,13 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
         }
     }
 
-    public async Task<byte[]> ReadMemoryBytesAsync(uint address, int length, CancellationToken cancellationToken) {
+    public Task<byte[]> ReadMemoryBytesAsync(uint address, int length, CancellationToken cancellationToken) {
+        return ReadMemoryBytesReliableAsync(address, length, cancellationToken);
+    }
+
+    private async Task<byte[]> ReadMemoryBytesTransportAsync(uint address, int length, CancellationToken cancellationToken) {
         using MemoryStream ms = new MemoryStream(length);
-        await ReadMemoryAsync(address, (uint) length, ms, null, cancellationToken);
+        await ReadMemoryTransportAsync(address, (uint) length, ms, null, cancellationToken);
         return ms.ToArray();
     }
 
@@ -432,7 +462,7 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
             }
         }
 
-        byte[] data = await ReadMemoryBytesAsync(address, length, cancellationToken);
+        byte[] data = await ReadMemoryBytesTransportAsync(address, length, cancellationToken);
         if (length > 0x4000 || data.Length != length || data.Any(static b => b != 0))
             return data;
 
@@ -607,9 +637,7 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
                 string hex = ConvertToHex(data.Span.Slice(offset, writeCount));
                 await WriteLineAsync($"setmem addr=0x{address + (uint) offset:X8} data={hex}", cancellationToken);
                 XbdmResponse response = await ReadResponseAsync(cancellationToken);
-                if (response.StatusCode != 200 && response.StatusCode != 404) {
-                    throw new IOException($"setmem failed: {response.RawMessage}");
-                }
+                EnsureOkResponse(response, "setmem");
 
                 offset += writeCount;
             }
@@ -617,6 +645,15 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
         finally {
             ioLock.Release();
         }
+    }
+
+    public async Task WriteMemoryVerifiedAsync(uint address, ReadOnlyMemory<byte> data, CancellationToken cancellationToken) {
+        if (data.Length == 0)
+            return;
+
+        await WriteMemoryAsync(address, data, cancellationToken);
+        byte[] verified = await ReadMemoryBytesReliableAsync(address, data.Length, cancellationToken);
+        EnsureMemoryMatches(address, data.Span, verified);
     }
 
     public async Task<(XbdmResponse Response, IReadOnlyList<string>? Lines)> SendRawAsync(string command, CancellationToken cancellationToken) {
@@ -634,6 +671,12 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
         finally {
             ioLock.Release();
         }
+    }
+
+    public async Task<XbdmResponse> SendCommandExpectOkAsync(string command, CancellationToken cancellationToken) {
+        XbdmResponse response = await SendCommandAsync(command, cancellationToken);
+        EnsureOkResponse(response, command);
+        return response;
     }
 
     private async Task<byte[]> ReadMemoryLegacyBytesAsync(uint address, int length, CancellationToken cancellationToken) {
@@ -660,6 +703,25 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
             return Array.Empty<byte>();
 
         return Convert.FromHexString(normalized.Substring(0, maxChars));
+    }
+
+    private static void EnsureOkResponse(XbdmResponse response, string operation) {
+        if (response.StatusCode != 200)
+            throw new IOException($"{operation} failed: {response.RawMessage}");
+    }
+
+    private static void EnsureMemoryMatches(uint address, ReadOnlySpan<byte> expected, ReadOnlySpan<byte> actual) {
+        if (actual.Length != expected.Length) {
+            throw new IOException($"memory verification failed at 0x{address:X8}: expected {expected.Length} byte(s), read back {actual.Length}.");
+        }
+
+        for (int i = 0; i < expected.Length; i++) {
+            if (expected[i] == actual[i])
+                continue;
+
+            throw new IOException(
+                $"memory verification failed at 0x{address + (uint) i:X8}: expected 0x{expected[i]:X2}, got 0x{actual[i]:X2}.");
+        }
     }
 
     private async Task WriteLineAsync(string command, CancellationToken cancellationToken) {
@@ -946,7 +1008,7 @@ public sealed class XbdmClient : IAsyncDisposable, IDisposable {
             bytes = await ReadMemoryBytesSmallAsync(address, length, cancellationToken);
         }
         catch {
-            bytes = await ReadMemoryBytesAsync(address, length, cancellationToken);
+            bytes = await ReadMemoryBytesTransportAsync(address, length, cancellationToken);
         }
         int end = Array.IndexOf(bytes, (byte) 0);
         if (end < 0)

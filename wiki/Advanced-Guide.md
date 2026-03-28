@@ -59,12 +59,16 @@ rgh mem poke --addr 0x82000000 --type string --value "XeCLI"
 
 Do not treat `poke` as a blind trainer primitive. Read the target first, confirm endianness, then write.
 
+In the current release, `mem poke` verifies the write by reading the target bytes back. If the console rejects the write or the readback differs, XeCLI fails instead of printing a misleading success line.
+
 ### Freeze writes
 ```powershell
 rgh mem search --addr 0x82000000 --size 0x4000 --pattern 00000000 --freeze --freeze-type u32 --freeze-value 1 --freeze-count 10
 ```
 
 Use this for controlled short tests. Infinite freeze loops are available, but that is not a good default during early analysis.
+
+Freeze writes now use the same verified-write path as `mem poke`, which makes short freeze passes safer for live validation work.
 
 ## Module Work
 ### Safe module queries
@@ -116,6 +120,8 @@ rgh debug watch
 
 `debug watch` is the quickest way to confirm that the console is actually emitting debug lifecycle events instead of silently stalling.
 
+`debug stop` and `debug go` now require accepted XBDM responses. A rejected control command is reported as a failure, not as a silent success.
+
 ### Breakpoints
 ```powershell
 rgh debug break add --addr 0x82001000
@@ -123,6 +129,8 @@ rgh debug databreak add --addr 0x82100000 --size 4 --type write
 ```
 
 Use code breakpoints to catch known execution sites and data breakpoints to identify writers to hot structures.
+
+`debug databreak --type rw` now maps to a true read/write data breakpoint. Breakpoint and databreak commands also fail fast when XBDM rejects the request.
 
 ## XEX, Ghidra, and IDA Work
 ### Dump the actual executable

@@ -26,6 +26,10 @@ function Get-AppVersion {
     param([string]$ProjectPath, [string]$RequestedVersion)
 
     if (-not [string]::IsNullOrWhiteSpace($RequestedVersion)) {
+        if ($RequestedVersion.StartsWith("v", [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $RequestedVersion.Substring(1)
+        }
+
         return $RequestedVersion
     }
 
@@ -37,6 +41,16 @@ function Get-AppVersion {
     }
 
     throw "Unable to determine XeCLI version from $ProjectPath"
+}
+
+function Get-AssetVersionLabel {
+    param([string]$RequestedVersion, [string]$AppVersion)
+
+    if (-not [string]::IsNullOrWhiteSpace($RequestedVersion)) {
+        return $RequestedVersion
+    }
+
+    return $AppVersion
 }
 
 function Find-IsccPath {
@@ -137,11 +151,12 @@ function Ensure-DotNetRuntimeInstaller {
     return $runtimeInstallerPath
 }
 
-$projectPath = Join-Path $repoRoot "decompiled\rgh.csproj"
+$projectPath = Join-Path $repoRoot "src\Xbox360.Remote.Cli\Xbox360.Remote.Cli.csproj"
 $publishDir = Resolve-RepoPath $PublishDir
 $outputDir = Resolve-RepoPath $OutputDir
 $issPath = Join-Path $repoRoot "installer\XeCLI.iss"
 $appVersion = Get-AppVersion -ProjectPath $projectPath -RequestedVersion $Version
+$assetVersionLabel = Get-AssetVersionLabel -RequestedVersion $Version -AppVersion $appVersion
 $resolvedDotNetRuntimeUrl = Resolve-DotNetRuntimeUrl -RequestedUrl $DotNetRuntimeUrl -RuntimeVersion $DotNetRuntimeVersion
 $dotNetRuntimeInstallerPath = Ensure-DotNetRuntimeInstaller -RuntimeVersion $DotNetRuntimeVersion -RuntimeUrl $resolvedDotNetRuntimeUrl
 
@@ -150,7 +165,7 @@ if (-not (Test-Path $issPath)) {
 }
 
 if (-not $SkipPublish) {
-    & (Join-Path $repoRoot "scripts\publish-release.ps1") -Output $publishDir
+    & (Join-Path $repoRoot "scripts\publish-release.ps1") -Runtime "win-x64" -Output $publishDir
 }
 
 & (Join-Path $repoRoot "scripts\verify-release.ps1") -PublishDir $publishDir
@@ -182,9 +197,23 @@ if ($LASTEXITCODE -ne 0) {
     throw "ISCC.exe failed with exit code $LASTEXITCODE"
 }
 
+$builtSetupExe = Join-Path $outputDir "XeCLI-$appVersion-setup-win-x64.exe"
+$releaseSetupExe = Join-Path $outputDir "XeCLI-$assetVersionLabel-setup-win-x64.exe"
+if (-not $builtSetupExe.Equals($releaseSetupExe, [System.StringComparison]::OrdinalIgnoreCase)) {
+    if (-not (Test-Path $builtSetupExe)) {
+        throw "Expected installer output was not found at $builtSetupExe"
+    }
+
+    if (Test-Path $releaseSetupExe) {
+        Remove-Item -Force $releaseSetupExe
+    }
+
+    Move-Item -Force $builtSetupExe $releaseSetupExe
+}
+
 if ($VerifyInstaller) {
-    $setupExe = Join-Path $outputDir "XeCLI-$appVersion-setup-win-x64.exe"
+    $setupExe = $releaseSetupExe
     & (Join-Path $repoRoot "scripts\verify-installer.ps1") -SetupExe $setupExe
 }
 
-Write-Host "Built XeCLI installer $appVersion in $outputDir"
+Write-Host "Built XeCLI installer $assetVersionLabel in $outputDir"

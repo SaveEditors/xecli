@@ -16,33 +16,27 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 - Reverse-engineering helpers for Ghidra and IDA, plus XEX dump, decompile, and analysis flows
 - Homebrew, dashboard, compatibility-pack, and USB staging workflows
 
-## v1.0.8 Highlights
+## v1.0.9 Highlights
 
-- Promoted `rgh xtaf` to the primary FATX/XTAF disk and image command surface while keeping `fatman` and `fatx` as compatibility aliases
-- Separated XeCLI and `XeCLI-XellFetch` distribution paths so the desktop CLI and the standalone XeLL payload ship from their own repos
-- Polished the Windows installer with bundled .NET runtime prerequisite handling, installer-owned language selection, and updated copy
-- Kept the automated PC-side NAND workflow with `rgh nand dump` and the verified keyvault path with `rgh xell kv export`
-- Kept verified-success reboot gating so the console only leaves XeLL after the PC confirms the dump is valid
-- Kept same-session verification fallback for consoles that ignore XeLL reboot during the second pass
-
-**Safety note:** Auto-reboot is disabled for `--single` and `--no-verify` so the console does not leave XeLL before the operator sees that verification was skipped.
-
+- Fixed false-zero live memory reads so `rgh mem peek`, `rgh mem hexdump`, and small memory dumps agree on the same target data
+- Added verified memory writes so `rgh mem poke` and freeze loops fail on rejected or mismatched writes instead of printing false success
+- Hardened debugger control so `rgh debug stop`, `rgh debug go`, breakpoints, and data breakpoints only report success when XBDM accepts the command
+- Added self-contained portable release assets for both `win-x64` and `win-x86`, while keeping the `win-x64` setup installer
 ## Quick Start
 
 ```powershell
-.\XeCLI-1.0.8-setup-win-x64.exe
+.\XeCLI-v1.0.9-setup-win-x64.exe
 rgh --help
 rgh language --set es
 rgh nand dump --ip 192.168.1.186 --yes
 ```
 
-Portable zip users can run `rgh.exe` directly from the extracted release folder. The installer exists to register `rgh`, install the bundled .NET runtime when needed, and persist the initial UI language selection.
+Portable zip users can run `rgh.exe` directly from the extracted `win-x64` or `win-x86` release folder. The installer exists to register `rgh`, install the bundled .NET runtime when needed, and persist the initial UI language selection on `win-x64`.
 
 ## Documentation
 
 - [GitHub Wiki](https://github.com/SaveEditors/xecli/wiki)
 - [Wiki Home](https://github.com/SaveEditors/xecli/wiki/Home)
-- [Latest Features](https://github.com/SaveEditors/xecli/wiki/Latest-Features)
 - [XeCLI-XellFetch](https://github.com/SaveEditors/xecli/wiki/XeCLI-XellFetch)
 - [XTAF / FATX Manager](https://github.com/SaveEditors/xecli/wiki/FATX-Manager)
 - [Commands Reference](https://github.com/SaveEditors/xecli/wiki/Commands)
@@ -52,7 +46,6 @@ Portable zip users can run `rgh.exe` directly from the extracted release folder.
 - [Reverse Engineering](https://github.com/SaveEditors/xecli/wiki/Reverse-Engineering)
 - [Integrations](https://github.com/SaveEditors/xecli/wiki/Integrations)
 - [Troubleshooting](https://github.com/SaveEditors/xecli/wiki/Troubleshooting)
-- [Release Notes v1.0.8](https://github.com/SaveEditors/xecli/wiki/Release-Notes-v1.0.8)
 - [All Releases](https://github.com/SaveEditors/xecli/wiki/Releases)
 - [GitHub Releases](https://github.com/SaveEditors/xecli/releases)
 
@@ -89,3 +82,4 @@ The standalone `XeCLI-XellFetch` repo is published at [github.com/SaveEditors/Xe
 ![XeCLI help](assets/readme/rgh-help.png)
 
 ![XeCLI status](assets/readme/rgh-status.png)
+

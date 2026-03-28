@@ -28,24 +28,41 @@ jobs:
 
       - name: Publish win-x64
         shell: pwsh
-        run: .\scripts\publish-release.ps1 -Output out\win-x64
+        run: .\scripts\publish-release.ps1 -Runtime win-x64 -Output out\win-x64
 
-      - name: Verify published release
+      - name: Publish win-x86
+        shell: pwsh
+        run: .\scripts\publish-release.ps1 -Runtime win-x86 -Output out\win-x86
+
+      - name: Verify published win-x64 release
         shell: pwsh
         run: .\scripts\verify-release.ps1 -PublishDir out\win-x64 -BuildDir src\Xbox360.Remote.Cli\bin\Release\net10.0-windows
 
+      - name: Verify published win-x86 release
+        shell: pwsh
+        run: .\scripts\verify-release.ps1 -PublishDir out\win-x86 -BuildDir src\Xbox360.Remote.Cli\bin\Release\net10.0-windows
+
       - name: Package win-x64
         shell: pwsh
-        run: .\scripts\package-release.ps1 -PublishDir out\win-x64 -OutputDir out\release
+        run: .\scripts\package-release.ps1 -PublishDir out\win-x64 -OutputDir out\release -Runtime win-x64
 
-      - name: Smoke test packaged zip
+      - name: Package win-x86
+        shell: pwsh
+        run: .\scripts\package-release.ps1 -PublishDir out\win-x86 -OutputDir out\release -Runtime win-x86
+
+      - name: Smoke test packaged win-x64 zip
         shell: pwsh
         run: .\scripts\smoke-test-release-zip.ps1 -ZipPath out\release\XeCLI-win-x64.zip
+
+      - name: Smoke test packaged win-x86 zip
+        shell: pwsh
+        run: .\scripts\smoke-test-release-zip.ps1 -ZipPath out\release\XeCLI-win-x86.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: XeCLI-win-x64
+          name: XeCLI-release-assets
           path: |
             out/win-x64
+            out/win-x86
             out/release

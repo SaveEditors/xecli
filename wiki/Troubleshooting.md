@@ -2,6 +2,25 @@
 
 This page covers the failures most likely to matter during real RGH/JTAG use.
 
+## `rgh mem peek`, `rgh mem hexdump`, and `rgh mem dump` disagree
+Expected behavior in the current release is that small reads line up across all three commands.
+
+Checks:
+
+- re-read the exact same address and size without changing the title state
+- confirm the region is still mapped with `rgh mem regions`
+- compare a static buffer before testing a fast-moving game structure
+
+Useful commands:
+
+```powershell
+rgh mem hexdump --addr 0x30000000 --size 0x40
+rgh mem peek --addr 0x30000000 --type u32
+rgh mem dump --addr 0x30000000 --size 0x40 --out .\mem.bin
+```
+
+If the same small region still disagrees across those commands, treat it as target-side instability or a transport/plugin problem rather than normal CLI behavior.
+
 ## `rgh ping` or `rgh status` hangs too long
 Expected behavior in the current release is fast failure, not long silent hangs.
 
@@ -123,7 +142,7 @@ The full installer wizard is intentionally skipped or simplified when:
 Manual fallback:
 
 ```powershell
-.\XeCLI-1.0.8-setup-win-x64.exe
+.\XeCLI-v1.0.9-setup-win-x64.exe
 ```
 
 If the post-install console prompt did not appear, XeCLI either did not detect a console fast enough or you skipped it. Use:
@@ -135,7 +154,7 @@ rgh status
 ```
 
 ## `rgh.exe` says .NET is missing
-The published `win-x64` release should not require a separate .NET install. If you see a runtime-missing error:
+The published `win-x64` and `win-x86` portable releases should not require a separate .NET install. If you see a runtime-missing error:
 
 - you are probably using an older framework-dependent build
 - or you are running a source build instead of the packaged release
@@ -155,7 +174,7 @@ dotnet run --project src/Xbox360.Remote.Cli -- --help
 ```
 
 ## The portable release is not the same as the installer
-The zip release is the portable build. The setup executable is the installer.
+The zip releases are the portable builds. The setup executable is the installer.
 
 Use the setup executable when you want:
 
@@ -168,3 +187,4 @@ Use the zip release when you want:
 - a portable folder you can run directly
 - no installation changes on the machine
 - manual control over where the files live
+- a choice between `win-x64` and `win-x86` portable packages

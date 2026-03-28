@@ -798,6 +798,8 @@ SUCCESS Memory dump complete
 0x82000000 length=0x00020000 -> .\mem.bin
 ```
 
+`rgh mem dump`, `rgh mem hexdump`, and `rgh mem peek` now share the same reliable small-read path. On a healthy target, the same region should agree across all three commands.
+
 ### `rgh mem hexdump`
 ```powershell
 rgh mem hexdump --addr 0x30000000 --size 0x40
@@ -836,6 +838,8 @@ Example output:
 0x82000000 = 0x12345678 (u32)
 ```
 
+For small reads, `peek` prefers the reliable XBDM read path before falling back to `getmemex`, matching `hexdump` and small `dump` behavior on live titles.
+
 ### `rgh mem poke`
 ```powershell
 rgh mem poke --addr 0x82000000 --type u32 --value 0x12345678
@@ -854,9 +858,10 @@ Type aliases include:
 Example output:
 
 ```text
-SUCCESS Memory write complete
-0x82000000 <= 0x12345678 (u32)
+Wrote and verified 0x82000000 (4 byte(s))
 ```
+
+`poke` now reads the target bytes back and fails if XBDM rejects the write or the readback does not match.
 
 ### `rgh mem watch`
 ```powershell
@@ -908,6 +913,8 @@ Hits
 0x820004A8
 0x820019F0
 ```
+
+Freeze writes use the same verified-write path as `rgh mem poke`, so rejected writes and mismatched readback now fail instead of silently continuing.
 
 ## XEX Commands
 ### `rgh xex dump`
@@ -1034,6 +1041,8 @@ execution stopped
 execution started
 ```
 
+`debug stop` and `debug go` now fail when XBDM rejects the command. They no longer print success on non-OK responses.
+
 ### Breakpoints
 ```powershell
 rgh debug break add --addr 0x82001000
@@ -1048,9 +1057,12 @@ SUCCESS Breakpoint added
 0x82001000
 ```
 
+Breakpoint add, remove, and clear operations now require an accepted XBDM response before XeCLI reports success.
+
 ### Data breakpoints
 ```powershell
 rgh debug databreak add --addr 0x82100000 --size 4 --type write
+rgh debug databreak add --addr 0x82100000 --size 4 --type rw
 rgh debug databreak remove --addr 0x82100000 --size 4 --type write
 ```
 
@@ -1060,6 +1072,8 @@ Example output:
 SUCCESS Data breakpoint added
 addr=0x82100000 size=4 type=write
 ```
+
+`--type rw` is accepted as the `readwrite` alias. Data breakpoint add and remove operations now fail when XBDM rejects the request.
 
 ## JRPC2 Commands
 ```powershell

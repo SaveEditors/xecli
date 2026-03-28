@@ -1,11 +1,16 @@
 param(
-    [string]$Output = "out\win-x64"
+    [string]$Runtime = "win-x64",
+    [string]$Output = ""
 )
 
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$projectPath = Join-Path $repoRoot "decompiled\rgh.csproj"
+$projectPath = Join-Path $repoRoot "src\Xbox360.Remote.Cli\Xbox360.Remote.Cli.csproj"
+
+if ([string]::IsNullOrWhiteSpace($Output)) {
+    $Output = "out\$Runtime"
+}
 
 if ([System.IO.Path]::IsPathRooted($Output)) {
     $publishDir = $Output
@@ -20,29 +25,10 @@ if (Test-Path $publishDir) {
 
 dotnet publish $projectPath `
     -c Release `
-    -r win-x64 `
+    -r $Runtime `
     --self-contained true `
     -p:PublishSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
     -o $publishDir
 
-foreach ($asset in @(
-    "ghidra_scripts",
-    "ida_scripts",
-    "ConsoleDependencies",
-    "LICENSE"
-)) {
-    $sourcePath = Join-Path $repoRoot $asset
-    $destinationPath = Join-Path $publishDir $asset
-    if (-not (Test-Path $sourcePath)) {
-        throw "Required release asset was not found at $sourcePath"
-    }
-
-    if (Test-Path $destinationPath) {
-        Remove-Item -Recurse -Force $destinationPath
-    }
-
-    Copy-Item -Recurse -Force $sourcePath $destinationPath
-}
-
-Write-Host "Published XeCLI to $publishDir"
+Write-Host "Published XeCLI ($Runtime) to $publishDir"

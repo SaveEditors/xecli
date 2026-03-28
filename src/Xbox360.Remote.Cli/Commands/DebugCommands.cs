@@ -65,9 +65,9 @@ public sealed class XbdmDebugWatchCommand : AsyncCommand<XbdmDebugWatchCommand.S
             TimeoutMs = timeout
         }, token);
 
-        await control.SendCommandAsync($"debugger connect override name=\"{EscapeQuoted(debuggerName)}\" user=\"{EscapeQuoted(Environment.MachineName)}\"", token);
+        await control.SendCommandExpectOkAsync($"debugger connect override name=\"{EscapeQuoted(debuggerName)}\" user=\"{EscapeQuoted(Environment.MachineName)}\"", token);
         if (settings.StopOnFce)
-            await control.SendCommandAsync("stopon fce", token);
+            await control.SendCommandExpectOkAsync("stopon fce", token);
 
         using TcpClient notifyClient = new TcpClient();
         notifyClient.ReceiveTimeout = timeout;
@@ -168,7 +168,7 @@ public sealed class XbdmBreakpointAddCommand : AsyncCommand<XbdmBreakpointAddCom
 
         return await CliHelpers.WithClientAsync(settings, async client => {
             using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
-            await client.SendCommandAsync($"break addr=0x{address:X8}", cts.Token);
+            await client.SendCommandExpectOkAsync($"break addr=0x{address:X8}", cts.Token);
             AnsiConsole.MarkupLine("[green]Breakpoint set.[/]");
             return 0;
         }, CancellationToken.None);
@@ -189,7 +189,7 @@ public sealed class XbdmBreakpointRemoveCommand : AsyncCommand<XbdmBreakpointRem
 
         return await CliHelpers.WithClientAsync(settings, async client => {
             using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
-            await client.SendCommandAsync($"break addr=0x{address:X8} clear", cts.Token);
+            await client.SendCommandExpectOkAsync($"break addr=0x{address:X8} clear", cts.Token);
             AnsiConsole.MarkupLine("[green]Breakpoint cleared.[/]");
             return 0;
         }, CancellationToken.None);
@@ -200,7 +200,7 @@ public sealed class XbdmBreakpointClearAllCommand : AsyncCommand<ConnectionSetti
     public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings) {
         return await CliHelpers.WithClientAsync(settings, async client => {
             using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
-            await client.SendCommandAsync("break clearall", cts.Token);
+            await client.SendCommandExpectOkAsync("break clearall", cts.Token);
             AnsiConsole.MarkupLine("[green]All breakpoints cleared.[/]");
             return 0;
         }, CancellationToken.None);
@@ -239,8 +239,8 @@ public sealed class XbdmDataBreakpointAddCommand : AsyncCommand<XbdmDataBreakpoi
 
         return await CliHelpers.WithClientAsync(settings, async client => {
             using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
-            await client.SendCommandAsync($"debugger connect override name=\"rgh\" user=\"{Environment.MachineName}\"", cts.Token);
-            await client.SendCommandAsync($"break {type}=0x{address:X8} size=0x{size:X8}", cts.Token);
+            await client.SendCommandExpectOkAsync($"debugger connect override name=\"rgh\" user=\"{Environment.MachineName}\"", cts.Token);
+            await client.SendCommandExpectOkAsync($"break {type}=0x{address:X8} size=0x{size:X8}", cts.Token);
             AnsiConsole.MarkupLine("[green]Data breakpoint set.[/]");
             return 0;
         }, CancellationToken.None);
@@ -279,8 +279,8 @@ public sealed class XbdmDataBreakpointRemoveCommand : AsyncCommand<XbdmDataBreak
 
         return await CliHelpers.WithClientAsync(settings, async client => {
             using CancellationTokenSource cts = CliHelpers.CreateTimeoutTokenSource(settings);
-            await client.SendCommandAsync($"debugger connect override name=\"rgh\" user=\"{Environment.MachineName}\"", cts.Token);
-            await client.SendCommandAsync($"break {type}=0x{address:X8} size=0x{size:X8} clear", cts.Token);
+            await client.SendCommandExpectOkAsync($"debugger connect override name=\"rgh\" user=\"{Environment.MachineName}\"", cts.Token);
+            await client.SendCommandExpectOkAsync($"break {type}=0x{address:X8} size=0x{size:X8} clear", cts.Token);
             AnsiConsole.MarkupLine("[green]Data breakpoint cleared.[/]");
             return 0;
         }, CancellationToken.None);
@@ -293,7 +293,7 @@ internal static class XbdmDebugCommandHelpers {
             return "write";
         return value.Trim().ToLowerInvariant() switch {
             "read" => "read",
-            "rw" => "read",
+            "rw" => "readwrite",
             "execute" => "execute",
             "exec" => "execute",
             "write" => "write",

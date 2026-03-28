@@ -80,7 +80,7 @@ Filename: "{app}\rgh.exe"; \
 [Code]
 const
   PathTaskName = 'modifypath';
-  SupportUrl = 'https://ko-fi.com/saveeditors';
+  SupportUrl = 'https://ko-fi.com/xecli';
   MachineEnvironmentKey = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
   UserEnvironmentKey = 'Environment';
 

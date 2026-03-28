@@ -22,13 +22,13 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 - Added verified memory writes so `rgh mem poke` and freeze loops fail on rejected or mismatched writes instead of printing false success
 - Hardened debugger control so `rgh debug stop`, `rgh debug go`, breakpoints, and data breakpoints only report success when XBDM accepts the command
 - Added self-contained portable release assets for both `win-x64` and `win-x86`, while keeping the `win-x64` setup installer
-## Quick Start
+## Quick Start Example
 
 ```powershell
 .\XeCLI-v1.0.9-setup-win-x64.exe
 rgh --help
 rgh language --set es
-rgh nand dump --ip 192.168.1.186 --yes
+rgh nand dump --ip 192.168.1.1 --yes
 ```
 
 Portable zip users can run `rgh.exe` directly from the extracted `win-x64` or `win-x86` release folder. The installer exists to register `rgh`, install the bundled .NET runtime when needed, and persist the initial UI language selection on `win-x64`.

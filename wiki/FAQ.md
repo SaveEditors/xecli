@@ -197,4 +197,4 @@ No single tool replaces every scene workflow perfectly. The goal of XeCLI is to 
 ## How can I support the project
 Use the Ko-fi link in the README or the support button in the published wiki:
 
-- [ko-fi.com/saveeditors](https://ko-fi.com/saveeditors)
+- [ko-fi.com/xecli](https://ko-fi.com/xecli)

@@ -1,10 +1,9 @@
 param(
-    [string]$PublishDir = "out\win-x64",
+    [Alias("PublishDir")]
+    [string]$StageRoot = "out\installer-stage",
     [string]$OutputDir = "out\installer",
     [string]$Version = "",
     [string]$IsccPath = "",
-    [string]$DotNetRuntimeVersion = "10.0.5",
-    [string]$DotNetRuntimeUrl = "",
     [switch]$SkipPublish,
     [switch]$StageOnly,
     [switch]$VerifyInstaller
@@ -115,63 +114,34 @@ function Find-IsccPath {
     return $null
 }
 
-function Resolve-DotNetRuntimeUrl {
-    param(
-        [string]$RequestedUrl,
-        [string]$RuntimeVersion
-    )
-
-    if (-not [string]::IsNullOrWhiteSpace($RequestedUrl)) {
-        return $RequestedUrl
-    }
-
-    return "https://dotnetcli.azureedge.net/dotnet/Runtime/$RuntimeVersion/dotnet-runtime-$RuntimeVersion-win-x64.exe"
-}
-
-function Ensure-DotNetRuntimeInstaller {
-    param(
-        [string]$RuntimeVersion,
-        [string]$RuntimeUrl
-    )
-
-    $cacheDir = Join-Path $repoRoot "tmp\installer-prereqs"
-    New-Item -ItemType Directory -Force -Path $cacheDir | Out-Null
-
-    $runtimeInstallerPath = Join-Path $cacheDir "dotnet-runtime-$RuntimeVersion-win-x64.exe"
-    if (Test-Path $runtimeInstallerPath) {
-        return $runtimeInstallerPath
-    }
-
-    Write-Host "Downloading .NET runtime $RuntimeVersion from $RuntimeUrl"
-    Invoke-WebRequest -Uri $RuntimeUrl -OutFile $runtimeInstallerPath
-    if (-not (Test-Path $runtimeInstallerPath)) {
-        throw "Failed to download .NET runtime installer from $RuntimeUrl"
-    }
-
-    return $runtimeInstallerPath
-}
-
 $projectPath = Join-Path $repoRoot "src\Xbox360.Remote.Cli\Xbox360.Remote.Cli.csproj"
-$publishDir = Resolve-RepoPath $PublishDir
+$stageRoot = Resolve-RepoPath $StageRoot
 $outputDir = Resolve-RepoPath $OutputDir
 $issPath = Join-Path $repoRoot "installer\XeCLI.iss"
 $appVersion = Get-AppVersion -ProjectPath $projectPath -RequestedVersion $Version
 $assetVersionLabel = Get-AssetVersionLabel -RequestedVersion $Version -AppVersion $appVersion
-$resolvedDotNetRuntimeUrl = Resolve-DotNetRuntimeUrl -RequestedUrl $DotNetRuntimeUrl -RuntimeVersion $DotNetRuntimeVersion
-$dotNetRuntimeInstallerPath = Ensure-DotNetRuntimeInstaller -RuntimeVersion $DotNetRuntimeVersion -RuntimeUrl $resolvedDotNetRuntimeUrl
 
 if (-not (Test-Path $issPath)) {
     throw "Installer script was not found at $issPath"
 }
 
-if (-not $SkipPublish) {
-    & (Join-Path $repoRoot "scripts\publish-release.ps1") -Runtime "win-x64" -Output $publishDir
+$publishDirs = @{
+    "win-x64" = Join-Path $stageRoot "win-x64"
+    "win-x86" = Join-Path $stageRoot "win-x86"
 }
 
-& (Join-Path $repoRoot "scripts\verify-release.ps1") -PublishDir $publishDir
+if (-not $SkipPublish) {
+    foreach ($runtime in @("win-x64", "win-x86")) {
+        & (Join-Path $repoRoot "scripts\publish-release.ps1") -Runtime $runtime -Output $publishDirs[$runtime]
+    }
+}
+
+foreach ($runtime in @("win-x64", "win-x86")) {
+    & (Join-Path $repoRoot "scripts\verify-release.ps1") -PublishDir $publishDirs[$runtime]
+}
 
 if ($StageOnly) {
-    Write-Host "Verified XeCLI release payload for installer staging at $publishDir"
+    Write-Host "Verified XeCLI release payloads for installer staging at $stageRoot"
     return
 }
 
@@ -185,10 +155,8 @@ New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
 $isccArgs = @(
     "/Qp",
     "/DAppVersion=$appVersion",
-    "/DReleaseDir=$publishDir",
+    "/DReleaseDir=$stageRoot",
     "/DOutputDir=$outputDir",
-    "/DDotNetRuntimeVersion=$DotNetRuntimeVersion",
-    "/DDotNetRuntimeInstaller=$dotNetRuntimeInstallerPath",
     $issPath
 )
 
@@ -197,8 +165,8 @@ if ($LASTEXITCODE -ne 0) {
     throw "ISCC.exe failed with exit code $LASTEXITCODE"
 }
 
-$builtSetupExe = Join-Path $outputDir "XeCLI-$appVersion-setup-win-x64.exe"
-$releaseSetupExe = Join-Path $outputDir "XeCLI-$assetVersionLabel-setup-win-x64.exe"
+$builtSetupExe = Join-Path $outputDir "XeCLI-$appVersion-setup.exe"
+$releaseSetupExe = Join-Path $outputDir "XeCLI-$assetVersionLabel-setup.exe"
 if (-not $builtSetupExe.Equals($releaseSetupExe, [System.StringComparison]::OrdinalIgnoreCase)) {
     if (-not (Test-Path $builtSetupExe)) {
         throw "Expected installer output was not found at $builtSetupExe"

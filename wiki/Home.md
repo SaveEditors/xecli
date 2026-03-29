@@ -19,7 +19,7 @@ Avatar workflows in the shipped release now support both:
 
 Native XeLL workflows are also built into the shipped CLI now. `rgh xell ...` and `rgh nand dump` handle guided XeLL launch, keyvault export, and verified read-only NAND backup without depending on an external flasher workflow.
 
-v1.0.9 hardens the live-debugging path by aligning small memory reads across `mem peek`, `mem hexdump`, and small dumps, verifying memory writes before success is printed, and rejecting false-positive debugger control responses. It also adds a self-contained `win-x86` portable package alongside the self-contained `win-x64` portable package.
+v1.0.9 hardens the live-debugging path by aligning small memory reads across `mem peek`, `mem hexdump`, and small dumps, verifying memory writes before success is printed, and rejecting false-positive debugger control responses. It also adds self-contained `win-x86` and `win-x64` portable packages alongside a universal setup installer.
 
 Local content workflows are built in now as well. `rgh con`, `rgh profile`, and `rgh xdbf` cover pulled CON/profile/GPD files directly, including rehash/resign, raw `Account` or GPD extraction, achievement and setting edits, and avatar color edits inside profile packages.
 
@@ -172,7 +172,7 @@ That means the current `xtaf` surface focuses on disk and image analysis, repair
 
 ## Common Starting Commands
 ```powershell
-.\XeCLI-v1.0.9-setup-win-x64.exe
+.\XeCLI-v1.0.9-setup.exe
 rgh --help
 rgh language
 rgh start
@@ -213,7 +213,7 @@ rgh screenshot --out .\screen.bmp
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
 
 ## Release Packaging
-The published Windows release includes self-contained portable packages for `win-x64` and `win-x86`, plus the `win-x64` setup installer.
+The published Windows release includes self-contained portable packages for `win-x64` and `win-x86`, plus a universal setup installer.
 
 That means:
 
@@ -222,6 +222,6 @@ That means:
 - `ConsoleDependencies/`, `Assets/`, `ghidra_scripts/`, and `ida_scripts/` ship in the same release package
 - `xbdm.xex`, `XDRPC.xex`, and `JRPC2.xex` are also exposed at the repo root for direct download/reference
 - each portable zip ships with a matching SHA-256 file
-- the published `win-x64` setup executable can register `rgh`, set the initial UI language, and offer immediate console discovery after setup
+- the published setup executable can register `rgh`, set the initial UI language, and offer immediate console discovery after setup
 
 Only source builds require a local .NET 10 SDK/runtime.

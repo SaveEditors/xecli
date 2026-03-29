@@ -21,17 +21,18 @@ The repository and product name are `XeCLI`. The installed terminal command is `
 - Fixed false-zero live memory reads so `rgh mem peek`, `rgh mem hexdump`, and small memory dumps agree on the same target data
 - Added verified memory writes so `rgh mem poke` and freeze loops fail on rejected or mismatched writes instead of printing false success
 - Hardened debugger control so `rgh debug stop`, `rgh debug go`, breakpoints, and data breakpoints only report success when XBDM accepts the command
-- Added self-contained portable release assets for both `win-x64` and `win-x86`, while keeping the `win-x64` setup installer
+- Added self-contained portable release assets for both `win-x64` and `win-x86`, plus a universal setup installer
+
 ## Quick Start
 
 ```powershell
-.\XeCLI-v1.0.9-setup-win-x64.exe
+.\XeCLI-v1.0.9-setup.exe
 rgh --help
 rgh language --set es
 rgh nand dump --ip 192.168.1.186 --yes
 ```
 
-Portable zip users can run `rgh.exe` directly from the extracted `win-x64` or `win-x86` release folder. The installer exists to register `rgh`, install the bundled .NET runtime when needed, and persist the initial UI language selection on `win-x64`.
+Portable zip users can run `rgh.exe` directly from the extracted `win-x64` or `win-x86` release folder. The installer exists to register `rgh`, add the selected install to PATH, and persist the initial UI language selection on supported Windows installations.
 
 ## Documentation
 
@@ -82,4 +83,3 @@ The standalone `XeCLI-XellFetch` repo is published at [github.com/SaveEditors/Xe
 ![XeCLI help](assets/readme/rgh-help.png)
 
 ![XeCLI status](assets/readme/rgh-status.png)
-

@@ -10,7 +10,7 @@ Use this page as the single public entry point for release highlights and the fu
 
 `v1.0.9` fixes the live-debugging trust failures that matter most in practice: small memory reads now line up across `mem peek`, `mem hexdump`, and small dumps; memory writes and freeze loops verify readback before reporting success; and debugger-control commands fail fast when XBDM rejects them instead of printing false-positive success.
 
-The current release also adds a self-contained `win-x86` portable package alongside the existing self-contained `win-x64` portable package and keeps the `win-x64` setup installer for machine install and PATH registration.
+The current release also adds self-contained `win-x86` and `win-x64` portable packages alongside a universal setup installer for machine install and PATH registration.
 
 ## Release Index
 
@@ -35,7 +35,7 @@ Published GitHub releases: [All releases](https://github.com/SaveEditors/xecli/r
 - Added write verification for `rgh mem poke` and freeze loops so XeCLI reads the target bytes back and fails if the write is rejected or the readback does not match.
 - Hardened debugger-control commands so `rgh debug stop`, `rgh debug go`, breakpoints, and data breakpoints only print success after XBDM returns an accepted response.
 - Corrected the `rgh debug databreak --type rw` mapping so it emits a real read/write data breakpoint instead of silently degrading to read-only.
-- Added self-contained portable packages for both `win-x64` and `win-x86`, with SHA-256 files for each portable zip and the existing `win-x64` setup installer retained for the installer workflow.
+- Added self-contained portable packages for both `win-x64` and `win-x86`, with SHA-256 files for each portable zip and a universal setup installer retained for the installer workflow.
 
 ## v1.0.8 XTAF, Packaging, and Installer Polish
 

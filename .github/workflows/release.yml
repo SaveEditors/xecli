@@ -71,9 +71,9 @@ jobs:
             Select-Object -First 1 -ExpandProperty FullName
           .\scripts\smoke-test-release-zip.ps1 -ZipPath $zip
 
-      - name: Build win-x64 installer
+      - name: Build universal installer
         shell: pwsh
-        run: .\scripts\build-installer.ps1 -PublishDir out\win-x64 -OutputDir out\installer -Version "${{ github.ref_name }}" -SkipPublish
+        run: .\scripts\build-installer.ps1 -OutputDir out\installer -Version "${{ github.ref_name }}" -VerifyInstaller
 
       - name: Publish GitHub release assets
         uses: softprops/action-gh-release@v2

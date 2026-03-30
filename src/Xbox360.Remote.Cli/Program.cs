@@ -127,6 +127,7 @@ internal static class Program {
             config.AddCommand<ConnectCommand>("connect").WithAlias("c").WithDescription("Set or select the default target.");
             config.AddCommand<ScanCommand>("scan").WithAlias("discover").WithDescription("Scan the network for consoles.");
             config.AddCommand<XbdmScreenshotCommand>("screenshot").WithAlias("shot").WithDescription("Capture a live screenshot.");
+            config.AddCommand<TerminalCommand>("terminal").WithAlias("shell").WithDescription("Open the XeCLI interactive terminal dashboard.");
             config.AddBranch("homebrew", homebrew => {
                 homebrew.SetDescription("Download public homebrew packages to USB, a folder, or a detected console drive.");
                 homebrew.AddExample(new[] { "homebrew", "list" });

@@ -168,6 +168,7 @@ internal static class Program
 			config.AddCommand<LanguageCommand>("language").WithAlias("lang").WithDescription("Show or change the saved UI language.");
 			config.AddCommand<StartCommand>("start").WithAlias("s").WithDescription("Discover consoles and set the default target.");
 			config.AddCommand<ConnectCommand>("connect").WithAlias("c").WithDescription("Set or select the default target.");
+			config.AddCommand<TerminalCommand>("terminal").WithAlias("shell").WithDescription("Open the XeCLI interactive terminal dashboard.");
 			config.AddCommand<ScanCommand>("scan").WithAlias("discover").WithDescription("Scan the network for consoles.");
 			config.AddCommand<XbdmScreenshotCommand>("screenshot").WithAlias("shot").WithDescription("Capture a live screenshot.");
 			ConfiguratorExtensions.AddBranch(config, "homebrew", delegate(IConfigurator<CommandSettings> homebrew)

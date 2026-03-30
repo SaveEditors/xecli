@@ -190,8 +190,16 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                 titleName = entry?.Name;
             }
             titleName = ProfileHelpers.TryGetTitleFallbackName(titleId, runningXex, titleName);
+            string? runningXexName = SimplifyRunningXexPath(runningXex);
+            IReadOnlyList<DriveGroup>? driveGroups = drives is { Count: > 0 }
+                ? GroupDrives(drives)
+                : null;
 
             CliConfig cfg = CliConfig.Load();
+            int ftpPort = cfg.DefaultFtpPort ?? 21;
+            bool? ftpReachable = settings.Quick
+                ? null
+                : await TryProbeTcpPortAsync(ip, ftpPort, Math.Clamp(timeout, 800, 3000), CancellationToken.None);
             string? pendingModuleText = null;
             if (cfg.PendingModuleOperation != null &&
                 !string.IsNullOrWhiteSpace(cfg.PendingModuleOperation.Action) &&
@@ -230,6 +238,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                     DmVersion = dmVersion,
                     XbdmFlavor = xbdmFlavor,
                     RunningXex = runningXex,
+                    RunningXexName = runningXexName,
                     TitleId = titleId.HasValue ? $"0x{titleId.Value:X8}" : null,
                     TitleName = titleName,
                     Dashboard = dashVersion,
@@ -244,7 +253,12 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                     SignInState = signInStateText,
                     Gamertag = signedInUser,
                     SignedInXuid = signedInXuid,
-                    PendingModuleOperation = pendingModuleText
+                    PendingModuleOperation = pendingModuleText,
+                    Ftp = new {
+                        Host = ip,
+                        Port = ftpPort,
+                        Reachable = ftpReachable
+                    }
                 });
                 return 0;
             }
@@ -262,6 +276,14 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                 return $"[{color}]{Markup.Escape(value)}[/]";
             }
 
+            WriteStatusHeader(
+                ip,
+                port,
+                info.ExecutionState,
+                motherboard,
+                signedInUser,
+                titleName);
+
             AnsiConsole.Write(new Rule("[bold deepskyblue1]Status[/]").RuleStyle("silver"));
             Table table = CliOutput.CreateTable();
             table.AddColumn(new TableColumn("[bold white]Field[/]"));
@@ -275,7 +297,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
             table.AddRow($"{FieldColor}Process ID{FieldEnd}", info.ProcessId.HasValue ? $"[mediumpurple3]0x{info.ProcessId.Value:X8}[/]" : Unknown);
             table.AddRow($"{FieldColor}Title ID{FieldEnd}", titleId.HasValue ? $"[deepskyblue1]0x{titleId.Value:X8}[/]" : FormatSkipped(skipJrpc));
             table.AddRow($"{FieldColor}Title Name{FieldEnd}", FormatValue(titleName, "springgreen3_1", FormatSkipped(skipJrpc)));
-            table.AddRow($"{FieldColor}Running XEX{FieldEnd}", FormatValue(runningXex, "springgreen3_1"));
+            table.AddRow($"{FieldColor}Running XEX{FieldEnd}", FormatValue(runningXexName, "springgreen3_1"));
             table.AddRow($"{FieldColor}DM Version{FieldEnd}", FormatValue(dmVersion, "cyan1"));
             table.AddRow($"{FieldColor}XBDM Flavor{FieldEnd}", FormatValue(xbdmFlavor, "mediumpurple3"));
             table.AddRow($"{FieldColor}JRPC2{FieldEnd}", jrpcStatus);
@@ -314,7 +336,7 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                 driveTable.AddColumn(new TableColumn("[bold deepskyblue1]Total[/]"));
                 driveTable.AddColumn(new TableColumn("[bold cyan1]Free[/]"));
                 driveTable.AddColumn(new TableColumn("[bold gold1]Used[/]"));
-                foreach (DriveGroup drive in GroupDrives(drives)) {
+                foreach (DriveGroup drive in driveGroups ?? Array.Empty<DriveGroup>()) {
                     string name = Markup.Escape(drive.DisplayName);
                     string aliases = drive.Aliases.Count > 0
                         ? $"[silver]{Markup.Escape(string.Join(", ", drive.Aliases))}[/]"
@@ -348,6 +370,10 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                     AnsiConsole.Write(usbTable);
                 }
             }
+
+            string storageSummaryMarkup = BuildStorageSummaryMarkup(driveGroups, skipDrives);
+            string ftpSummaryMarkup = BuildFtpSummaryMarkup(ip, ftpPort, ftpReachable, settings.Quick);
+            WriteStatusFooter(storageSummaryMarkup, ftpSummaryMarkup);
 
             return 0;
         }
@@ -420,6 +446,128 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
         };
 
         return $"[{color}]{usedPercent:0.#}%[/]";
+    }
+
+    private static void WriteStatusHeader(string ip, int port, string? executionState, string? motherboard, string? gamertag, string? titleName) {
+        List<string> segments = new List<string> {
+            "[bold deepskyblue1]XeCLI Status[/]",
+            $"[cyan1]{Markup.Escape(ip)}:{port}[/]",
+            FormatExecutionState(executionState)
+        };
+
+        if (!string.IsNullOrWhiteSpace(motherboard))
+            segments.Add($"[deepskyblue1]{Markup.Escape(motherboard.Trim())}[/]");
+        if (!string.IsNullOrWhiteSpace(gamertag))
+            segments.Add($"[springgreen3_1]{Markup.Escape(gamertag.Trim())}[/]");
+        if (!string.IsNullOrWhiteSpace(titleName))
+            segments.Add($"[grey70]{Markup.Escape(titleName.Trim())}[/]");
+
+        Panel headerPanel = new Panel(string.Join(" [grey35]|[/] ", segments))
+            .Header("[bold deeppink3]Live Session[/]")
+            .BorderColor(Color.Grey);
+        AnsiConsole.Write(headerPanel);
+    }
+
+    private static void WriteStatusFooter(string storageSummaryMarkup, string ftpSummaryMarkup) {
+        Panel footerPanel = new Panel($"{storageSummaryMarkup}\n{ftpSummaryMarkup}")
+            .Header("[bold deeppink3]Quick Access[/]")
+            .BorderColor(Color.Grey);
+        AnsiConsole.Write(footerPanel);
+    }
+
+    private static string BuildStorageSummaryMarkup(IReadOnlyList<DriveGroup>? driveGroups, bool skipped) {
+        if (skipped)
+            return "[bold deepskyblue1]Storage[/]: [grey70]skipped (--quick/--no-drives)[/]";
+        if (driveGroups == null || driveGroups.Count == 0)
+            return "[bold deepskyblue1]Storage[/]: [grey70]unavailable[/]";
+
+        List<DriveGroup> top = driveGroups
+            .OrderByDescending(d => d.TotalBytes ?? 0)
+            .ThenBy(d => d.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .Take(3)
+            .ToList();
+
+        List<string> entries = new List<string>(top.Count);
+        foreach (DriveGroup drive in top) {
+            entries.Add(
+                $"[white]{Markup.Escape(GetDriveSummaryLabel(drive))}[/] " +
+                $"[cyan1]{Markup.Escape(FormatBytes(drive.FreeBytes))}[/]/[deepskyblue1]{Markup.Escape(FormatBytes(drive.TotalBytes))}[/] " +
+                $"{FormatDriveUsage(drive.TotalBytes, drive.FreeBytes)}");
+        }
+
+        int remaining = driveGroups.Count - top.Count;
+        string more = remaining > 0 ? $" [grey50](+{remaining} more)[/]" : string.Empty;
+        return $"[bold deepskyblue1]Storage[/]: {string.Join(" [grey35]|[/] ", entries)}{more}";
+    }
+
+    private static string BuildFtpSummaryMarkup(string ip, int ftpPort, bool? ftpReachable, bool probeSkipped) {
+        string state = probeSkipped
+            ? "[grey70]not probed[/]"
+            : ftpReachable switch {
+                true => "[springgreen3_1]online[/]",
+                false => "[red1]offline[/]",
+                _ => "[gold1]timeout[/]"
+            };
+
+        return $"[bold deepskyblue1]FTP[/]: [cyan1]{Markup.Escape(ip)}:{ftpPort}[/] {state}";
+    }
+
+    private static string GetDriveSummaryLabel(DriveGroup drive) {
+        if (drive.Family == "internal") {
+            bool gameMount = drive.Aliases.Any(alias => NormalizeDriveName(alias) is "game" or "d");
+            return gameMount ? "Game Mount" : "Internal";
+        }
+
+        return drive.Family switch {
+            "systemext" => "SysExt",
+            "system" => "System",
+            _ => drive.DisplayName.TrimEnd(':')
+        };
+    }
+
+    private static string? SimplifyRunningXexPath(string? runningXex) {
+        if (string.IsNullOrWhiteSpace(runningXex))
+            return null;
+
+        string trimmed = runningXex.Trim();
+        int separator = Math.Max(trimmed.LastIndexOf('\\'), trimmed.LastIndexOf('/'));
+        return separator >= 0 && separator < trimmed.Length - 1
+            ? trimmed[(separator + 1)..]
+            : trimmed;
+    }
+
+    private static async Task<bool?> TryProbeTcpPortAsync(string host, int port, int timeoutMs, CancellationToken cancellationToken) {
+        if (string.IsNullOrWhiteSpace(host) || port is < 1 or > 65535)
+            return null;
+
+        int effectiveTimeout = Math.Max(300, timeoutMs);
+        for (int attempt = 1; attempt <= 2; attempt++) {
+            cancellationToken.ThrowIfCancellationRequested();
+            try {
+                using TcpClient tcp = new TcpClient();
+                Task connectTask = tcp.ConnectAsync(host, port);
+                Task completed = await Task.WhenAny(connectTask, Task.Delay(effectiveTimeout, cancellationToken));
+                if (completed != connectTask) {
+                    if (attempt == 2)
+                        return null;
+                    await Task.Delay(150, cancellationToken);
+                    continue;
+                }
+
+                await connectTask;
+                return tcp.Connected;
+            }
+            catch (OperationCanceledException) {
+                return null;
+            }
+            catch {
+                if (attempt == 2)
+                    return false;
+                await Task.Delay(150, cancellationToken);
+            }
+        }
+
+        return null;
     }
 
     private static IReadOnlyList<DriveGroup> GroupDrives(IReadOnlyList<XbdmDriveEntry> drives) {

@@ -91,6 +91,8 @@ internal static class FtpHelpers {
     }
 
     private static bool IsTransient(Exception ex) {
+        if (ex is DirectoryNotFoundException || ex is FileNotFoundException)
+            return false;
         return ex is IOException ||
                ex is SocketException ||
                ex is TimeoutException;
@@ -153,14 +155,24 @@ internal static class FtpHelpers {
             FluentFTP.FtpReply cwd = await client.Execute($"CWD {path}");
             if (cwd.Success) {
                 FtpListItem[] cwdItems = await client.GetListing(".", FtpListOption.AllFiles);
-                if (!IsLikelyRootListing(path, cwdItems)) {
-                    items = cwdItems;
-                    rootListing = false;
-                }
+                items = cwdItems;
+                rootListing = IsLikelyRootListing(path, cwdItems);
+                await client.Execute("CWD /");
+            }
+            else if (!string.Equals(path, "/", StringComparison.Ordinal)) {
+                throw new DirectoryNotFoundException($"FTP path was not found: {path}");
             }
         }
 
         return (items, rootListing);
+    }
+
+    public static async Task<bool> DirectoryExistsByCwdAsync(AsyncFtpClient client, string path) {
+        string normalized = NormalizePath(path);
+        FluentFTP.FtpReply cwd = await client.Execute($"CWD {normalized}");
+        if (cwd.Success)
+            await client.Execute("CWD /");
+        return cwd.Success;
     }
 
     public static async Task<long?> TryGetFileSizeAsync(AsyncFtpClient client, string path) {
@@ -341,6 +353,58 @@ internal static class FtpHelpers {
         if (slash < 0)
             return null;
         return slash == 0 ? "/" : normalized.Substring(0, slash);
+    }
+
+    private static string GetLeafName(string remotePath) {
+        string normalized = NormalizePath(remotePath).TrimEnd('/');
+        int slash = normalized.LastIndexOf('/');
+        return slash < 0 ? normalized : normalized.Substring(slash + 1);
+    }
+
+    public static async Task<FtpListItem?> TryGetEntryFromParentListingAsync(AsyncFtpClient client, string remotePath) {
+        string normalized = NormalizePath(remotePath).TrimEnd('/');
+        string? parent = GetParentDirectory(normalized);
+        if (parent == null)
+            return null;
+
+        string leaf = GetLeafName(normalized);
+        try {
+            (FtpListItem[] items, bool _) = await GetListingWithFallbackAsync(client, parent);
+            return items.FirstOrDefault(item => string.Equals(item.Name, leaf, StringComparison.OrdinalIgnoreCase));
+        }
+        catch {
+            return null;
+        }
+    }
+
+    public static async Task MoveFileVerifiedAsync(AsyncFtpClient client, string from, string to) {
+        string normalizedFrom = NormalizePath(from);
+        string normalizedTo = NormalizePath(to);
+        await client.MoveFile(normalizedFrom, normalizedTo);
+        if (await FileMoveVerifiedAsync(client, normalizedFrom, normalizedTo))
+            return;
+
+        string? fromParent = GetParentDirectory(normalizedFrom);
+        string? toParent = GetParentDirectory(normalizedTo);
+        if (!string.IsNullOrWhiteSpace(fromParent) && string.Equals(fromParent, toParent, StringComparison.OrdinalIgnoreCase)) {
+            FluentFTP.FtpReply cwd = await client.Execute($"CWD {fromParent}");
+            if (cwd.Success) {
+                FluentFTP.FtpReply renameFrom = await client.Execute($"RNFR {GetLeafName(normalizedFrom)}");
+                if (renameFrom.Success) {
+                    FluentFTP.FtpReply renameTo = await client.Execute($"RNTO {GetLeafName(normalizedTo)}");
+                    if (renameTo.Success && await FileMoveVerifiedAsync(client, normalizedFrom, normalizedTo))
+                        return;
+                }
+            }
+        }
+
+        throw new IOException($"FTP move could not be verified for {normalizedFrom} -> {normalizedTo}.");
+    }
+
+    private static async Task<bool> FileMoveVerifiedAsync(AsyncFtpClient client, string from, string to) {
+        FtpListItem? destination = await TryGetEntryFromParentListingAsync(client, to);
+        FtpListItem? source = await TryGetEntryFromParentListingAsync(client, from);
+        return destination != null && destination.Type == FtpObjectType.File && source == null;
     }
 }
 
@@ -615,13 +679,25 @@ public sealed class FtpGetCommand : AsyncCommand<FtpGetCommand.Settings> {
             string remote = FtpHelpers.NormalizePath(settings.Path);
             string local = settings.Output!;
             long size = await FtpHelpers.TryGetFileSizeAsync(client, remote) ?? 0;
+            string? directory = Path.GetDirectoryName(local);
+            if (!string.IsNullOrWhiteSpace(directory))
+                Directory.CreateDirectory(directory);
 
             await CliOutput.RunWithProgressAsync($"FTP download {Markup.Escape(remote)}", size > 0 ? (uint) size : null, async progress => {
-                Progress<FtpProgress> ftpProgress = new Progress<FtpProgress>(p => {
-                    if (p.TransferredBytes > 0)
-                        progress.Report(new CliOutput.TransferProgressUpdate(p.TransferredBytes, "receiving"));
-                });
-                await client.DownloadFile(local, remote, FtpLocalExists.Overwrite, FtpVerify.None, ftpProgress);
+                const int BufferSize = 81920;
+                byte[] buffer = new byte[BufferSize];
+                long transferred = 0;
+                await using Stream input = await client.OpenRead(remote);
+                await using FileStream output = new FileStream(local, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, useAsync: true);
+                while (true) {
+                    int read = await input.ReadAsync(buffer.AsMemory(0, buffer.Length));
+                    if (read <= 0)
+                        break;
+                    await output.WriteAsync(buffer.AsMemory(0, read));
+                    transferred += read;
+                    progress.Report(new CliOutput.TransferProgressUpdate(transferred, "receiving"));
+                }
+                await output.FlushAsync();
             });
 
             OperationFeedback.WriteSuccess(
@@ -694,44 +770,73 @@ public sealed class FtpDeleteCommand : AsyncCommand<FtpDeleteCommand.Settings> {
             return 1;
         }
 
-        return await FtpHelpers.WithClientAsync(settings, async client => {
-            string remote = FtpHelpers.NormalizePath(settings.Path);
+        (string ip, int port, string user, string pass, int timeoutMs) = await FtpHelpers.ResolveAsync(settings, CancellationToken.None);
+        string remote = FtpHelpers.NormalizePath(settings.Path);
+        await using AsyncFtpClient client = FtpHelpers.CreateClient(ip, port, user, pass, timeoutMs);
+        await client.Connect(CancellationToken.None);
+
+        FtpListItem? entry = await FtpHelpers.TryGetEntryFromParentListingAsync(client, remote);
+        if (entry == null) {
+            AnsiConsole.MarkupLine($"[red]FTP delete failed:[/] {Markup.Escape(remote)} was not found.");
+            return 1;
+        }
+
+        bool existedAsDirectory = entry.Type == FtpObjectType.Directory;
+
+        Exception? lastError = null;
+        try {
+            if (existedAsDirectory) {
+                await client.DeleteDirectory(remote);
+            }
+            else {
+                await client.DeleteFile(remote);
+            }
+        }
+        catch (Exception ex) {
+            lastError = ex;
+        }
+
+        bool stillExists = existedAsDirectory
+            ? await FtpHelpers.DirectoryExistsByCwdAsync(client, remote)
+            : await FtpHelpers.TryGetEntryFromParentListingAsync(client, remote) != null;
+
+        if (stillExists) {
             try {
-                if (await client.DirectoryExists(remote)) {
-                    await client.DeleteDirectory(remote);
-                    AnsiConsole.MarkupLine($"[green]Deleted directory[/] {Markup.Escape(remote)}");
+                FluentFTP.FtpReply reply = await client.Execute(existedAsDirectory ? $"RMD {remote}" : $"DELE {remote}");
+                if (!reply.Success)
+                    lastError ??= new IOException($"FTP delete failed: {reply.Code} {reply.Message}");
+            }
+            catch (Exception ex) {
+                lastError ??= ex;
+            }
+        }
+
+        stillExists = existedAsDirectory
+            ? await FtpHelpers.DirectoryExistsByCwdAsync(client, remote)
+            : await FtpHelpers.TryGetEntryFromParentListingAsync(client, remote) != null;
+
+        if (stillExists) {
+            try {
+                await using AsyncFtpClient verifyClient = FtpHelpers.CreateClient(ip, port, user, pass, timeoutMs);
+                await verifyClient.Connect(CancellationToken.None);
+                bool verifyStillExists = existedAsDirectory
+                    ? await FtpHelpers.DirectoryExistsByCwdAsync(verifyClient, remote)
+                    : await FtpHelpers.TryGetEntryFromParentListingAsync(verifyClient, remote) != null;
+                if (!verifyStillExists) {
+                    AnsiConsole.MarkupLine($"[green]Deleted {(existedAsDirectory ? "directory" : "file")}[/] {Markup.Escape(remote)}");
                     return 0;
                 }
             }
-            catch {
-                // fall through to raw RMD attempt
+            catch (Exception ex) {
+                lastError ??= ex;
             }
+        }
+        else {
+            AnsiConsole.MarkupLine($"[green]Deleted {(existedAsDirectory ? "directory" : "file")}[/] {Markup.Escape(remote)}");
+            return 0;
+        }
 
-            try {
-                if (await client.FileExists(remote)) {
-                    await client.DeleteFile(remote);
-                    AnsiConsole.MarkupLine($"[green]Deleted file[/] {Markup.Escape(remote)}");
-                    return 0;
-                }
-            }
-            catch {
-                // fall through to raw delete attempts
-            }
-
-            FluentFTP.FtpReply reply = await client.Execute($"RMD {remote}");
-            if (reply.Success) {
-                AnsiConsole.MarkupLine($"[green]Deleted directory[/] {Markup.Escape(remote)}");
-                return 0;
-            }
-
-            reply = await client.Execute($"DELE {remote}");
-            if (reply.Success) {
-                AnsiConsole.MarkupLine($"[green]Deleted file[/] {Markup.Escape(remote)}");
-                return 0;
-            }
-
-            throw new IOException($"FTP delete failed: {reply.Code} {reply.Message}");
-        }, CancellationToken.None);
+        throw lastError ?? new IOException($"FTP delete failed for {remote}.");
     }
 }
 
@@ -750,6 +855,8 @@ public sealed class FtpMkdirCommand : AsyncCommand<FtpMkdirCommand.Settings> {
         return await FtpHelpers.WithClientAsync(settings, async client => {
             string remote = FtpHelpers.NormalizePath(settings.Path);
             await client.CreateDirectory(remote);
+            if (!await FtpHelpers.DirectoryExistsByCwdAsync(client, remote))
+                throw new IOException($"FTP directory creation could not be verified for {remote}.");
             AnsiConsole.MarkupLine($"[green]Created directory[/] {Markup.Escape(remote)}");
             return 0;
         }, CancellationToken.None);
@@ -774,13 +881,18 @@ public sealed class FtpMoveCommand : AsyncCommand<FtpMoveCommand.Settings> {
         return await FtpHelpers.WithClientAsync(settings, async client => {
             string from = FtpHelpers.NormalizePath(settings.From);
             string to = FtpHelpers.NormalizePath(settings.To);
-            if (await client.DirectoryExists(from)) {
+            FtpListItem? sourceEntry = await FtpHelpers.TryGetEntryFromParentListingAsync(client, from);
+            if (sourceEntry?.Type == FtpObjectType.Directory) {
                 await client.MoveDirectory(from, to);
+                bool sourceExists = await FtpHelpers.DirectoryExistsByCwdAsync(client, from);
+                bool destinationExists = await FtpHelpers.DirectoryExistsByCwdAsync(client, to);
+                if (sourceExists || !destinationExists)
+                    throw new IOException($"FTP directory move could not be verified for {from} -> {to}.");
                 AnsiConsole.MarkupLine($"[green]Moved directory[/] {Markup.Escape(from)} -> {Markup.Escape(to)}");
                 return 0;
             }
 
-            await client.MoveFile(from, to);
+            await FtpHelpers.MoveFileVerifiedAsync(client, from, to);
             AnsiConsole.MarkupLine($"[green]Moved file[/] {Markup.Escape(from)} -> {Markup.Escape(to)}");
             return 0;
         }, CancellationToken.None);

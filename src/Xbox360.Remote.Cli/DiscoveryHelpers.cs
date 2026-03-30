@@ -17,6 +17,9 @@ internal static class DiscoveryHelpers {
         try {
             return await ConsoleDiscovery.DiscoverAsync(options, token);
         }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) {
+            throw;
+        }
         catch (NotSupportedException) {
             return Array.Empty<DiscoveredConsole>();
         }

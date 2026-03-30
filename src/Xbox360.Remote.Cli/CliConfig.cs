@@ -57,6 +57,7 @@ internal sealed class CliConfig {
     public string? AvatarContentBaseUrl { get; set; }
     public string? AvatarDownloadCachePath { get; set; }
     public string? UiLanguage { get; set; }
+    public string? DiscordClientId { get; set; }
     public bool PathPromptHandled { get; set; }
     public PendingModuleOperationInfo? PendingModuleOperation { get; set; }
     public LedStateInfo? LastLedState { get; set; }

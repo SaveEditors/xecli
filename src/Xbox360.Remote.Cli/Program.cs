@@ -19,7 +19,10 @@ internal static class Program {
     [STAThread]
     public static async Task<int> Main(string[] args) {
         args = LocalizedText.ExtractLanguageArgument(args, out string? requestedLanguage);
+        bool launchTerminalByDefault = ShouldLaunchTerminalByDefault(args);
         args = NormalizeArgs(args);
+        if (launchTerminalByDefault)
+            args = new[] { "terminal" };
         LocalizedText.Initialize(ResolveLanguageCode(args, requestedLanguage));
         Console.InputEncoding = Encoding.UTF8;
         Console.OutputEncoding = Encoding.UTF8;
@@ -1009,5 +1012,17 @@ internal static class Program {
             return false;
 
         return true;
+    }
+
+    private static bool ShouldLaunchTerminalByDefault(string[] args) {
+        if (args.Length != 0)
+            return false;
+
+        string? processPath = Environment.ProcessPath;
+        if (string.IsNullOrWhiteSpace(processPath))
+            return false;
+
+        string executableName = Path.GetFileNameWithoutExtension(processPath);
+        return executableName.Equals("XeTerminal", StringComparison.OrdinalIgnoreCase);
     }
 }

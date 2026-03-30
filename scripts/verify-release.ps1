@@ -76,9 +76,14 @@ function Resolve-RepoPath([string]$Path) {
 $publishDir = Resolve-RepoPath $PublishDir
 $buildDir = Resolve-RepoPath $BuildDir
 $publishExe = Join-Path $publishDir "rgh.exe"
+$publishTerminalExe = Join-Path $publishDir "XeTerminal.exe"
 
 if (-not (Test-Path $publishExe)) {
     throw "Published rgh.exe was not found at $publishExe"
+}
+
+if (-not (Test-Path $publishTerminalExe)) {
+    throw "Published XeTerminal.exe was not found at $publishTerminalExe"
 }
 
 $publishRuntimeConfig = Join-Path $publishDir "rgh.runtimeconfig.json"
@@ -116,6 +121,11 @@ if ($LASTEXITCODE -ne 0) {
 & $publishExe help | Out-Null
 if ($LASTEXITCODE -ne 0) {
     throw "Published rgh.exe help failed with exit code $LASTEXITCODE"
+}
+
+& $publishTerminalExe --version | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "Published XeTerminal.exe --version failed with exit code $LASTEXITCODE"
 }
 
 & $publishExe fatman --help | Out-Null

@@ -10,6 +10,8 @@ These pages are maintained directly in the repository's Markdown wiki source so 
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
+Portable and installed Windows builds also ship `XeTerminal.exe`, which opens the custom XeCLI interface directly when launched with no arguments.
+
 Avatar workflows in the shipped release now support both:
 
 - `rgh avatar choose` for a terminal game/item picker

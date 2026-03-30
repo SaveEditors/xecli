@@ -52,7 +52,7 @@ internal sealed class DiscordRpcService : IDisposable
 	private DiscordRpcService(string clientId)
 	{
 		this.clientId = clientId;
-		timer = new Timer(delegate
+		timer = new System.Threading.Timer(delegate
 		{
 			_ = TickAsync();
 		}, null, Timeout.Infinite, Timeout.Infinite);

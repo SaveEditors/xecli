@@ -4,6 +4,8 @@ XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with X
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
+Portable and installed builds also ship `XeTerminal.exe`, which opens the custom XeCLI interface directly when launched with no arguments.
+
 [![Support XeCLI on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/xecli)
 
 ## What XeCLI Covers
@@ -32,7 +34,7 @@ rgh language --set es
 rgh nand dump --ip 192.168.1.186 --yes
 ```
 
-Portable zip users can run `rgh.exe` directly from the extracted `win-x64` or `win-x86` release folder. The installer exists to register `rgh`, add the selected install to PATH, and persist the initial UI language selection on supported Windows installations.
+Portable zip users can run `rgh.exe` directly from the extracted `win-x64` or `win-x86` release folder. If you want the custom interface without starting in a terminal window, launch `XeTerminal.exe`. The installer exists to register `rgh`, add the selected install to PATH, and persist the initial UI language selection on supported Windows installations.
 
 ## Documentation
 

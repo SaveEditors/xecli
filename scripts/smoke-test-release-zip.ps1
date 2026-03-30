@@ -110,9 +110,19 @@ try {
         throw "Extracted release zip is missing rgh.exe"
     }
 
+    $extractTerminalExe = Join-Path $extractDir "XeTerminal.exe"
+    if (-not (Test-Path $extractTerminalExe)) {
+        throw "Extracted release zip is missing XeTerminal.exe"
+    }
+
     & $extractExe --version | Out-Null
     if ($LASTEXITCODE -ne 0) {
         throw "Extracted rgh.exe --version failed with exit code $LASTEXITCODE"
+    }
+
+    & $extractTerminalExe --version | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Extracted XeTerminal.exe --version failed with exit code $LASTEXITCODE"
     }
 
     & $extractExe help | Out-Null

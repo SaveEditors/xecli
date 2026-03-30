@@ -378,9 +378,19 @@ function Assert-InstallSucceeded([string]$ExpectedLanguage, [string]$LogPath, [s
         throw "Installed rgh.exe was not found at $installedExe"
     }
 
+    $installedTerminalExe = Join-Path $installDir "XeTerminal.exe"
+    if (-not (Test-Path $installedTerminalExe)) {
+        throw "Installed XeTerminal.exe was not found at $installedTerminalExe"
+    }
+
     & $installedExe --version | Out-Null
     if ($LASTEXITCODE -ne 0) {
         throw "Installed rgh.exe --version failed with exit code $LASTEXITCODE"
+    }
+
+    & $installedTerminalExe --version | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Installed XeTerminal.exe --version failed with exit code $LASTEXITCODE"
     }
 
     & $installedExe --lang $ExpectedLanguage --help | Out-Null

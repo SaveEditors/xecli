@@ -86,4 +86,12 @@
     </Content>
   </ItemGroup>
 
+  <Target Name="CreateXeTerminalBuildCopy" AfterTargets="Build" Condition="Exists('$(TargetDir)$(AssemblyName).exe')">
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).exe" DestinationFiles="$(TargetDir)XeTerminal.exe" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CreateXeTerminalPublishCopy" AfterTargets="Publish" Condition="Exists('$(PublishDir)$(AssemblyName).exe')">
+    <Copy SourceFiles="$(PublishDir)$(AssemblyName).exe" DestinationFiles="$(PublishDir)XeTerminal.exe" SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>

@@ -62,15 +62,33 @@ public sealed class TerminalCommand : AsyncCommand<TerminalCommand.Settings>
 		TaskCompletionSource<object?> taskCompletionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
 		Thread thread = new Thread(new ThreadStart(delegate
 		{
+			Exception? uiThreadException = null;
+			ThreadExceptionEventHandler handler = delegate(object? _, ThreadExceptionEventArgs e)
+			{
+				uiThreadException ??= e.Exception;
+			};
 			try
 			{
+				Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+				Application.ThreadException += handler;
 				using XeCliTerminalForm xeCliTerminalForm = new XeCliTerminalForm(options);
 				xeCliTerminalForm.ShowDialog();
-				taskCompletionSource.SetResult(null);
+				if (uiThreadException != null)
+				{
+					taskCompletionSource.TrySetException(uiThreadException);
+				}
+				else
+				{
+					taskCompletionSource.TrySetResult(null);
+				}
 			}
 			catch (Exception exception)
 			{
-				taskCompletionSource.SetException(exception);
+				taskCompletionSource.TrySetException(uiThreadException ?? exception);
+			}
+			finally
+			{
+				Application.ThreadException -= handler;
 			}
 		}));
 		thread.IsBackground = true;

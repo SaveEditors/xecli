@@ -32,7 +32,7 @@ Use these if you want the exact plugin files bundled with XeCLI instead of sourc
 If you are using the published Windows installer, launch the setup executable:
 
 ```powershell
-.\XeCLI-1.0.8-setup-win-x64.exe
+.\XeCLI-1.1.0-setup.exe
 ```
 
 The published release is self-contained. You do not need to install .NET separately for the normal installer or portable `win-x64` release paths.
@@ -42,6 +42,8 @@ The installer walks through:
 - install scope: current user or all users
 - install directory selection
 - PATH registration for new terminals
+- XeTerminal Start menu shortcut creation
+- optional XeTerminal desktop shortcut creation
 
 After setup finishes, XeCLI silently scans for consoles. If one console is detected, it can ask whether to connect immediately. If multiple consoles are detected, it lists them and asks you to choose one. When you confirm, XeCLI runs `rgh status` on the selected console.
 
@@ -52,6 +54,8 @@ rgh --help
 rgh status
 rgh language
 ```
+
+If you prefer the GUI launcher, open `XeTerminal` from the Start menu. If you selected the installer shortcut task, the same launcher is also available on the desktop.
 
 If you prefer the portable zip instead of the installer, extract it and run `rgh.exe` directly from that folder.
 
@@ -111,7 +115,7 @@ rgh mem peek --addr 0x30000000 --type u32
 Screenshot:
 
 ```powershell
-rgh screenshot --out .\screen.bmp
+rgh screenshot --out .\screen.png
 ```
 
 ## 7. Use FTP-Backed Workflows

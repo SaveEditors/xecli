@@ -623,18 +623,20 @@ Detected Consoles
 ## Screenshot Commands
 ### `rgh screenshot`
 ```powershell
-rgh screenshot --out .\screen.bmp
-rgh screenshot --out .\screen.bmp --force
+rgh screenshot --out .\screen.png
+rgh screenshot --out .\screen.png --force
 ```
 
-The command emits decoded frame-buffer metadata after a successful capture.
+The command emits decoded frame-buffer metadata after a successful capture. `.png`, `.bmp`, and `.raw` outputs are supported.
 
 Example output:
 
 ```text
-SUCCESS Screenshot captured
-1024x576  pitch=4096  format=0x00000012
-.\screen.bmp
+Screenshot saved: .\screen.png
+Width  1024
+Height 576
+Pitch  4096
+Format 0x00000012
 ```
 
 ## XBDM Root Commands
@@ -669,14 +671,13 @@ name="Aurora.xex" base=0x90F00000 size=0x00480000
 
 ### `rgh xbdm screenshot`
 ```powershell
-rgh xbdm screenshot --out .\screen.bmp
+rgh xbdm screenshot --out .\screen.png
 ```
 
 Example output:
 
 ```text
-SUCCESS Screenshot captured
-.\screen.bmp
+Screenshot saved: .\screen.png
 ```
 
 ## Module Commands

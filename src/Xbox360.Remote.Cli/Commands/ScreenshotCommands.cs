@@ -1,7 +1,10 @@
 using System.ComponentModel;
 using System.Globalization;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -12,11 +15,11 @@ namespace Xbox360.Remote.Cli.Commands;
 public sealed class XbdmScreenshotCommand : AsyncCommand<XbdmScreenshotCommand.Settings> {
     public sealed class Settings : ConnectionSettings {
         [CommandOption("--out <FILE>")]
-        [LocalizedDescription("Output file path (.bmp or .raw).")]
+        [LocalizedDescription("Output file path (.bmp, .png, or .raw).")]
         public string? Output { get; init; }
 
         [CommandOption("--format <FORMAT>")]
-        [LocalizedDescription("Output format: bmp or raw.")]
+        [LocalizedDescription("Output format: bmp, png, or raw.")]
         public string? Format { get; init; }
 
         [CommandOption("--raw")]
@@ -74,8 +77,9 @@ public sealed class XbdmScreenshotCommand : AsyncCommand<XbdmScreenshotCommand.S
 
         string format = ResolveFormat(settings, outputPath);
         if (!string.Equals(format, "bmp", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(format, "png", StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(format, "raw", StringComparison.OrdinalIgnoreCase)) {
-            AnsiConsole.MarkupLine("[red]Invalid format. Use bmp or raw.[/]");
+            AnsiConsole.MarkupLine("[red]Invalid format. Use bmp, png, or raw.[/]");
             return 1;
         }
 
@@ -93,16 +97,17 @@ public sealed class XbdmScreenshotCommand : AsyncCommand<XbdmScreenshotCommand.S
             }
 
             bool wrote = false;
-            if (string.Equals(format, "bmp", StringComparison.OrdinalIgnoreCase)) {
+            if (string.Equals(format, "bmp", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(format, "png", StringComparison.OrdinalIgnoreCase)) {
                 DecodeOverrides overrides = DecodeOverrides.FromSettings(settings);
-                if (TryWriteBmp(outputPath, shot.Info, shot.Data, overrides, settings, out string? reason, out string? decodeInfo)) {
+                if (TryWriteImage(outputPath, format, shot.Info, shot.Data, overrides, settings, out string? reason, out string? decodeInfo)) {
                     wrote = true;
-                    if (!string.IsNullOrWhiteSpace(decodeInfo)) {
+                    if (ShouldShowDecodeInfo(settings) && !string.IsNullOrWhiteSpace(decodeInfo)) {
                         AnsiConsole.MarkupLine($"[grey]Decode:[/] {Markup.Escape(decodeInfo)}");
                     }
                 }
                 else {
-                    AnsiConsole.MarkupLine($"[yellow]BMP conversion failed:[/] {Markup.Escape(reason ?? "unknown error")}");
+                    AnsiConsole.MarkupLine($"[yellow]{Markup.Escape(format.ToUpperInvariant())} conversion failed:[/] {Markup.Escape(reason ?? "unknown error")}");
                     string rawPath = Path.ChangeExtension(outputPath, ".raw");
                     File.WriteAllBytes(rawPath, shot.Data);
                     outputPath = rawPath;
@@ -147,8 +152,9 @@ public sealed class XbdmScreenshotCommand : AsyncCommand<XbdmScreenshotCommand.S
         AnsiConsole.Write(table);
     }
 
-    private static bool TryWriteBmp(
+    private static bool TryWriteImage(
         string outputPath,
+        string format,
         XbdmScreenshotInfo info,
         byte[] data,
         DecodeOverrides overrides,
@@ -207,7 +213,7 @@ public sealed class XbdmScreenshotCommand : AsyncCommand<XbdmScreenshotCommand.S
             return false;
         }
 
-        int cropRight = ResolveCropRight(settings, outWidth);
+        int cropRight = ResolveCropRight(settings, info, outWidth);
         if (cropRight > 0) {
             outWidth = Math.Max(1, outWidth - cropRight);
         }
@@ -235,8 +241,12 @@ public sealed class XbdmScreenshotCommand : AsyncCommand<XbdmScreenshotCommand.S
             DumpCandidateBitmaps(outputPath, outWidth, outHeight, outStride, candidates);
         }
 
-        DecodeCandidate best = candidates.OrderBy(c => c.Score).First();
+        DecodeCandidate best = SelectBestCandidate(candidates, info, settings);
         decodeInfo = best.Label;
+
+        if (string.Equals(format, "png", StringComparison.OrdinalIgnoreCase)) {
+            return TryWritePng(outputPath, outWidth, outHeight, outStride, best.Rgba, out reason);
+        }
 
         int imageSize = outStride * outHeight;
         int fileSize = 14 + 40 + imageSize;
@@ -244,7 +254,7 @@ public sealed class XbdmScreenshotCommand : AsyncCommand<XbdmScreenshotCommand.S
         using FileStream fs = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None);
         using BinaryWriter writer = new BinaryWriter(fs, Encoding.ASCII, leaveOpen: false);
 
-        writer.Write((ushort) 0x4D42);
+        writer.Write((ushort)0x4D42);
         writer.Write(fileSize);
         writer.Write(0);
         writer.Write(14 + 40);
@@ -252,8 +262,8 @@ public sealed class XbdmScreenshotCommand : AsyncCommand<XbdmScreenshotCommand.S
         writer.Write(40);
         writer.Write(outWidth);
         writer.Write(-outHeight);
-        writer.Write((ushort) 1);
-        writer.Write((ushort) 32);
+        writer.Write((ushort)1);
+        writer.Write((ushort)32);
         writer.Write(0);
         writer.Write(imageSize);
         writer.Write(0);
@@ -266,12 +276,106 @@ public sealed class XbdmScreenshotCommand : AsyncCommand<XbdmScreenshotCommand.S
         return true;
     }
 
-    private static int ResolveCropRight(Settings settings, int width) {
+    private static bool TryWritePng(string outputPath, int width, int height, int stride, byte[] bgra, out string? reason) {
+        reason = null;
+        try {
+            int expected = stride * height;
+            if (bgra.Length < expected) {
+                reason = "Decoded image buffer is smaller than expected.";
+                return false;
+            }
+            byte[] opaque = new byte[expected];
+            Buffer.BlockCopy(bgra, 0, opaque, 0, expected);
+            for (int i = 3; i < opaque.Length; i += 4) {
+                opaque[i] = 0xFF;
+            }
+            using Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+            Rectangle bounds = new Rectangle(0, 0, width, height);
+            BitmapData data = bitmap.LockBits(bounds, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            try {
+                int destStride = Math.Abs(data.Stride);
+                if (destStride < stride) {
+                    reason = "Destination bitmap stride is smaller than the decoded image stride.";
+                    return false;
+                }
+                if (destStride == stride) {
+                    Marshal.Copy(opaque, 0, data.Scan0, expected);
+                }
+                else {
+                    for (int y = 0; y < height; y++) {
+                        IntPtr rowPtr = IntPtr.Add(data.Scan0, y * data.Stride);
+                        Marshal.Copy(opaque, y * stride, rowPtr, stride);
+                    }
+                }
+            }
+            finally {
+                bitmap.UnlockBits(data);
+            }
+            bitmap.Save(outputPath, ImageFormat.Png);
+            return true;
+        }
+        catch (Exception ex) {
+            reason = ex.Message;
+            return false;
+        }
+    }
+
+    private static DecodeCandidate SelectBestCandidate(IReadOnlyList<DecodeCandidate> candidates, XbdmScreenshotInfo info, Settings settings) {
+        DecodeCandidate best = candidates.OrderBy(c => c.Score).First();
+        if (!ShouldUsePreferredAutoCandidate(settings)) {
+            return best;
+        }
+
+        if (info.Format == 0x18280186) {
+            DecodeCandidate? preferred = candidates.FirstOrDefault(c => string.Equals(c.Label, "tiled-xenia-b0-p0 + None + BGRX", StringComparison.Ordinal));
+            if (preferred != null) {
+                return preferred;
+            }
+        }
+
+        return best;
+    }
+
+    private static bool ShouldUsePreferredAutoCandidate(Settings settings) {
+        if (settings.Raw) {
+            return false;
+        }
+        if (!string.IsNullOrWhiteSpace(settings.Decode) && !string.Equals(settings.Decode.Trim(), "auto", StringComparison.OrdinalIgnoreCase)) {
+            return false;
+        }
+        if (!string.IsNullOrWhiteSpace(settings.Endianness) && !string.Equals(settings.Endianness.Trim(), "auto", StringComparison.OrdinalIgnoreCase)) {
+            return false;
+        }
+        if (!string.IsNullOrWhiteSpace(settings.Order) && !string.Equals(settings.Order.Trim(), "auto", StringComparison.OrdinalIgnoreCase)) {
+            return false;
+        }
+        return !settings.XeniaBankXor.HasValue && !settings.XeniaPipeXor.HasValue;
+    }
+
+    private static bool ShouldShowDecodeInfo(Settings settings) {
+        return settings.DumpVariants
+            || !string.IsNullOrWhiteSpace(settings.Decode)
+            || !string.IsNullOrWhiteSpace(settings.Endianness)
+            || !string.IsNullOrWhiteSpace(settings.Order)
+            || settings.Raw
+            || settings.XeniaBankXor.HasValue
+            || settings.XeniaPipeXor.HasValue;
+    }
+
+    private static int ResolveCropRight(Settings settings, XbdmScreenshotInfo info, int width) {
         int crop = Math.Max(0, settings.CropRight);
         if (settings.CropRightPercent.HasValue) {
             double pct = Math.Clamp(settings.CropRightPercent.Value, 0, 50);
             int percentPixels = (int) Math.Round(width * (pct / 100.0));
             crop = Math.Max(crop, percentPixels);
+        }
+
+        if (crop == 0 &&
+            width > 0 &&
+            info.Format == 0x18280186 &&
+            ShouldUsePreferredAutoCandidate(settings)) {
+            int autoPercentPixels = (int)Math.Round(width * 0.02);
+            crop = Math.Max(crop, autoPercentPixels);
         }
 
         if (crop >= width)

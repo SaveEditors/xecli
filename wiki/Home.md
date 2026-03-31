@@ -4,13 +4,15 @@
   <img src="https://raw.githubusercontent.com/SaveEditors/xecli/main/Assets/readme/header.png" alt="XeCLI logo" width="350">
 </p>
 
-XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XTAF, XeLL-backed backups, XEX dumping, memory inspection, and automation. This GitHub wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
+XeCLI is a beta terminal-first Xbox 360 RGH/JTAG toolkit for XBDM, JRPC2, FTP, XTAF, XeLL-backed backups, XEX dumping, memory inspection, and automation. This GitHub wiki is the primary reference for the `rgh` CLI, bundled metadata, and release workflows.
 
 These pages are maintained directly in the repository's Markdown wiki source so the public documentation stays aligned with the shipped command surface.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
 Portable and installed Windows builds also ship `XeTerminal.exe`, which opens the custom XeCLI interface directly when launched with no arguments.
+
+Both `XeCLI` and `XeTerminal` are currently shipped as beta surfaces in the `v1.1.0` release cycle.
 
 Avatar workflows in the shipped release now support both:
 
@@ -21,7 +23,7 @@ Avatar workflows in the shipped release now support both:
 
 Native XeLL workflows are also built into the shipped CLI now. `rgh xell ...` and `rgh nand dump` handle guided XeLL launch, keyvault export, and verified read-only NAND backup without depending on an external flasher workflow.
 
-v1.0.9 hardens the live-debugging path by aligning small memory reads across `mem peek`, `mem hexdump`, and small dumps, verifying memory writes before success is printed, and rejecting false-positive debugger control responses. It also adds self-contained `win-x86` and `win-x64` portable packages alongside a universal setup installer.
+v1.1.0 promotes the XeTerminal beta into the current release: the custom interface now ships directly alongside `rgh`, Discord Rich Presence is integrated through the native desktop client path, the live shell/file/FTP surfaces are materially more usable, and the self-contained `win-x86` / `win-x64` portable packages remain paired with the universal setup installer.
 
 Local content workflows are built in now as well. `rgh con`, `rgh profile`, and `rgh xdbf` cover pulled CON/profile/GPD files directly, including rehash/resign, raw `Account` or GPD extraction, achievement and setting edits, and avatar color edits inside profile packages.
 
@@ -110,7 +112,7 @@ Use these pages first:
 - Sign-in state, ring-of-light LED control, manual fan commands, and SMC version probing
 - Launch, reboot, and console notification workflows
 - Guided XeLL launch, XeLL HTTP endpoint inspection, keyvault export, and verified read-only NAND backup
-- v1.0.9 adds verified memory/debugger behavior and dual-architecture portable packaging on top of the verified NAND dump flow
+- v1.1.0 adds the XeTerminal beta, native Discord Rich Presence, improved screenshot handling, and dual-architecture portable packaging on top of the verified NAND dump flow
 - Title-aware gamertag, XUID, and remote-player spoofing for supported games, with BO2 documented as a title-local spoof flow rather than a signed-in account change
 - Terminal and Windows avatar browsing, remote-hosted downloads, and console-side avatar item installs
 
@@ -174,7 +176,7 @@ That means the current `xtaf` surface focuses on disk and image analysis, repair
 
 ## Common Starting Commands
 ```powershell
-.\XeCLI-v1.0.9-setup.exe
+.\XeCLI-1.1.0-setup.exe
 rgh --help
 rgh language
 rgh start
@@ -206,7 +208,7 @@ rgh avatar browse --remote
 rgh avatar install --contentid 000000080DF3B242CAE65A52415608C3 --current-user
 rgh modules list
 rgh mem hexdump --addr 0x30000000 --size 0x40
-rgh screenshot --out .\screen.bmp
+rgh screenshot --out .\screen.png
 ```
 
 ## Release and Documentation Entry Points

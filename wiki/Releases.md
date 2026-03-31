@@ -1,22 +1,19 @@
 # Releases
 
-This page is the canonical XeCLI release-history and current-highlights page.
-
-Patch notes on this page describe shipped product behavior, operator-facing fixes, and release-relevant technical changes. They intentionally exclude README-only edits, wiki-only edits, formatting cleanup, and documentation housekeeping.
-
-Use this page as the single public entry point for release highlights and the full patch-notes archive.
+XeCLI release highlights and shipped change history.
 
 ## Current Release Focus
 
-`v1.0.9` fixes the live-debugging trust failures that matter most in practice: small memory reads now line up across `mem peek`, `mem hexdump`, and small dumps; memory writes and freeze loops verify readback before reporting success; and debugger-control commands fail fast when XBDM rejects them instead of printing false-positive success.
+`v1.1.0` keeps XeCLI and XeTerminal in beta while turning the current cycle into the XeTerminal beta release: the custom interface is now shipped directly alongside `rgh`, Discord Rich Presence is integrated through the native desktop client path, and the live shell/file/FTP surfaces are materially more usable for day-to-day console work.
 
-The current release also adds self-contained `win-x86` and `win-x64` portable packages alongside a universal setup installer for machine install and PATH registration.
+The current release also keeps the self-contained `win-x86` and `win-x64` portable packages alongside the universal setup installer, with XeTerminal shipped in the installer flow, Start menu integration, optional desktop shortcut creation, and direct no-argument launch for the custom interface.
 
 ## Release Index
 
 | Release | Focus | Links |
 | --- | --- | --- |
-| `v1.0.9` | Critical debugging bug fixes and expanded portable release assets | [Release notes](#v109-critical-debugging-bug-fixes) |
+| `v1.1.0` | XeTerminal beta, Discord Rich Presence, and universal installer packaging | [Release notes](#v110-xeterminal-beta-and-release-polish) |
+| `v1.0.9` | Critical debugging fixes, XeTerminal beta, and universal installer packaging | [Release notes](#v109-critical-debugging-bug-fixes) |
 | `v1.0.8` | XTAF promotion, standalone XeCLI-XellFetch packaging, and installer polish | [Release notes](#v108-xtaf-packaging-and-installer-polish) |
 | `v1.0.7` | Spanish localization, dark Inno Setup installer, Ko-fi support, and the canonical GitHub wiki migration | [Release notes](#v107-spanish-localization-inno-setup-and-wiki) |
 | `v1.0.6` | Automated NAND dumping, managed XeLL/XeCLI-XellFetch staging, verified packaging, and safe reboot control | [Release notes](#v106-automated-nand-dumping-and-xecli-xellfetch) |
@@ -29,12 +26,21 @@ The current release also adds self-contained `win-x86` and `win-x64` portable pa
 
 Published GitHub releases: [All releases](https://github.com/SaveEditors/xecli/releases)
 
+## v1.1.0 XeTerminal Beta and Release Polish
+
+- Promoted `XeTerminal.exe` as the beta custom interface shipped alongside `rgh`, with the live shell, session, status, traffic, storage, inventory, and FTP/file surfaces integrated into the release build.
+- Added native Discord Rich Presence updates for connected and disconnected console state, using the installed Discord desktop client instead of a helper process.
+- Fixed screenshot capture output so normal `.png` saves are usable by default, the corrupted right-edge strip is automatically trimmed on the affected frame-buffer path, and XeTerminal names captures from the active title.
+- Improved XeTerminal UI fit, session rendering, selection behavior, language switching, console/status presentation, storage rendering, and screenshot capture behavior across the current beta surface.
+- Shipped XeTerminal directly in the installer with Start menu integration, optional desktop shortcut creation, and direct launcher support for installed and portable builds.
+
 ## v1.0.9 Critical Debugging Bug Fixes
 
 - Fixed the false-zero small-read path so `rgh mem peek`, `rgh mem hexdump`, and small `rgh mem dump` reads agree on the same live memory instead of silently trusting bad `getmemex` results.
 - Added write verification for `rgh mem poke` and freeze loops so XeCLI reads the target bytes back and fails if the write is rejected or the readback does not match.
 - Hardened debugger-control commands so `rgh debug stop`, `rgh debug go`, breakpoints, and data breakpoints only print success after XBDM returns an accepted response.
 - Corrected the `rgh debug databreak --type rw` mapping so it emits a real read/write data breakpoint instead of silently degrading to read-only.
+- Added the beta `XeTerminal.exe` launcher so installed and portable builds can open the custom terminal UI directly, with Start menu registration, optional desktop shortcut support, and no-argument launch behavior.
 - Added self-contained portable packages for both `win-x64` and `win-x86`, with SHA-256 files for each portable zip and a universal setup installer retained for the installer workflow.
 
 ## v1.0.8 XTAF, Packaging, and Installer Polish

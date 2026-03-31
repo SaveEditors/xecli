@@ -1,12 +1,18 @@
 # XeCLI
 
-XeCLI is a terminal-first Xbox 360 RGH/JTAG toolkit for live console work with XBDM, JRPC2, FTP, XeLL-backed NAND dumping, XEX tooling, memory inspection, content workflows, reverse-engineering helpers, and release packaging.
+XeCLI is a beta terminal-first Xbox 360 RGH/JTAG toolkit for live console work with XBDM, JRPC2, FTP, XeLL-backed NAND dumping, XEX tooling, memory inspection, content workflows, reverse-engineering helpers, and the beta XeTerminal custom interface.
 
 The repository and product name are `XeCLI`. The installed terminal command is `rgh`.
 
-Portable and installed builds also ship `XeTerminal.exe`, which opens the custom XeCLI interface directly when launched with no arguments.
+Portable and installed builds also ship the beta `XeTerminal.exe` launcher, which opens the custom XeCLI interface directly when launched with no arguments.
+
+> `XeCLI` and `XeTerminal` are both currently shipped as beta surfaces in the `v1.1.0` cycle.
 
 [![Support XeCLI on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/xecli)
+
+<p align="center">
+  <img src="Assets/readme/xeterminal-hero.png" alt="XeTerminal interface" width="1200">
+</p>
 
 ## What XeCLI Covers
 
@@ -18,23 +24,26 @@ Portable and installed builds also ship `XeTerminal.exe`, which opens the custom
 - Reverse-engineering helpers for Ghidra and IDA, plus XEX dump, decompile, and analysis flows
 - Homebrew, dashboard, compatibility-pack, and USB staging workflows
 
-## v1.0.9 Highlights
+## v1.1.0 Highlights
 
 - Fixed false-zero live memory reads so `rgh mem peek`, `rgh mem hexdump`, and small memory dumps agree on the same target data
 - Added verified memory writes so `rgh mem poke` and freeze loops fail on rejected or mismatched writes instead of printing false success
 - Hardened debugger control so `rgh debug stop`, `rgh debug go`, breakpoints, and data breakpoints only report success when XBDM accepts the command
+- Expanded the beta `XeTerminal.exe` launcher with the custom shell UI, live console/session panels, integrated FTP/file manager workflows, clickable versioning, and live suggestion handling
+- Added native Discord Rich Presence integration with quiet state updates for connected and disconnected console sessions
+- Fixed screenshot capture so XeCLI can save correct `.png` output, auto-trim the corrupted right-edge strip on affected frame buffers, and use title-based filenames from XeTerminal
 - Added self-contained portable release assets for both `win-x64` and `win-x86`, plus a universal setup installer
 
 ## Quick Start
 
 ```powershell
-.\XeCLI-v1.0.9-setup.exe
+.\XeCLI-1.1.0-setup.exe
 rgh --help
 rgh language --set es
 rgh nand dump --ip 192.168.1.186 --yes
 ```
 
-Portable zip users can run `rgh.exe` directly from the extracted `win-x64` or `win-x86` release folder. If you want the custom interface without starting in a terminal window, launch `XeTerminal.exe`. The installer exists to register `rgh`, add the selected install to PATH, and persist the initial UI language selection on supported Windows installations.
+Portable zip users can run `rgh.exe` directly from the extracted `win-x64` or `win-x86` release folder. If you prefer the beta GUI launcher, open XeTerminal from the Start menu or run `XeTerminal.exe` directly. The installer registers `rgh`, adds the selected install to PATH, creates the XeTerminal Start menu shortcut, offers an optional XeTerminal desktop shortcut, and persists the initial UI language selection on supported Windows installations.
 
 ## Documentation
 
@@ -49,8 +58,6 @@ Portable zip users can run `rgh.exe` directly from the extracted `win-x64` or `w
 - [Reverse Engineering](https://github.com/SaveEditors/xecli/wiki/Reverse-Engineering)
 - [Integrations](https://github.com/SaveEditors/xecli/wiki/Integrations)
 - [Troubleshooting](https://github.com/SaveEditors/xecli/wiki/Troubleshooting)
-- [All Releases](https://github.com/SaveEditors/xecli/wiki/Releases)
-- [GitHub Releases](https://github.com/SaveEditors/xecli/releases)
 
 ## Tooling Notes
 
@@ -75,13 +82,14 @@ XeCLI's `rgh xtaf` surface is not limited to browsing normal Xbox 360 HDD images
 
 The standalone `XeCLI-XellFetch` repo is published at [github.com/SaveEditors/XeCLI-XellFetch](https://github.com/SaveEditors/XeCLI-XellFetch). It packages the custom `xell.bin`, `XellLaunch`, and `QuickBoot` assets for operators who want the XeLL-side payload with or without the full XeCLI desktop workflow. XeCLI integrates with that workflow, but the standalone bundle is released from its own repo.
 
-## Release
+## Release Notes
 
-- [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
-- [Full Release Archive](https://github.com/SaveEditors/xecli/wiki/Releases)
+- [XeCLI Release Notes](https://github.com/SaveEditors/xecli/wiki/Releases)
 
 ## Screenshots
 
-![XeCLI help](assets/readme/rgh-help.png)
+![XeTerminal interface](Assets/readme/xeterminal-hero.png)
 
-![XeCLI status](assets/readme/rgh-status.png)
+![XeCLI help](Assets/readme/rgh-help.png)
+
+![XeCLI status](Assets/readme/rgh-status.png)

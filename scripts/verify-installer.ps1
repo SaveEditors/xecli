@@ -92,6 +92,28 @@ function Get-InstallScopeLabel([string]$Scope) {
     return "HKCU current-user"
 }
 
+function Get-DesktopShortcutPath([string]$Scope) {
+    $desktopRoot = if ($Scope -eq "AllUsers") {
+        [Environment]::GetFolderPath("CommonDesktopDirectory")
+    }
+    else {
+        [Environment]::GetFolderPath("DesktopDirectory")
+    }
+
+    return Join-Path $desktopRoot "XeCLI Terminal.lnk"
+}
+
+function Get-ProgramsShortcutPath([string]$Scope) {
+    $programsRoot = if ($Scope -eq "AllUsers") {
+        [Environment]::GetFolderPath("CommonPrograms")
+    }
+    else {
+        [Environment]::GetFolderPath("Programs")
+    }
+
+    return Join-Path (Join-Path $programsRoot "XeCLI") "XeCLI Terminal.lnk"
+}
+
 function Get-InstallScopeRootKey([string]$Scope) {
     if ($Scope -eq "AllUsers") {
         return [Microsoft.Win32.Registry]::LocalMachine
@@ -326,6 +348,8 @@ $cmdProbeDir = Join-Path $tempRoot "cmdprobe"
 $configPath = Join-Path $env:APPDATA "XeCLI\config.json"
 $configBackupPath = Join-Path $tempRoot "config-backup.json"
 $configExisted = Test-Path $configPath
+$desktopShortcutPath = Get-DesktopShortcutPath $installScope
+$programsShortcutPath = Get-ProgramsShortcutPath $installScope
 $preTargetPathState = Get-RegistryPathState $targetRootKey $targetSubkey
 $preOtherPathState = Get-RegistryPathState $otherRootKey $otherSubkey
 
@@ -358,7 +382,7 @@ function Invoke-InstallerRun([string]$RequestedLanguage, [string]$LogPath) {
         $installScopeSwitch,
         "/DIR=$installDir",
         "/LANG=$RequestedLanguage",
-        '/TASKS="modifypath"',
+        '/TASKS="modifypath,desktopicon"',
         "/LOG=$LogPath"
     )
 
@@ -381,6 +405,14 @@ function Assert-InstallSucceeded([string]$ExpectedLanguage, [string]$LogPath, [s
     $installedTerminalExe = Join-Path $installDir "XeTerminal.exe"
     if (-not (Test-Path $installedTerminalExe)) {
         throw "Installed XeTerminal.exe was not found at $installedTerminalExe"
+    }
+
+    if (-not (Test-Path $programsShortcutPath)) {
+        throw "Installer did not create the Start menu XeCLI Terminal shortcut at $programsShortcutPath"
+    }
+
+    if (-not (Test-Path $desktopShortcutPath)) {
+        throw "Installer did not create the requested desktop XeCLI Terminal shortcut at $desktopShortcutPath"
     }
 
     & $installedExe --version | Out-Null
@@ -480,6 +512,14 @@ try {
 
     if (Test-Path (Join-Path $installDir "rgh.exe")) {
         throw "Installed files still exist after uninstall."
+    }
+
+    if (Test-Path $desktopShortcutPath) {
+        throw "Desktop XeCLI Terminal shortcut still exists after uninstall."
+    }
+
+    if (Test-Path $programsShortcutPath) {
+        throw "Start menu XeCLI Terminal shortcut still exists after uninstall."
     }
 
     $finalTargetPathState = Get-RegistryPathState $targetRootKey $targetSubkey

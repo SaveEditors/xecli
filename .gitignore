@@ -9,6 +9,7 @@
 # IDE and local packaging output
 /.vs/
 /.vscode/
+/.dotnet-home/
 /publish/
 /dist/
 /release/
@@ -69,8 +70,11 @@
 
 # Captures, dumps, and generated analysis artifacts
 /captures/
+/artifacts/
 /capture.err
 /capture.out
+/temp_capture.cs
+/xeterminal-capture.png
 /hs_err_pid*.log
 *.dmp
 *.mdmp

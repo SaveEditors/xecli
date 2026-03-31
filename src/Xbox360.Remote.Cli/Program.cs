@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -16,10 +17,23 @@ using Color = Spectre.Console.Color;
 using Panel = Spectre.Console.Panel;
 
 internal static class Program {
+    [DllImport("kernel32.dll")]
+    private static extern IntPtr GetConsoleWindow();
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetConsoleProcessList(uint[] lpdwProcessList, uint dwProcessCount);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    private const int SW_HIDE = 0;
+
     [STAThread]
     public static async Task<int> Main(string[] args) {
         args = LocalizedText.ExtractLanguageArgument(args, out string? requestedLanguage);
         bool launchTerminalByDefault = ShouldLaunchTerminalByDefault(args);
+        if (launchTerminalByDefault)
+            HideStandaloneConsoleWindow();
         args = NormalizeArgs(args);
         if (launchTerminalByDefault)
             args = new[] { "terminal" };
@@ -1024,5 +1038,20 @@ internal static class Program {
 
         string executableName = Path.GetFileNameWithoutExtension(processPath);
         return executableName.Equals("XeTerminal", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void HideStandaloneConsoleWindow() {
+        try {
+            IntPtr consoleWindow = GetConsoleWindow();
+            if (consoleWindow == IntPtr.Zero)
+                return;
+
+            uint[] processIds = new uint[4];
+            uint count = GetConsoleProcessList(processIds, (uint)processIds.Length);
+            if (count <= 1)
+                ShowWindow(consoleWindow, SW_HIDE);
+        }
+        catch {
+        }
     }
 }

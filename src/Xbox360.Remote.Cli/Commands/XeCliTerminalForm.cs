@@ -17,7 +17,10 @@ using FluentFTP;
 using Xbox360.Remote;
 using System.Globalization;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Drawing.Text;
 using Xbox360.Remote.Cli.LocalProfiles;
+using XeCli.Localization;
 
 namespace Xbox360.Remote.Cli.Commands;
 
@@ -78,7 +81,7 @@ internal sealed class XeCliTerminalForm : Form
 
 		public string? ErrorText { get; set; }
 
-		public List<string> Drives { get; } = new List<string>();
+		public List<DriveInventoryEntry> Drives { get; } = new List<DriveInventoryEntry>();
 
 		public List<string> Plugins { get; } = new List<string>();
 
@@ -87,6 +90,15 @@ internal sealed class XeCliTerminalForm : Form
 		public double FtpRxKbps { get; set; }
 
 		public double FtpTxKbps { get; set; }
+	}
+
+	private sealed class DriveInventoryEntry
+	{
+		public required string Name { get; init; }
+
+		public ulong? TotalBytes { get; init; }
+
+		public ulong? FreeBytes { get; init; }
 	}
 
 	private sealed class FileEntryView
@@ -267,13 +279,25 @@ internal sealed class XeCliTerminalForm : Form
 
 	private readonly Label leftStatusLabel = new Label();
 
+	private readonly Label leftConsoleHeaderLabel = new Label();
+
 	private readonly Label leftConsoleLabel = new Label();
+
+	private readonly StructuredInfoPanel leftConsoleInfoPanel = new StructuredInfoPanel();
 
 	private readonly Label leftSignInLabel = new Label();
 
+	private readonly Label shellTargetLabel = new Label();
+
 	private readonly Label rightNetworkLabel = new Label();
 
+	private readonly StructuredInfoPanel rightNetworkInfoPanel = new StructuredInfoPanel();
+
+	private readonly Label rightStatusHeaderLabel = new Label();
+
 	private readonly Label rightTempLabel = new Label();
+
+	private readonly Label rightTrafficHeaderLabel = new Label();
 
 	private readonly Label rightDetailLabel = new Label();
 
@@ -303,7 +327,7 @@ internal sealed class XeCliTerminalForm : Form
 
 	private readonly SlimListPanel inventoryList = new SlimListPanel();
 
-	private readonly SlimListPanel drivesList = new SlimListPanel();
+	private readonly DriveInventoryPanel drivesList = new DriveInventoryPanel();
 
 	private readonly TransferQueuePanel transferQueueList = new TransferQueuePanel();
 
@@ -314,6 +338,8 @@ internal sealed class XeCliTerminalForm : Form
 	private readonly FtpTrafficGraphControl ftpTrafficGraph = new FtpTrafficGraphControl();
 
 	private readonly Label footerStatusLabel = new Label();
+
+	private readonly Label footerVersionLabel = new Label();
 
 	private readonly Label footerPresenceLabel = new Label();
 
@@ -327,9 +353,13 @@ internal sealed class XeCliTerminalForm : Form
 
 	private readonly RichTextBox terminalOutput = new RichTextBox();
 
+	private readonly TerminalScrollIndicator terminalScrollIndicator = new TerminalScrollIndicator();
+
 	private readonly TextBox commandInput = new TextBox();
 
-	private readonly ListBox suggestionList = new ListBox();
+	private readonly Panel commandInputHost = new Panel();
+
+	private readonly SuggestionListPanel suggestionList = new SuggestionListPanel();
 
 	private readonly Panel suggestionHost = new Panel();
 
@@ -399,6 +429,8 @@ internal sealed class XeCliTerminalForm : Form
 
 	private bool terminalFlushScheduled;
 
+	private bool suppressSuggestionRefresh;
+
 	private bool fileTransferInFlight;
 
 	private Process? activeCommandProcess;
@@ -455,11 +487,40 @@ internal sealed class XeCliTerminalForm : Form
 
 	private string? activeTransferCommand;
 
+	private string connectButtonTextSource = "CONNECT";
+
+	private string commandInputPlaceholderSource = "Connect or enter a XeCLI command...";
+
+	private string connectionStatusTextSource = "● DISCONNECTED";
+
+	private string footerPresenceTextSource = "PRESENCE · OFFLINE";
+
+	private string footerStatusTextSource = "DISCONNECTED";
+
+	private string footerThermalTextSource = "CPU --°C · GPU --°C · RAM --°C · BOARD --°C";
+
+	private string leftConsoleTextSource = "BOARD      unknown\nDASH       --\nGAME       --\nXEX        --\nTITLEID    --\nGAMERTAG   Not Signed In";
+
+	private string leftSignInTextSource = "INVENTORY";
+
+	private string mainShellBannerTextSource = "LINK OFFLINE";
+
+	private string rightDetailTextSource = "No live console context.\nConnect to load title, XEX,\nuser, presence, and TitleID.";
+
+	private string rightDrivesTitleTextSource = "DETECTED DRIVES";
+
+	private string rightNetworkTextSource = string.Empty;
+
+	private string rightTempTextSource = "IDLE";
+
 	internal XeCliTerminalForm(TerminalOptions options)
 	{
 		this.options = options;
 		currentTargetIp = options.Ip;
 		currentTargetPort = options.Port;
+		LocalizedText.Initialize(GetConfiguredUiLanguageCode());
+		CultureInfo.CurrentUICulture = LocalizedText.Culture;
+		CultureInfo.DefaultThreadCurrentUICulture = LocalizedText.Culture;
 		LogBootstrap("ctor-start");
 		base.Text = "XeCLI Terminal";
 		base.StartPosition = FormStartPosition.CenterScreen;
@@ -471,6 +532,7 @@ internal sealed class XeCliTerminalForm : Form
 		base.BackColor = ShellBackground;
 		base.ForeColor = Color.White;
 		base.Font = shellFont;
+		LoadApplicationIcon();
 		if (options.OpacityPercent < 100)
 		{
 			base.Opacity = Math.Max(0.55, Math.Min((double)options.OpacityPercent / 100.0, 1.0));
@@ -553,14 +615,15 @@ internal sealed class XeCliTerminalForm : Form
 			};
 		}
 		_ = RefreshLocalBrowserAsync();
-		AppendSystemLine("XeCLI terminal shell ready.", AccentGreen);
-		AppendSystemLine("Session bus idle. Connect to activate live thermals, traffic, queue, and title state.", AccentDim);
-		AppendSystemLine("Local commands remain available while the link is offline.", AccentDim);
-		AppendSystemLine("Type any XeCLI command, for example: status, nand dump, xell info", AccentDim);
-		AppendSystemLine("Type 'exit' to close this shell UI.", AccentDim);
+		AppendSystemLine(TranslateTerminalText("XeCLI terminal shell ready."), AccentGreen);
+		AppendSystemLine(TranslateTerminalText("Session bus idle. Connect to activate live thermals, traffic, queue, and title state."), AccentDim);
+		AppendSystemLine(TranslateTerminalText("Local commands remain available while the link is offline."), AccentDim);
+		AppendSystemLine(TranslateTerminalText("Type any XeCLI command, for example: status, nand dump, xell info"), AccentDim);
+		AppendSystemLine(TranslateTerminalText("Type 'exit' to close this shell UI."), AccentDim);
 		UpdateConnectionStatusIndicator();
 		UpdateShellScaffold();
 		UpdateLiveHints();
+		RefreshLocalizedUiText();
 		base.FormClosing += delegate
 		{
 			CancelAllBackgroundWork();
@@ -646,11 +709,19 @@ internal sealed class XeCliTerminalForm : Form
 			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33f));
 			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34f));
 			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33f));
-			footerStatusLabel.Dock = DockStyle.Fill;
-			footerStatusLabel.TextAlign = ContentAlignment.MiddleLeft;
-			footerStatusLabel.ForeColor = AccentGreen;
-			footerStatusLabel.Font = shellFont;
-			footerStatusLabel.Text = "DISCONNECTED";
+			footerVersionLabel.Dock = DockStyle.None;
+			footerVersionLabel.AutoSize = true;
+			footerVersionLabel.Anchor = AnchorStyles.Left;
+			footerVersionLabel.Margin = new Padding(0);
+			footerVersionLabel.TextAlign = ContentAlignment.MiddleLeft;
+			footerVersionLabel.ForeColor = Color.FromArgb(214, 232, 244, 214);
+			footerVersionLabel.Font = new Font("Consolas", 8.25f, FontStyle.Italic, GraphicsUnit.Point);
+			footerVersionLabel.Text = GetFooterVersionText();
+			footerVersionLabel.Cursor = Cursors.Hand;
+			footerVersionLabel.Click += delegate
+			{
+				OpenXeCliRepository();
+			};
 			footerPresenceLabel.Dock = DockStyle.Fill;
 			footerPresenceLabel.TextAlign = ContentAlignment.MiddleCenter;
 			footerPresenceLabel.ForeColor = Color.WhiteSmoke;
@@ -661,7 +732,7 @@ internal sealed class XeCliTerminalForm : Form
 			footerThermalLabel.ForeColor = Color.WhiteSmoke;
 			footerThermalLabel.Font = shellFont;
 			footerThermalLabel.Text = "CPU --°C · GPU --°C · RAM --°C · BOARD --°C";
-			tableLayoutPanel3.Controls.Add(footerStatusLabel, 0, 0);
+			tableLayoutPanel3.Controls.Add(footerVersionLabel, 0, 0);
 			tableLayoutPanel3.Controls.Add(footerPresenceLabel, 1, 0);
 			tableLayoutPanel3.Controls.Add(footerThermalLabel, 2, 0);
 			panel6.Controls.Add(tableLayoutPanel3);
@@ -684,19 +755,18 @@ internal sealed class XeCliTerminalForm : Form
 		panel.Margin = new Padding(0, 0, 8, 0);
 		TableLayoutPanel tableLayoutPanel = new TableLayoutPanel();
 		tableLayoutPanel.Dock = DockStyle.Fill;
-		tableLayoutPanel.RowCount = 6;
+		tableLayoutPanel.RowCount = 5;
 		tableLayoutPanel.ColumnCount = 1;
 		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 44f));
 		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 128f));
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 0f));
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 34f));
 		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 6f));
 		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 114f));
 		connectionStatusLabel.Dock = DockStyle.Fill;
 		connectionStatusLabel.TextAlign = ContentAlignment.MiddleLeft;
 		connectionStatusLabel.ForeColor = AccentGreen;
 		connectionStatusLabel.Font = headerFont;
-		connectionStatusLabel.Text = "● DISCONNECTED";
+		SetConnectionStatusText("● DISCONNECTED");
 		Panel panelConsole = CreateCardPanel(TerminalBackground, new Padding(6, 4, 6, 6));
 		panelConsole.Dock = DockStyle.Fill;
 		TableLayoutPanel tableLayoutPanelConsole = new TableLayoutPanel();
@@ -705,20 +775,18 @@ internal sealed class XeCliTerminalForm : Form
 		tableLayoutPanelConsole.ColumnCount = 1;
 		tableLayoutPanelConsole.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
 		tableLayoutPanelConsole.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-		Label labelConsole = new Label();
-		labelConsole.Dock = DockStyle.Fill;
-		labelConsole.TextAlign = ContentAlignment.MiddleLeft;
-		labelConsole.ForeColor = AccentGreen;
-		labelConsole.Font = shellFontBold;
-		labelConsole.Text = "CONSOLE";
-		leftConsoleLabel.Dock = DockStyle.Fill;
-		leftConsoleLabel.TextAlign = ContentAlignment.TopLeft;
-		leftConsoleLabel.ForeColor = Color.WhiteSmoke;
-		leftConsoleLabel.Font = shellFont;
-		leftConsoleLabel.Padding = new Padding(2, 1, 2, 1);
-		leftConsoleLabel.Text = "BOARD      unknown\nDASH       --\nGAME       --\nXEX        --\nTITLEID    --\nGAMERTAG   Not Signed In";
-		tableLayoutPanelConsole.Controls.Add(labelConsole, 0, 0);
-		tableLayoutPanelConsole.Controls.Add(leftConsoleLabel, 0, 1);
+		leftConsoleHeaderLabel.Dock = DockStyle.Fill;
+		leftConsoleHeaderLabel.TextAlign = ContentAlignment.MiddleLeft;
+		leftConsoleHeaderLabel.ForeColor = AccentGreen;
+		leftConsoleHeaderLabel.Font = shellFontBold;
+		leftConsoleHeaderLabel.Text = "CONSOLE";
+		leftConsoleInfoPanel.Dock = DockStyle.Fill;
+		leftConsoleInfoPanel.BackColor = TerminalBackground;
+		leftConsoleInfoPanel.ForeColor = Color.WhiteSmoke;
+		leftConsoleInfoPanel.Font = shellFont;
+		SetLeftConsoleText("BOARD      unknown\nDASH       --\nGAME       --\nXEX        --\nTITLEID    --\nGAMERTAG   Not Signed In");
+		tableLayoutPanelConsole.Controls.Add(leftConsoleHeaderLabel, 0, 0);
+		tableLayoutPanelConsole.Controls.Add(leftConsoleInfoPanel, 0, 1);
 		panelConsole.Controls.Add(tableLayoutPanelConsole);
 		inventoryList.Dock = DockStyle.Fill;
 		inventoryList.BackColor = TerminalBackground;
@@ -726,7 +794,7 @@ internal sealed class XeCliTerminalForm : Form
 		inventoryList.Font = shellFont;
 		inventoryList.SetItems(new string[1]
 		{
-			"Connect to load live plugins"
+			"Connect for Plugins"
 		});
 		leftSignInLabel.Dock = DockStyle.Fill;
 		leftSignInLabel.TextAlign = ContentAlignment.MiddleLeft;
@@ -734,6 +802,7 @@ internal sealed class XeCliTerminalForm : Form
 		leftSignInLabel.Font = shellFont;
 		leftSignInLabel.AutoEllipsis = true;
 		leftSignInLabel.Text = string.Empty;
+		leftSignInLabel.Visible = false;
 		ConfigureToggleButton(pluginsTabButton, "Plugins");
 		ConfigureToggleButton(modulesTabButton, "Modules");
 		pluginsTabButton.Margin = new Padding(0, 0, 6, 0);
@@ -746,6 +815,18 @@ internal sealed class XeCliTerminalForm : Form
 		panelInventoryHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
 		panelInventoryHeader.Controls.Add(pluginsTabButton, 0, 0);
 		panelInventoryHeader.Controls.Add(modulesTabButton, 1, 0);
+		Panel inventoryPanel = CreateCardPanel(TerminalBackground, new Padding(6, 6, 6, 6));
+		inventoryPanel.Dock = DockStyle.Fill;
+		inventoryPanel.Margin = new Padding(0);
+		TableLayoutPanel inventoryLayout = new TableLayoutPanel();
+		inventoryLayout.Dock = DockStyle.Fill;
+		inventoryLayout.RowCount = 2;
+		inventoryLayout.ColumnCount = 1;
+		inventoryLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34f));
+		inventoryLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+		inventoryLayout.Controls.Add(panelInventoryHeader, 0, 0);
+		inventoryLayout.Controls.Add(inventoryList, 0, 1);
+		inventoryPanel.Controls.Add(inventoryLayout);
 		Panel panel2 = CreateCardPanel(TerminalBackground, new Padding(6, 6, 6, 6));
 		panel2.Dock = DockStyle.Fill;
 		TableLayoutPanel tableLayoutPanel2 = new TableLayoutPanel();
@@ -772,10 +853,14 @@ internal sealed class XeCliTerminalForm : Form
 		panel2.Controls.Add(tableLayoutPanel2);
 		tableLayoutPanel.Controls.Add(connectionStatusLabel, 0, 0);
 		tableLayoutPanel.Controls.Add(panelConsole, 0, 1);
-		tableLayoutPanel.Controls.Add(leftSignInLabel, 0, 2);
-		tableLayoutPanel.Controls.Add(panelInventoryHeader, 0, 3);
-		tableLayoutPanel.Controls.Add(inventoryList, 0, 4);
-		tableLayoutPanel.Controls.Add(panel2, 0, 5);
+		tableLayoutPanel.Controls.Add(inventoryPanel, 0, 2);
+		tableLayoutPanel.Controls.Add(new Panel
+		{
+			Dock = DockStyle.Fill,
+			BackColor = Color.Transparent,
+			Margin = Padding.Empty
+		}, 0, 3);
+		tableLayoutPanel.Controls.Add(panel2, 0, 4);
 		RefreshTargetEditorText();
 		panel.Controls.Add(tableLayoutPanel);
 		return panel;
@@ -819,31 +904,27 @@ internal sealed class XeCliTerminalForm : Form
 			inventoryStack.Dock = DockStyle.Fill;
 			inventoryStack.BackColor = CardBackground;
 			inventoryStack.ColumnCount = 1;
-			inventoryStack.RowCount = 3;
-			inventoryStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
-			inventoryStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 24f));
+			inventoryStack.RowCount = 1;
 			inventoryStack.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 			Label label = new Label();
-			label.Dock = DockStyle.Fill;
-			label.TextAlign = ContentAlignment.MiddleLeft;
-			label.ForeColor = Color.FromArgb(214, AccentDim);
-			label.Font = shellFont;
-			label.Text = "LIVE SHELL // TARGET " + FormatCurrentTarget();
-			label.AutoEllipsis = true;
+			shellTargetLabel.Dock = DockStyle.Fill;
+			shellTargetLabel.TextAlign = ContentAlignment.MiddleLeft;
+			shellTargetLabel.ForeColor = Color.FromArgb(214, AccentDim);
+			shellTargetLabel.Font = shellFont;
+			shellTargetLabel.Text = "LIVE SHELL // TARGET " + FormatCurrentTarget();
+			shellTargetLabel.AutoEllipsis = true;
 			shellBadgeLabel.Dock = DockStyle.Fill;
 			shellBadgeLabel.TextAlign = ContentAlignment.MiddleLeft;
 			shellBadgeLabel.ForeColor = Color.FromArgb(230, AccentGreen);
 			shellBadgeLabel.Font = new Font("Consolas", 8.25f, FontStyle.Bold, GraphicsUnit.Point);
 			shellBadgeLabel.Text = "XECLI // ACTIVE SHELL";
 			shellBadgeLabel.AutoEllipsis = true;
-			inventoryStack.Controls.Add(shellBadgeLabel, 0, 0);
-			inventoryStack.Controls.Add(label, 0, 1);
 			inventoryStack.Controls.Add(new Panel
 			{
 				Dock = DockStyle.Fill,
 				BackColor = CardBackground,
-				Margin = new Padding(0, 4, 0, 0)
-			}, 0, 2);
+				Margin = Padding.Empty
+			}, 0, 0);
 			tableLayoutPanel2.Controls.Add(logoPictureBox, 0, 0);
 			tableLayoutPanel2.Controls.Add(inventoryStack, 1, 0);
 			panel2.Controls.Add(tableLayoutPanel2);
@@ -859,22 +940,14 @@ internal sealed class XeCliTerminalForm : Form
 			tableLayoutPanel3.RowCount = 1;
 			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
 			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 164f));
-			Label label2 = new Label();
-			label2.Dock = DockStyle.Fill;
-			label2.TextAlign = ContentAlignment.MiddleLeft;
-			label2.Padding = new Padding(8, 0, 0, 0);
-			label2.Font = new Font("Consolas", 8.5f, FontStyle.Bold, GraphicsUnit.Point);
-			label2.ForeColor = Color.FromArgb(156, AccentDim);
-			label2.Text = "MAIN SHELL";
 			mainShellBannerLabel.Dock = DockStyle.Fill;
 			mainShellBannerLabel.Margin = new Padding(0, 3, 4, 3);
 			mainShellBannerLabel.TextAlign = ContentAlignment.MiddleCenter;
 			mainShellBannerLabel.Font = new Font("Consolas", 8.75f, FontStyle.Bold, GraphicsUnit.Point);
 			mainShellBannerLabel.ForeColor = Color.WhiteSmoke;
 			mainShellBannerLabel.BackColor = Color.FromArgb(12, 22, 18);
-			mainShellBannerLabel.Text = "LINK OFFLINE";
+			SetMainShellBannerText("LINK OFFLINE");
 			mainShellBannerLabel.AutoEllipsis = true;
-			tableLayoutPanel3.Controls.Add(label2, 0, 0);
 			tableLayoutPanel3.Controls.Add(mainShellBannerLabel, 1, 0);
 			TableLayoutPanel tableLayoutPanel5 = new TableLayoutPanel();
 			tableLayoutPanel5.Dock = DockStyle.Fill;
@@ -890,10 +963,10 @@ internal sealed class XeCliTerminalForm : Form
 			panel6.Margin = new Padding(0);
 			TableLayoutPanel tableLayoutPanel4 = new TableLayoutPanel();
 			tableLayoutPanel4.Dock = DockStyle.Fill;
-			tableLayoutPanel4.BackColor = Color.Transparent;
+			tableLayoutPanel4.BackColor = TerminalBackground;
 			tableLayoutPanel4.ColumnCount = 1;
 			tableLayoutPanel4.RowCount = 4;
-			tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 108f));
+			tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 0f));
 			tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 			tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 4f));
 			tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
@@ -905,12 +978,12 @@ internal sealed class XeCliTerminalForm : Form
 			shellScaffoldLabel.Font = shellOutputFont;
 			shellScaffoldLabel.ForeColor = Color.WhiteSmoke;
 			shellScaffoldLabel.Text = BuildDisconnectedShellText();
-			tableLayoutPanel4.Controls.Add(shellScaffoldLabel, 0, 0);
+			shellScaffoldLabel.Visible = false;
 			Panel panel7 = new Panel();
 			panel7.Dock = DockStyle.Fill;
 			panel7.Margin = new Padding(0);
 			panel7.Padding = new Padding(0, 4, 0, 0);
-			panel7.BackColor = Color.Transparent;
+			panel7.BackColor = TerminalBackground;
 			if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(PanelDiagnosticsEnvVar)))
 			{
 				terminalOutput.Dock = DockStyle.Fill;
@@ -921,11 +994,33 @@ internal sealed class XeCliTerminalForm : Form
 				terminalOutput.ReadOnly = true;
 				terminalOutput.DetectUrls = false;
 				terminalOutput.HideSelection = false;
-				terminalOutput.ScrollBars = RichTextBoxScrollBars.Vertical;
+				terminalOutput.ScrollBars = RichTextBoxScrollBars.None;
 				terminalOutput.WordWrap = true;
 				terminalOutput.TabStop = true;
 				terminalOutput.Cursor = Cursors.IBeam;
+				terminalOutput.Enter += delegate
+				{
+					HideTerminalOutputCaret();
+				};
+				terminalOutput.MouseDown += delegate
+				{
+					HideTerminalOutputCaret();
+				};
+				terminalOutput.MouseUp += delegate
+				{
+					HideTerminalOutputCaret();
+				};
+				terminalOutput.SelectionChanged += delegate
+				{
+					HideTerminalOutputCaret();
+				};
 				panel7.Controls.Add(terminalOutput);
+				terminalScrollIndicator.Dock = DockStyle.Right;
+				terminalScrollIndicator.Width = 8;
+				terminalScrollIndicator.Margin = Padding.Empty;
+				terminalScrollIndicator.BackColor = Color.FromArgb(9, 16, 14);
+				terminalScrollIndicator.Attach(terminalOutput);
+				panel7.Controls.Add(terminalScrollIndicator);
 			}
 			else
 			{
@@ -944,38 +1039,74 @@ internal sealed class XeCliTerminalForm : Form
 			}
 			tableLayoutPanel4.Controls.Add(panel7, 0, 1);
 			suggestionHost.Dock = DockStyle.Fill;
-			suggestionHost.Margin = new Padding(0, 4, 0, 0);
-			suggestionHost.BackColor = Color.FromArgb(10, 15, 12);
+			suggestionHost.Margin = Padding.Empty;
+			suggestionHost.BackColor = Color.FromArgb(8, 14, 12);
 			suggestionHost.Padding = new Padding(1);
-			suggestionList.Dock = DockStyle.Fill;
-			suggestionList.BackColor = Color.FromArgb(10, 15, 12);
+			suggestionHost.Paint += delegate(object? sender, PaintEventArgs e)
+			{
+				if (sender is Control control)
+				{
+					using SolidBrush brush = new SolidBrush(Color.FromArgb(8, 14, 12));
+					e.Graphics.FillRectangle(brush, control.ClientRectangle);
+				}
+			};
+			suggestionList.Dock = DockStyle.Top;
+			suggestionList.BackColor = Color.FromArgb(8, 14, 12);
 			suggestionList.ForeColor = Color.WhiteSmoke;
-			suggestionList.BorderStyle = BorderStyle.None;
 			suggestionList.Font = shellFont;
 			suggestionList.Visible = false;
-			suggestionList.IntegralHeight = false;
-			suggestionList.DrawMode = DrawMode.OwnerDrawFixed;
-			suggestionList.ItemHeight = 22;
-			suggestionList.DrawItem += DrawSuggestionItem;
-			suggestionList.DoubleClick += delegate
+			suggestionList.ItemActivated += delegate
 			{
 				ApplySelectedSuggestion();
 			};
+			suggestionList.Leave += delegate
+			{
+				HideSuggestionsIfInputInactive();
+			};
 			suggestionHost.Controls.Add(suggestionList);
 			tableLayoutPanel4.Controls.Add(suggestionHost, 0, 2);
+			commandInputHost.Dock = DockStyle.Fill;
+			commandInputHost.Margin = new Padding(0, 4, 0, 0);
+			commandInputHost.Padding = new Padding(6, 4, 6, 4);
+			commandInputHost.BackColor = Color.FromArgb(8, 14, 11);
+			commandInputHost.Paint += delegate(object? _, PaintEventArgs e)
+			{
+				Rectangle clientRectangle = commandInputHost.ClientRectangle;
+				clientRectangle.Width = Math.Max(0, clientRectangle.Width - 1);
+				clientRectangle.Height = Math.Max(0, clientRectangle.Height - 1);
+				using SolidBrush brush = new SolidBrush(Color.FromArgb(8, 14, 11));
+				using Pen pen = new Pen(Color.FromArgb(108, AccentGreen), 1f);
+				e.Graphics.FillRectangle(brush, clientRectangle);
+				e.Graphics.DrawRectangle(pen, clientRectangle);
+			};
 			commandInput.Dock = DockStyle.Fill;
-			commandInput.Margin = new Padding(0, 4, 0, 0);
-			commandInput.BackColor = CardBackground;
+			commandInput.Margin = Padding.Empty;
+			commandInput.BackColor = Color.FromArgb(8, 14, 11);
 			commandInput.ForeColor = AccentGreen;
-			commandInput.BorderStyle = BorderStyle.FixedSingle;
+			commandInput.BorderStyle = BorderStyle.None;
 			commandInput.Font = shellFontBold;
-			commandInput.PlaceholderText = "Connect or enter a XeCLI command...";
+			SetCommandInputPlaceholder("Connect or enter a XeCLI command...");
 			commandInput.KeyDown += HandleCommandInputKeyDown;
+			commandInput.Enter += delegate
+			{
+				if (!suppressSuggestionRefresh)
+				{
+					RefreshSuggestions();
+				}
+			};
+			commandInput.Leave += delegate
+			{
+				HideSuggestionsIfInputInactive();
+			};
 			commandInput.TextChanged += delegate
 			{
-				RefreshSuggestions();
+				if (!suppressSuggestionRefresh)
+				{
+					RefreshSuggestions();
+				}
 			};
-			tableLayoutPanel4.Controls.Add(commandInput, 0, 3);
+			commandInputHost.Controls.Add(commandInput);
+			tableLayoutPanel4.Controls.Add(commandInputHost, 0, 3);
 			panel6.Controls.Add(tableLayoutPanel4);
 			LogBootstrap("center-after-terminal-children");
 			tableLayoutPanel5.Controls.Add(panel6, 0, 1);
@@ -1013,20 +1144,18 @@ internal sealed class XeCliTerminalForm : Form
 		tableLayoutPanel2.ColumnCount = 1;
 		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
 		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-		Label label = new Label();
-		label.Dock = DockStyle.Fill;
-		label.TextAlign = ContentAlignment.MiddleLeft;
-		label.ForeColor = AccentGreen;
-		label.Font = shellFontBold;
-		label.Text = "STATUS";
-		rightNetworkLabel.Dock = DockStyle.Fill;
-		rightNetworkLabel.TextAlign = ContentAlignment.TopLeft;
-		rightNetworkLabel.ForeColor = Color.WhiteSmoke;
-		rightNetworkLabel.Font = shellFont;
-		rightNetworkLabel.Padding = new Padding(2, 1, 2, 1);
-		rightNetworkLabel.Text = BuildDisconnectedStatusText();
-		tableLayoutPanel2.Controls.Add(label, 0, 0);
-		tableLayoutPanel2.Controls.Add(rightNetworkLabel, 0, 1);
+		rightStatusHeaderLabel.Dock = DockStyle.Fill;
+		rightStatusHeaderLabel.TextAlign = ContentAlignment.MiddleLeft;
+		rightStatusHeaderLabel.ForeColor = AccentGreen;
+		rightStatusHeaderLabel.Font = shellFontBold;
+		rightStatusHeaderLabel.Text = "STATUS";
+		rightNetworkInfoPanel.Dock = DockStyle.Fill;
+		rightNetworkInfoPanel.BackColor = TerminalBackground;
+		rightNetworkInfoPanel.ForeColor = Color.WhiteSmoke;
+		rightNetworkInfoPanel.Font = shellFont;
+		SetRightNetworkText(BuildDisconnectedStatusText());
+		tableLayoutPanel2.Controls.Add(rightStatusHeaderLabel, 0, 0);
+		tableLayoutPanel2.Controls.Add(rightNetworkInfoPanel, 0, 1);
 		panel2.Controls.Add(tableLayoutPanel2);
 		Panel panel3 = CreateCardPanel(TerminalBackground, new Padding(6, 4, 6, 6));
 		panel3.Margin = new Padding(0, 0, 0, 6);
@@ -1037,20 +1166,19 @@ internal sealed class XeCliTerminalForm : Form
 		tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
 		tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 		tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
-		Label label2 = new Label();
-		label2.Dock = DockStyle.Fill;
-		label2.TextAlign = ContentAlignment.MiddleLeft;
-		label2.ForeColor = AccentGreen;
-		label2.Font = shellFontBold;
-		label2.Text = "TRAFFIC";
+		rightTrafficHeaderLabel.Dock = DockStyle.Fill;
+		rightTrafficHeaderLabel.TextAlign = ContentAlignment.MiddleLeft;
+		rightTrafficHeaderLabel.ForeColor = AccentGreen;
+		rightTrafficHeaderLabel.Font = shellFontBold;
+		rightTrafficHeaderLabel.Text = "TRAFFIC";
 		ftpTrafficGraph.Dock = DockStyle.Fill;
 		rightTempLabel.Dock = DockStyle.Fill;
 		rightTempLabel.TextAlign = ContentAlignment.TopLeft;
 		rightTempLabel.ForeColor = Color.WhiteSmoke;
 		rightTempLabel.Font = shellFont;
 		rightTempLabel.Padding = new Padding(2, 1, 2, 0);
-		rightTempLabel.Text = "IDLE";
-		tableLayoutPanel3.Controls.Add(label2, 0, 0);
+		SetRightTempText("IDLE");
+		tableLayoutPanel3.Controls.Add(rightTrafficHeaderLabel, 0, 0);
 		tableLayoutPanel3.Controls.Add(ftpTrafficGraph, 0, 1);
 		tableLayoutPanel3.Controls.Add(rightTempLabel, 0, 2);
 		panel3.Controls.Add(tableLayoutPanel3);
@@ -1064,15 +1192,18 @@ internal sealed class XeCliTerminalForm : Form
 		rightDrivesLabel.Dock = DockStyle.Fill;
 		rightDrivesLabel.TextAlign = ContentAlignment.MiddleLeft;
 		rightDrivesLabel.ForeColor = AccentGreen;
-		rightDrivesLabel.Font = shellFontBold;
-		rightDrivesLabel.Text = "DETECTED DRIVES";
+		rightDrivesLabel.Font = new Font("Consolas", 9f, FontStyle.Bold, GraphicsUnit.Point);
+		SetRightDrivesTitleText("DETECTED DRIVES");
 		drivesList.Dock = DockStyle.Fill;
 		drivesList.BackColor = TerminalBackground;
 		drivesList.ForeColor = Color.WhiteSmoke;
 		drivesList.Font = shellFont;
-		drivesList.SetItems(new string[1]
+		drivesList.SetEntries(new DriveInventoryEntry[1]
 		{
-			"No live drives detected"
+			new DriveInventoryEntry
+			{
+				Name = "No live drives detected"
+			}
 		});
 		tableLayoutPanel4.Controls.Add(rightDrivesLabel, 0, 0);
 		tableLayoutPanel4.Controls.Add(drivesList, 0, 1);
@@ -2667,21 +2798,43 @@ internal sealed class XeCliTerminalForm : Form
 			remoteCurrentPath = valueTuple.pathText;
 			if (string.Equals(valueTuple.pathText, "/", StringComparison.Ordinal))
 			{
-				List<string> list = valueTuple.entries.Where(static entry => entry.IsDirectory && entry.Name != "..")
-					.Select(static entry => entry.Name.Trim().TrimEnd(':'))
-					.Where(ShouldDisplayDriveName)
-					.Select(static entry => entry.ToUpperInvariant())
-					.Distinct(StringComparer.OrdinalIgnoreCase)
-					.OrderBy(static entry => entry, StringComparer.OrdinalIgnoreCase)
+				List<DriveInventoryEntry> list = valueTuple.entries.Where(static entry => entry.IsDirectory && entry.Name != "..")
+					.Select(entry => NormalizeDriveEntry(new DriveInventoryEntry
+					{
+						Name = entry.Name
+					}))
+					.Where(static entry => entry != null)
+					.Select(static entry => entry!)
+					.GroupBy(static entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+					.Select(MergeDriveGroup)
+					.OrderBy(static entry => entry.Name, StringComparer.OrdinalIgnoreCase)
 					.ToList();
 				if (list.Count != 0)
 				{
+					List<DriveInventoryEntry> list2 = list;
 					if (latestSnapshot != null)
 					{
+						Dictionary<string, DriveInventoryEntry> dictionary = latestSnapshot.Drives
+							.GroupBy(static entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+							.Select(MergeDriveGroup)
+							.ToDictionary(static entry => entry.Name, StringComparer.OrdinalIgnoreCase);
+						list2 = list.Select(delegate(DriveInventoryEntry entry)
+						{
+							if (dictionary.TryGetValue(entry.Name, out DriveInventoryEntry value))
+							{
+								return new DriveInventoryEntry
+								{
+									Name = entry.Name,
+									TotalBytes = value.TotalBytes,
+									FreeBytes = value.FreeBytes
+								};
+							}
+							return entry;
+						}).ToList();
 						latestSnapshot.Drives.Clear();
-						latestSnapshot.Drives.AddRange(list);
+						latestSnapshot.Drives.AddRange(list2);
 					}
-					UpdateDriveInventory(list);
+					UpdateDriveInventory(list2);
 				}
 			}
 		}
@@ -2887,7 +3040,6 @@ internal sealed class XeCliTerminalForm : Form
 			catch (Exception ex)
 			{
 				LogPanelException("card", ex);
-				throw;
 			}
 		};
 		return panel;
@@ -3081,7 +3233,7 @@ internal sealed class XeCliTerminalForm : Form
 
 	private void SetPersistentConnectState(string text, Color foreground, Color background)
 	{
-		mainShellBannerLabel.Text = text;
+		SetMainShellBannerText(text);
 		mainShellBannerLabel.ForeColor = foreground;
 		mainShellBannerLabel.BackColor = background;
 	}
@@ -3108,18 +3260,24 @@ internal sealed class XeCliTerminalForm : Form
 			remoteEntries.Clear();
 			remoteCurrentPath = "/";
 			nextRemoteRefreshAllowedUtc = DateTime.MinValue;
-		footerStatusLabel.Text = "CONNECTING";
-		footerStatusLabel.ForeColor = AccentGreen;
+			SetFooterStatusText("CONNECTING");
+			footerStatusLabel.ForeColor = AccentGreen;
 			SetPersistentConnectState("LINK NEGOTIATING", AccentGreen, Color.FromArgb(18, 27, 18));
-			SetLabelText(rightNetworkLabel, "LINK      NEGOTIATING\nTARGET    " + FormatStatusTarget() + "\nFTP       connecting\nPRESENCE  pending");
-			SetLabelText(rightTempLabel, "CONNECTING");
-			drivesList.SetItems(new string[1] { "Connecting to drive inventory..." });
-			inventoryList.SetItems(new string[1] { inventoryShowsModules ? "Connecting to live modules..." : "Connecting to live plugins..." });
-			SetLabelText(rightDetailLabel, BuildDisconnectedSessionText());
-			UpdateDriveInventory(Array.Empty<string>());
+			SetRightNetworkText("LINK      NEGOTIATING\nTARGET    " + FormatStatusTarget() + "\nFTP       connecting\nPRESENCE  pending");
+			SetRightTempText("CONNECTING");
+			drivesList.SetEntries(new DriveInventoryEntry[1]
+			{
+				new DriveInventoryEntry
+				{
+					Name = "Connecting..."
+				}
+			});
+			inventoryList.SetItems(new string[1] { TranslateTerminalText(inventoryShowsModules ? "Connecting to live modules..." : "Connecting to live plugins...") });
+			SetRightDetailText(BuildConnectingSessionText());
+			UpdateDriveInventory(Array.Empty<DriveInventoryEntry>());
 			SetRemoteBrowserPlaceholder("/", "Waiting for FTP...");
 			UpdateShellScaffold();
-			commandInput.PlaceholderText = "Connecting to console...";
+			SetCommandInputPlaceholder("Connecting to console...");
 			SetConnectButtonConnectingState();
 			await Task.Yield();
 			bool flag = false;
@@ -3157,12 +3315,12 @@ internal sealed class XeCliTerminalForm : Form
 				if (!connectAttemptInFlight)
 				{
 					RestoreConnectButtonIdleState();
-					commandInput.PlaceholderText = "Enter XeCLI command for the current console session...";
+					SetCommandInputPlaceholder("Enter XeCLI command for the current console session...");
 					return;
 				}
 				connectAttemptInFlight = false;
 				RestoreConnectButtonIdleState();
-				commandInput.PlaceholderText = "Connect or enter a XeCLI command for this session...";
+				SetCommandInputPlaceholder("Connect or enter a XeCLI command for this session...");
 				if (sessionVersion != Volatile.Read(ref sessionEpoch))
 				{
 					return;
@@ -3178,15 +3336,15 @@ internal sealed class XeCliTerminalForm : Form
 						RefreshTransferQueueDisplay();
 					}
 					SetPersistentConnectState("LINK ACTIVE", AccentGreen, Color.FromArgb(18, 34, 32));
-					footerStatusLabel.Text = "CONNECTED";
+					SetFooterStatusText("CONNECTED");
 					footerStatusLabel.ForeColor = AccentGreen;
 					AppendSystemLine("Console link active.", AccentGreen);
 					UpdateRuntimePresence(connected: true, new TelemetrySnapshot
 					{
 						Connected = true
 					});
-					SetLabelText(rightNetworkLabel, "LINK      ONLINE\nTARGET    " + FormatStatusTarget() + "\nFTP       refreshing\nPRESENCE  syncing");
-					SetLabelText(rightDetailLabel, "Connection established.\nLoading title, XEX, user,\nsign-in, and queue...");
+					SetRightNetworkText("LINK      ONLINE\nTARGET    " + FormatStatusTarget() + "\nFTP       refreshing\nPRESENCE  syncing");
+					SetRightDetailText("Connection established.\nLoading title, XEX, user,\nsign-in, and queue...");
 					SetRemoteBrowserPlaceholder("/", "Refreshing remote root...");
 					UpdateConnectionStatusIndicator(new TelemetrySnapshot
 					{
@@ -3208,10 +3366,10 @@ internal sealed class XeCliTerminalForm : Form
 					latestSnapshot = null;
 					UpdateRuntimePresence(connected: false);
 					SetPersistentConnectState("LINK FAILED", WarningColor, Color.FromArgb(27, 21, 16));
-					footerStatusLabel.Text = "DISCONNECTED";
+					SetFooterStatusText("DISCONNECTED");
 					footerStatusLabel.ForeColor = WarningColor;
 					SetRemoteBrowserPlaceholder("/", "Connect failed or timed out");
-					SetLabelText(rightNetworkLabel, BuildDisconnectedStatusText());
+					SetRightNetworkText(BuildDisconnectedStatusText());
 					UpdateShellScaffold();
 				}
 			}
@@ -3230,7 +3388,7 @@ internal sealed class XeCliTerminalForm : Form
 			nextRemoteRefreshAllowedUtc = DateTime.MinValue;
 			latestSnapshot = null;
 			UpdateRuntimePresence(connected: false);
-			footerStatusLabel.Text = "DISCONNECTED";
+			SetFooterStatusText("DISCONNECTED");
 			footerStatusLabel.ForeColor = WarningColor;
 			SetPersistentConnectState("LINK OFFLINE", WarningColor, Color.FromArgb(24, 19, 15));
 			UpdateConnectionStatusIndicator(new TelemetrySnapshot
@@ -3240,10 +3398,10 @@ internal sealed class XeCliTerminalForm : Form
 			UpdateShellScaffold();
 			telemetryTimer.Stop();
 			RestoreConnectButtonIdleState();
-			commandInput.PlaceholderText = "Connect or enter a XeCLI command for this session...";
-			SetLabelText(rightNetworkLabel, BuildDisconnectedStatusText());
-			SetLabelText(rightTempLabel, "IDLE");
-			SetLabelText(rightDetailLabel, BuildDisconnectedSessionText());
+			SetCommandInputPlaceholder("Connect or enter a XeCLI command for this session...");
+			SetRightNetworkText(BuildDisconnectedStatusText());
+			SetRightTempText("IDLE");
+			SetRightDetailText(BuildDisconnectedSessionText());
 			SetRemoteBrowserPlaceholder("/", "Disconnected");
 			if (transferQueueEntries.Count == 0)
 			{
@@ -3252,7 +3410,7 @@ internal sealed class XeCliTerminalForm : Form
 		};
 		screenshotButton.Click += async delegate
 		{
-			await ExecuteCommandAsync("screenshot");
+			await ExecuteScreenshotCaptureAsync();
 		};
 		languageButton.Click += delegate
 		{
@@ -3270,12 +3428,14 @@ internal sealed class XeCliTerminalForm : Form
 		pluginsTabButton.Click += delegate
 		{
 			inventoryShowsModules = false;
+			inventoryList.ResetViewport();
 			RefreshInventoryHeader();
 			RefreshInventoryListFromSnapshot();
 		};
 		modulesTabButton.Click += delegate
 		{
 			inventoryShowsModules = true;
+			inventoryList.ResetViewport();
 			RefreshInventoryHeader();
 			RefreshInventoryListFromSnapshot();
 		};
@@ -3305,9 +3465,359 @@ internal sealed class XeCliTerminalForm : Form
 		languageButton.Text = "LANG: " + (GetConfiguredUiLanguageCode() == "es" ? "ES" : "EN");
 	}
 
+	private static string GetFooterVersionText()
+	{
+		System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+		string? informationalVersion = assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), inherit: false)
+			.OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
+			.FirstOrDefault()?.InformationalVersion;
+		string text = string.IsNullOrWhiteSpace(informationalVersion) ? assembly.GetName().Version?.ToString(3) : informationalVersion;
+		if (!string.IsNullOrWhiteSpace(text))
+		{
+			int num = text.IndexOf('+');
+			if (num >= 0)
+			{
+				text = text.Substring(0, num);
+			}
+		}
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			text = "1.1.0";
+		}
+		return "XeCLI v" + text.Trim();
+	}
+
+	private static void OpenXeCliRepository()
+	{
+		try
+		{
+			Process.Start(new ProcessStartInfo
+			{
+				FileName = "https://github.com/SaveEditors/xecli",
+				UseShellExecute = true
+			});
+		}
+		catch
+		{
+		}
+	}
+
+	private static string TranslateTerminalText(string text)
+	{
+		if (!LocalizedText.IsSpanish || string.IsNullOrEmpty(text))
+		{
+			return text;
+		}
+		string text2 = text switch
+		{
+			"XeCLI Terminal" => "Terminal XeCLI",
+			"CONSOLE" => "CONSOLA",
+			"STATUS" => "ESTADO",
+			"TRAFFIC" => "TRAFICO",
+			"DETECTED DRIVES" => "UNIDADES DETECTADAS",
+			"Plugins" => "Plugins",
+			"Modules" => "Modulos",
+			"CONNECT" => "CONECTAR",
+			"CONNECTING" => "CONECTANDO",
+			"DISCONNECT" => "DESCONECTAR",
+			"SCREENSHOT" => "CAPTURA",
+			"Refresh" => "Actualizar",
+			"LOCAL PATH" => "RUTA LOCAL",
+			"REMOTE PATH" => "RUTA REMOTA",
+			"QUEUE" => "COLA",
+			"NAME" => "NOMBRE",
+			"MODIFIED" => "MODIFICADO",
+			"SIZE" => "TAMANO",
+			"IDLE" => "EN ESPERA",
+			"XECLI // ACTIVE SHELL" => "XECLI // SHELL ACTIVA",
+			"LIVE SHELL // TARGET " => "SHELL EN VIVO // DESTINO ",
+			_ => text
+		};
+		if (!string.Equals(text2, text, StringComparison.Ordinal))
+		{
+			return text2;
+		}
+		text2 = TranslateTerminalStructuredLines(text2);
+		text2 = text2.Replace("No live console context.", "No hay contexto activo de consola.", StringComparison.Ordinal);
+		text2 = text2.Replace("Connect to load title, XEX,", "Conecta para cargar titulo, XEX,", StringComparison.Ordinal);
+		text2 = text2.Replace("user, presence, and TitleID.", "usuario, presencia y TitleID.", StringComparison.Ordinal);
+		text2 = text2.Replace("DISCONNECTED SESSION", "SESION DESCONECTADA", StringComparison.Ordinal);
+		text2 = text2.Replace("Use CONNECT to load thermals, FTP, title, and user state.", "Usa CONNECT para cargar termicas, FTP, titulo y estado del usuario.", StringComparison.Ordinal);
+		text2 = text2.Replace("Local XeCLI commands remain available below.", "Los comandos locales de XeCLI siguen disponibles abajo.", StringComparison.Ordinal);
+		text2 = text2.Replace("NEGOTIATING LINK", "NEGOCIANDO ENLACE", StringComparison.Ordinal);
+		text2 = text2.Replace("Handshake in progress.", "Negociacion en curso.", StringComparison.Ordinal);
+		text2 = text2.Replace("Live telemetry will hydrate automatically.", "La telemetria en vivo se cargara automaticamente.", StringComparison.Ordinal);
+		text2 = text2.Replace("LIVE SESSION ONLINE", "SESION EN LINEA", StringComparison.Ordinal);
+		text2 = text2.Replace("Connection established.", "Conexion establecida.", StringComparison.Ordinal);
+		text2 = text2.Replace("Loading title, XEX, user,", "Cargando titulo, XEX, usuario,", StringComparison.Ordinal);
+		text2 = text2.Replace("sign-in, and queue...", "inicio de sesion y cola...", StringComparison.Ordinal);
+		text2 = text2.Replace("Waiting for FTP...", "Esperando FTP...", StringComparison.Ordinal);
+		text2 = text2.Replace("Refreshing remote root...", "Actualizando raiz remota...", StringComparison.Ordinal);
+		text2 = text2.Replace("Connect for Modules", "Conecta para modulos", StringComparison.Ordinal);
+		text2 = text2.Replace("Connecting to live modules...", "Conectando a modulos activos...", StringComparison.Ordinal);
+		text2 = text2.Replace("Connect for Plugins", "Conecta para plugins", StringComparison.Ordinal);
+		text2 = text2.Replace("Connecting to live plugins...", "Conectando a plugins activos...", StringComparison.Ordinal);
+		text2 = text2.Replace("No live modules detected", "No se detectaron modulos activos", StringComparison.Ordinal);
+		text2 = text2.Replace("No cached modules loaded", "No hay modulos en cache", StringComparison.Ordinal);
+		text2 = text2.Replace("No live plugins detected", "No se detectaron plugins activos", StringComparison.Ordinal);
+		text2 = text2.Replace("No cached plugins loaded", "No hay plugins en cache", StringComparison.Ordinal);
+		text2 = text2.Replace("No live drives detected", "No se detectaron unidades activas", StringComparison.Ordinal);
+		text2 = text2.Replace("Connecting...", "Conectando...", StringComparison.Ordinal);
+		text2 = text2.Replace("Live storage root", "Raiz de almacenamiento", StringComparison.Ordinal);
+		text2 = text2.Replace("QUEUE IDLE", "COLA EN ESPERA", StringComparison.Ordinal);
+		text2 = text2.Replace("No transfers staged", "No hay transferencias en cola", StringComparison.Ordinal);
+		text2 = text2.Replace("Connect or enter a XeCLI command for this session...", "Conecta o escribe un comando XeCLI para esta sesion...", StringComparison.Ordinal);
+		text2 = text2.Replace("Enter XeCLI command for the current console session...", "Escribe un comando XeCLI para la sesion actual de la consola...", StringComparison.Ordinal);
+		text2 = text2.Replace("Connect or enter a XeCLI command...", "Conecta o escribe un comando XeCLI...", StringComparison.Ordinal);
+		text2 = text2.Replace("Connecting to console...", "Conectando a la consola...", StringComparison.Ordinal);
+		text2 = text2.Replace("TARGET READY", "OBJETIVO LISTO", StringComparison.Ordinal);
+		text2 = text2.Replace("LINK NEGOTIATING", "NEGOCIANDO ENLACE", StringComparison.Ordinal);
+		text2 = text2.Replace("LINK ACTIVE", "ENLACE ACTIVO", StringComparison.Ordinal);
+		text2 = text2.Replace("LINK OFFLINE", "ENLACE FUERA DE LINEA", StringComparison.Ordinal);
+		text2 = text2.Replace("LINK FAILED", "FALLO DE ENLACE", StringComparison.Ordinal);
+		text2 = text2.Replace("PRESENCE · OFFLINE", "PRESENCIA · FUERA DE LINEA", StringComparison.Ordinal);
+		text2 = text2.Replace("Signed In", "Sesion iniciada", StringComparison.Ordinal);
+		text2 = text2.Replace("Not Signed In", "Sin iniciar sesion", StringComparison.Ordinal);
+		text2 = text2.Replace("Spanish", "Espanol", StringComparison.Ordinal);
+		text2 = text2.Replace("English", "Ingles", StringComparison.Ordinal);
+		text2 = text2.Replace("CONNECTING", "CONECTANDO", StringComparison.Ordinal);
+		text2 = text2.Replace("DISCONNECTED", "DESCONECTADO", StringComparison.Ordinal);
+		text2 = text2.Replace("CONNECTED", "CONECTADO", StringComparison.Ordinal);
+		text2 = text2.Replace("ONLINE", "EN LINEA", StringComparison.Ordinal);
+		text2 = text2.Replace("OFFLINE", "FUERA DE LINEA", StringComparison.Ordinal);
+		text2 = text2.Replace("syncing", "sincronizando", StringComparison.Ordinal);
+		text2 = text2.Replace("refreshing", "actualizando", StringComparison.Ordinal);
+		text2 = text2.Replace("connecting", "conectando", StringComparison.Ordinal);
+		text2 = text2.Replace("pending", "pendiente", StringComparison.Ordinal);
+		text2 = text2.Replace("offline", "fuera de linea", StringComparison.Ordinal);
+		text2 = text2.Replace("idle", "inactivo", StringComparison.Ordinal);
+		text2 = text2.Replace("unknown", "desconocido", StringComparison.Ordinal);
+		return LocalizedText.Translate(text2);
+	}
+
+	private static string TranslateTerminalStructuredLines(string text)
+	{
+		string[] array = text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
+		for (int i = 0; i < array.Length; i++)
+		{
+			if (TryTranslateTerminalFieldPrefix(array[i], out string text2))
+			{
+				array[i] = text2;
+			}
+		}
+		return string.Join(text.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n", array);
+	}
+
+	private static bool TryTranslateTerminalFieldPrefix(string line, out string translated)
+	{
+		translated = line;
+		if (line.Length < 10)
+		{
+			return false;
+		}
+		string text = line.Substring(0, 10).Trim();
+		string text2 = text switch
+		{
+			"BOARD" => "PLACA",
+			"DASH" => "DASH",
+			"GAME" => "JUEGO",
+			"XEX" => "XEX",
+			"TITLEID" => "TITLEID",
+			"GAMERTAG" => "USUARIO",
+			"LINK" => "ENLACE",
+			"TARGET" => "DESTINO",
+			"FTP" => "FTP",
+			"DRIVES" => "UNIDADES",
+			"PRESENCE" => "ESTADO",
+			"ALERT" => "ALERTA",
+			"TITLE" => "TITULO",
+			"STATE" => "ESTADO",
+			"USER" => "USUARIO",
+			_ => string.Empty
+		};
+		if (string.IsNullOrEmpty(text2))
+		{
+			return false;
+		}
+		translated = text2.PadRight(10) + line.Substring(10);
+		return true;
+	}
+
+	private void SetConnectionStatusText(string englishText)
+	{
+		connectionStatusTextSource = englishText;
+		SetLabelText(connectionStatusLabel, TranslateTerminalText(englishText));
+	}
+
+	private void SetConnectButtonText(string englishText)
+	{
+		connectButtonTextSource = englishText;
+		string text = TranslateTerminalText(englishText);
+		if (!string.Equals(connectButton.Text, text, StringComparison.Ordinal))
+		{
+			connectButton.Text = text;
+		}
+	}
+
+	private void SetCommandInputPlaceholder(string englishText)
+	{
+		commandInputPlaceholderSource = englishText;
+		string text = TranslateTerminalText(englishText);
+		if (!string.Equals(commandInput.PlaceholderText, text, StringComparison.Ordinal))
+		{
+			commandInput.PlaceholderText = text;
+		}
+	}
+
+	private void SetFooterPresenceText(string englishText)
+	{
+		footerPresenceTextSource = englishText;
+		SetLabelText(footerPresenceLabel, TranslateTerminalText(englishText));
+	}
+
+	private void SetFooterStatusText(string englishText)
+	{
+		footerStatusTextSource = englishText;
+		SetLabelText(footerStatusLabel, TranslateTerminalText(englishText));
+	}
+
+	private void SetFooterThermalText(string englishText)
+	{
+		footerThermalTextSource = englishText;
+		SetLabelText(footerThermalLabel, TranslateTerminalText(englishText));
+	}
+
+	private void SetLeftConsoleText(string englishText)
+	{
+		leftConsoleTextSource = englishText;
+		leftConsoleInfoPanel.SetContent(TranslateTerminalText(englishText));
+	}
+
+	private void SetLeftSignInText(string englishText)
+	{
+		leftSignInTextSource = englishText;
+		SetLabelText(leftSignInLabel, TranslateTerminalText(englishText));
+	}
+
+	private void SetMainShellBannerText(string englishText)
+	{
+		mainShellBannerTextSource = englishText;
+		SetLabelText(mainShellBannerLabel, TranslateTerminalText(englishText));
+	}
+
+	private void SetRightDetailText(string englishText)
+	{
+		rightDetailTextSource = englishText;
+		SetLabelText(rightDetailLabel, TranslateTerminalText(englishText));
+	}
+
+	private void SetRightDrivesTitleText(string englishText)
+	{
+		rightDrivesTitleTextSource = englishText;
+		SetLabelText(rightDrivesLabel, TranslateTerminalText(englishText));
+	}
+
+	private void SetRightNetworkText(string englishText)
+	{
+		rightNetworkTextSource = englishText;
+		rightNetworkInfoPanel.SetContent(TranslateTerminalText(englishText));
+	}
+
+	private void SetRightTempText(string englishText)
+	{
+		rightTempTextSource = englishText;
+		SetLabelText(rightTempLabel, TranslateTerminalText(englishText));
+	}
+
+	private static void SetControlText(Control control, string value)
+	{
+		if (!string.Equals(control.Text, value, StringComparison.Ordinal))
+		{
+			control.Text = value;
+		}
+	}
+
+	private static Label? FindFirstChildLabel(Control control)
+	{
+		foreach (Control child in control.Controls)
+		{
+			if (child is Label label)
+			{
+				return label;
+			}
+			Label? label2 = FindFirstChildLabel(child);
+			if (label2 != null)
+			{
+				return label2;
+			}
+		}
+		return null;
+	}
+
+	private void SetPanelHeaderLabelText(Panel panel, string englishText)
+	{
+		Label? label = FindFirstChildLabel(panel);
+		if (label != null)
+		{
+			SetLabelText(label, TranslateTerminalText(englishText));
+		}
+	}
+
+	private void RefreshShellTargetLabelText()
+	{
+		SetLabelText(shellTargetLabel, TranslateTerminalText("LIVE SHELL // TARGET ") + FormatCurrentTarget());
+	}
+
+	private void RefreshLocalizedUiText()
+	{
+		base.Text = TranslateTerminalText("XeCLI Terminal");
+		SetLabelText(leftConsoleHeaderLabel, TranslateTerminalText("CONSOLE"));
+		SetLabelText(rightStatusHeaderLabel, TranslateTerminalText("STATUS"));
+		SetLabelText(rightTrafficHeaderLabel, TranslateTerminalText("TRAFFIC"));
+		SetLabelText(shellBadgeLabel, TranslateTerminalText("XECLI // ACTIVE SHELL"));
+		RefreshShellTargetLabelText();
+		SetControlText(pluginsTabButton, TranslateTerminalText("Plugins"));
+		SetControlText(modulesTabButton, TranslateTerminalText("Modules"));
+		SetControlText(disconnectButton, TranslateTerminalText("DISCONNECT"));
+		SetControlText(screenshotButton, TranslateTerminalText("SCREENSHOT"));
+		SetControlText(localUpButton, TranslateTerminalText("UP"));
+		SetControlText(localRefreshButton, TranslateTerminalText("Refresh"));
+		SetControlText(remoteUpButton, TranslateTerminalText("UP"));
+		SetControlText(remoteRefreshButton, TranslateTerminalText("Refresh"));
+		SetControlText(ftpTabButton, TranslateTerminalText("FTP"));
+		SetControlText(queueTabButton, TranslateTerminalText("QUEUE"));
+		SetPanelHeaderLabelText(targetIpHostPanel, "HOST / IP");
+		SetPanelHeaderLabelText(localPathHostPanel, "LOCAL PATH");
+		SetPanelHeaderLabelText(remotePathHostPanel, "REMOTE PATH");
+		localFileList.HeaderText = TranslateTerminalText("NAME");
+		remoteFileList.HeaderText = TranslateTerminalText("NAME");
+		RefreshLanguageButtonText();
+		SetConnectButtonText(connectButtonTextSource);
+		SetCommandInputPlaceholder(commandInputPlaceholderSource);
+		SetConnectionStatusText(connectionStatusTextSource);
+		SetFooterStatusText(footerStatusTextSource);
+		SetFooterPresenceText(footerPresenceTextSource);
+		SetFooterThermalText(footerThermalTextSource);
+		SetMainShellBannerText(mainShellBannerTextSource);
+		SetLeftConsoleText(leftConsoleTextSource);
+		SetLeftSignInText(leftSignInTextSource);
+		SetRightNetworkText(rightNetworkTextSource);
+		SetRightTempText(rightTempTextSource);
+		SetRightDetailText(rightDetailTextSource);
+		SetRightDrivesTitleText(rightDrivesTitleTextSource);
+		RefreshInventoryListFromSnapshot();
+		UpdateDriveInventory((IEnumerable<DriveInventoryEntry>?)latestSnapshot?.Drives ?? Array.Empty<DriveInventoryEntry>());
+		localFileList.Invalidate();
+		remoteFileList.Invalidate();
+		drivesList.Invalidate();
+		transferQueueList.Invalidate();
+		ftpTrafficGraph.Invalidate();
+	}
+
 	private void RefreshTargetEditorText()
 	{
 		targetIpTextBox.Text = currentTargetIp;
+		RefreshShellTargetLabelText();
 	}
 
 	private void ToggleUiLanguage()
@@ -3316,8 +3826,12 @@ internal sealed class XeCliTerminalForm : Form
 		string text = (NormalizeUiLanguageCode(cliConfig.UiLanguage) == "es") ? "en" : "es";
 		cliConfig.UiLanguage = text;
 		cliConfig.Save();
+		LocalizedText.Initialize(text);
+		CultureInfo.CurrentUICulture = LocalizedText.Culture;
+		CultureInfo.DefaultThreadCurrentUICulture = LocalizedText.Culture;
+		RefreshLocalizedUiText();
 		RefreshLanguageButtonText();
-		AppendSystemLine("CLI language set to " + ((text == "es") ? "Spanish" : "English") + ". New commands use it immediately.", AccentGreen);
+		AppendSystemLine(TranslateTerminalText("CLI language set to " + ((text == "es") ? "Spanish" : "English") + ". New commands use it immediately."), AccentGreen);
 	}
 
 	private void ConfigureActionButton(Button button, string text)
@@ -3532,11 +4046,79 @@ internal sealed class XeCliTerminalForm : Form
 		return (text == "/") ? "FTP /" : ("FTP " + text);
 	}
 
-	private void UpdateDriveInventory(IEnumerable<string> drives)
+	private static DriveInventoryEntry MergeDriveGroup(IGrouping<string, DriveInventoryEntry> group)
 	{
-		List<string> list = drives.Where(static d => !string.IsNullOrWhiteSpace(d))
-			.Distinct(StringComparer.OrdinalIgnoreCase)
-			.OrderBy(static d => d, StringComparer.OrdinalIgnoreCase)
+		DriveInventoryEntry? driveInventoryEntry = group
+			.Where(static entry => entry.TotalBytes.HasValue || entry.FreeBytes.HasValue)
+			.OrderByDescending(static entry => entry.TotalBytes ?? 0)
+			.ThenByDescending(static entry => entry.FreeBytes ?? 0)
+			.FirstOrDefault();
+		return new DriveInventoryEntry
+		{
+			Name = group.Key,
+			TotalBytes = driveInventoryEntry?.TotalBytes,
+			FreeBytes = driveInventoryEntry?.FreeBytes
+		};
+	}
+
+	private static DriveInventoryEntry? NormalizeDriveEntry(DriveInventoryEntry entry)
+	{
+		if (!TryGetCanonicalDriveName(entry.Name, out string canonicalDriveName))
+		{
+			return null;
+		}
+		return new DriveInventoryEntry
+		{
+			Name = canonicalDriveName,
+			TotalBytes = entry.TotalBytes,
+			FreeBytes = entry.FreeBytes
+		};
+	}
+
+	private static bool TryGetCanonicalDriveName(string? name, out string canonicalDriveName)
+	{
+		string text = TrimOrNull(name)?.Trim().TrimEnd(':', '\\', '/') ?? string.Empty;
+		text = text.Replace(" ", string.Empty, StringComparison.Ordinal).ToLowerInvariant();
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			canonicalDriveName = string.Empty;
+			return false;
+		}
+		switch (text)
+		{
+		case "d":
+		case "hdd":
+		case "hdd1":
+		case "game":
+		case "devkit":
+		case "internal":
+			canonicalDriveName = "HDD1";
+			return true;
+		}
+		if (text.StartsWith("usb", StringComparison.Ordinal))
+		{
+			for (int i = 0; i < text.Length; i++)
+			{
+				if (char.IsDigit(text[i]))
+				{
+					canonicalDriveName = "USB" + text[i];
+					return true;
+				}
+			}
+		}
+		canonicalDriveName = string.Empty;
+		return false;
+	}
+
+	private void UpdateDriveInventory(IEnumerable<DriveInventoryEntry> drives)
+	{
+		List<DriveInventoryEntry> list = drives.Where(static d => !string.IsNullOrWhiteSpace(d.Name))
+			.Select(NormalizeDriveEntry)
+			.Where(static entry => entry != null)
+			.Select(static entry => entry!)
+			.GroupBy(static d => d.Name.Trim(), StringComparer.OrdinalIgnoreCase)
+			.Select(MergeDriveGroup)
+			.OrderBy(static d => d.Name, StringComparer.OrdinalIgnoreCase)
 			.ToList();
 		if (latestSnapshot != null)
 		{
@@ -3544,17 +4126,23 @@ internal sealed class XeCliTerminalForm : Form
 			latestSnapshot.Drives.AddRange(list);
 			if (latestSnapshot.Connected)
 			{
-				SetLabelText(rightNetworkLabel, BuildConnectedStatusText(latestSnapshot));
+				SetRightNetworkText(BuildConnectedStatusText(latestSnapshot));
 			}
 		}
-		rightDrivesLabel.Text = "DETECTED DRIVES";
-		drivesList.SetItems((list.Count != 0) ? list : new string[1] { shellDisconnected ? "No live drives detected" : "Connecting to drive inventory..." });
+		SetRightDrivesTitleText("DETECTED DRIVES");
+		drivesList.SetEntries((list.Count != 0) ? list : new DriveInventoryEntry[1]
+		{
+			new DriveInventoryEntry
+			{
+				Name = TranslateTerminalText(connectAttemptInFlight ? "Connecting..." : "No live drives detected")
+			}
+		});
 	}
 
 	private void ResetLiveSessionUi(bool connected, string footerText, Color footerColor, string shellStatusText, Color shellStatusColor, Color shellStatusBackground, string remoteMessage)
 	{
 		shellDisconnected = !connected;
-		footerStatusLabel.Text = footerText;
+		SetFooterStatusText(footerText);
 		footerStatusLabel.ForeColor = footerColor;
 		SetPersistentConnectState(shellStatusText, shellStatusColor, shellStatusBackground);
 		UpdateConnectionStatusIndicator(new TelemetrySnapshot
@@ -3567,14 +4155,14 @@ internal sealed class XeCliTerminalForm : Form
 		} : null);
 		if (!connected)
 		{
-			SetLabelText(rightNetworkLabel, BuildDisconnectedStatusText());
-			SetLabelText(rightTempLabel, "IDLE");
-			SetLabelText(rightDetailLabel, BuildDisconnectedSessionText());
-			leftConsoleLabel.Text = "BOARD      unknown\nDASH       --\nGAME       --\nXEX        --\nTITLEID    --\nGAMERTAG   Not Signed In";
-			leftSignInLabel.Text = "INVENTORY";
-			footerPresenceLabel.Text = "PRESENCE · OFFLINE";
-			footerThermalLabel.Text = BuildFooterThermalText(null, null, null, null);
-			UpdateDriveInventory(Array.Empty<string>());
+			SetRightNetworkText(BuildDisconnectedStatusText());
+			SetRightTempText("IDLE");
+			SetRightDetailText(BuildDisconnectedSessionText());
+			SetLeftConsoleText("BOARD      unknown\nDASH       --\nGAME       --\nXEX        --\nTITLEID    --\nGAMERTAG   Not Signed In");
+			SetLeftSignInText("INVENTORY");
+			SetFooterPresenceText("PRESENCE · OFFLINE");
+			SetFooterThermalText(BuildFooterThermalText(null, null, null, null));
+			UpdateDriveInventory(Array.Empty<DriveInventoryEntry>());
 			latestSnapshot = null;
 		}
 		UpdateRuntimePresence(connected, connected ? latestSnapshot : null);
@@ -3622,7 +4210,7 @@ internal sealed class XeCliTerminalForm : Form
 		nextRemoteRefreshAllowedUtc = DateTime.MinValue;
 		UpdateRuntimePresence(connected: false);
 		RestoreConnectButtonIdleState();
-		commandInput.PlaceholderText = "Connect or enter a XeCLI command for this session...";
+		SetCommandInputPlaceholder("Connect or enter a XeCLI command for this session...");
 		ResetLiveSessionUi(connected: false, "TARGET READY", AccentCyan, "LINK OFFLINE", WarningColor, Color.FromArgb(24, 19, 15), "Disconnected");
 		if (announceChange)
 		{
@@ -3672,6 +4260,7 @@ internal sealed class XeCliTerminalForm : Form
 
 	private void RefreshInventoryHeader()
 	{
+		inventoryList.ModuleView = inventoryShowsModules;
 		pluginsTabButton.ForeColor = (!inventoryShowsModules ? AccentCyan : AccentDim);
 		modulesTabButton.ForeColor = (inventoryShowsModules ? AccentCyan : AccentDim);
 	}
@@ -3679,27 +4268,36 @@ internal sealed class XeCliTerminalForm : Form
 	private void RefreshInventoryListFromSnapshot()
 	{
 		int num = 0;
-		if (latestSnapshot == null)
+		if (connectAttemptInFlight)
 		{
-			leftSignInLabel.Text = "INVENTORY";
+			SetLeftSignInText("INVENTORY");
 			inventoryList.SetItems(new string[1]
 			{
-				inventoryShowsModules ? "Connect to load live modules" : "Connect to load live plugins"
+				TranslateTerminalText(inventoryShowsModules ? "Connecting to live modules..." : "Connecting to live plugins...")
+			});
+			return;
+		}
+		if (latestSnapshot == null)
+		{
+			SetLeftSignInText("INVENTORY");
+			inventoryList.SetItems(new string[1]
+			{
+				TranslateTerminalText(inventoryShowsModules ? "Connect for Modules" : "Connect for Plugins")
 			});
 			return;
 		}
 		IEnumerable<string> enumerable = inventoryShowsModules ? latestSnapshot.Modules : latestSnapshot.Plugins;
 		num = enumerable.Count();
-		leftSignInLabel.Text = "INVENTORY";
+		SetLeftSignInText("INVENTORY");
 		if (!enumerable.Any())
 		{
 			inventoryList.SetItems(new string[1]
 			{
-				inventoryShowsModules ? (latestSnapshot.Connected ? "No live modules detected" : "No cached modules loaded") : (latestSnapshot.Connected ? "No live plugins detected" : "No cached plugins loaded")
+				TranslateTerminalText(inventoryShowsModules ? (latestSnapshot.Connected ? "No live modules detected" : "No cached modules loaded") : (latestSnapshot.Connected ? "No live plugins detected" : "No cached plugins loaded"))
 			});
 			return;
 		}
-		inventoryList.SetItems(enumerable.Take(256));
+		inventoryList.SetItems(FormatInventoryEntries(enumerable).Take(256));
 	}
 
 	private void RecordTransferActivity(string command, string state)
@@ -3837,6 +4435,31 @@ internal sealed class XeCliTerminalForm : Form
 		logoPictureBox.Image = CreateGeneratedHeaderFallbackImage();
 	}
 
+	private void LoadApplicationIcon()
+	{
+		try
+		{
+			string? processPath = Environment.ProcessPath;
+			if (!string.IsNullOrWhiteSpace(processPath) && File.Exists(processPath))
+			{
+				Icon? associatedIcon = Icon.ExtractAssociatedIcon(processPath);
+				if (associatedIcon != null)
+				{
+					base.Icon = associatedIcon;
+					return;
+				}
+			}
+			string text = Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico");
+			if (File.Exists(text))
+			{
+				base.Icon = new Icon(text);
+			}
+		}
+		catch
+		{
+		}
+	}
+
 	private void LoadOptionalBackground()
 	{
 		base.BackgroundImage = null;
@@ -3969,18 +4592,16 @@ internal sealed class XeCliTerminalForm : Form
 			e.SuppressKeyPress = true;
 			return;
 		}
-		if (e.KeyCode == Keys.Up && suggestionList.Visible && suggestionList.Items.Count > 0)
+		if (e.KeyCode == Keys.Up && suggestionList.Visible && suggestionList.ItemCount > 0)
 		{
-			int num = Math.Max(suggestionList.SelectedIndex - 1, 0);
-			suggestionList.SelectedIndex = num;
+			suggestionList.MoveSelection(-1);
 			e.Handled = true;
 			e.SuppressKeyPress = true;
 			return;
 		}
-		if (e.KeyCode == Keys.Down && suggestionList.Visible && suggestionList.Items.Count > 0)
+		if (e.KeyCode == Keys.Down && suggestionList.Visible && suggestionList.ItemCount > 0)
 		{
-			int num2 = Math.Min(suggestionList.SelectedIndex + 1, suggestionList.Items.Count - 1);
-			suggestionList.SelectedIndex = num2;
+			suggestionList.MoveSelection(1);
 			e.Handled = true;
 			e.SuppressKeyPress = true;
 			return;
@@ -3996,7 +4617,9 @@ internal sealed class XeCliTerminalForm : Form
 		{
 			return;
 		}
+		suppressSuggestionRefresh = true;
 		commandInput.Clear();
+		suppressSuggestionRefresh = false;
 		ToggleSuggestions(visible: false);
 		_ = ExecuteCommandAsync(text);
 	}
@@ -4014,13 +4637,9 @@ internal sealed class XeCliTerminalForm : Form
 		{
 			list = XeCliSuggestions.Where((string s) => s.Contains(text, StringComparison.OrdinalIgnoreCase)).Take(18).ToList();
 		}
-		suggestionList.Items.Clear();
-		foreach (string item in list)
-		{
-			suggestionList.Items.Add(item);
-		}
+		suggestionList.SetItems(list);
 		bool visible = list.Count > 0;
-		if (visible)
+		if (visible && suggestionList.SelectedIndex != 0)
 		{
 			suggestionList.SelectedIndex = 0;
 		}
@@ -4029,30 +4648,36 @@ internal sealed class XeCliTerminalForm : Form
 
 	private void ToggleSuggestions(bool visible)
 	{
+		float num = visible ? suggestionList.PreferredHostHeight : 0f;
+		suggestionHost.SuspendLayout();
 		suggestionList.Visible = visible;
-		suggestionHost.Height = (visible ? 126 : 4);
-		suggestionHost.BackColor = (visible ? Color.FromArgb(10, 15, 12) : TerminalBackground);
+		suggestionHost.Visible = visible;
+		suggestionHost.BackColor = TerminalBackground;
 		suggestionHost.Padding = (visible ? new Padding(1) : Padding.Empty);
+		suggestionList.Height = Math.Max(0, (int)num - suggestionHost.Padding.Vertical);
 		if (suggestionRowStyle != null)
 		{
-			suggestionRowStyle.Height = (visible ? 130f : 4f);
+			if (Math.Abs(suggestionRowStyle.Height - num) > float.Epsilon)
+			{
+				suggestionRowStyle.Height = num;
+			}
 		}
+		suggestionHost.ResumeLayout();
 	}
 
-	private void DrawSuggestionItem(object? sender, DrawItemEventArgs e)
+	private void HideSuggestionsIfInputInactive()
 	{
-		e.DrawBackground();
-		if (e.Index < 0 || e.Index >= suggestionList.Items.Count)
+		if (base.IsDisposed)
 		{
 			return;
 		}
-		bool flag = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
-		Color color = flag ? Color.FromArgb(52, 96, 42) : Color.FromArgb(10, 15, 12);
-		Color color2 = flag ? AccentGreen : Color.WhiteSmoke;
-		using SolidBrush brush = new SolidBrush(color);
-		using SolidBrush brush2 = new SolidBrush(color2);
-		e.Graphics.FillRectangle(brush, e.Bounds);
-		TextRenderer.DrawText(e.Graphics, suggestionList.Items[e.Index]?.ToString() ?? string.Empty, suggestionList.Font, Rectangle.Inflate(e.Bounds, -6, 0), color2, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+		BeginInvoke((Action)delegate
+		{
+			if (!base.IsDisposed && !commandInput.Focused && !suggestionList.Focused && !commandInputHost.ContainsFocus)
+			{
+				ToggleSuggestions(visible: false);
+			}
+		});
 	}
 
 	private void ApplySelectedSuggestion()
@@ -4063,8 +4688,10 @@ internal sealed class XeCliTerminalForm : Form
 		}
 		if (suggestionList.SelectedItem is string text)
 		{
+			suppressSuggestionRefresh = true;
 			commandInput.Text = text;
 			commandInput.SelectionStart = commandInput.Text.Length;
+			suppressSuggestionRefresh = false;
 			commandInput.Focus();
 			ToggleSuggestions(visible: false);
 		}
@@ -4159,18 +4786,18 @@ internal sealed class XeCliTerminalForm : Form
 		}
 	}
 
-	private async Task ExecuteCommandAsync(string rawCommand)
+	private async Task<bool> ExecuteCommandAsync(string rawCommand)
 	{
 		if (commandInFlight)
 		{
 			AppendSystemLine("A command is already running. Wait for completion.", Color.Gold);
-			return;
+			return false;
 		}
 		string command = rawCommand.Trim();
 		if (command.Equals("exit", StringComparison.OrdinalIgnoreCase) || command.Equals("quit", StringComparison.OrdinalIgnoreCase))
 		{
 			Close();
-			return;
+			return true;
 		}
 		if (command.Equals("clear", StringComparison.OrdinalIgnoreCase))
 		{
@@ -4181,14 +4808,15 @@ internal sealed class XeCliTerminalForm : Form
 			}
 			terminalFlushTimer.Stop();
 			terminalOutput.Clear();
-			return;
+			return true;
 		}
 		commandInFlight = true;
 		RecordTransferActivity(command, "queued");
 		AppendCommandLine(command);
+		bool flag = false;
 		try
 		{
-			await RunCliProcessAsync(command);
+			flag = await RunCliProcessAsync(command);
 		}
 		catch (Exception ex)
 		{
@@ -4200,9 +4828,76 @@ internal sealed class XeCliTerminalForm : Form
 			commandInFlight = false;
 			UpdateLiveHints();
 		}
+		return flag;
 	}
 
-	private async Task RunCliProcessAsync(string command)
+	private async Task ExecuteScreenshotCaptureAsync()
+	{
+		string text = GetDefaultScreenshotPath();
+		Directory.CreateDirectory(Path.GetDirectoryName(text) ?? Environment.CurrentDirectory);
+		bool flag = await ExecuteCommandAsync("screenshot --out \"" + text + "\"");
+		if (flag && File.Exists(text))
+		{
+			try
+			{
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = text,
+					UseShellExecute = true
+				});
+			}
+			catch (Exception ex)
+			{
+				AppendSystemLine("Screenshot saved to: " + text, AccentGreen);
+				AppendSystemLine("Open failed: " + ex.Message, Color.Gold);
+			}
+		}
+	}
+
+	private string GetDefaultScreenshotPath()
+	{
+		string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+		if (string.IsNullOrWhiteSpace(folderPath))
+		{
+			folderPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+		}
+		if (string.IsNullOrWhiteSpace(folderPath))
+		{
+			folderPath = Environment.CurrentDirectory;
+		}
+		string text = Path.Combine(folderPath, "XeCLI", "Captures");
+		string text2 = DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
+		string text3 = BuildScreenshotTitleStem();
+		return Path.Combine(text, text3 + "-" + text2 + ".png");
+	}
+
+	private string BuildScreenshotTitleStem()
+	{
+		string text = TrimOrNull(latestSnapshot?.TitleName) ?? TrimOrNull(latestSnapshot?.RunningXex) ?? "Screenshot";
+		StringBuilder stringBuilder = new StringBuilder(text.Length);
+		foreach (char c in text)
+		{
+			if (Array.IndexOf(Path.GetInvalidFileNameChars(), c) >= 0)
+			{
+				continue;
+			}
+			if (char.IsLetterOrDigit(c))
+			{
+				stringBuilder.Append(c);
+			}
+			else if (char.IsWhiteSpace(c) || c == '-' || c == '_')
+			{
+				if (stringBuilder.Length > 0 && stringBuilder[stringBuilder.Length - 1] != '_')
+				{
+					stringBuilder.Append('_');
+				}
+			}
+		}
+		string text2 = stringBuilder.ToString().Trim('_');
+		return string.IsNullOrWhiteSpace(text2) ? "Screenshot" : text2;
+	}
+
+	private async Task<bool> RunCliProcessAsync(string command)
 	{
 		string arguments = command;
 		if (arguments.StartsWith("rgh ", StringComparison.OrdinalIgnoreCase))
@@ -4255,17 +4950,19 @@ internal sealed class XeCliTerminalForm : Form
 			{
 				RecordTransferActivity(command, "failed");
 				AppendSystemLine("Exit code: " + process.ExitCode, Color.OrangeRed);
+				AppendPromptLine();
+				return false;
 			}
-			else
-			{
-				RecordTransferActivity(command, "complete");
-				AppendSystemLine("Command completed.", AccentDim);
-			}
+			RecordTransferActivity(command, "complete");
+			AppendPromptLine();
+			return true;
 		}
 		catch (OperationCanceledException)
 		{
 			RecordTransferActivity(command, "cancelled");
 			AppendSystemLine("Command cancelled.", AccentPink);
+			AppendPromptLine();
+			return false;
 		}
 		finally
 		{
@@ -4291,7 +4988,12 @@ internal sealed class XeCliTerminalForm : Form
 	private void AppendCommandLine(string command)
 	{
 		AppendTerminalLine(string.Empty, Color.White);
-		AppendTerminalLine("> " + command, AccentGreen);
+		AppendTerminalLine("$Xe> " + command, AccentGreen);
+	}
+
+	private void AppendPromptLine()
+	{
+		AppendTerminalLine("$Xe>", Color.FromArgb(214, AccentGreen));
 	}
 
 	private void AppendSystemLine(string text, Color color)
@@ -4544,17 +5246,29 @@ internal sealed class XeCliTerminalForm : Form
 			{
 				if (flag)
 				{
-					foreach (XbdmDriveEntry item in await client.GetDrivesAsync(includeSize: false, cancellationTokenSource.Token))
+					foreach (XbdmDriveEntry item in await client.GetDrivesAsync(includeSize: true, cancellationTokenSource.Token))
 					{
 						string text2 = TrimOrNull(item.Name);
 						if (!string.IsNullOrWhiteSpace(text2) && ShouldDisplayDriveName(text2))
 						{
-							telemetrySnapshot.Drives.Add(text2.ToUpperInvariant());
+							DriveInventoryEntry? driveInventoryEntry = NormalizeDriveEntry(new DriveInventoryEntry
+							{
+								Name = text2,
+								TotalBytes = item.TotalBytes,
+								FreeBytes = item.FreeBytes
+							});
+							if (driveInventoryEntry != null)
+							{
+								telemetrySnapshot.Drives.Add(driveInventoryEntry);
+							}
 						}
 					}
 					if (telemetrySnapshot.Drives.Count == 0)
 					{
-						telemetrySnapshot.Drives.AddRange(await TryGetFtpDriveRootsAsync(cliConfig, cancellationTokenSource.Token));
+						telemetrySnapshot.Drives.AddRange((await TryGetFtpDriveRootsAsync(cliConfig, cancellationTokenSource.Token)).Select(static name => new DriveInventoryEntry
+						{
+							Name = name
+						}));
 					}
 				}
 				else if (latestSnapshot != null)
@@ -4564,6 +5278,16 @@ internal sealed class XeCliTerminalForm : Form
 			}
 			catch
 			{
+			}
+			if (telemetrySnapshot.Drives.Count > 0)
+			{
+				List<DriveInventoryEntry> list = telemetrySnapshot.Drives
+					.GroupBy(static entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+					.Select(MergeDriveGroup)
+					.OrderBy(static entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+					.ToList();
+				telemetrySnapshot.Drives.Clear();
+				telemetrySnapshot.Drives.AddRange(list);
 			}
 			try
 			{
@@ -4659,24 +5383,7 @@ internal sealed class XeCliTerminalForm : Form
 
 	private bool ShouldDisplayDriveName(string name)
 	{
-		string text = name.Trim().TrimEnd(':').ToLowerInvariant();
-		if (text.StartsWith("usb", StringComparison.Ordinal))
-		{
-			return true;
-		}
-		switch (text)
-		{
-		case "hdd":
-		case "hdd1":
-		case "hddx":
-		case "mu":
-		case "memunit":
-		case "intmu":
-		case "mmcmu":
-			return true;
-		default:
-			return false;
-		}
+		return TryGetCanonicalDriveName(name, out _);
 	}
 
 	private async Task<List<string>> TryGetFtpDriveRootsAsync(CliConfig cliConfig, CancellationToken cancellationToken)
@@ -4698,9 +5405,9 @@ internal sealed class XeCliTerminalForm : Form
 					continue;
 				}
 				string text = item.Name.Trim().TrimEnd(':');
-				if (ShouldDisplayDriveName(text) && !list.Any((string existing) => existing.Equals(text, StringComparison.OrdinalIgnoreCase)))
+				if (TryGetCanonicalDriveName(text, out string canonicalDriveName) && !list.Any((string existing) => existing.Equals(canonicalDriveName, StringComparison.OrdinalIgnoreCase)))
 				{
-					list.Add(text.ToUpperInvariant());
+					list.Add(canonicalDriveName);
 				}
 			}
 		}
@@ -4796,21 +5503,21 @@ internal sealed class XeCliTerminalForm : Form
 		string text8 = TrimOrNull(snapshot.TitleName) ?? "unknown";
 		string text9 = TrimOrNull(snapshot.RunningXex) ?? "unknown";
 		string text5 = TrimOrNull(snapshot.Gamertag) ?? "Not Signed In";
-		string text6 = TrimOrNull(snapshot.SignInStateText) ?? "--";
-		leftConsoleLabel.Text = "BOARD      " + FitStatusText(text3, 16) + "\nDASH       " + FitStatusText(text4, 16) + "\nGAME       " + FitStatusText(text8, 16) + "\nXEX        " + FitFileLeaf(text9, 16) + "\nTITLEID    " + FormatTitleId(snapshot.TitleId) + "\nGAMERTAG   " + FitStatusText(text5, 16);
-		leftSignInLabel.Text = "INVENTORY";
+		string text6 = NormalizePresenceStateText(snapshot.SignInStateText);
+		SetLeftConsoleText("BOARD      " + FitStatusText(text3, 16) + "\nDASH       " + FitStatusText(text4, 16) + "\nGAME       " + FitStatusText(text8, 16) + "\nXEX        " + FitFileLeaf(text9, 16) + "\nTITLEID    " + FormatTitleId(snapshot.TitleId) + "\nGAMERTAG   " + FitStatusText(text5, 16));
+		SetLeftSignInText("INVENTORY");
 		string value = BuildConnectedStatusText(snapshot);
 		if (!snapshot.Connected)
 		{
-			SetLabelText(rightNetworkLabel, BuildDisconnectedStatusText());
-			SetLabelText(rightTempLabel, "IDLE");
-			SetLabelText(rightDetailLabel, BuildDisconnectedSessionText());
+			SetRightNetworkText(BuildDisconnectedStatusText());
+			SetRightTempText("IDLE");
+			SetRightDetailText(BuildDisconnectedSessionText());
 		}
 		else
 		{
-			SetLabelText(rightNetworkLabel, value);
-			SetLabelText(rightTempLabel, "RX " + snapshot.FtpRxKbps.ToString("0.0") + " kbps  |  TX " + snapshot.FtpTxKbps.ToString("0.0") + " kbps");
-			SetLabelText(rightDetailLabel, "TITLE      " + FitStatusText(text8, 22) + "\nXEX        " + FitFileLeaf(text9, 22) + "\nUSER       " + FitStatusText(text5, 22) + "\nPRESENCE   " + FitStatusText(text6, 22) + "\nTITLEID    " + FormatTitleId(snapshot.TitleId));
+			SetRightNetworkText(value);
+			SetRightTempText("RX " + snapshot.FtpRxKbps.ToString("0.0") + " kbps  |  TX " + snapshot.FtpTxKbps.ToString("0.0") + " kbps");
+			SetRightDetailText("TITLE      " + FitStatusText(text8, 22) + "\nXEX        " + FitFileLeaf(text9, 22) + "\nUSER       " + FitStatusText(text5, 22) + "\nPRESENCE   " + FitStatusText(text6, 22) + "\nTITLEID    " + FormatTitleId(snapshot.TitleId));
 		}
 		ftpTrafficGraph.AddSample(snapshot.FtpRxKbps, snapshot.FtpTxKbps);
 		shellDisconnected = !snapshot.Connected;
@@ -4820,17 +5527,17 @@ internal sealed class XeCliTerminalForm : Form
 		RefreshInventoryListFromSnapshot();
 		if (!snapshot.Connected)
 		{
-			footerStatusLabel.Text = "DISCONNECTED";
+			SetFooterStatusText("DISCONNECTED");
 			footerStatusLabel.ForeColor = WarningColor;
-			footerPresenceLabel.Text = "PRESENCE · OFFLINE";
+			SetFooterPresenceText("PRESENCE · OFFLINE");
 		}
 		else
 		{
-			footerStatusLabel.Text = "CONNECTED";
+			SetFooterStatusText("CONNECTED");
 			footerStatusLabel.ForeColor = AccentGreen;
-			footerPresenceLabel.Text = string.IsNullOrWhiteSpace(text5) || text5 == "--" ? "PRESENCE · " + text6 : (text5 + " · " + text6);
+			SetFooterPresenceText(string.IsNullOrWhiteSpace(text5) || text5 == "--" ? "PRESENCE · " + text6 : (text5 + " · " + text6));
 		}
-		footerThermalLabel.Text = BuildFooterThermalText(snapshot.CpuTemp, snapshot.GpuTemp, snapshot.EdramTemp, snapshot.BoardTemp);
+		SetFooterThermalText(BuildFooterThermalText(snapshot.CpuTemp, snapshot.GpuTemp, snapshot.EdramTemp, snapshot.BoardTemp));
 		if (!connectAttemptInFlight)
 		{
 			SetPersistentConnectState(snapshot.Connected ? "LINK ACTIVE" : "LINK OFFLINE", snapshot.Connected ? AccentGreen : WarningColor, snapshot.Connected ? Color.FromArgb(18, 34, 32) : Color.FromArgb(24, 19, 15));
@@ -4843,7 +5550,7 @@ internal sealed class XeCliTerminalForm : Form
 	private void UpdateLiveHints(TelemetrySnapshot? snapshot = null)
 	{
 		bool flag = IsSessionConnected(snapshot);
-		footerStatusLabel.Text = (connectAttemptInFlight ? "CONNECTING" : (flag ? "CONNECTED" : "DISCONNECTED"));
+		SetFooterStatusText(connectAttemptInFlight ? "CONNECTING" : (flag ? "CONNECTED" : "DISCONNECTED"));
 		footerStatusLabel.ForeColor = (connectAttemptInFlight ? AccentGreen : (flag ? AccentGreen : WarningColor));
 	}
 
@@ -4852,17 +5559,17 @@ internal sealed class XeCliTerminalForm : Form
 		bool flag = IsSessionConnected(snapshot);
 		if (connectAttemptInFlight)
 		{
-			connectionStatusLabel.Text = "◐ CONNECTING";
+			SetConnectionStatusText("◐ CONNECTING");
 			connectionStatusLabel.ForeColor = WarningColor;
 			return;
 		}
 		if (flag)
 		{
-			connectionStatusLabel.Text = "● CONNECTED";
+			SetConnectionStatusText("● CONNECTED");
 			connectionStatusLabel.ForeColor = AccentGreen;
 			return;
 		}
-		connectionStatusLabel.Text = "● DISCONNECTED";
+		SetConnectionStatusText("● DISCONNECTED");
 		connectionStatusLabel.ForeColor = WarningColor;
 	}
 
@@ -4957,7 +5664,7 @@ internal sealed class XeCliTerminalForm : Form
 		string text3 = snapshot.FtpPort.HasValue ? snapshot.FtpPort.Value.ToString() : "--";
 		string text4 = TrimOrNull(snapshot.FtpUser) ?? "xbox";
 		string text5 = TrimOrNull(snapshot.ErrorText);
-		string text6 = "LINK      " + text + "\nTARGET    " + FormatStatusTarget() + "\nFTP       " + text4 + "@" + text3 + "\nDRIVES    " + snapshot.Drives.Count + "\nPRESENCE  " + FitStatusText(TrimOrNull(snapshot.SignInStateText) ?? "unknown", 12);
+		string text6 = "LINK      " + text + "\nTARGET    " + FormatStatusTarget() + "\nFTP       " + text4 + "@" + text3 + "\nDRIVES    " + snapshot.Drives.Count + "\nPRESENCE  " + FitStatusText(NormalizePresenceStateText(snapshot.SignInStateText), 12);
 		if (!string.IsNullOrWhiteSpace(text5))
 		{
 			text6 = "LINK      " + text + "\nTARGET    " + FormatStatusTarget() + "\nFTP       " + text4 + "@" + text3 + "\nALERT     " + FitStatusText(text5, 12) + "\nDRIVES    " + snapshot.Drives.Count;
@@ -4968,6 +5675,11 @@ internal sealed class XeCliTerminalForm : Form
 	private static string BuildDisconnectedSessionText()
 	{
 		return "No live console context.\nConnect to load title, XEX,\nuser, presence, and TitleID.";
+	}
+
+	private static string BuildConnectingSessionText()
+	{
+		return "CONNECTING SESSION\nNegotiating console link.\nLoading title, XEX, user,\npresence, and TitleID...";
 	}
 
 	private static string BuildDisconnectedShellText()
@@ -5000,6 +5712,57 @@ internal sealed class XeCliTerminalForm : Form
 		return string.Equals(text, "start", StringComparison.OrdinalIgnoreCase) ? "running" : text;
 	}
 
+	private static IEnumerable<string> FormatInventoryEntries(IEnumerable<string> source)
+	{
+		int num = 1;
+		foreach (string item in source)
+		{
+			string text = TrimOrNull(item) ?? string.Empty;
+			if (string.IsNullOrEmpty(text))
+			{
+				continue;
+			}
+			yield return num.ToString(CultureInfo.InvariantCulture) + ". " + StripInventoryPrefix(text);
+			num++;
+		}
+	}
+
+	private static string StripInventoryPrefix(string value)
+	{
+		int num = value.IndexOf(':');
+		if (num > 0)
+		{
+			string text = value.Substring(0, num).Trim();
+			if (text.StartsWith("plugin", StringComparison.OrdinalIgnoreCase) || text.StartsWith("module", StringComparison.OrdinalIgnoreCase))
+			{
+				string text2 = TrimOrNull(value.Substring(num + 1)) ?? string.Empty;
+				if (!string.IsNullOrEmpty(text2))
+				{
+					return text2;
+				}
+			}
+		}
+		return value;
+	}
+
+	private static string NormalizePresenceStateText(string? value)
+	{
+		string text = TrimOrNull(value) ?? string.Empty;
+		if (string.IsNullOrEmpty(text))
+		{
+			return "--";
+		}
+		if (string.Equals(text, "not detected", StringComparison.OrdinalIgnoreCase) || string.Equals(text, "not signed in", StringComparison.OrdinalIgnoreCase))
+		{
+			return "Not Signed In";
+		}
+		if (text.IndexOf("signed", StringComparison.OrdinalIgnoreCase) >= 0 && text.IndexOf("not", StringComparison.OrdinalIgnoreCase) < 0)
+		{
+			return "Signed In";
+		}
+		return text;
+	}
+
 	private static void SetLabelText(Label label, string value)
 	{
 		if (!string.Equals(label.Text, value, StringComparison.Ordinal))
@@ -5018,20 +5781,209 @@ internal sealed class XeCliTerminalForm : Form
 		return null;
 	}
 
+	[DllImport("user32.dll")]
+	private static extern bool HideCaret(IntPtr hWnd);
+
+	private void HideTerminalOutputCaret()
+	{
+		if (!terminalOutput.IsHandleCreated || terminalOutput.IsDisposed)
+		{
+			return;
+		}
+		HideCaret(terminalOutput.Handle);
+	}
+
+	private sealed class StructuredInfoPanel : Control
+	{
+		private readonly List<(string Key, string Value)> rows = new List<(string, string)>();
+
+		public StructuredInfoPanel()
+		{
+			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, value: true);
+			DoubleBuffered = true;
+		}
+
+		public void SetContent(string text)
+		{
+			List<(string Key, string Value)> list = ParseRows(text).ToList();
+			if (rows.SequenceEqual(list))
+			{
+				return;
+			}
+			rows.Clear();
+			rows.AddRange(list);
+			Invalidate();
+		}
+
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			base.OnPaint(e);
+			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+			e.Graphics.Clear(BackColor);
+			if (rows.Count == 0)
+			{
+				return;
+			}
+			int availableHeight = Math.Max(1, Height - 4);
+			int rowHeight = Math.Max(14, Math.Min(20, availableHeight / Math.Max(1, rows.Count)));
+			int topInset = 2 + Math.Max(0, (availableHeight - rowHeight * rows.Count) / 2);
+			float keyFontSize = Math.Max(6f, Math.Min(Font.Size - 0.45f, rowHeight - 5.8f));
+			float valueFontSize = Math.Max(6f, Math.Min(Font.Size - 0.15f, rowHeight - 5.4f));
+			using Font keyFont = new Font(Font.FontFamily, keyFontSize, FontStyle.Bold, GraphicsUnit.Point);
+			using Font valueFont = new Font(Font.FontFamily, valueFontSize, FontStyle.Regular, GraphicsUnit.Point);
+			int keyWidth = CalculateKeyWidth(e.Graphics, keyFont);
+			int valueGap = 12;
+			for (int i = 0; i < rows.Count; i++)
+			{
+				int y = topInset + i * rowHeight;
+				Rectangle rowRect = new Rectangle(1, y, Math.Max(1, Width - 2), Math.Max(1, rowHeight - 1));
+				using (SolidBrush brush = new SolidBrush((i % 2 == 0) ? Color.FromArgb(18, 24, 18) : Color.FromArgb(28, 34, 24)))
+				{
+					e.Graphics.FillRectangle(brush, rowRect);
+				}
+				Rectangle keyRect = new Rectangle(rowRect.Left + 8, rowRect.Top, Math.Max(1, keyWidth - 10), rowRect.Height);
+				Rectangle valueRect = new Rectangle(rowRect.Left + keyWidth + valueGap, rowRect.Top, Math.Max(1, rowRect.Width - keyWidth - valueGap - 8), rowRect.Height);
+				DrawLeftFittedText(e.Graphics, rows[i].Key, keyFont, keyRect, AccentGreen);
+				DrawLeftFittedText(e.Graphics, rows[i].Value, valueFont, valueRect, Color.WhiteSmoke);
+			}
+		}
+
+		private int CalculateKeyWidth(Graphics graphics, Font font)
+		{
+			int num = 56;
+			foreach ((string Key, string _) in rows)
+			{
+				Size size = TextRenderer.MeasureText(graphics, Key, font, new Size(int.MaxValue, Math.Max(16, font.Height + 1)), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+				num = Math.Max(num, size.Width + 10);
+			}
+			return Math.Min(Math.Max(56, num), Math.Max(64, Width / 3));
+		}
+
+		private static void DrawLeftFittedText(Graphics graphics, string text, Font baseFont, Rectangle bounds, Color color)
+		{
+			if (string.IsNullOrWhiteSpace(text) || bounds.Width <= 4 || bounds.Height <= 2)
+			{
+				return;
+			}
+			Font? font = null;
+			try
+			{
+				float num = baseFont.Size;
+				while (num >= 5.75f)
+				{
+					font?.Dispose();
+					font = new Font(baseFont.FontFamily, num, baseFont.Style, GraphicsUnit.Point);
+					Size size = TextRenderer.MeasureText(graphics, text, font, new Size(int.MaxValue, bounds.Height), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+					if (size.Width <= bounds.Width - 2)
+					{
+						break;
+					}
+					num -= 0.25f;
+				}
+				TextRenderer.DrawText(graphics, text, font ?? baseFont, bounds, color, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+			}
+			finally
+			{
+				font?.Dispose();
+			}
+		}
+
+		private static IEnumerable<(string Key, string Value)> ParseRows(string text)
+		{
+			foreach (string item in text.Replace("\r", string.Empty).Split('\n'))
+			{
+				string text2 = TrimOrNull(item) ?? string.Empty;
+				if (string.IsNullOrWhiteSpace(text2))
+				{
+					continue;
+				}
+				int num = FindColumnSplit(text2);
+				if (num > 0)
+				{
+					string text3 = text2.Substring(0, num).Trim();
+					string text4 = TrimOrNull(text2.Substring(num)) ?? "--";
+					if (!string.IsNullOrWhiteSpace(text3))
+					{
+						yield return (text3, text4);
+						continue;
+					}
+				}
+				yield return (text2, "--");
+			}
+		}
+
+		private static int FindColumnSplit(string text)
+		{
+			for (int i = 0; i < text.Length - 1; i++)
+			{
+				if (text[i] == ' ' && text[i + 1] == ' ')
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+	}
+
 	private sealed class SlimListPanel : Control
 	{
-		private readonly List<string> items = new List<string>();
+		private sealed class DisplayItem
+		{
+			public string RawText { get; init; } = string.Empty;
+
+			public string NumberText { get; init; } = string.Empty;
+
+			public string TitleText { get; init; } = string.Empty;
+
+			public string SubtitleText { get; init; } = string.Empty;
+
+			public bool Placeholder { get; init; }
+		}
+
+		private readonly List<DisplayItem> items = new List<DisplayItem>();
+
+		private readonly System.Windows.Forms.Timer marqueeTimer = new System.Windows.Forms.Timer();
 
 		private int firstVisibleIndex;
 
+		private bool draggingScrollThumb;
+
+		private int dragScrollOffsetY;
+
 		private int selectedIndex = -1;
+
+		private bool moduleView;
+
+		[Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool ModuleView
+		{
+			get
+			{
+				return moduleView;
+			}
+			set
+			{
+				if (moduleView != value)
+				{
+					moduleView = value;
+					Invalidate();
+				}
+			}
+		}
 
 		public event Action<int>? ItemActivated;
 
+		public void ResetViewport()
+		{
+			firstVisibleIndex = 0;
+			Invalidate();
+		}
+
 		public void SetItems(IEnumerable<string> source)
 		{
-			List<string> list = source.Take(512).ToList();
-			if (items.SequenceEqual(list, StringComparer.Ordinal))
+			List<DisplayItem> list = source.Take(512).Select(ParseDisplayItem).ToList();
+			if (items.Count == list.Count && items.Zip(list, (DisplayItem left, DisplayItem right) => left.RawText == right.RawText && left.NumberText == right.NumberText && left.TitleText == right.TitleText && left.SubtitleText == right.SubtitleText && left.Placeholder == right.Placeholder).All(static match => match))
 			{
 				return;
 			}
@@ -5055,6 +6007,14 @@ internal sealed class XeCliTerminalForm : Form
 			DoubleBuffered = true;
 			ResizeRedraw = true;
 			SetStyle(ControlStyles.Selectable, value: true);
+			marqueeTimer.Interval = 110;
+			marqueeTimer.Tick += delegate
+			{
+				if (Visible && HasSelectedOverflow())
+				{
+					Invalidate();
+				}
+			};
 			MouseWheel += delegate(object? _, MouseEventArgs e)
 			{
 				int num = GetVisibleLineCount();
@@ -5069,6 +6029,17 @@ internal sealed class XeCliTerminalForm : Form
 				}
 				Invalidate();
 			};
+			MouseMove += delegate(object? _, MouseEventArgs e)
+			{
+				if (draggingScrollThumb && e.Button == MouseButtons.Left)
+				{
+					UpdateScrollDrag(e.Y);
+				}
+			};
+			MouseUp += delegate
+			{
+				EndScrollDrag();
+			};
 		}
 
 		protected override void OnPaint(PaintEventArgs e)
@@ -5076,6 +6047,10 @@ internal sealed class XeCliTerminalForm : Form
 			base.OnPaint(e);
 			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
 			e.Graphics.Clear(base.BackColor);
+			using (Pen pen3 = new Pen(Color.FromArgb(92, AccentGreen), 1f))
+			{
+				e.Graphics.DrawRectangle(pen3, 0, 0, Math.Max(0, base.Width - 1), Math.Max(0, base.Height - 1));
+			}
 			int num = GetLineHeight();
 			int visibleLineCount = GetVisibleLineCount();
 			int num2 = Math.Min(items.Count, firstVisibleIndex + visibleLineCount);
@@ -5083,27 +6058,48 @@ internal sealed class XeCliTerminalForm : Form
 			int num3 = 0;
 			for (int i = firstVisibleIndex; i < num2; i++)
 			{
+				DisplayItem displayItem = items[i];
+				bool flag = Focused && i == selectedIndex;
 				float y = num3 * num + 2;
-				if (i == selectedIndex)
+				Rectangle rectangle = new Rectangle(1, (int)y, Math.Max(1, base.Width - 9), num - 2);
+				using (SolidBrush brush2 = new SolidBrush((i % 2 == 0) ? Color.FromArgb(24, 18, 30, 20) : Color.FromArgb(44, 22, 38, 24)))
 				{
-					Rectangle rectangle = new Rectangle(1, (int)y, Math.Max(1, base.Width - 9), num);
-			using SolidBrush brush2 = new SolidBrush(Color.FromArgb(184, 48, 88, 44));
-			using Pen pen = new Pen(Color.FromArgb(214, AccentGreen), 1f);
-			e.Graphics.FillRectangle(brush2, rectangle);
-			e.Graphics.DrawRectangle(pen, rectangle.X, rectangle.Y, rectangle.Width - 1, rectangle.Height - 1);
-			using Pen pen2 = new Pen(Color.FromArgb(164, Color.WhiteSmoke), 1f);
-					e.Graphics.DrawLine(pen2, rectangle.X + 1, rectangle.Y + 1, rectangle.Right - 2, rectangle.Y + 1);
+					e.Graphics.FillRectangle(brush2, rectangle);
 				}
-				Rectangle rectangle2 = new Rectangle(4, (int)y, Math.Max(1, base.Width - 16), num);
-				TextRenderer.DrawText(e.Graphics, items[i], Font, rectangle2, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+				if (flag)
+				{
+					using SolidBrush brush3 = new SolidBrush(Color.FromArgb(184, 48, 88, 44));
+					using Pen pen = new Pen(Color.FromArgb(214, AccentGreen), 1f);
+					e.Graphics.FillRectangle(brush3, rectangle);
+					e.Graphics.DrawRectangle(pen, rectangle.X, rectangle.Y, rectangle.Width - 1, rectangle.Height - 1);
+				}
+				DrawListItem(e.Graphics, displayItem, rectangle, flag);
 				num3++;
 			}
 			DrawScrollBar(e.Graphics, visibleLineCount);
 		}
 
+		protected override void OnGotFocus(EventArgs e)
+		{
+			base.OnGotFocus(e);
+			UpdateAnimationTimer();
+			Invalidate();
+		}
+
+		protected override void OnLostFocus(EventArgs e)
+		{
+			base.OnLostFocus(e);
+			UpdateAnimationTimer();
+			Invalidate();
+		}
+
 		protected override void OnMouseDown(MouseEventArgs e)
 		{
 			base.OnMouseDown(e);
+			if (TryStartScrollDrag(e.Location))
+			{
+				return;
+			}
 			if (!Focused && CanFocus)
 			{
 				Focus();
@@ -5118,6 +6114,7 @@ internal sealed class XeCliTerminalForm : Form
 						return;
 					}
 					selectedIndex = itemIndexAt;
+					UpdateAnimationTimer();
 					Invalidate();
 				};
 				if (IsHandleCreated)
@@ -5144,6 +6141,7 @@ internal sealed class XeCliTerminalForm : Form
 						return;
 					}
 					selectedIndex = itemIndexAt;
+					UpdateAnimationTimer();
 					Invalidate();
 					ItemActivated?.Invoke(itemIndexAt);
 				};
@@ -5164,25 +6162,56 @@ internal sealed class XeCliTerminalForm : Form
 			{
 				return;
 			}
-			Rectangle rectangle = new Rectangle(base.Width - 7, 2, 4, base.Height - 4);
+			Rectangle rectangle = GetScrollTrackRect();
 			using SolidBrush brush = new SolidBrush(Color.FromArgb(26, 58, 76, 84));
 			graphics.FillRectangle(brush, rectangle);
 			double num = (double)visibleLines / (double)items.Count;
 			int height = Math.Max(14, (int)(rectangle.Height * num));
 			double num2 = (double)firstVisibleIndex / (double)Math.Max(1, items.Count - visibleLines);
 			int y = rectangle.Top + (int)((rectangle.Height - height) * num2);
-			using SolidBrush brush2 = new SolidBrush(Color.FromArgb(130, AccentCyan));
+			using SolidBrush brush2 = new SolidBrush(Color.FromArgb(184, AccentGreen));
 			graphics.FillRectangle(brush2, new Rectangle(rectangle.Left, y, rectangle.Width, height));
+		}
+
+		private void DrawListItem(Graphics graphics, DisplayItem item, Rectangle bounds, bool selected)
+		{
+			if (item.Placeholder)
+			{
+				TextRenderer.DrawText(graphics, item.TitleText, Font, new Rectangle(bounds.Left + 8, bounds.Top, Math.Max(1, bounds.Width - 16), bounds.Height), ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+				return;
+			}
+			using Font titleFont = new Font(Font.FontFamily, Font.Size + 0.15f, FontStyle.Bold, GraphicsUnit.Point);
+			using Font subtitleFont = new Font(Font.FontFamily, Math.Max(6.5f, Font.Size - 0.55f), FontStyle.Regular, GraphicsUnit.Point);
+			Rectangle rectangle = new Rectangle(bounds.Left + 8, bounds.Top + 4, 22, 14);
+			Rectangle rectangle2 = new Rectangle(bounds.Left + 34, bounds.Top + 2, Math.Max(1, bounds.Width - 42), 14);
+			Rectangle rectangle3 = new Rectangle(bounds.Left + 34, bounds.Top + 16, Math.Max(1, bounds.Width - 42), 12);
+			Color color = selected ? Color.WhiteSmoke : AccentGreen;
+			TextRenderer.DrawText(graphics, item.NumberText, titleFont, rectangle, color, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+			TextRenderer.DrawText(graphics, item.TitleText, titleFont, rectangle2, selected ? Color.WhiteSmoke : ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+			if (!string.IsNullOrWhiteSpace(item.SubtitleText))
+			{
+				DrawCenteredFittedText(graphics, item.SubtitleText, subtitleFont, rectangle3, Color.FromArgb(206, 182, 214, 184));
+			}
+		}
+
+		private bool HasSelectedOverflow()
+		{
+			return false;
+		}
+
+		private void UpdateAnimationTimer()
+		{
+			marqueeTimer.Stop();
 		}
 
 		private int GetLineHeight()
 		{
-			return Math.Max(14, TextRenderer.MeasureText("W", Font).Height + 1);
+			return 34;
 		}
 
 		private int GetVisibleLineCount()
 		{
-			return Math.Max(1, base.Height / GetLineHeight());
+			return Math.Max(1, (base.Height - 8) / GetLineHeight());
 		}
 
 		private int GetItemIndexAt(int y)
@@ -5192,8 +6221,823 @@ internal sealed class XeCliTerminalForm : Form
 			{
 				return -1;
 			}
-			int num = Math.Max(0, y / lineHeight);
+			int num = Math.Max(0, (y - 2) / lineHeight);
 			return firstVisibleIndex + num;
+		}
+
+		private Rectangle GetScrollTrackRect()
+		{
+			return new Rectangle(base.Width - 7, 2, 4, Math.Max(10, base.Height - 4));
+		}
+
+		private Rectangle GetScrollThumbRect(int visibleLines)
+		{
+			if (items.Count <= visibleLines || visibleLines <= 0)
+			{
+				return Rectangle.Empty;
+			}
+			Rectangle scrollTrackRect = GetScrollTrackRect();
+			double num = (double)visibleLines / (double)items.Count;
+			int height = Math.Max(14, (int)(scrollTrackRect.Height * num));
+			double num2 = (double)firstVisibleIndex / (double)Math.Max(1, items.Count - visibleLines);
+			int y = scrollTrackRect.Top + (int)((scrollTrackRect.Height - height) * num2);
+			return new Rectangle(scrollTrackRect.Left, y, scrollTrackRect.Width, height);
+		}
+
+		private bool TryStartScrollDrag(Point location)
+		{
+			int visibleLineCount = GetVisibleLineCount();
+			Rectangle scrollTrackRect = GetScrollTrackRect();
+			Rectangle scrollThumbRect = GetScrollThumbRect(visibleLineCount);
+			if (scrollThumbRect != Rectangle.Empty && scrollThumbRect.Contains(location))
+			{
+				draggingScrollThumb = true;
+				dragScrollOffsetY = location.Y - scrollThumbRect.Top;
+				Capture = true;
+				return true;
+			}
+			if (scrollThumbRect != Rectangle.Empty && scrollTrackRect.Contains(location))
+			{
+				UpdateScrollFromThumbTop(location.Y - scrollThumbRect.Height / 2, visibleLineCount, scrollTrackRect, scrollThumbRect.Height);
+				return true;
+			}
+			return false;
+		}
+
+		private void UpdateScrollDrag(int mouseY)
+		{
+			int visibleLineCount = GetVisibleLineCount();
+			Rectangle scrollTrackRect = GetScrollTrackRect();
+			Rectangle scrollThumbRect = GetScrollThumbRect(visibleLineCount);
+			if (scrollThumbRect == Rectangle.Empty)
+			{
+				return;
+			}
+			UpdateScrollFromThumbTop(mouseY - dragScrollOffsetY, visibleLineCount, scrollTrackRect, scrollThumbRect.Height);
+		}
+
+		private void UpdateScrollFromThumbTop(int thumbTop, int visibleLines, Rectangle trackRect, int thumbHeight)
+		{
+			if (items.Count <= visibleLines || visibleLines <= 0)
+			{
+				return;
+			}
+			int num = Math.Max(1, items.Count - visibleLines);
+			int num2 = Math.Max(1, trackRect.Height - thumbHeight);
+			int num3 = Math.Clamp(thumbTop, trackRect.Top, trackRect.Bottom - thumbHeight);
+			double num4 = (double)(num3 - trackRect.Top) / (double)num2;
+			firstVisibleIndex = Math.Clamp((int)Math.Round(num * num4), 0, num);
+			Invalidate();
+		}
+
+		private void EndScrollDrag()
+		{
+			draggingScrollThumb = false;
+			Capture = false;
+		}
+
+		private DisplayItem ParseDisplayItem(string value)
+		{
+			string text = TrimOrNull(value) ?? string.Empty;
+			if (string.IsNullOrWhiteSpace(text))
+			{
+				return new DisplayItem
+				{
+					RawText = string.Empty,
+					TitleText = "--",
+					Placeholder = true
+				};
+			}
+			int num = text.IndexOf(". ", StringComparison.Ordinal);
+			if (num > 0 && int.TryParse(text.Substring(0, num), NumberStyles.None, CultureInfo.InvariantCulture, out _))
+			{
+				string text2 = text.Substring(num + 2).Trim();
+				return new DisplayItem
+				{
+					RawText = text,
+					NumberText = text.Substring(0, num) + ".",
+					TitleText = BuildInventoryTitle(text2),
+					SubtitleText = BuildInventorySubtitle(text2),
+					Placeholder = false
+				};
+			}
+			return new DisplayItem
+			{
+				RawText = text,
+				TitleText = text,
+				Placeholder = true
+			};
+		}
+
+		private string BuildInventoryTitle(string value)
+		{
+			string text = FitFileLeaf(value, 26);
+			return string.IsNullOrWhiteSpace(text) ? "--" : text;
+		}
+
+		private string BuildInventorySubtitle(string value)
+		{
+			if (moduleView)
+			{
+				return string.Empty;
+			}
+			return TrimOrNull(value) ?? string.Empty;
+		}
+
+		private static string ExtractInventoryRoot(string value)
+		{
+			string text = TrimOrNull(value) ?? string.Empty;
+			if (string.IsNullOrWhiteSpace(text))
+			{
+				return string.Empty;
+			}
+			int num = text.IndexOf(':');
+			if (num > 0)
+			{
+				return text.Substring(0, num).Trim().ToUpperInvariant();
+			}
+			if (text.StartsWith("\\Device\\", StringComparison.OrdinalIgnoreCase))
+			{
+				return "DEVICE";
+			}
+			return string.Empty;
+		}
+
+		private static void DrawCenteredFittedText(Graphics graphics, string text, Font baseFont, Rectangle bounds, Color color)
+		{
+			if (string.IsNullOrWhiteSpace(text) || bounds.Width <= 4 || bounds.Height <= 2)
+			{
+				return;
+			}
+			Font? font = null;
+			try
+			{
+				float num = baseFont.Size;
+				while (num >= 5.75f)
+				{
+					font?.Dispose();
+					font = new Font(baseFont.FontFamily, num, baseFont.Style, GraphicsUnit.Point);
+					Size size = TextRenderer.MeasureText(graphics, text, font, new Size(int.MaxValue, bounds.Height), TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
+					if (size.Width <= bounds.Width - 2)
+					{
+						break;
+					}
+					num -= 0.25f;
+				}
+				TextRenderer.DrawText(graphics, text, font ?? baseFont, bounds, color, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+			}
+			finally
+			{
+				font?.Dispose();
+			}
+		}
+	}
+
+	private sealed class DriveInventoryPanel : Control
+	{
+		private readonly List<DriveInventoryEntry> entries = new List<DriveInventoryEntry>();
+
+		private int firstVisibleIndex;
+
+		private bool draggingScrollThumb;
+
+		private int dragScrollOffsetY;
+
+		public DriveInventoryPanel()
+		{
+			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, value: true);
+			DoubleBuffered = true;
+			MouseWheel += delegate(object? _, MouseEventArgs e)
+			{
+				int num = GetVisibleRowCount();
+				int num2 = Math.Max(1, num / 2);
+				if (e.Delta < 0)
+				{
+					firstVisibleIndex = Math.Min(Math.Max(0, entries.Count - num), firstVisibleIndex + num2);
+				}
+				else if (e.Delta > 0)
+				{
+					firstVisibleIndex = Math.Max(0, firstVisibleIndex - num2);
+				}
+				Invalidate();
+			};
+			MouseMove += delegate(object? _, MouseEventArgs e)
+			{
+				if (draggingScrollThumb && e.Button == MouseButtons.Left)
+				{
+					UpdateScrollDrag(e.Y);
+				}
+			};
+			MouseUp += delegate
+			{
+				EndScrollDrag();
+			};
+		}
+
+		public void SetEntries(IEnumerable<DriveInventoryEntry> source)
+		{
+			List<DriveInventoryEntry> list = source.Take(64).Select(static entry => new DriveInventoryEntry
+			{
+				Name = entry.Name,
+				TotalBytes = entry.TotalBytes,
+				FreeBytes = entry.FreeBytes
+			}).ToList();
+			if (entries.Count == list.Count && entries.Zip(list, static (left, right) => string.Equals(left.Name, right.Name, StringComparison.Ordinal) && left.TotalBytes == right.TotalBytes && left.FreeBytes == right.FreeBytes).All(static match => match))
+			{
+				return;
+			}
+			entries.Clear();
+			entries.AddRange(list);
+			firstVisibleIndex = Math.Clamp(firstVisibleIndex, 0, Math.Max(0, entries.Count - 1));
+			Invalidate();
+		}
+
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			base.OnPaint(e);
+			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+			e.Graphics.Clear(BackColor);
+			if (entries.Count == 0)
+			{
+				return;
+			}
+			if (entries.Count == 1 && IsPlaceholderEntry(entries[0]))
+			{
+				DrawPlaceholderState(e.Graphics, entries[0]);
+				return;
+			}
+			int rowHeight = GetRowHeight();
+			int visibleRowCount = GetVisibleRowCount();
+			int num = Math.Min(entries.Count, firstVisibleIndex + visibleRowCount);
+			using Font font = new Font(Font.FontFamily, Font.Size + 0.6f, FontStyle.Bold, GraphicsUnit.Point);
+			for (int i = firstVisibleIndex; i < num; i++)
+			{
+				int num2 = (i - firstVisibleIndex) * rowHeight + 2;
+				Rectangle rectangle = new Rectangle(1, num2, Math.Max(1, base.Width - 9), rowHeight - 2);
+				using (SolidBrush brush3 = new SolidBrush((i % 2 == 0) ? Color.FromArgb(24, 18, 30, 20) : Color.FromArgb(44, 22, 38, 24)))
+				{
+					e.Graphics.FillRectangle(brush3, rectangle);
+				}
+				Rectangle rectangle2 = new Rectangle(rectangle.Left + 6, rectangle.Top + 2, Math.Max(1, rectangle.Width - 78), 16);
+				Rectangle rectangle3 = new Rectangle(rectangle.Right - 68, rectangle.Top + 2, 62, 16);
+				Rectangle rectangle4 = new Rectangle(rectangle.Left + 6, rectangle.Top + 20, Math.Max(40, rectangle.Width - 12), 8);
+				Rectangle rectangle5 = new Rectangle(rectangle.Left + 6, rectangle.Top + 30, Math.Max(1, rectangle.Width - 12), 14);
+				TextRenderer.DrawText(e.Graphics, entries[i].Name, font, rectangle2, AccentGreen, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+				string text = FormatDrivePercent(entries[i]);
+				if (!string.IsNullOrWhiteSpace(text))
+				{
+					TextRenderer.DrawText(e.Graphics, text, Font, rectangle3, Color.WhiteSmoke, TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				}
+				DrawDriveBar(e.Graphics, entries[i], rectangle4);
+				TextRenderer.DrawText(e.Graphics, FormatDriveSubtitle(entries[i]), Font, rectangle5, Color.FromArgb(206, 182, 214, 184), TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+			}
+			DrawScrollBar(e.Graphics, visibleRowCount);
+		}
+
+		protected override void OnMouseDown(MouseEventArgs e)
+		{
+			base.OnMouseDown(e);
+			TryStartScrollDrag(e.Location);
+		}
+
+		private static void DrawDriveBar(Graphics graphics, DriveInventoryEntry entry, Rectangle bounds)
+		{
+			using SolidBrush brush = new SolidBrush(Color.FromArgb(32, 54, 40));
+			using Pen pen = new Pen(Color.FromArgb(90, AccentGreen), 1f);
+			graphics.FillRectangle(brush, bounds);
+			graphics.DrawRectangle(pen, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
+			if (!entry.TotalBytes.HasValue || !entry.FreeBytes.HasValue || entry.TotalBytes.Value == 0)
+			{
+				return;
+			}
+			double num = Math.Clamp((double)(entry.TotalBytes.Value - entry.FreeBytes.Value) / (double)entry.TotalBytes.Value, 0.0, 1.0);
+			int num2 = Math.Max(0, (int)Math.Round((bounds.Width - 2) * num));
+			if (num2 <= 0)
+			{
+				return;
+			}
+			Color color = ResolveDriveUsageColor(num);
+			using SolidBrush brush2 = new SolidBrush(Color.FromArgb(200, color));
+			graphics.FillRectangle(brush2, new Rectangle(bounds.X + 1, bounds.Y + 1, num2, Math.Max(1, bounds.Height - 2)));
+		}
+
+		private static Color ResolveDriveUsageColor(double usedRatio)
+		{
+			if (usedRatio >= 0.85)
+			{
+				return Color.FromArgb(230, 86, 74);
+			}
+			if (usedRatio >= 0.60)
+			{
+				return Color.FromArgb(212, 178, 62);
+			}
+			return AccentGreen;
+		}
+
+		private static string FormatDrivePercent(DriveInventoryEntry entry)
+		{
+			if (!entry.TotalBytes.HasValue || !entry.FreeBytes.HasValue || entry.TotalBytes.Value == 0)
+			{
+				return string.Empty;
+			}
+			double num = (double)(entry.TotalBytes.Value - entry.FreeBytes.Value) / (double)entry.TotalBytes.Value * 100.0;
+			return LocalizedText.IsSpanish ? (num.ToString("0", CultureInfo.InvariantCulture) + "% usado") : (num.ToString("0", CultureInfo.InvariantCulture) + "% used");
+		}
+
+		private void DrawScrollBar(Graphics graphics, int visibleRows)
+		{
+			if (entries.Count <= visibleRows || visibleRows <= 0)
+			{
+				return;
+			}
+			Rectangle rectangle = GetScrollTrackRect();
+			using SolidBrush brush = new SolidBrush(Color.FromArgb(74, 34, 62, 32));
+			graphics.FillRectangle(brush, rectangle);
+			double num = (double)visibleRows / (double)entries.Count;
+			int height = Math.Max(18, (int)(rectangle.Height * num));
+			double num2 = (double)firstVisibleIndex / (double)Math.Max(1, entries.Count - visibleRows);
+			int y = rectangle.Top + (int)((rectangle.Height - height) * num2);
+			using SolidBrush brush2 = new SolidBrush(Color.FromArgb(220, AccentGreen));
+			graphics.FillRectangle(brush2, new Rectangle(rectangle.Left, y, rectangle.Width, height));
+		}
+
+		private static string FormatDriveSubtitle(DriveInventoryEntry entry)
+		{
+			if (entry.TotalBytes.HasValue && entry.FreeBytes.HasValue && entry.TotalBytes.Value > 0)
+			{
+				return LocalizedText.IsSpanish ? (FormatStorageCompact(entry.FreeBytes.Value) + " libres de " + FormatStorageCompact(entry.TotalBytes.Value)) : (FormatStorageCompact(entry.FreeBytes.Value) + " free of " + FormatStorageCompact(entry.TotalBytes.Value));
+			}
+			return LocalizedText.IsSpanish ? "Tamano no disponible" : "Size unavailable";
+		}
+
+		private static bool IsPlaceholderEntry(DriveInventoryEntry entry)
+		{
+			string text = TrimOrNull(entry.Name) ?? string.Empty;
+			return !entry.TotalBytes.HasValue
+				&& !entry.FreeBytes.HasValue
+				&& (string.Equals(text, "Connecting...", StringComparison.Ordinal)
+					|| string.Equals(text, "No live drives detected", StringComparison.Ordinal)
+					|| string.Equals(text, "Conectando...", StringComparison.Ordinal)
+					|| string.Equals(text, "No se detectaron unidades activas", StringComparison.Ordinal));
+		}
+
+		private void DrawPlaceholderState(Graphics graphics, DriveInventoryEntry entry)
+		{
+			Rectangle rectangle = new Rectangle(0, 0, Math.Max(1, Width), Math.Max(1, Height));
+			using Font font = new Font(Font.FontFamily, Font.Size + 0.75f, FontStyle.Bold, GraphicsUnit.Point);
+			using Font font2 = new Font(Font.FontFamily, Math.Max(6.75f, Font.Size - 0.25f), FontStyle.Regular, GraphicsUnit.Point);
+			string text = entry.Name;
+			string text2 = string.Equals(text, "Connecting...", StringComparison.Ordinal) || string.Equals(text, "Conectando...", StringComparison.Ordinal)
+				? string.Empty
+				: (LocalizedText.IsSpanish ? "Conecta para detectar almacenamiento" : "Connect to detect storage");
+			Rectangle rectangle2 = new Rectangle(rectangle.Left + 10, rectangle.Top + 16, Math.Max(1, rectangle.Width - 20), 22);
+			Rectangle rectangle3 = new Rectangle(rectangle.Left + 10, rectangle.Top + 42, Math.Max(1, rectangle.Width - 20), 18);
+			TextRenderer.DrawText(graphics, text, font, rectangle2, AccentGreen, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis);
+			if (!string.IsNullOrWhiteSpace(text2))
+			{
+				TextRenderer.DrawText(graphics, text2, font2, rectangle3, Color.FromArgb(206, 182, 214, 184), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis);
+			}
+		}
+
+		private static string FormatStorage(ulong bytes)
+		{
+			string[] array = new string[5] { "B", "KB", "MB", "GB", "TB" };
+			double num = bytes;
+			int num2 = 0;
+			while (num >= 1024.0 && num2 < array.Length - 1)
+			{
+				num /= 1024.0;
+				num2++;
+			}
+			return (num2 == 0) ? (num.ToString("0", CultureInfo.InvariantCulture) + " " + array[num2]) : (num.ToString("0.##", CultureInfo.InvariantCulture) + " " + array[num2]);
+		}
+
+		private static string FormatStorageCompact(ulong bytes)
+		{
+			string[] array = new string[5] { "B", "K", "M", "G", "T" };
+			double num = bytes;
+			int num2 = 0;
+			while (num >= 1024.0 && num2 < array.Length - 1)
+			{
+				num /= 1024.0;
+				num2++;
+			}
+			string text = (num2 <= 1) ? num.ToString("0", CultureInfo.InvariantCulture) : num.ToString("0.#", CultureInfo.InvariantCulture);
+			return text + array[num2];
+		}
+
+		private int GetRowHeight()
+		{
+			return 48;
+		}
+
+		private Rectangle GetScrollTrackRect()
+		{
+			return new Rectangle(base.Width - 7, 2, 4, Math.Max(10, base.Height - 4));
+		}
+
+		private Rectangle GetScrollThumbRect(int visibleRows)
+		{
+			if (entries.Count <= visibleRows || visibleRows <= 0)
+			{
+				return Rectangle.Empty;
+			}
+			Rectangle scrollTrackRect = GetScrollTrackRect();
+			double num = (double)visibleRows / (double)entries.Count;
+			int height = Math.Max(18, (int)(scrollTrackRect.Height * num));
+			double num2 = (double)firstVisibleIndex / (double)Math.Max(1, entries.Count - visibleRows);
+			int y = scrollTrackRect.Top + (int)((scrollTrackRect.Height - height) * num2);
+			return new Rectangle(scrollTrackRect.Left, y, scrollTrackRect.Width, height);
+		}
+
+		private bool TryStartScrollDrag(Point location)
+		{
+			int visibleRowCount = GetVisibleRowCount();
+			Rectangle scrollTrackRect = GetScrollTrackRect();
+			Rectangle scrollThumbRect = GetScrollThumbRect(visibleRowCount);
+			if (scrollThumbRect != Rectangle.Empty && scrollThumbRect.Contains(location))
+			{
+				draggingScrollThumb = true;
+				dragScrollOffsetY = location.Y - scrollThumbRect.Top;
+				Capture = true;
+				return true;
+			}
+			if (scrollThumbRect != Rectangle.Empty && scrollTrackRect.Contains(location))
+			{
+				UpdateScrollFromThumbTop(location.Y - scrollThumbRect.Height / 2, visibleRowCount, scrollTrackRect, scrollThumbRect.Height);
+				return true;
+			}
+			return false;
+		}
+
+		private void UpdateScrollDrag(int mouseY)
+		{
+			int visibleRowCount = GetVisibleRowCount();
+			Rectangle scrollTrackRect = GetScrollTrackRect();
+			Rectangle scrollThumbRect = GetScrollThumbRect(visibleRowCount);
+			if (scrollThumbRect == Rectangle.Empty)
+			{
+				return;
+			}
+			UpdateScrollFromThumbTop(mouseY - dragScrollOffsetY, visibleRowCount, scrollTrackRect, scrollThumbRect.Height);
+		}
+
+		private void UpdateScrollFromThumbTop(int thumbTop, int visibleRows, Rectangle trackRect, int thumbHeight)
+		{
+			if (entries.Count <= visibleRows || visibleRows <= 0)
+			{
+				return;
+			}
+			int num = Math.Max(1, entries.Count - visibleRows);
+			int num2 = Math.Max(1, trackRect.Height - thumbHeight);
+			int num3 = Math.Clamp(thumbTop, trackRect.Top, trackRect.Bottom - thumbHeight);
+			double num4 = (double)(num3 - trackRect.Top) / (double)num2;
+			firstVisibleIndex = Math.Clamp((int)Math.Round(num * num4), 0, num);
+			Invalidate();
+		}
+
+		private void EndScrollDrag()
+		{
+			draggingScrollThumb = false;
+			Capture = false;
+		}
+
+		private int GetVisibleRowCount()
+		{
+			return Math.Max(1, base.Height / GetRowHeight());
+		}
+	}
+
+	private sealed class SuggestionListPanel : Control
+	{
+		private const int MaxVisibleSuggestionRows = 10;
+
+		private readonly List<string> items = new List<string>();
+
+		private int firstVisibleIndex;
+
+		private int selectedIndex = -1;
+
+		private bool draggingScrollThumb;
+
+		private int dragScrollOffsetY;
+
+		public event Action? ItemActivated;
+
+		[Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int ItemCount => items.Count;
+
+		[Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int SelectedIndex
+		{
+			get
+			{
+				return selectedIndex;
+			}
+			set
+			{
+				if (items.Count == 0)
+				{
+					selectedIndex = -1;
+					firstVisibleIndex = 0;
+				}
+				else
+				{
+					selectedIndex = Math.Clamp(value, 0, items.Count - 1);
+					EnsureSelectionVisible();
+				}
+				Invalidate();
+			}
+		}
+
+		[Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public string? SelectedItem
+		{
+			get
+			{
+				if (selectedIndex < 0 || selectedIndex >= items.Count)
+				{
+					return null;
+				}
+				return items[selectedIndex];
+			}
+		}
+
+		[Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public int PreferredHostHeight
+		{
+			get
+			{
+				if (items.Count == 0)
+				{
+					return 0;
+				}
+				int num = Math.Clamp(items.Count, 1, MaxVisibleSuggestionRows);
+				return num * GetLineHeight() + 8;
+			}
+		}
+
+		public SuggestionListPanel()
+		{
+			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, value: true);
+			SetStyle(ControlStyles.Selectable, value: true);
+			DoubleBuffered = true;
+			BackColor = TerminalBackground;
+			ForeColor = Color.WhiteSmoke;
+			MouseWheel += delegate(object? _, MouseEventArgs e)
+			{
+				int num = GetVisibleLineCount();
+				int num2 = Math.Max(1, num / 2);
+				if (e.Delta < 0)
+				{
+					firstVisibleIndex = Math.Min(Math.Max(0, items.Count - num), firstVisibleIndex + num2);
+				}
+				else if (e.Delta > 0)
+				{
+					firstVisibleIndex = Math.Max(0, firstVisibleIndex - num2);
+				}
+				Invalidate();
+			};
+			MouseMove += delegate(object? _, MouseEventArgs e)
+			{
+				if (draggingScrollThumb && e.Button == MouseButtons.Left)
+				{
+					UpdateScrollDrag(e.Y);
+				}
+			};
+			MouseUp += delegate
+			{
+				EndScrollDrag();
+			};
+		}
+
+		public void SetItems(IEnumerable<string> source)
+		{
+			List<string> list = source.Take(128).ToList();
+			items.Clear();
+			items.AddRange(list);
+			if (items.Count == 0)
+			{
+				selectedIndex = -1;
+				firstVisibleIndex = 0;
+			}
+			else
+			{
+				selectedIndex = Math.Clamp(selectedIndex, 0, items.Count - 1);
+				EnsureSelectionVisible();
+			}
+			Invalidate();
+		}
+
+		public void MoveSelection(int delta)
+		{
+			if (items.Count == 0)
+			{
+				return;
+			}
+			if (selectedIndex < 0)
+			{
+				SelectedIndex = 0;
+				return;
+			}
+			SelectedIndex = Math.Clamp(selectedIndex + delta, 0, items.Count - 1);
+		}
+
+		protected override void OnMouseDown(MouseEventArgs e)
+		{
+			base.OnMouseDown(e);
+			if (TryStartScrollDrag(e.Location))
+			{
+				return;
+			}
+			if (!Focused && CanFocus)
+			{
+				Focus();
+			}
+			int itemIndexAt = GetItemIndexAt(e.Y);
+			if (itemIndexAt >= 0 && itemIndexAt < items.Count)
+			{
+				SelectedIndex = itemIndexAt;
+			}
+		}
+
+		protected override void OnMouseDoubleClick(MouseEventArgs e)
+		{
+			base.OnMouseDoubleClick(e);
+			int itemIndexAt = GetItemIndexAt(e.Y);
+			if (itemIndexAt >= 0 && itemIndexAt < items.Count)
+			{
+				SelectedIndex = itemIndexAt;
+				ItemActivated?.Invoke();
+			}
+		}
+
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			base.OnPaint(e);
+			e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+			using SolidBrush brush = new SolidBrush(Color.FromArgb(214, 8, 14, 12));
+			e.Graphics.FillRectangle(brush, ClientRectangle);
+			Rectangle rectangle = new Rectangle(0, 0, Math.Max(1, base.Width - 1), Math.Max(1, base.Height - 1));
+			using Pen pen = new Pen(Color.FromArgb(168, BorderColor), 1f);
+			e.Graphics.DrawRectangle(pen, rectangle);
+			if (items.Count == 0)
+			{
+				return;
+			}
+			int lineHeight = GetLineHeight();
+			int visibleLineCount = GetVisibleLineCount();
+			int num = Math.Min(items.Count, firstVisibleIndex + visibleLineCount);
+			for (int i = firstVisibleIndex; i < num; i++)
+			{
+				int num2 = (i - firstVisibleIndex) * lineHeight + 4;
+				Rectangle rectangle2 = new Rectangle(5, num2, Math.Max(1, base.Width - 16), lineHeight - 1);
+				bool flag = i == selectedIndex;
+				if (i % 2 == 1)
+				{
+					using SolidBrush brush2 = new SolidBrush(Color.FromArgb(120, 12, 22, 17));
+					e.Graphics.FillRectangle(brush2, rectangle2);
+				}
+				if (flag)
+				{
+					using SolidBrush brush3 = new SolidBrush(Color.FromArgb(156, 34, 62, 32));
+					using Pen pen2 = new Pen(Color.FromArgb(220, AccentGreen), 1f);
+					e.Graphics.FillRectangle(brush3, rectangle2);
+					e.Graphics.DrawRectangle(pen2, rectangle2.X, rectangle2.Y, rectangle2.Width - 1, rectangle2.Height - 1);
+				}
+				Rectangle rectangle3 = new Rectangle(rectangle2.Left + 6, rectangle2.Top, 14, rectangle2.Height);
+				Color color = flag ? Color.FromArgb(232, 236, 246, 232) : Color.FromArgb(208, 202, 224, 204);
+				TextRenderer.DrawText(e.Graphics, "·", Font, rectangle3, color, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				Rectangle rectangle4 = new Rectangle(rectangle2.Left + 18, rectangle2.Top, Math.Max(1, rectangle2.Width - 18), rectangle2.Height);
+				TextRenderer.DrawText(e.Graphics, items[i], Font, rectangle4, flag ? Color.WhiteSmoke : ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+			}
+			DrawScrollBar(e.Graphics, visibleLineCount);
+		}
+
+		private void EnsureSelectionVisible()
+		{
+			int visibleLineCount = GetVisibleLineCount();
+			if (selectedIndex < firstVisibleIndex)
+			{
+				firstVisibleIndex = selectedIndex;
+			}
+			else if (selectedIndex >= firstVisibleIndex + visibleLineCount)
+			{
+				firstVisibleIndex = Math.Max(0, selectedIndex - visibleLineCount + 1);
+			}
+		}
+
+		private void DrawScrollBar(Graphics graphics, int visibleLines)
+		{
+			if (items.Count <= visibleLines || visibleLines <= 0)
+			{
+				return;
+			}
+			Rectangle rectangle = GetScrollTrackRect();
+			using SolidBrush brush = new SolidBrush(Color.FromArgb(74, 34, 62, 32));
+			graphics.FillRectangle(brush, rectangle);
+			double num = (double)visibleLines / (double)items.Count;
+			int height = Math.Max(24, (int)(rectangle.Height * num));
+			double num2 = (double)firstVisibleIndex / (double)Math.Max(1, items.Count - visibleLines);
+			int y = rectangle.Top + (int)((rectangle.Height - height) * num2);
+			using SolidBrush brush2 = new SolidBrush(Color.FromArgb(220, AccentGreen));
+			graphics.FillRectangle(brush2, new Rectangle(rectangle.Left, y, rectangle.Width, height));
+		}
+
+		private int GetLineHeight()
+		{
+			return Math.Max(24, TextRenderer.MeasureText("XeCLI", Font).Height + 6);
+		}
+
+		private int GetVisibleLineCount()
+		{
+			return Math.Max(1, (base.Height - 8) / GetLineHeight());
+		}
+
+		private int GetItemIndexAt(int y)
+		{
+			int lineHeight = GetLineHeight();
+			if (lineHeight <= 0)
+			{
+				return -1;
+			}
+			int num = Math.Max(0, (y - 4) / lineHeight);
+			return firstVisibleIndex + num;
+		}
+
+		private Rectangle GetScrollTrackRect()
+		{
+			return new Rectangle(base.Width - 8, 4, 4, Math.Max(10, base.Height - 8));
+		}
+
+		private Rectangle GetScrollThumbRect(int visibleLines)
+		{
+			if (items.Count <= visibleLines || visibleLines <= 0)
+			{
+				return Rectangle.Empty;
+			}
+			Rectangle scrollTrackRect = GetScrollTrackRect();
+			double num = (double)visibleLines / (double)items.Count;
+			int height = Math.Max(24, (int)(scrollTrackRect.Height * num));
+			double num2 = (double)firstVisibleIndex / (double)Math.Max(1, items.Count - visibleLines);
+			int y = scrollTrackRect.Top + (int)((scrollTrackRect.Height - height) * num2);
+			return new Rectangle(scrollTrackRect.Left, y, scrollTrackRect.Width, height);
+		}
+
+		private bool TryStartScrollDrag(Point location)
+		{
+			int visibleLineCount = GetVisibleLineCount();
+			Rectangle scrollTrackRect = GetScrollTrackRect();
+			Rectangle scrollThumbRect = GetScrollThumbRect(visibleLineCount);
+			if (scrollThumbRect != Rectangle.Empty && scrollThumbRect.Contains(location))
+			{
+				draggingScrollThumb = true;
+				dragScrollOffsetY = location.Y - scrollThumbRect.Top;
+				Capture = true;
+				return true;
+			}
+			if (scrollThumbRect != Rectangle.Empty && scrollTrackRect.Contains(location))
+			{
+				UpdateScrollFromThumbTop(location.Y - scrollThumbRect.Height / 2, visibleLineCount, scrollTrackRect, scrollThumbRect.Height);
+				return true;
+			}
+			return false;
+		}
+
+		private void UpdateScrollDrag(int mouseY)
+		{
+			int visibleLineCount = GetVisibleLineCount();
+			Rectangle scrollTrackRect = GetScrollTrackRect();
+			Rectangle scrollThumbRect = GetScrollThumbRect(visibleLineCount);
+			if (scrollThumbRect == Rectangle.Empty)
+			{
+				return;
+			}
+			UpdateScrollFromThumbTop(mouseY - dragScrollOffsetY, visibleLineCount, scrollTrackRect, scrollThumbRect.Height);
+		}
+
+		private void UpdateScrollFromThumbTop(int thumbTop, int visibleLines, Rectangle trackRect, int thumbHeight)
+		{
+			if (items.Count <= visibleLines || visibleLines <= 0)
+			{
+				return;
+			}
+			int num = Math.Max(1, items.Count - visibleLines);
+			int num2 = Math.Max(1, trackRect.Height - thumbHeight);
+			int num3 = Math.Clamp(thumbTop, trackRect.Top, trackRect.Bottom - thumbHeight);
+			double num4 = (double)(num3 - trackRect.Top) / (double)num2;
+			firstVisibleIndex = Math.Clamp((int)Math.Round(num * num4), 0, num);
+			Invalidate();
+		}
+
+		private void EndScrollDrag()
+		{
+			draggingScrollThumb = false;
+			Capture = false;
 		}
 	}
 
@@ -5247,8 +7091,8 @@ internal sealed class XeCliTerminalForm : Form
 			{
 				using Font font = new Font("Consolas", 11f, FontStyle.Bold, GraphicsUnit.Point);
 				using Font font2 = new Font("Consolas", 8.25f, FontStyle.Regular, GraphicsUnit.Point);
-				TextRenderer.DrawText(e.Graphics, "QUEUE IDLE", font, new Rectangle(rectangle.X + 12, rectangle.Y + 20, rectangle.Width - 24, 28), AccentGreen, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
-				TextRenderer.DrawText(e.Graphics, "No transfers staged", font2, new Rectangle(rectangle.X + 12, rectangle.Y + 52, rectangle.Width - 24, 22), AccentDim, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				TextRenderer.DrawText(e.Graphics, LocalizedText.IsSpanish ? "COLA EN ESPERA" : "QUEUE IDLE", font, new Rectangle(rectangle.X + 12, rectangle.Y + 20, rectangle.Width - 24, 28), AccentGreen, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				TextRenderer.DrawText(e.Graphics, LocalizedText.IsSpanish ? "No hay transferencias en cola" : "No transfers staged", font2, new Rectangle(rectangle.X + 12, rectangle.Y + 52, rectangle.Width - 24, 22), AccentDim, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
 				return;
 			}
 			int y = rectangle.Y + 10;
@@ -5317,6 +7161,86 @@ internal sealed class XeCliTerminalForm : Form
 		}
 	}
 
+	private sealed class TerminalScrollIndicator : Control
+	{
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		private static extern int SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
+
+		private const int EmGetFirstVisibleLine = 0x00CE;
+
+		private RichTextBox? source;
+
+		public TerminalScrollIndicator()
+		{
+			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, value: true);
+			DoubleBuffered = true;
+			BackColor = Color.FromArgb(9, 16, 14);
+		}
+
+		public void Attach(RichTextBox richTextBox)
+		{
+			if (source == richTextBox)
+			{
+				return;
+			}
+			if (source != null)
+			{
+				source.VScroll -= HandleSourceScrollChanged;
+				source.TextChanged -= HandleSourceScrollChanged;
+				source.Resize -= HandleSourceScrollChanged;
+				source.SelectionChanged -= HandleSourceScrollChanged;
+			}
+			source = richTextBox;
+			source.VScroll += HandleSourceScrollChanged;
+			source.TextChanged += HandleSourceScrollChanged;
+			source.Resize += HandleSourceScrollChanged;
+			source.SelectionChanged += HandleSourceScrollChanged;
+			Invalidate();
+		}
+
+		private void HandleSourceScrollChanged(object? sender, EventArgs e)
+		{
+			Invalidate();
+		}
+
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			base.OnPaint(e);
+			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+			e.Graphics.Clear(BackColor);
+			Rectangle rectangle = new Rectangle(Math.Max(0, (base.Width - 4) / 2), 4, 4, Math.Max(0, base.Height - 8));
+			using (SolidBrush brush = new SolidBrush(Color.FromArgb(42, 54, 96, 46)))
+			{
+				e.Graphics.FillRectangle(brush, rectangle);
+			}
+			if (source == null || !source.IsHandleCreated || rectangle.Height <= 0)
+			{
+				return;
+			}
+			int lineCount = Math.Max(1, source.GetLineFromCharIndex(source.TextLength) + 1);
+			int num = Math.Max(1, source.Font.Height + 1);
+			int visibleLines = Math.Max(1, source.ClientSize.Height / num);
+			int firstVisibleLine = Math.Max(0, SendMessage(source.Handle, EmGetFirstVisibleLine, 0, 0));
+			if (lineCount <= visibleLines)
+			{
+				using (SolidBrush brush2 = new SolidBrush(Color.FromArgb(188, AccentGreen)))
+				{
+					e.Graphics.FillRectangle(brush2, rectangle);
+				}
+				return;
+			}
+			double num2 = (double)visibleLines / (double)lineCount;
+			int height = Math.Max(18, (int)Math.Round(rectangle.Height * num2));
+			double num3 = (double)firstVisibleLine / (double)Math.Max(1, lineCount - visibleLines);
+			int y = rectangle.Top + (int)Math.Round((rectangle.Height - height) * num3);
+			Rectangle rectangle2 = new Rectangle(rectangle.X, y, rectangle.Width, height);
+			using SolidBrush brush3 = new SolidBrush(Color.FromArgb(220, AccentGreen));
+			using Pen pen = new Pen(Color.FromArgb(160, Color.WhiteSmoke), 1f);
+			e.Graphics.FillRectangle(brush3, rectangle2);
+			e.Graphics.DrawLine(pen, rectangle2.Left, rectangle2.Top, rectangle2.Right - 1, rectangle2.Top);
+		}
+	}
+
 	private sealed class FileGridPanel : Control
 	{
 		private enum ResizeColumn
@@ -5329,6 +7253,10 @@ internal sealed class XeCliTerminalForm : Form
 		private readonly List<FileEntryView> entries = new List<FileEntryView>();
 
 		private int firstVisibleIndex;
+
+		private bool draggingScrollThumb;
+
+		private int dragScrollOffsetY;
 
 		private int selectedIndex = -1;
 
@@ -5385,6 +7313,11 @@ internal sealed class XeCliTerminalForm : Form
 			};
 			MouseMove += delegate(object? _, MouseEventArgs e)
 			{
+				if (draggingScrollThumb && e.Button == MouseButtons.Left)
+				{
+					UpdateScrollDrag(e.Y);
+					return;
+				}
 				HandleColumnResizeMove(e.Location, e.Button == MouseButtons.Left);
 				if (!draggingColumn(e.Button) && dragPending && e.Button == MouseButtons.Left)
 				{
@@ -5401,6 +7334,7 @@ internal sealed class XeCliTerminalForm : Form
 			MouseUp += delegate
 			{
 				activeResizeColumn = ResizeColumn.None;
+				EndScrollDrag();
 				dragPending = false;
 				dragIndex = -1;
 				Cursor = Cursors.Default;
@@ -5466,8 +7400,8 @@ internal sealed class XeCliTerminalForm : Form
 			int scrollWidth = 8;
 			(int nameWidth, int modifiedWidth2, int sizeWidth2) = GetColumnLayout(bounds.Width, scrollWidth);
 			TextRenderer.DrawText(e.Graphics, HeaderText, Font, new Rectangle(6, 0, nameWidth - 8, headerHeight), AccentDim, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
-			TextRenderer.DrawText(e.Graphics, "MODIFIED", Font, new Rectangle(6 + nameWidth, 0, modifiedWidth2 - 6, headerHeight), AccentDim, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
-			TextRenderer.DrawText(e.Graphics, "SIZE", Font, new Rectangle(6 + nameWidth + modifiedWidth2, 0, sizeWidth2 - 6, headerHeight), AccentDim, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+			TextRenderer.DrawText(e.Graphics, LocalizedText.IsSpanish ? "MODIFICADO" : "MODIFIED", Font, new Rectangle(6 + nameWidth, 0, modifiedWidth2 - 6, headerHeight), AccentDim, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+			TextRenderer.DrawText(e.Graphics, LocalizedText.IsSpanish ? "TAMANO" : "SIZE", Font, new Rectangle(6 + nameWidth + modifiedWidth2, 0, sizeWidth2 - 6, headerHeight), AccentDim, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
 			using (Pen dividerPen = new Pen(Color.FromArgb(34, AccentGreen), 1f))
 			{
 				e.Graphics.DrawLine(dividerPen, nameWidth, 2, nameWidth, bounds.Height - 2);
@@ -5489,14 +7423,15 @@ internal sealed class XeCliTerminalForm : Form
 			int drawRow = 0;
 			for (int i = firstVisibleIndex; i < lastIndex; i++)
 			{
+				bool flag = Focused && i == selectedIndex;
 				int y = headerHeight + drawRow * rowHeight;
 				Rectangle rowRect = new Rectangle(0, y, Math.Max(1, bounds.Width - scrollWidth), rowHeight);
-				if (i != selectedIndex && drawRow % 2 == 1)
+				if (!flag && drawRow % 2 == 1)
 				{
 					using SolidBrush brush2 = new SolidBrush(Color.FromArgb(56, 20, 40, 20));
 					e.Graphics.FillRectangle(brush2, rowRect);
 				}
-				if (i == selectedIndex)
+				if (flag)
 				{
 					using SolidBrush brush3 = new SolidBrush(Color.FromArgb(156, 52, 96, 42));
 					using Pen pen2 = new Pen(Color.FromArgb(214, AccentGreen), 1f);
@@ -5515,9 +7450,27 @@ internal sealed class XeCliTerminalForm : Form
 			DrawScrollBar(e.Graphics, visibleRowCount, headerHeight);
 		}
 
+		protected override void OnGotFocus(EventArgs e)
+		{
+			base.OnGotFocus(e);
+			Invalidate();
+		}
+
+		protected override void OnLostFocus(EventArgs e)
+		{
+			base.OnLostFocus(e);
+			Invalidate();
+		}
+
 		protected override void OnMouseDown(MouseEventArgs e)
 		{
 			base.OnMouseDown(e);
+			if (TryStartScrollDrag(e.Location))
+			{
+				dragPending = false;
+				dragIndex = -1;
+				return;
+			}
 			if (TryStartColumnResize(e.Location))
 			{
 				dragPending = false;
@@ -5618,7 +7571,7 @@ internal sealed class XeCliTerminalForm : Form
 			{
 				return;
 			}
-			Rectangle rectangle = new Rectangle(base.Width - 7, headerHeight + 2, 4, base.Height - headerHeight - 4);
+			Rectangle rectangle = GetScrollTrackRect(headerHeight);
 			using SolidBrush brush = new SolidBrush(Color.FromArgb(26, 58, 76, 84));
 			graphics.FillRectangle(brush, rectangle);
 			double num = (double)visibleRows / (double)entries.Count;
@@ -5627,6 +7580,79 @@ internal sealed class XeCliTerminalForm : Form
 			int y = rectangle.Top + (int)((rectangle.Height - height) * num2);
 			using SolidBrush brush2 = new SolidBrush(Color.FromArgb(130, AccentCyan));
 			graphics.FillRectangle(brush2, new Rectangle(rectangle.Left, y, rectangle.Width, height));
+		}
+
+		private Rectangle GetScrollTrackRect(int headerHeight)
+		{
+			return new Rectangle(base.Width - 7, headerHeight + 2, 4, Math.Max(10, base.Height - headerHeight - 4));
+		}
+
+		private Rectangle GetScrollThumbRect(int visibleRows, int headerHeight)
+		{
+			if (entries.Count <= visibleRows || visibleRows <= 0)
+			{
+				return Rectangle.Empty;
+			}
+			Rectangle scrollTrackRect = GetScrollTrackRect(headerHeight);
+			double num = (double)visibleRows / (double)entries.Count;
+			int height = Math.Max(14, (int)(scrollTrackRect.Height * num));
+			double num2 = (double)firstVisibleIndex / (double)Math.Max(1, entries.Count - visibleRows);
+			int y = scrollTrackRect.Top + (int)((scrollTrackRect.Height - height) * num2);
+			return new Rectangle(scrollTrackRect.Left, y, scrollTrackRect.Width, height);
+		}
+
+		private bool TryStartScrollDrag(Point location)
+		{
+			int num = Math.Max(20, TextRenderer.MeasureText("W", Font).Height + 7);
+			int visibleRowCount = GetVisibleRowCount();
+			Rectangle scrollTrackRect = GetScrollTrackRect(num);
+			Rectangle scrollThumbRect = GetScrollThumbRect(visibleRowCount, num);
+			if (scrollThumbRect != Rectangle.Empty && scrollThumbRect.Contains(location))
+			{
+				draggingScrollThumb = true;
+				dragScrollOffsetY = location.Y - scrollThumbRect.Top;
+				Capture = true;
+				return true;
+			}
+			if (scrollThumbRect != Rectangle.Empty && scrollTrackRect.Contains(location))
+			{
+				UpdateScrollFromThumbTop(location.Y - scrollThumbRect.Height / 2, visibleRowCount, scrollTrackRect, scrollThumbRect.Height);
+				return true;
+			}
+			return false;
+		}
+
+		private void UpdateScrollDrag(int mouseY)
+		{
+			int num = Math.Max(20, TextRenderer.MeasureText("W", Font).Height + 7);
+			int visibleRowCount = GetVisibleRowCount();
+			Rectangle scrollTrackRect = GetScrollTrackRect(num);
+			Rectangle scrollThumbRect = GetScrollThumbRect(visibleRowCount, num);
+			if (scrollThumbRect == Rectangle.Empty)
+			{
+				return;
+			}
+			UpdateScrollFromThumbTop(mouseY - dragScrollOffsetY, visibleRowCount, scrollTrackRect, scrollThumbRect.Height);
+		}
+
+		private void UpdateScrollFromThumbTop(int thumbTop, int visibleRows, Rectangle trackRect, int thumbHeight)
+		{
+			if (entries.Count <= visibleRows || visibleRows <= 0)
+			{
+				return;
+			}
+			int num = Math.Max(1, entries.Count - visibleRows);
+			int num2 = Math.Max(1, trackRect.Height - thumbHeight);
+			int num3 = Math.Clamp(thumbTop, trackRect.Top, trackRect.Bottom - thumbHeight);
+			double num4 = (double)(num3 - trackRect.Top) / (double)num2;
+			firstVisibleIndex = Math.Clamp((int)Math.Round(num * num4), 0, num);
+			Invalidate();
+		}
+
+		private void EndScrollDrag()
+		{
+			draggingScrollThumb = false;
+			Capture = false;
 		}
 
 		private (int NameWidth, int ModifiedWidth, int SizeWidth) GetColumnLayout(int totalWidth, int scrollWidth)

@@ -99,8 +99,9 @@ Check:
 - the console is running a visible title or shell
 - the frame buffer format is being decoded into the selected output format
 - the output file size is reasonable
+- if the image is correct except for a small right-edge strip, use `--crop-right` or `--crop-right-percent` for an explicit trim override
 
-A healthy BMP capture should produce a non-trivial file with dimensions matching the decoded frame-buffer metadata emitted by the command.
+A healthy screenshot capture should produce a non-trivial `.png` or `.bmp` file with dimensions matching the decoded frame-buffer metadata emitted by the command.
 
 ## Save or content commands return too much data
 Use more specific filters:
@@ -142,7 +143,7 @@ The full installer wizard is intentionally skipped or simplified when:
 Manual fallback:
 
 ```powershell
-.\XeCLI-v1.0.9-setup-win-x64.exe
+.\XeCLI-1.1.0-setup.exe
 ```
 
 If the post-install console prompt did not appear, XeCLI either did not detect a console fast enough or you skipped it. Use:
@@ -179,7 +180,9 @@ The zip releases are the portable builds. The setup executable is the installer.
 Use the setup executable when you want:
 
 - PATH registration
-- Start menu and uninstall integration
+- XeTerminal Start menu integration
+- optional XeTerminal desktop shortcut creation
+- uninstall integration
 - the installer-owned language selection step
 
 Use the zip release when you want:

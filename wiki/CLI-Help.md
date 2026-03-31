@@ -730,8 +730,8 @@ OPTIONS:
         --timeout <MS>                Socket timeout in milliseconds (default:
                                       5000)
         --json                        Emit JSON output
-        --out <FILE>                  Output file path (.bmp or .raw)
-        --format <FORMAT>             Output format: bmp or raw
+        --out <FILE>                  Output file path (.bmp, .png, or .raw)
+        --format <FORMAT>             Output format: bmp, png, or raw
         --raw                         Force raw output (same as --format raw)
         --force                       Overwrite the output file if it exists
         --decode <MODE>               Force decode mode: auto, linear, tiled-v1,

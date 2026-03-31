@@ -41,7 +41,7 @@ PrivilegesRequiredOverridesAllowed=dialog
 ShowLanguageDialog=yes
 LanguageDetectionMethod=uilanguage
 ChangesEnvironment=yes
-UninstallDisplayIcon={app}\rgh.exe
+UninstallDisplayIcon={app}\XeTerminal.exe
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
@@ -50,6 +50,10 @@ Name: "es"; MessagesFile: "compiler:Languages\Spanish.isl"
 [CustomMessages]
 en.AddToPathTask=Add rgh to PATH
 es.AddToPathTask=Agregar rgh al PATH
+en.DesktopShortcutTask=Create desktop shortcut for XeTerminal
+es.DesktopShortcutTask=Crear acceso directo de escritorio para XeTerminal
+en.LaunchXeTerminal=Launch XeTerminal
+es.LaunchXeTerminal=Iniciar XeTerminal
 en.SupportUsButton=Support Us
 es.SupportUsButton=Apoyanos
 en.InstallSupportHint=During installation, use the Details view to inspect file actions. For support, launch setup with /LOG=setup.log to capture a log.
@@ -59,10 +63,18 @@ es.InstallSummary=XeCLI es un toolkit potente orientado a terminal para usuarios
 
 [Tasks]
 Name: "modifypath"; Description: "{cm:AddToPathTask}"; Flags: checkedonce
+Name: "desktopicon"; Description: "{cm:DesktopShortcutTask}"; Flags: unchecked
 
 [Files]
 Source: "{#ReleaseDir}\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: Is64BitInstallMode
 Source: "{#ReleaseDir}\win-x86\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: not Is64BitInstallMode
+
+[Icons]
+Name: "{autoprograms}\XeCLI\XeCLI Terminal"; Filename: "{app}\XeTerminal.exe"; WorkingDir: "{app}"; IconFilename: "{app}\XeTerminal.exe"
+Name: "{autodesktop}\XeCLI Terminal"; Filename: "{app}\XeTerminal.exe"; WorkingDir: "{app}"; IconFilename: "{app}\XeTerminal.exe"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\XeTerminal.exe"; Description: "{cm:LaunchXeTerminal}"; Flags: nowait postinstall skipifsilent
 
 [Code]
 const

@@ -722,18 +722,28 @@ public sealed class LedStateCommand : Command<LedStateCommand.Settings> {
 
 public sealed class SignInStateCommand : AsyncCommand<ConnectionSettings> {
     public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings) {
-        return await CliHelpers.WithClientAsync(settings, async client => {
-            ProfileHelpers.XamUserInfo? user = await HardwareHelpers.TryGetSignedInUserAsync(client, CancellationToken.None);
-            bool signedIn = user != null && user.SignInState > 0;
-            string signInState = HardwareHelpers.DescribeSignInState(user?.SignInState);
+        (string ip, int port, int timeout) = await CliHelpers.ResolveTargetAsync(settings, CancellationToken.None);
+        return await CliHelpers.WithClientAsync((ip, port, timeout), settings, async client => {
+            ProfileHelpers.ResolvedIdentityInfo identity = await ProfileHelpers.ResolveSignedInIdentityAsync(
+                client,
+                ip,
+                port,
+                timeout,
+                CliConfig.Load(),
+                allowF3: true,
+                allowProfilePackage: true,
+                CancellationToken.None);
+            bool signedIn = identity.IsSignedIn;
+            string signInState = identity.SignInStateText;
 
             if (settings.Json) {
                 CliOutput.EmitJson(new {
                     SignedIn = signedIn,
                     SignInState = signInState,
-                    Slot = user?.Slot,
-                    Gamertag = user?.Gamertag,
-                    Xuid = user?.Xuid
+                    Slot = identity.Slot,
+                    Gamertag = identity.Gamertag,
+                    Xuid = identity.Xuid,
+                    Source = identity.Source
                 });
                 return 0;
             }
@@ -743,9 +753,11 @@ public sealed class SignInStateCommand : AsyncCommand<ConnectionSettings> {
             table.AddColumn(new TableColumn("[bold deepskyblue1]Value[/]"));
             table.AddRow("[white]Signed In[/]", signedIn ? "[springgreen3_1]Yes[/]" : "[red1]No[/]");
             table.AddRow("[white]State[/]", $"[gold1]{Markup.Escape(signInState)}[/]");
-            table.AddRow("[white]Gamertag[/]", signedIn ? $"[springgreen3_1]{Markup.Escape(user?.Gamertag ?? "unknown")}[/]" : "[grey70]none[/]");
-            table.AddRow("[white]XUID[/]", signedIn ? $"[gold1]{Markup.Escape(user?.Xuid ?? "unknown")}[/]" : "[grey70]none[/]");
-            table.AddRow("[white]Slot[/]", signedIn ? $"[deepskyblue1]{user!.Slot.ToString(CultureInfo.InvariantCulture)}[/]" : "[grey70]-[/]");
+            table.AddRow("[white]Gamertag[/]", signedIn ? $"[springgreen3_1]{Markup.Escape(identity.Gamertag ?? "unknown")}[/]" : "[grey70]none[/]");
+            table.AddRow("[white]XUID[/]", signedIn ? $"[gold1]{Markup.Escape(identity.Xuid ?? "unknown")}[/]" : "[grey70]none[/]");
+            table.AddRow("[white]Slot[/]", identity.Slot.HasValue ? $"[deepskyblue1]{identity.Slot.Value.ToString(CultureInfo.InvariantCulture)}[/]" : "[grey70]-[/]");
+            if (!string.IsNullOrWhiteSpace(identity.Source))
+                table.AddRow("[white]Source[/]", $"[mediumpurple3]{Markup.Escape(identity.Source)}[/]");
             AnsiConsole.Write(table);
             return 0;
         }, CancellationToken.None);

@@ -33,7 +33,10 @@ public sealed class TerminalCommand : AsyncCommand<TerminalCommand.Settings>
 			AnsiConsole.MarkupLine("[red]The XeCLI terminal UI is only available on Windows.[/]");
 			return 1;
 		}
-		var (ip, port, timeoutMs) = await CliHelpers.ResolveTargetAsync(settings, CancellationToken.None);
+		CliConfig cliConfig = CliConfig.Load();
+		string ip = !string.IsNullOrWhiteSpace(settings.Ip) ? settings.Ip.Trim() : (string.IsNullOrWhiteSpace(cliConfig.DefaultIp) ? "192.168.1.1" : cliConfig.DefaultIp.Trim());
+		int port = settings.Port ?? cliConfig.DefaultPort ?? 730;
+		int timeoutMs = settings.TimeoutMs ?? 5000;
 		string fileName = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "rgh.exe";
 		const int SafeOpacityPercent = 100;
 		if (settings.OpacityPercent is { } requested && requested < SafeOpacityPercent)

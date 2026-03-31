@@ -214,6 +214,10 @@ rgh screenshot --out .\screen.bmp
 - [GitHub Wiki](https://github.com/SaveEditors/xecli/wiki)
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
 
+## Legal
+- [Terms of Service](Terms-of-Service)
+- [Privacy Policy](Privacy-Policy)
+
 ## Release Packaging
 The published Windows release includes self-contained portable packages for `win-x64` and `win-x86`, plus a universal setup installer.
 

@@ -20,27 +20,27 @@ public sealed class ProfilesCommand : AsyncCommand<ProfilesCommand.Settings> {
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
         (string ip, int port, int timeout) = await CliHelpers.ResolveTargetAsync(settings, CancellationToken.None);
         return await CliHelpers.WithClientAsync((ip, port, timeout), settings, async client => {
-            IReadOnlyList<XbdmUserInfo> users = await client.GetUserListAsync(CancellationToken.None);
-            ProfileHelpers.XamUserInfo? xamUser = null;
-            if (users.Count == 0) {
-                try {
-                    xamUser = await ProfileHelpers.TryGetSignedInXamUserAsync(ip, port, timeout, CancellationToken.None);
-                    if (xamUser != null) {
-                        users = new[] {
-                            new XbdmUserInfo {
-                                Gamertag = xamUser.Gamertag,
-                                Xuid = xamUser.Xuid != null && ulong.TryParse(xamUser.Xuid.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong parsedXuid)
-                                    ? parsedXuid
-                                    : null,
-                                SignInState = xamUser.SignInState,
-                                RawLine = $"xam slot={xamUser.Slot}"
-                            }
-                        };
+            ProfileHelpers.ResolvedIdentityInfo resolvedIdentity = await ProfileHelpers.ResolveSignedInIdentityAsync(
+                client,
+                ip,
+                port,
+                timeout,
+                CliConfig.Load(),
+                allowF3: !settings.NoF3,
+                allowProfilePackage: !settings.NoFtp,
+                CancellationToken.None);
+            IReadOnlyList<XbdmUserInfo> users = resolvedIdentity.Users;
+            if ((users == null || users.Count == 0) && resolvedIdentity.XamUser != null) {
+                users = new[] {
+                    new XbdmUserInfo {
+                        Gamertag = resolvedIdentity.XamUser.Gamertag,
+                        Xuid = resolvedIdentity.XamUser.Xuid != null && ulong.TryParse(resolvedIdentity.XamUser.Xuid.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong parsedXuid)
+                            ? parsedXuid
+                            : null,
+                        SignInState = resolvedIdentity.XamUser.SignInState,
+                        RawLine = $"xam slot={resolvedIdentity.XamUser.Slot}"
                     }
-                }
-                catch {
-                    // ignored
-                }
+                };
             }
 
             List<string>? ftpProfiles = null;
@@ -63,21 +63,8 @@ public sealed class ProfilesCommand : AsyncCommand<ProfilesCommand.Settings> {
                 }
             }
 
-            XbdmUserInfo? signedIn = users.FirstOrDefault(u =>
-                    u.SignInState.HasValue && u.SignInState.Value > 0 && !string.IsNullOrWhiteSpace(u.Gamertag))
-                ?? users.FirstOrDefault(u => !string.IsNullOrWhiteSpace(u.Gamertag));
-            string? signedInUser = signedIn?.Gamertag;
-            string? signedInXuid = signedIn?.Xuid.HasValue == true ? $"0x{signedIn.Xuid.Value:X16}" : null;
-
-            ProfileHelpers.F3ProfileInfo? f3SignedIn = f3Profiles?.FirstOrDefault(p => p.SignedIn == 1 && !string.IsNullOrWhiteSpace(p.Gamertag));
-            if (string.IsNullOrWhiteSpace(signedInUser) && f3SignedIn != null) {
-                signedInUser = f3SignedIn.Gamertag;
-                signedInXuid ??= f3SignedIn.Xuid;
-            }
-            if (string.IsNullOrWhiteSpace(signedInUser) && xamUser != null) {
-                signedInUser = xamUser.Gamertag;
-                signedInXuid ??= xamUser.Xuid;
-            }
+            string? signedInUser = resolvedIdentity.Gamertag;
+            string? signedInXuid = resolvedIdentity.Xuid;
 
             Dictionary<string, List<string>> ftpGrouped = ftpProfiles != null
                 ? ProfileHelpers.GroupFtpProfiles(ftpProfiles)

@@ -15,6 +15,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using FluentFTP;
 using Xbox360.Remote;
+using System.Globalization;
+using System.ComponentModel;
+using Xbox360.Remote.Cli.LocalProfiles;
 
 namespace Xbox360.Remote.Cli.Commands;
 
@@ -39,6 +42,8 @@ internal sealed class XeCliTerminalForm : Form
 
 	private sealed class TelemetrySnapshot
 	{
+		public int SessionEpoch { get; set; }
+
 		public bool Connected { get; set; }
 
 		public string? DebugName { get; set; }
@@ -91,6 +96,10 @@ internal sealed class XeCliTerminalForm : Form
 		public required string FullPath { get; init; }
 
 		public bool IsDirectory { get; init; }
+
+		public long? SizeBytes { get; init; }
+
+		public DateTime? ModifiedUtc { get; init; }
 	}
 
 	private sealed class LocalBrowserSnapshot
@@ -102,6 +111,39 @@ internal sealed class XeCliTerminalForm : Form
 		public required List<string> Items { get; init; }
 
 		public required string PathLabel { get; init; }
+	}
+
+	private sealed class PaneClipboardEntry
+	{
+		public required bool IsRemote { get; init; }
+
+		public required string FullPath { get; init; }
+
+		public required bool IsDirectory { get; init; }
+
+		public required bool Move { get; set; }
+	}
+
+	private sealed class PaneDragPayload
+	{
+		public required bool FromRemote { get; init; }
+
+		public required List<FileEntryView> Entries { get; init; }
+	}
+
+	private sealed class TransferQueueEntry
+	{
+		public required string CommandKey { get; init; }
+
+		public required string CommandText { get; set; }
+
+		public required string State { get; set; }
+
+		public string? Detail { get; set; }
+
+		public double? ProgressPercent { get; set; }
+
+		public DateTime UpdatedAtLocal { get; set; }
 	}
 
 	private const int MaxTerminalCharacters = 64000;
@@ -213,7 +255,11 @@ internal sealed class XeCliTerminalForm : Form
 
 	private readonly Font shellFontBold = new Font("Consolas", 9.25f, FontStyle.Bold, GraphicsUnit.Point);
 
+	private readonly Font shellOutputFont = new Font("Consolas", 8.25f, FontStyle.Regular, GraphicsUnit.Point);
+
 	private readonly Font headerFont = new Font("Consolas", 12.5f, FontStyle.Bold, GraphicsUnit.Point);
+
+	private readonly Font microFont = new Font("Consolas", 6.75f, FontStyle.Bold, GraphicsUnit.Point);
 
 	private readonly Label headerLabel = new Label();
 
@@ -231,11 +277,25 @@ internal sealed class XeCliTerminalForm : Form
 
 	private readonly Label rightDetailLabel = new Label();
 
+	private readonly Label rightDrivesLabel = new Label();
+
 	private readonly Button connectButton = new Button();
 
 	private readonly Button disconnectButton = new Button();
 
 	private readonly Button screenshotButton = new Button();
+
+	private readonly Button languageButton = new Button();
+
+	private readonly TextBox targetIpTextBox = new TextBox();
+
+	private readonly TextBox targetPortTextBox = new TextBox();
+
+	private readonly Panel targetIpHostPanel = new Panel();
+
+	private readonly Panel targetPortHostPanel = new Panel();
+
+	private readonly Button targetApplyButton = new Button();
 
 	private readonly Button pluginsTabButton = new Button();
 
@@ -245,9 +305,9 @@ internal sealed class XeCliTerminalForm : Form
 
 	private readonly SlimListPanel drivesList = new SlimListPanel();
 
-	private readonly SlimListPanel transferQueueList = new SlimListPanel();
+	private readonly TransferQueuePanel transferQueueList = new TransferQueuePanel();
 
-	private readonly List<string> transferQueueEntries = new List<string>();
+	private readonly List<TransferQueueEntry> transferQueueEntries = new List<TransferQueueEntry>();
 
 	private readonly PictureBox logoPictureBox = new PictureBox();
 
@@ -255,7 +315,9 @@ internal sealed class XeCliTerminalForm : Form
 
 	private readonly Label footerStatusLabel = new Label();
 
-	private readonly Label footerHintLabel = new Label();
+	private readonly Label footerPresenceLabel = new Label();
+
+	private readonly Label footerThermalLabel = new Label();
 
 	private readonly Label mainShellBannerLabel = new Label();
 
@@ -271,7 +333,13 @@ internal sealed class XeCliTerminalForm : Form
 
 	private readonly Panel suggestionHost = new Panel();
 
+	private RowStyle? suggestionRowStyle;
+
 	private readonly Label localPathLabel = new Label();
+
+	private readonly TextBox localPathTextBox = new TextBox();
+
+	private readonly Panel localPathHostPanel = new Panel();
 
 	private readonly Label remotePathLabel = new Label();
 
@@ -283,9 +351,27 @@ internal sealed class XeCliTerminalForm : Form
 
 	private readonly Button remoteRefreshButton = new Button();
 
-	private readonly SlimListPanel localFileList = new SlimListPanel();
+	private readonly Button ftpTabButton = new Button();
 
-	private readonly SlimListPanel remoteFileList = new SlimListPanel();
+	private readonly Button queueTabButton = new Button();
+
+	private readonly TextBox remotePathTextBox = new TextBox();
+
+	private readonly Panel remotePathHostPanel = new Panel();
+
+	private readonly FileGridPanel localFileList = new FileGridPanel();
+
+	private readonly FileGridPanel remoteFileList = new FileGridPanel();
+
+	private readonly Panel remoteContentHost = new Panel();
+
+	private readonly ContextMenuStrip localFileMenu = new ContextMenuStrip();
+
+	private readonly ContextMenuStrip localEmptyMenu = new ContextMenuStrip();
+
+	private readonly ContextMenuStrip remoteFileMenu = new ContextMenuStrip();
+
+	private readonly ContextMenuStrip remoteEmptyMenu = new ContextMenuStrip();
 
 	private readonly System.Windows.Forms.Timer heartbeatTimer = new System.Windows.Forms.Timer();
 
@@ -309,9 +395,11 @@ internal sealed class XeCliTerminalForm : Form
 
 	private bool inventoryShowsModules;
 
-	private bool shellDisconnected;
+	private bool shellDisconnected = true;
 
 	private bool terminalFlushScheduled;
+
+	private bool fileTransferInFlight;
 
 	private Process? activeCommandProcess;
 
@@ -320,6 +408,10 @@ internal sealed class XeCliTerminalForm : Form
 	private CancellationTokenSource? localBrowseCts;
 
 	private CancellationTokenSource? remoteBrowseCts;
+
+	private CancellationTokenSource? fileTransferCts;
+
+	private CancellationTokenSource? connectProbeCts;
 
 	private long lastNetSentBytes;
 
@@ -343,11 +435,31 @@ internal sealed class XeCliTerminalForm : Form
 
 	private int remoteBrowseVersion;
 
+	private int localContextIndex = -1;
+
+	private int remoteContextIndex = -1;
+
 	private readonly DiscordRpcService? discordRpcService;
+
+	private string currentTargetIp;
+
+	private int currentTargetPort;
+
+	private int sessionEpoch;
+
+	private PaneClipboardEntry? paneClipboardEntry;
+
+	private bool remotePaneShowsQueue;
+
+	private bool firstConnectWorkspacePrepared;
+
+	private string? activeTransferCommand;
 
 	internal XeCliTerminalForm(TerminalOptions options)
 	{
 		this.options = options;
+		currentTargetIp = options.Ip;
+		currentTargetPort = options.Port;
 		LogBootstrap("ctor-start");
 		base.Text = "XeCLI Terminal";
 		base.StartPosition = FormStartPosition.CenterScreen;
@@ -367,8 +479,9 @@ internal sealed class XeCliTerminalForm : Form
 		InitializeLayout();
 		LogRootLayoutSnapshot("ctor-after-initialize-layout");
 		InitializeInteractiveActions();
-		discordRpcService = DiscordRpcService.CreateIfConfigured();
+		discordRpcService = (options.TelemetryEnabled ? DiscordRpcService.CreateIfConfigured() : null);
 		discordRpcService?.Start();
+		UpdateRuntimePresence(connected: false);
 		localCurrentPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 		base.Load += delegate
 		{
@@ -379,6 +492,13 @@ internal sealed class XeCliTerminalForm : Form
 			LogRootLayoutSnapshot("shown");
 			LoadOptionalBackground();
 			LoadXeCliLogo();
+			BeginInvoke(new MethodInvoker(delegate
+			{
+				if (!commandInput.IsDisposed && commandInput.CanFocus)
+				{
+					commandInput.Focus();
+				}
+			}));
 			if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(PanelDiagnosticsEnvVar)))
 			{
 				BeginInvoke(new MethodInvoker(delegate
@@ -483,24 +603,11 @@ internal sealed class XeCliTerminalForm : Form
 			tableLayoutPanel.RowCount = 4;
 			tableLayoutPanel.ColumnCount = 1;
 			tableLayoutPanel.Padding = new Padding(8);
-			tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 24f));
+			tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 0f));
 			tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-			tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 176f));
-			tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
+			tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 272f));
+			tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40f));
 			base.Controls.Add(tableLayoutPanel);
-			Panel panel = CreateCardPanel(CardBackground, new Padding(10, 4, 10, 4));
-			ApplyProbeTheme(panel, ProbeHeaderColor);
-			TracePanelDiagnostics(panel, "root-header");
-			panel.Dock = DockStyle.Fill;
-			panel.Margin = new Padding(0, 0, 0, 8);
-			headerLabel.Dock = DockStyle.Fill;
-			headerLabel.AutoEllipsis = true;
-			headerLabel.TextAlign = ContentAlignment.MiddleLeft;
-			headerLabel.Font = shellFontBold;
-			headerLabel.ForeColor = Color.WhiteSmoke;
-			headerLabel.Text = "PANEL   |   SYSTEM   |   TERMINAL";
-			panel.Controls.Add(headerLabel);
-			tableLayoutPanel.Controls.Add(panel, 0, 0);
 			TableLayoutPanel tableLayoutPanel2 = new TableLayoutPanel();
 			tableLayoutPanel2.Dock = DockStyle.Fill;
 			tableLayoutPanel2.BackColor = ShellBackground;
@@ -527,7 +634,7 @@ internal sealed class XeCliTerminalForm : Form
 			TracePanelDiagnostics(panel5, "root-file");
 			LogBootstrap($"layout-after-file bounds={panel5.Bounds}");
 			tableLayoutPanel.Controls.Add(panel5, 0, 2);
-			Panel panel6 = CreateCardPanel(CardBackground, new Padding(10, 2, 10, 2));
+			Panel panel6 = CreateCardPanel(CardBackground, new Padding(10, 4, 10, 4));
 			ApplyProbeTheme(panel6, ProbeFooterColor);
 			TracePanelDiagnostics(panel6, "root-footer");
 			panel6.Dock = DockStyle.Fill;
@@ -535,21 +642,28 @@ internal sealed class XeCliTerminalForm : Form
 			TableLayoutPanel tableLayoutPanel3 = new TableLayoutPanel();
 			tableLayoutPanel3.Dock = DockStyle.Fill;
 			tableLayoutPanel3.RowCount = 1;
-			tableLayoutPanel3.ColumnCount = 2;
-			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 66f));
+			tableLayoutPanel3.ColumnCount = 3;
+			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33f));
 			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34f));
+			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33f));
 			footerStatusLabel.Dock = DockStyle.Fill;
 			footerStatusLabel.TextAlign = ContentAlignment.MiddleLeft;
 			footerStatusLabel.ForeColor = AccentGreen;
 			footerStatusLabel.Font = shellFont;
-			footerStatusLabel.Text = "SESSION READY";
-			footerHintLabel.Dock = DockStyle.Fill;
-			footerHintLabel.TextAlign = ContentAlignment.MiddleRight;
-			footerHintLabel.ForeColor = Color.WhiteSmoke;
-			footerHintLabel.Font = shellFont;
-			footerHintLabel.Text = "ENTER = RUN · TAB = AUTOFILL";
+			footerStatusLabel.Text = "DISCONNECTED";
+			footerPresenceLabel.Dock = DockStyle.Fill;
+			footerPresenceLabel.TextAlign = ContentAlignment.MiddleCenter;
+			footerPresenceLabel.ForeColor = Color.WhiteSmoke;
+			footerPresenceLabel.Font = shellFont;
+			footerPresenceLabel.Text = "PRESENCE · OFFLINE";
+			footerThermalLabel.Dock = DockStyle.Fill;
+			footerThermalLabel.TextAlign = ContentAlignment.MiddleRight;
+			footerThermalLabel.ForeColor = Color.WhiteSmoke;
+			footerThermalLabel.Font = shellFont;
+			footerThermalLabel.Text = "CPU --°C · GPU --°C · RAM --°C · BOARD --°C";
 			tableLayoutPanel3.Controls.Add(footerStatusLabel, 0, 0);
-			tableLayoutPanel3.Controls.Add(footerHintLabel, 1, 0);
+			tableLayoutPanel3.Controls.Add(footerPresenceLabel, 1, 0);
+			tableLayoutPanel3.Controls.Add(footerThermalLabel, 2, 0);
 			panel6.Controls.Add(tableLayoutPanel3);
 			tableLayoutPanel.Controls.Add(panel6, 0, 3);
 			LogBootstrap("layout-after-footer");
@@ -570,73 +684,99 @@ internal sealed class XeCliTerminalForm : Form
 		panel.Margin = new Padding(0, 0, 8, 0);
 		TableLayoutPanel tableLayoutPanel = new TableLayoutPanel();
 		tableLayoutPanel.Dock = DockStyle.Fill;
-		tableLayoutPanel.RowCount = 7;
+		tableLayoutPanel.RowCount = 6;
 		tableLayoutPanel.ColumnCount = 1;
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 38f));
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 88f));
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 104f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 44f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 128f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 0f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 34f));
 		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 18f));
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 108f));
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 16f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 114f));
 		connectionStatusLabel.Dock = DockStyle.Fill;
 		connectionStatusLabel.TextAlign = ContentAlignment.MiddleLeft;
 		connectionStatusLabel.ForeColor = AccentGreen;
 		connectionStatusLabel.Font = headerFont;
 		connectionStatusLabel.Text = "● DISCONNECTED";
+		Panel panelConsole = CreateCardPanel(TerminalBackground, new Padding(6, 4, 6, 6));
+		panelConsole.Dock = DockStyle.Fill;
+		TableLayoutPanel tableLayoutPanelConsole = new TableLayoutPanel();
+		tableLayoutPanelConsole.Dock = DockStyle.Fill;
+		tableLayoutPanelConsole.RowCount = 2;
+		tableLayoutPanelConsole.ColumnCount = 1;
+		tableLayoutPanelConsole.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
+		tableLayoutPanelConsole.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+		Label labelConsole = new Label();
+		labelConsole.Dock = DockStyle.Fill;
+		labelConsole.TextAlign = ContentAlignment.MiddleLeft;
+		labelConsole.ForeColor = AccentGreen;
+		labelConsole.Font = shellFontBold;
+		labelConsole.Text = "CONSOLE";
 		leftConsoleLabel.Dock = DockStyle.Fill;
 		leftConsoleLabel.TextAlign = ContentAlignment.TopLeft;
 		leftConsoleLabel.ForeColor = Color.WhiteSmoke;
 		leftConsoleLabel.Font = shellFont;
-		leftConsoleLabel.Text = "UNIT PROFILE\nDEBUG   standby\nBOARD   unknown\nDASH    --\nSTATE   idle";
-		leftStatusLabel.Dock = DockStyle.Fill;
-		leftStatusLabel.TextAlign = ContentAlignment.MiddleLeft;
-		leftStatusLabel.Font = shellFontBold;
-		leftStatusLabel.ForeColor = Color.WhiteSmoke;
-		leftStatusLabel.Text = "THERMALS\nCPU    --°C\nGPU    --°C\nEDRAM  --°C\nBOARD  --°C";
-		drivesList.Dock = DockStyle.Fill;
-		drivesList.BackColor = TerminalBackground;
-		drivesList.ForeColor = Color.WhiteSmoke;
-		drivesList.Font = shellFont;
+		leftConsoleLabel.Padding = new Padding(2, 1, 2, 1);
+		leftConsoleLabel.Text = "BOARD      unknown\nDASH       --\nGAME       --\nXEX        --\nTITLEID    --\nGAMERTAG   Not Signed In";
+		tableLayoutPanelConsole.Controls.Add(labelConsole, 0, 0);
+		tableLayoutPanelConsole.Controls.Add(leftConsoleLabel, 0, 1);
+		panelConsole.Controls.Add(tableLayoutPanelConsole);
+		inventoryList.Dock = DockStyle.Fill;
+		inventoryList.BackColor = TerminalBackground;
+		inventoryList.ForeColor = Color.WhiteSmoke;
+		inventoryList.Font = shellFont;
+		inventoryList.SetItems(new string[1]
+		{
+			"Connect to load live plugins"
+		});
 		leftSignInLabel.Dock = DockStyle.Fill;
 		leftSignInLabel.TextAlign = ContentAlignment.MiddleLeft;
 		leftSignInLabel.ForeColor = AccentDim;
 		leftSignInLabel.Font = shellFont;
-		leftSignInLabel.Text = "DETECTED DRIVES";
-		Panel panel2 = new Panel();
+		leftSignInLabel.AutoEllipsis = true;
+		leftSignInLabel.Text = string.Empty;
+		ConfigureToggleButton(pluginsTabButton, "Plugins");
+		ConfigureToggleButton(modulesTabButton, "Modules");
+		pluginsTabButton.Margin = new Padding(0, 0, 6, 0);
+		modulesTabButton.Margin = Padding.Empty;
+		TableLayoutPanel panelInventoryHeader = new TableLayoutPanel();
+		panelInventoryHeader.Dock = DockStyle.Fill;
+		panelInventoryHeader.ColumnCount = 2;
+		panelInventoryHeader.RowCount = 1;
+		panelInventoryHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
+		panelInventoryHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
+		panelInventoryHeader.Controls.Add(pluginsTabButton, 0, 0);
+		panelInventoryHeader.Controls.Add(modulesTabButton, 1, 0);
+		Panel panel2 = CreateCardPanel(TerminalBackground, new Padding(6, 6, 6, 6));
 		panel2.Dock = DockStyle.Fill;
-		panel2.BackColor = CardBackground;
 		TableLayoutPanel tableLayoutPanel2 = new TableLayoutPanel();
 		tableLayoutPanel2.Dock = DockStyle.Fill;
 		tableLayoutPanel2.ColumnCount = 2;
-		tableLayoutPanel2.RowCount = 2;
+		tableLayoutPanel2.RowCount = 3;
 		tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
 		tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
-		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50f));
-		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50f));
+		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 34f));
+		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 34f));
+		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 34f));
 		ConfigureActionButton(connectButton, "CONNECT");
 		ConfigureActionButton(disconnectButton, "DISCONNECT");
 		ConfigureActionButton(screenshotButton, "SCREENSHOT");
+		ConfigureActionButton(languageButton, "LANG: EN");
+		ConfigureInputTextBox(targetIpTextBox, string.Empty, horizontalAlignment: HorizontalAlignment.Center);
+		ConfigureTargetIpHostPanel(targetIpHostPanel, targetIpTextBox, "HOST / IP");
 		tableLayoutPanel2.Controls.Add(connectButton, 0, 0);
 		tableLayoutPanel2.Controls.Add(disconnectButton, 1, 0);
 		tableLayoutPanel2.Controls.Add(screenshotButton, 0, 1);
-		tableLayoutPanel2.SetColumnSpan(screenshotButton, 2);
+		tableLayoutPanel2.Controls.Add(languageButton, 1, 1);
+		tableLayoutPanel2.Controls.Add(targetIpHostPanel, 0, 2);
+		tableLayoutPanel2.SetColumnSpan(targetIpHostPanel, 2);
 		panel2.Controls.Add(tableLayoutPanel2);
-		Label label = new Label
-		{
-			Dock = DockStyle.Fill,
-			ForeColor = AccentDim,
-			Font = shellFont,
-			TextAlign = ContentAlignment.MiddleLeft,
-			Text = "SESSION ACTIONS"
-		};
 		tableLayoutPanel.Controls.Add(connectionStatusLabel, 0, 0);
-		tableLayoutPanel.Controls.Add(leftConsoleLabel, 0, 1);
-		tableLayoutPanel.Controls.Add(leftStatusLabel, 0, 2);
-		tableLayoutPanel.Controls.Add(drivesList, 0, 3);
-		tableLayoutPanel.Controls.Add(leftSignInLabel, 0, 4);
+		tableLayoutPanel.Controls.Add(panelConsole, 0, 1);
+		tableLayoutPanel.Controls.Add(leftSignInLabel, 0, 2);
+		tableLayoutPanel.Controls.Add(panelInventoryHeader, 0, 3);
+		tableLayoutPanel.Controls.Add(inventoryList, 0, 4);
 		tableLayoutPanel.Controls.Add(panel2, 0, 5);
-		tableLayoutPanel.Controls.Add(label, 0, 6);
+		RefreshTargetEditorText();
 		panel.Controls.Add(tableLayoutPanel);
 		return panel;
 	}
@@ -656,7 +796,7 @@ internal sealed class XeCliTerminalForm : Form
 			tableLayoutPanel.Dock = DockStyle.Fill;
 			tableLayoutPanel.ColumnCount = 1;
 			tableLayoutPanel.RowCount = 2;
-			tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 96f));
+			tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 110f));
 			tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 			LogBootstrap("center-after-outer-table");
 			Panel panel2 = CreateCardPanel(CardBackground, new Padding(6, 5, 6, 5));
@@ -674,44 +814,38 @@ internal sealed class XeCliTerminalForm : Form
 			logoPictureBox.SizeMode = PictureBoxSizeMode.Zoom;
 			logoPictureBox.Margin = new Padding(0, 1, 8, 1);
 			logoPictureBox.Padding = new Padding(0);
-			Panel panel3 = new Panel();
-			LogBootstrap($"center-after-side-shell bounds={panel3.Bounds}");
-			panel3.Dock = DockStyle.Fill;
-			panel3.BackColor = CardBackground;
+			TableLayoutPanel inventoryStack = new TableLayoutPanel();
+			LogBootstrap($"center-after-side-shell bounds={inventoryStack.Bounds}");
+			inventoryStack.Dock = DockStyle.Fill;
+			inventoryStack.BackColor = CardBackground;
+			inventoryStack.ColumnCount = 1;
+			inventoryStack.RowCount = 3;
+			inventoryStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
+			inventoryStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 24f));
+			inventoryStack.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 			Label label = new Label();
-			label.Dock = DockStyle.Top;
-			label.Height = 16;
+			label.Dock = DockStyle.Fill;
 			label.TextAlign = ContentAlignment.MiddleLeft;
 			label.ForeColor = Color.FromArgb(214, AccentDim);
 			label.Font = shellFont;
-			label.Text = "PLUGINS / MODULES";
-			shellBadgeLabel.Dock = DockStyle.Top;
-			shellBadgeLabel.Height = 16;
+			label.Text = "LIVE SHELL // TARGET " + FormatCurrentTarget();
+			label.AutoEllipsis = true;
+			shellBadgeLabel.Dock = DockStyle.Fill;
 			shellBadgeLabel.TextAlign = ContentAlignment.MiddleLeft;
 			shellBadgeLabel.ForeColor = Color.FromArgb(230, AccentGreen);
 			shellBadgeLabel.Font = new Font("Consolas", 8.25f, FontStyle.Bold, GraphicsUnit.Point);
-			shellBadgeLabel.Text = "XECLI // LIVE INVENTORY";
-			Panel panel4 = new Panel();
-			LogBootstrap($"center-after-toggle-strip bounds={panel4.Bounds}");
-			panel4.Dock = DockStyle.Top;
-			panel4.Height = 24;
-			panel4.BackColor = CardBackground;
-			ConfigureToggleButton(pluginsTabButton, "Plugins");
-			ConfigureToggleButton(modulesTabButton, "Modules");
-			pluginsTabButton.Left = 0;
-			modulesTabButton.Left = pluginsTabButton.Width + 6;
-			panel4.Controls.Add(pluginsTabButton);
-			panel4.Controls.Add(modulesTabButton);
-			inventoryList.Dock = DockStyle.Fill;
-			inventoryList.BackColor = TerminalBackground;
-			inventoryList.ForeColor = Color.White;
-			inventoryList.Font = shellFont;
-			panel3.Controls.Add(inventoryList);
-			panel3.Controls.Add(panel4);
-			panel3.Controls.Add(label);
-			panel3.Controls.Add(shellBadgeLabel);
+			shellBadgeLabel.Text = "XECLI // ACTIVE SHELL";
+			shellBadgeLabel.AutoEllipsis = true;
+			inventoryStack.Controls.Add(shellBadgeLabel, 0, 0);
+			inventoryStack.Controls.Add(label, 0, 1);
+			inventoryStack.Controls.Add(new Panel
+			{
+				Dock = DockStyle.Fill,
+				BackColor = CardBackground,
+				Margin = new Padding(0, 4, 0, 0)
+			}, 0, 2);
 			tableLayoutPanel2.Controls.Add(logoPictureBox, 0, 0);
-			tableLayoutPanel2.Controls.Add(panel3, 1, 0);
+			tableLayoutPanel2.Controls.Add(inventoryStack, 1, 0);
 			panel2.Controls.Add(tableLayoutPanel2);
 			LogBootstrap("center-after-hero-layout");
 			Panel panel5 = CreateCardPanel(TerminalBackground, new Padding(0));
@@ -719,12 +853,12 @@ internal sealed class XeCliTerminalForm : Form
 			panel5.Dock = DockStyle.Fill;
 			TableLayoutPanel tableLayoutPanel3 = new TableLayoutPanel();
 			tableLayoutPanel3.Dock = DockStyle.Top;
-			tableLayoutPanel3.Height = 24;
+			tableLayoutPanel3.Height = 32;
 			tableLayoutPanel3.BackColor = TerminalBackground;
 			tableLayoutPanel3.ColumnCount = 2;
 			tableLayoutPanel3.RowCount = 1;
 			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 144f));
+			tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 164f));
 			Label label2 = new Label();
 			label2.Dock = DockStyle.Fill;
 			label2.TextAlign = ContentAlignment.MiddleLeft;
@@ -733,39 +867,65 @@ internal sealed class XeCliTerminalForm : Form
 			label2.ForeColor = Color.FromArgb(156, AccentDim);
 			label2.Text = "MAIN SHELL";
 			mainShellBannerLabel.Dock = DockStyle.Fill;
-			mainShellBannerLabel.Margin = new Padding(0, 2, 4, 2);
+			mainShellBannerLabel.Margin = new Padding(0, 3, 4, 3);
 			mainShellBannerLabel.TextAlign = ContentAlignment.MiddleCenter;
 			mainShellBannerLabel.Font = new Font("Consolas", 8.75f, FontStyle.Bold, GraphicsUnit.Point);
 			mainShellBannerLabel.ForeColor = Color.WhiteSmoke;
 			mainShellBannerLabel.BackColor = Color.FromArgb(12, 22, 18);
 			mainShellBannerLabel.Text = "LINK OFFLINE";
+			mainShellBannerLabel.AutoEllipsis = true;
 			tableLayoutPanel3.Controls.Add(label2, 0, 0);
 			tableLayoutPanel3.Controls.Add(mainShellBannerLabel, 1, 0);
-			panel5.Controls.Add(tableLayoutPanel3);
-			Panel panel6 = CreateScaffoldSurfacePanel(Color.FromArgb(9, 16, 14), new Padding(10, 8, 10, 8), 28, 28);
+			TableLayoutPanel tableLayoutPanel5 = new TableLayoutPanel();
+			tableLayoutPanel5.Dock = DockStyle.Fill;
+			tableLayoutPanel5.BackColor = TerminalBackground;
+			tableLayoutPanel5.ColumnCount = 1;
+			tableLayoutPanel5.RowCount = 2;
+			tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Absolute, 32f));
+			tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+			tableLayoutPanel5.Controls.Add(tableLayoutPanel3, 0, 0);
+			Panel panel6 = CreateScaffoldSurfacePanel(Color.FromArgb(9, 16, 14), new Padding(10, 10, 10, 10), 28, 28);
 			LogBootstrap($"center-after-terminal-card bounds={panel6.Bounds}");
 			panel6.Dock = DockStyle.Fill;
 			panel6.Margin = new Padding(0);
-			shellScaffoldLabel.Dock = DockStyle.Top;
-			shellScaffoldLabel.Height = 54;
-			shellScaffoldLabel.TextAlign = ContentAlignment.MiddleLeft;
-			shellScaffoldLabel.Font = shellFont;
+			TableLayoutPanel tableLayoutPanel4 = new TableLayoutPanel();
+			tableLayoutPanel4.Dock = DockStyle.Fill;
+			tableLayoutPanel4.BackColor = Color.Transparent;
+			tableLayoutPanel4.ColumnCount = 1;
+			tableLayoutPanel4.RowCount = 4;
+			tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 108f));
+			tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+			tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 4f));
+			tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
+			suggestionRowStyle = tableLayoutPanel4.RowStyles[2];
+			shellScaffoldLabel.Dock = DockStyle.Fill;
+			shellScaffoldLabel.Margin = new Padding(0, 4, 0, 8);
+			shellScaffoldLabel.Padding = new Padding(0, 2, 0, 0);
+			shellScaffoldLabel.TextAlign = ContentAlignment.TopLeft;
+			shellScaffoldLabel.Font = shellOutputFont;
 			shellScaffoldLabel.ForeColor = Color.WhiteSmoke;
 			shellScaffoldLabel.Text = BuildDisconnectedShellText();
-			panel6.Controls.Add(shellScaffoldLabel);
+			tableLayoutPanel4.Controls.Add(shellScaffoldLabel, 0, 0);
+			Panel panel7 = new Panel();
+			panel7.Dock = DockStyle.Fill;
+			panel7.Margin = new Padding(0);
+			panel7.Padding = new Padding(0, 4, 0, 0);
+			panel7.BackColor = Color.Transparent;
 			if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(PanelDiagnosticsEnvVar)))
 			{
 				terminalOutput.Dock = DockStyle.Fill;
 				terminalOutput.BackColor = Color.FromArgb(9, 16, 14);
 				terminalOutput.ForeColor = Color.WhiteSmoke;
-				terminalOutput.BorderStyle = BorderStyle.FixedSingle;
-				terminalOutput.Font = shellFont;
+				terminalOutput.BorderStyle = BorderStyle.None;
+				terminalOutput.Font = shellOutputFont;
 				terminalOutput.ReadOnly = true;
 				terminalOutput.DetectUrls = false;
 				terminalOutput.HideSelection = false;
 				terminalOutput.ScrollBars = RichTextBoxScrollBars.Vertical;
-				terminalOutput.WordWrap = false;
-				panel6.Controls.Add(terminalOutput);
+				terminalOutput.WordWrap = true;
+				terminalOutput.TabStop = true;
+				terminalOutput.Cursor = Cursors.IBeam;
+				panel7.Controls.Add(terminalOutput);
 			}
 			else
 			{
@@ -773,47 +933,53 @@ internal sealed class XeCliTerminalForm : Form
 				textBox.Dock = DockStyle.Fill;
 				textBox.BackColor = Color.FromArgb(9, 16, 14);
 				textBox.ForeColor = Color.WhiteSmoke;
-				textBox.BorderStyle = BorderStyle.FixedSingle;
-				textBox.Font = shellFont;
+				textBox.BorderStyle = BorderStyle.None;
+				textBox.Font = shellOutputFont;
 				textBox.ReadOnly = true;
 				textBox.Multiline = true;
 				textBox.ScrollBars = ScrollBars.Vertical;
-				textBox.WordWrap = false;
+				textBox.WordWrap = true;
 				textBox.Text = "DIAGNOSTIC TERMINAL SURFACE\r\nRichTextBox temporarily bypassed.";
-				panel6.Controls.Add(textBox);
+				panel7.Controls.Add(textBox);
 			}
-			suggestionHost.Dock = DockStyle.Bottom;
-			suggestionHost.Height = 84;
-			suggestionHost.BackColor = CardBackground;
+			tableLayoutPanel4.Controls.Add(panel7, 0, 1);
+			suggestionHost.Dock = DockStyle.Fill;
+			suggestionHost.Margin = new Padding(0, 4, 0, 0);
+			suggestionHost.BackColor = Color.FromArgb(10, 15, 12);
 			suggestionHost.Padding = new Padding(1);
 			suggestionList.Dock = DockStyle.Fill;
-			suggestionList.BackColor = CardBackground;
-			suggestionList.ForeColor = AccentCyan;
+			suggestionList.BackColor = Color.FromArgb(10, 15, 12);
+			suggestionList.ForeColor = Color.WhiteSmoke;
 			suggestionList.BorderStyle = BorderStyle.None;
 			suggestionList.Font = shellFont;
 			suggestionList.Visible = false;
 			suggestionList.IntegralHeight = false;
+			suggestionList.DrawMode = DrawMode.OwnerDrawFixed;
+			suggestionList.ItemHeight = 22;
+			suggestionList.DrawItem += DrawSuggestionItem;
 			suggestionList.DoubleClick += delegate
 			{
 				ApplySelectedSuggestion();
 			};
 			suggestionHost.Controls.Add(suggestionList);
-			panel6.Controls.Add(suggestionHost);
-			commandInput.Dock = DockStyle.Bottom;
-			commandInput.Height = 28;
+			tableLayoutPanel4.Controls.Add(suggestionHost, 0, 2);
+			commandInput.Dock = DockStyle.Fill;
+			commandInput.Margin = new Padding(0, 4, 0, 0);
 			commandInput.BackColor = CardBackground;
 			commandInput.ForeColor = AccentGreen;
 			commandInput.BorderStyle = BorderStyle.FixedSingle;
 			commandInput.Font = shellFontBold;
-			commandInput.PlaceholderText = "Connect or enter a XeCLI command for this session...";
+			commandInput.PlaceholderText = "Connect or enter a XeCLI command...";
 			commandInput.KeyDown += HandleCommandInputKeyDown;
 			commandInput.TextChanged += delegate
 			{
 				RefreshSuggestions();
 			};
-			panel6.Controls.Add(commandInput);
+			tableLayoutPanel4.Controls.Add(commandInput, 0, 3);
+			panel6.Controls.Add(tableLayoutPanel4);
 			LogBootstrap("center-after-terminal-children");
-			panel5.Controls.Add(panel6);
+			tableLayoutPanel5.Controls.Add(panel6, 0, 1);
+			panel5.Controls.Add(tableLayoutPanel5);
 			tableLayoutPanel.Controls.Add(panel2, 0, 0);
 			tableLayoutPanel.Controls.Add(panel5, 0, 1);
 			panel.Controls.Add(tableLayoutPanel);
@@ -834,81 +1000,86 @@ internal sealed class XeCliTerminalForm : Form
 		TracePanelDiagnostics(panel, "root-right");
 		TableLayoutPanel tableLayoutPanel = new TableLayoutPanel();
 		tableLayoutPanel.Dock = DockStyle.Fill;
-		tableLayoutPanel.RowCount = 4;
+		tableLayoutPanel.RowCount = 3;
 		tableLayoutPanel.ColumnCount = 1;
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 104f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 118f));
 		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 150f));
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 96f));
 		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 		Panel panel2 = CreateCardPanel(TerminalBackground, new Padding(8, 6, 8, 6));
 		panel2.Margin = new Padding(0, 0, 0, 6);
+		TableLayoutPanel tableLayoutPanel2 = new TableLayoutPanel();
+		tableLayoutPanel2.Dock = DockStyle.Fill;
+		tableLayoutPanel2.RowCount = 2;
+		tableLayoutPanel2.ColumnCount = 1;
+		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
+		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+		Label label = new Label();
+		label.Dock = DockStyle.Fill;
+		label.TextAlign = ContentAlignment.MiddleLeft;
+		label.ForeColor = AccentGreen;
+		label.Font = shellFontBold;
+		label.Text = "STATUS";
 		rightNetworkLabel.Dock = DockStyle.Fill;
 		rightNetworkLabel.TextAlign = ContentAlignment.TopLeft;
 		rightNetworkLabel.ForeColor = Color.WhiteSmoke;
 		rightNetworkLabel.Font = shellFont;
 		rightNetworkLabel.Padding = new Padding(2, 1, 2, 1);
 		rightNetworkLabel.Text = BuildDisconnectedStatusText();
-		panel2.Controls.Add(rightNetworkLabel);
+		tableLayoutPanel2.Controls.Add(label, 0, 0);
+		tableLayoutPanel2.Controls.Add(rightNetworkLabel, 0, 1);
+		panel2.Controls.Add(tableLayoutPanel2);
 		Panel panel3 = CreateCardPanel(TerminalBackground, new Padding(6, 4, 6, 6));
 		panel3.Margin = new Padding(0, 0, 0, 6);
-		TableLayoutPanel tableLayoutPanel2 = new TableLayoutPanel();
-		tableLayoutPanel2.Dock = DockStyle.Fill;
-		tableLayoutPanel2.RowCount = 3;
-		tableLayoutPanel2.ColumnCount = 1;
-			tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
-		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-			tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
-		Label label = new Label();
-		label.Dock = DockStyle.Fill;
-		label.TextAlign = ContentAlignment.MiddleLeft;
-		label.ForeColor = AccentGreen;
-		label.Font = shellFontBold;
-		label.Text = "TRAFFIC";
+		TableLayoutPanel tableLayoutPanel3 = new TableLayoutPanel();
+		tableLayoutPanel3.Dock = DockStyle.Fill;
+		tableLayoutPanel3.RowCount = 3;
+		tableLayoutPanel3.ColumnCount = 1;
+		tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
+		tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+		tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
+		Label label2 = new Label();
+		label2.Dock = DockStyle.Fill;
+		label2.TextAlign = ContentAlignment.MiddleLeft;
+		label2.ForeColor = AccentGreen;
+		label2.Font = shellFontBold;
+		label2.Text = "TRAFFIC";
 		ftpTrafficGraph.Dock = DockStyle.Fill;
 		rightTempLabel.Dock = DockStyle.Fill;
 		rightTempLabel.TextAlign = ContentAlignment.TopLeft;
 		rightTempLabel.ForeColor = Color.WhiteSmoke;
 		rightTempLabel.Font = shellFont;
 		rightTempLabel.Padding = new Padding(2, 1, 2, 0);
-		rightTempLabel.Text = "IDLE · waiting for FTP traffic";
-		tableLayoutPanel2.Controls.Add(label, 0, 0);
-		tableLayoutPanel2.Controls.Add(ftpTrafficGraph, 0, 1);
-		tableLayoutPanel2.Controls.Add(rightTempLabel, 0, 2);
-		panel3.Controls.Add(tableLayoutPanel2);
-		Panel panel4 = CreateCardPanel(TerminalBackground, new Padding(6, 4, 6, 6));
-		panel4.Margin = new Padding(0, 0, 0, 6);
-		TableLayoutPanel tableLayoutPanel3 = new TableLayoutPanel();
-		tableLayoutPanel3.Dock = DockStyle.Fill;
-		tableLayoutPanel3.RowCount = 2;
-		tableLayoutPanel3.ColumnCount = 1;
-			tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
-		tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-		Label label2 = new Label();
-		label2.Dock = DockStyle.Fill;
-		label2.TextAlign = ContentAlignment.MiddleLeft;
-		label2.ForeColor = AccentGreen;
-		label2.Font = shellFontBold;
-		label2.Text = "QUEUE";
-		transferQueueList.Dock = DockStyle.Fill;
-		transferQueueList.BackColor = TerminalBackground;
-		transferQueueList.ForeColor = Color.WhiteSmoke;
-		transferQueueList.Font = shellFont;
-		transferQueueList.SetItems(new string[2] { "No transfer activity yet", "Queued dumps and FTP jobs appear here" });
+		rightTempLabel.Text = "IDLE";
 		tableLayoutPanel3.Controls.Add(label2, 0, 0);
-		tableLayoutPanel3.Controls.Add(transferQueueList, 0, 1);
-		panel4.Controls.Add(tableLayoutPanel3);
-		Panel panel5 = CreateCardPanel(TerminalBackground, new Padding(6, 6, 6, 6));
-		rightDetailLabel.Dock = DockStyle.Fill;
-		rightDetailLabel.TextAlign = ContentAlignment.TopLeft;
-		rightDetailLabel.ForeColor = Color.WhiteSmoke;
-		rightDetailLabel.Font = shellFont;
-		rightDetailLabel.Padding = new Padding(2, 2, 2, 2);
-		rightDetailLabel.Text = BuildDisconnectedSessionText();
-		panel5.Controls.Add(rightDetailLabel);
+		tableLayoutPanel3.Controls.Add(ftpTrafficGraph, 0, 1);
+		tableLayoutPanel3.Controls.Add(rightTempLabel, 0, 2);
+		panel3.Controls.Add(tableLayoutPanel3);
+		Panel panel4 = CreateCardPanel(TerminalBackground, new Padding(6, 4, 6, 6));
+		TableLayoutPanel tableLayoutPanel4 = new TableLayoutPanel();
+		tableLayoutPanel4.Dock = DockStyle.Fill;
+		tableLayoutPanel4.RowCount = 2;
+		tableLayoutPanel4.ColumnCount = 1;
+		tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
+		tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+		rightDrivesLabel.Dock = DockStyle.Fill;
+		rightDrivesLabel.TextAlign = ContentAlignment.MiddleLeft;
+		rightDrivesLabel.ForeColor = AccentGreen;
+		rightDrivesLabel.Font = shellFontBold;
+		rightDrivesLabel.Text = "DETECTED DRIVES";
+		drivesList.Dock = DockStyle.Fill;
+		drivesList.BackColor = TerminalBackground;
+		drivesList.ForeColor = Color.WhiteSmoke;
+		drivesList.Font = shellFont;
+		drivesList.SetItems(new string[1]
+		{
+			"No live drives detected"
+		});
+		tableLayoutPanel4.Controls.Add(rightDrivesLabel, 0, 0);
+		tableLayoutPanel4.Controls.Add(drivesList, 0, 1);
+		panel4.Controls.Add(tableLayoutPanel4);
 		tableLayoutPanel.Controls.Add(panel2, 0, 0);
 		tableLayoutPanel.Controls.Add(panel3, 0, 1);
 		tableLayoutPanel.Controls.Add(panel4, 0, 2);
-		tableLayoutPanel.Controls.Add(panel5, 0, 3);
 		panel.Controls.Add(tableLayoutPanel);
 		return panel;
 	}
@@ -923,20 +1094,10 @@ internal sealed class XeCliTerminalForm : Form
 		tableLayoutPanel.Dock = DockStyle.Fill;
 		tableLayoutPanel.ColumnCount = 2;
 		tableLayoutPanel.RowCount = 2;
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 18f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 0f));
 		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
 		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
-		Label label = new Label
-		{
-			Dock = DockStyle.Fill,
-			ForeColor = Color.FromArgb(190, AccentDim),
-			Font = shellFontBold,
-			TextAlign = ContentAlignment.MiddleLeft,
-			Text = "FILE MANAGER / LOCAL + FTP"
-		};
-		tableLayoutPanel.Controls.Add(label, 0, 0);
-		tableLayoutPanel.SetColumnSpan(label, 2);
 		Panel panel2 = BuildLocalFilePane();
 		Panel panel3 = BuildRemoteFilePane();
 		tableLayoutPanel.Controls.Add(panel2, 0, 1);
@@ -951,32 +1112,38 @@ internal sealed class XeCliTerminalForm : Form
 		panel.Margin = new Padding(0, 0, 5, 0);
 		TableLayoutPanel tableLayoutPanel = new TableLayoutPanel();
 		tableLayoutPanel.Dock = DockStyle.Fill;
-		tableLayoutPanel.ColumnCount = 3;
-		tableLayoutPanel.RowCount = 3;
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 20f));
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
+		tableLayoutPanel.ColumnCount = 5;
+		tableLayoutPanel.RowCount = 4;
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 0f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 30f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 44f));
 		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 72f));
+		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 82f));
 		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 54f));
-		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 78f));
+		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 64f));
+		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 112f));
 		localPathLabel.Dock = DockStyle.Fill;
 		localPathLabel.ForeColor = AccentDim;
 		localPathLabel.Font = shellFont;
 		localPathLabel.TextAlign = ContentAlignment.MiddleLeft;
 		localPathLabel.AutoEllipsis = true;
-		localPathLabel.Text = "PC / user";
+		localPathLabel.Text = string.Empty;
+		ConfigureInputTextBox(localPathTextBox, string.Empty);
+		ConfigureInputHostPanel(localPathHostPanel, localPathTextBox, "LOCAL PATH");
 		ConfigureFilePaneButton(localUpButton, "UP");
-		ConfigureFilePaneButton(localRefreshButton, "REF");
+		ConfigureFilePaneButton(localRefreshButton, "Refresh");
 		localFileList.Dock = DockStyle.Fill;
 		localFileList.BackColor = TerminalBackground;
 		localFileList.ForeColor = Color.WhiteSmoke;
 		localFileList.Font = shellFont;
-		tableLayoutPanel.Controls.Add(localPathLabel, 0, 0);
-		tableLayoutPanel.SetColumnSpan(localPathLabel, 3);
-		tableLayoutPanel.Controls.Add(localUpButton, 1, 1);
-		tableLayoutPanel.Controls.Add(localRefreshButton, 2, 1);
-		tableLayoutPanel.Controls.Add(localFileList, 0, 2);
-		tableLayoutPanel.SetColumnSpan(localFileList, 3);
+		localFileList.HeaderText = "NAME";
+		tableLayoutPanel.Controls.Add(localUpButton, 3, 1);
+		tableLayoutPanel.Controls.Add(localRefreshButton, 4, 1);
+		tableLayoutPanel.Controls.Add(localPathHostPanel, 0, 2);
+		tableLayoutPanel.SetColumnSpan(localPathHostPanel, 5);
+		tableLayoutPanel.Controls.Add(localFileList, 0, 3);
+		tableLayoutPanel.SetColumnSpan(localFileList, 5);
 		panel.Controls.Add(tableLayoutPanel);
 		return panel;
 	}
@@ -987,32 +1154,54 @@ internal sealed class XeCliTerminalForm : Form
 		panel.Margin = new Padding(5, 0, 0, 0);
 		TableLayoutPanel tableLayoutPanel = new TableLayoutPanel();
 		tableLayoutPanel.Dock = DockStyle.Fill;
-		tableLayoutPanel.ColumnCount = 3;
-		tableLayoutPanel.RowCount = 3;
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 20f));
-		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
+		tableLayoutPanel.ColumnCount = 5;
+		tableLayoutPanel.RowCount = 4;
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 0f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 30f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 44f));
 		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 72f));
+		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 82f));
 		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 54f));
-		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 78f));
+		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 64f));
+		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 112f));
 		remotePathLabel.Dock = DockStyle.Fill;
 		remotePathLabel.ForeColor = AccentDim;
 		remotePathLabel.Font = shellFont;
 		remotePathLabel.TextAlign = ContentAlignment.MiddleLeft;
 		remotePathLabel.AutoEllipsis = true;
-		remotePathLabel.Text = "FTP /";
+		remotePathLabel.Text = string.Empty;
 		ConfigureFilePaneButton(remoteUpButton, "UP");
-		ConfigureFilePaneButton(remoteRefreshButton, "REF");
+		ConfigureFilePaneButton(remoteRefreshButton, "Refresh");
+		ConfigureToggleButton(ftpTabButton, "FTP");
+		ConfigureToggleButton(queueTabButton, "QUEUE");
+		ftpTabButton.Margin = new Padding(0, 0, 6, 0);
+		queueTabButton.Margin = new Padding(0, 0, 10, 0);
+		ConfigureInputTextBox(remotePathTextBox, string.Empty);
+		ConfigureInputHostPanel(remotePathHostPanel, remotePathTextBox, "REMOTE PATH");
+		remoteContentHost.Dock = DockStyle.Fill;
+		remoteContentHost.BackColor = TerminalBackground;
+		remoteContentHost.Margin = Padding.Empty;
 		remoteFileList.Dock = DockStyle.Fill;
 		remoteFileList.BackColor = TerminalBackground;
 		remoteFileList.ForeColor = Color.WhiteSmoke;
 		remoteFileList.Font = shellFont;
-		tableLayoutPanel.Controls.Add(remotePathLabel, 0, 0);
-		tableLayoutPanel.SetColumnSpan(remotePathLabel, 3);
-		tableLayoutPanel.Controls.Add(remoteUpButton, 1, 1);
-		tableLayoutPanel.Controls.Add(remoteRefreshButton, 2, 1);
-		tableLayoutPanel.Controls.Add(remoteFileList, 0, 2);
-		tableLayoutPanel.SetColumnSpan(remoteFileList, 3);
+		remoteFileList.HeaderText = "NAME";
+		transferQueueList.Dock = DockStyle.Fill;
+		transferQueueList.BackColor = TerminalBackground;
+		transferQueueList.ForeColor = Color.WhiteSmoke;
+		transferQueueList.Font = shellFont;
+		transferQueueList.SetEntries(Array.Empty<TransferQueueEntry>());
+		remoteContentHost.Controls.Add(remoteFileList);
+		remoteContentHost.Controls.Add(transferQueueList);
+		tableLayoutPanel.Controls.Add(ftpTabButton, 0, 1);
+		tableLayoutPanel.Controls.Add(queueTabButton, 1, 1);
+		tableLayoutPanel.Controls.Add(remoteUpButton, 3, 1);
+		tableLayoutPanel.Controls.Add(remoteRefreshButton, 4, 1);
+		tableLayoutPanel.Controls.Add(remotePathHostPanel, 0, 2);
+		tableLayoutPanel.SetColumnSpan(remotePathHostPanel, 5);
+		tableLayoutPanel.Controls.Add(remoteContentHost, 0, 3);
+		tableLayoutPanel.SetColumnSpan(remoteContentHost, 5);
 		panel.Controls.Add(tableLayoutPanel);
 		return panel;
 	}
@@ -1032,6 +1221,7 @@ internal sealed class XeCliTerminalForm : Form
 
 	private void InitializeFileManagerInteractions()
 	{
+		InitializeFilePaneMenus();
 		localUpButton.Click += delegate
 		{
 			NavigateLocalUp();
@@ -1040,20 +1230,86 @@ internal sealed class XeCliTerminalForm : Form
 		{
 			await RefreshLocalBrowserAsync();
 		};
+		localPathTextBox.KeyDown += async delegate(object? _, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Return)
+			{
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+				await ApplyLocalPathAsync();
+			}
+		};
 		remoteUpButton.Click += async delegate
 		{
+			if (remotePaneShowsQueue)
+			{
+				return;
+			}
 			NavigateRemoteUp();
 			await RefreshRemoteBrowserAsync(force: true);
 		};
 		remoteRefreshButton.Click += async delegate
 		{
-			await RefreshRemoteBrowserAsync(force: true);
+			if (remotePaneShowsQueue)
+			{
+				RefreshTransferQueueDisplay();
+			}
+			else
+			{
+				await RefreshRemoteBrowserAsync(force: true);
+			}
+		};
+		ftpTabButton.Click += delegate
+		{
+			SetRemotePaneMode(showQueue: false);
+		};
+		queueTabButton.Click += delegate
+		{
+			SetRemotePaneMode(showQueue: true);
+		};
+		remotePathTextBox.KeyDown += async delegate(object? _, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Return)
+			{
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+				await ApplyRemotePathAsync();
+			}
 		};
 		localFileList.ItemActivated += HandleLocalItemActivated;
 		remoteFileList.ItemActivated += async delegate(int index)
 		{
 			await HandleRemoteItemActivatedAsync(index);
 		};
+		localFileList.ItemContextRequested += delegate(int index, Point screenPoint)
+		{
+			localContextIndex = index;
+			ShowContextMenu(localFileMenu, screenPoint);
+		};
+		localFileList.EmptyAreaContextRequested += delegate(Point screenPoint)
+		{
+			localContextIndex = -1;
+			ShowContextMenu(localEmptyMenu, screenPoint);
+		};
+		remoteFileList.ItemContextRequested += delegate(int index, Point screenPoint)
+		{
+			remoteContextIndex = index;
+			ShowContextMenu(remoteFileMenu, screenPoint);
+		};
+		remoteFileList.EmptyAreaContextRequested += delegate(Point screenPoint)
+		{
+			remoteContextIndex = -1;
+			ShowContextMenu(remoteEmptyMenu, screenPoint);
+		};
+		localFileList.ItemDragRequested += BeginLocalPaneDrag;
+		remoteFileList.ItemDragRequested += BeginRemotePaneDrag;
+		localFileList.AllowDrop = true;
+		remoteFileList.AllowDrop = true;
+		localFileList.DragEnter += HandleLocalPaneDragEnter;
+		localFileList.DragDrop += HandleLocalPaneDragDrop;
+		remoteFileList.DragEnter += HandleRemotePaneDragEnter;
+		remoteFileList.DragDrop += HandleRemotePaneDragDrop;
+		SetRemotePaneMode(showQueue: false);
 	}
 
 	private void HandleLocalItemActivated(int index)
@@ -1092,6 +1348,1142 @@ internal sealed class XeCliTerminalForm : Form
 		}
 	}
 
+	private void InitializeFilePaneMenus()
+	{
+		if (remoteFileMenu.Items.Count != 0 || remoteEmptyMenu.Items.Count != 0 || localFileMenu.Items.Count != 0 || localEmptyMenu.Items.Count != 0)
+		{
+			return;
+		}
+		ConfigurePaneMenu(localFileMenu);
+		ConfigurePaneMenu(localEmptyMenu);
+		ConfigurePaneMenu(remoteFileMenu);
+		ConfigurePaneMenu(remoteEmptyMenu);
+	}
+
+	private void ConfigurePaneMenu(ContextMenuStrip menu)
+	{
+		menu.ShowImageMargin = false;
+		menu.BackColor = CardBackground;
+		menu.ForeColor = Color.WhiteSmoke;
+		menu.Font = shellFont;
+		menu.RenderMode = ToolStripRenderMode.System;
+	}
+
+	private void ShowContextMenu(ContextMenuStrip menu, Point screenPoint)
+	{
+		PopulateContextMenu(menu);
+		menu.Show(screenPoint);
+	}
+
+	private void PopulateContextMenu(ContextMenuStrip menu)
+	{
+		menu.SuspendLayout();
+		try
+		{
+			menu.Items.Clear();
+			if (ReferenceEquals(menu, remoteFileMenu))
+			{
+				BuildRemoteItemMenu(menu);
+			}
+			else if (ReferenceEquals(menu, remoteEmptyMenu))
+			{
+				BuildRemoteEmptyMenu(menu);
+			}
+			else if (ReferenceEquals(menu, localFileMenu))
+			{
+				BuildLocalItemMenu(menu);
+			}
+			else if (ReferenceEquals(menu, localEmptyMenu))
+			{
+				BuildLocalEmptyMenu(menu);
+			}
+		}
+		finally
+		{
+			menu.ResumeLayout();
+		}
+	}
+
+	private void BuildRemoteItemMenu(ContextMenuStrip menu)
+	{
+		FileEntryView? remoteEntryAtContext = GetRemoteEntryAtContext();
+		bool flag = remoteEntryAtContext != null && remoteEntryAtContext.Name != "..";
+		bool flag2 = flag && remoteEntryAtContext!.IsDirectory;
+		bool enabled = flag && !fileTransferInFlight && !commandInFlight && !connectAttemptInFlight && !shellDisconnected;
+		bool enabled2 = paneClipboardEntry != null && !fileTransferInFlight && !commandInFlight && !connectAttemptInFlight && !shellDisconnected;
+		AddMenuItem(menu, "Download To PC", enabled, delegate
+		{
+			_ = DownloadRemoteEntriesToLocalAsync(new FileEntryView[1] { remoteEntryAtContext! });
+		});
+		AddMenuItem(menu, "Rename", enabled, delegate
+		{
+			_ = RenameRemoteEntryAsync(remoteEntryAtContext!);
+		});
+		AddMenuItem(menu, "Delete", enabled, delegate
+		{
+			_ = DeleteRemoteEntryAsync(remoteEntryAtContext!);
+		});
+		AddMenuSeparator(menu);
+		AddMenuItem(menu, "Cut", enabled, delegate
+		{
+			SetPaneClipboard(remoteEntryAtContext!, isRemote: true, move: true);
+		});
+		AddMenuItem(menu, "Copy", enabled, delegate
+		{
+			SetPaneClipboard(remoteEntryAtContext!, isRemote: true, move: false);
+		});
+		AddMenuItem(menu, flag2 ? "Paste Into Folder" : "Paste Here", enabled2, delegate
+		{
+			string destinationRemoteDirectory = flag2 ? remoteEntryAtContext!.FullPath : remoteCurrentPath;
+			_ = PasteClipboardToRemoteAsync(destinationRemoteDirectory);
+		});
+		AddMenuSeparator(menu);
+		AddMenuItem(menu, "Refresh", !connectAttemptInFlight, delegate
+		{
+			_ = RefreshRemoteBrowserAsync(force: true);
+		});
+	}
+
+	private void BuildRemoteEmptyMenu(ContextMenuStrip menu)
+	{
+		bool enabled = !fileTransferInFlight && !commandInFlight && !connectAttemptInFlight && !shellDisconnected;
+		bool enabled2 = paneClipboardEntry != null && enabled;
+		AddMenuItem(menu, "Upload Files...", enabled, delegate
+		{
+			_ = UploadFilesToRemoteAsync();
+		});
+		AddMenuItem(menu, "Upload Folder...", enabled, delegate
+		{
+			_ = UploadFolderToRemoteAsync();
+		});
+		AddMenuItem(menu, "New Folder...", enabled, delegate
+		{
+			_ = CreateRemoteFolderAsync();
+		});
+		AddMenuSeparator(menu);
+		AddMenuItem(menu, "Paste", enabled2, delegate
+		{
+			_ = PasteClipboardToRemoteAsync(remoteCurrentPath);
+		});
+		AddMenuSeparator(menu);
+		AddMenuItem(menu, "Refresh", !connectAttemptInFlight, delegate
+		{
+			_ = RefreshRemoteBrowserAsync(force: true);
+		});
+	}
+
+	private void BuildLocalItemMenu(ContextMenuStrip menu)
+	{
+		FileEntryView? localEntryAtContext = GetLocalEntryAtContext();
+		bool flag = localEntryAtContext != null && localEntryAtContext.Name != "..";
+		bool enabled = flag && !fileTransferInFlight && !commandInFlight && !connectAttemptInFlight;
+		bool enabled2 = flag && !shellDisconnected && enabled;
+		bool enabled3 = paneClipboardEntry != null && enabled;
+		bool flag2 = localEntryAtContext?.IsDirectory == true;
+		AddMenuItem(menu, flag2 ? "Open Folder" : "Open", enabled, delegate
+		{
+			HandleLocalItemActivated(localContextIndex);
+		});
+		AddMenuItem(menu, "Reveal In Explorer", enabled, delegate
+		{
+			OpenPath(localEntryAtContext!.IsDirectory ? localEntryAtContext.FullPath : Path.GetDirectoryName(localEntryAtContext.FullPath) ?? localEntryAtContext.FullPath, isFile: false);
+		});
+		AddMenuItem(menu, "Upload To Console", enabled2, delegate
+		{
+			_ = UploadLocalEntriesToRemoteAsync(new string[1] { localEntryAtContext!.FullPath }, remoteCurrentPath);
+		});
+		AddMenuSeparator(menu);
+		AddMenuItem(menu, "Rename", enabled, delegate
+		{
+			_ = RenameLocalEntryAsync(localEntryAtContext!);
+		});
+		AddMenuItem(menu, "Delete", enabled, delegate
+		{
+			_ = DeleteLocalEntryAsync(localEntryAtContext!);
+		});
+		AddMenuSeparator(menu);
+		AddMenuItem(menu, "Cut", enabled, delegate
+		{
+			SetPaneClipboard(localEntryAtContext!, isRemote: false, move: true);
+		});
+		AddMenuItem(menu, "Copy", enabled, delegate
+		{
+			SetPaneClipboard(localEntryAtContext!, isRemote: false, move: false);
+		});
+		AddMenuItem(menu, "Paste Here", enabled3 && flag2, delegate
+		{
+			_ = PasteClipboardToLocalAsync(localEntryAtContext!.FullPath);
+		});
+		AddMenuSeparator(menu);
+		AddMenuItem(menu, "Refresh", !fileTransferInFlight, delegate
+		{
+			_ = RefreshLocalBrowserAsync();
+		});
+	}
+
+	private void BuildLocalEmptyMenu(ContextMenuStrip menu)
+	{
+		bool enabled = paneClipboardEntry != null && !fileTransferInFlight && !commandInFlight && !connectAttemptInFlight;
+		AddMenuItem(menu, "Paste Here", enabled, delegate
+		{
+			_ = PasteClipboardToLocalAsync();
+		});
+		AddMenuSeparator(menu);
+		AddMenuItem(menu, "New Folder...", !fileTransferInFlight && !commandInFlight, delegate
+		{
+			_ = CreateLocalFolderAsync();
+		});
+		AddMenuItem(menu, "Open In Explorer", !fileTransferInFlight, delegate
+		{
+			OpenPath(localCurrentPath ?? GetLocalTransferTargetDirectory(), isFile: false);
+		});
+		AddMenuSeparator(menu);
+		AddMenuItem(menu, "Refresh", !fileTransferInFlight, delegate
+		{
+			_ = RefreshLocalBrowserAsync();
+		});
+	}
+
+	private void AddMenuSeparator(ContextMenuStrip menu)
+	{
+		if (menu.Items.Count > 0)
+		{
+			menu.Items.Add(new ToolStripSeparator());
+		}
+	}
+
+	private void AddMenuItem(ContextMenuStrip menu, string text, bool enabled, Action action)
+	{
+		ToolStripMenuItem toolStripMenuItem = new ToolStripMenuItem(text)
+		{
+			Enabled = enabled
+		};
+		toolStripMenuItem.Click += delegate
+		{
+			action();
+		};
+		menu.Items.Add(toolStripMenuItem);
+	}
+
+	private FileEntryView? GetRemoteEntryAtContext()
+	{
+		if (remoteContextIndex < 0 || remoteContextIndex >= remoteEntries.Count)
+		{
+			return null;
+		}
+		return remoteEntries[remoteContextIndex];
+	}
+
+	private FileEntryView? GetLocalEntryAtContext()
+	{
+		if (localContextIndex < 0 || localContextIndex >= localEntries.Count)
+		{
+			return null;
+		}
+		return localEntries[localContextIndex];
+	}
+
+	private void BeginLocalPaneDrag(int index)
+	{
+		if (index < 0 || index >= localEntries.Count)
+		{
+			return;
+		}
+		FileEntryView fileEntryView = localEntries[index];
+		if (fileEntryView.Name == "..")
+		{
+			return;
+		}
+		DataObject dataObject = new DataObject();
+		dataObject.SetData(typeof(PaneDragPayload), new PaneDragPayload
+		{
+			FromRemote = false,
+			Entries = new List<FileEntryView> { fileEntryView }
+		});
+		localFileList.DoDragDrop(dataObject, DragDropEffects.Copy);
+	}
+
+	private void BeginRemotePaneDrag(int index)
+	{
+		if (index < 0 || index >= remoteEntries.Count)
+		{
+			return;
+		}
+		FileEntryView fileEntryView = remoteEntries[index];
+		if (fileEntryView.Name == "..")
+		{
+			return;
+		}
+		DataObject dataObject = new DataObject();
+		dataObject.SetData(typeof(PaneDragPayload), new PaneDragPayload
+		{
+			FromRemote = true,
+			Entries = new List<FileEntryView> { fileEntryView }
+		});
+		remoteFileList.DoDragDrop(dataObject, DragDropEffects.Copy);
+	}
+
+	private void HandleRemotePaneDragEnter(object? sender, DragEventArgs e)
+	{
+		e.Effect = CanAcceptRemoteDrop(e.Data) ? DragDropEffects.Copy : DragDropEffects.None;
+	}
+
+	private async void HandleRemotePaneDragDrop(object? sender, DragEventArgs e)
+	{
+		if (!CanAcceptRemoteDrop(e.Data))
+		{
+			return;
+		}
+		if (e.Data?.GetDataPresent(DataFormats.FileDrop) == true)
+		{
+			string[]? data = e.Data.GetData(DataFormats.FileDrop) as string[];
+			if (data != null && data.Length != 0)
+			{
+				await UploadLocalEntriesToRemoteAsync(data, remoteCurrentPath);
+			}
+			return;
+		}
+		if (e.Data?.GetDataPresent(typeof(PaneDragPayload)) == true && e.Data.GetData(typeof(PaneDragPayload)) is PaneDragPayload paneDragPayload && !paneDragPayload.FromRemote)
+		{
+			await UploadLocalEntriesToRemoteAsync(paneDragPayload.Entries.Select((FileEntryView entry) => entry.FullPath), remoteCurrentPath);
+		}
+	}
+
+	private void HandleLocalPaneDragEnter(object? sender, DragEventArgs e)
+	{
+		e.Effect = CanAcceptLocalDrop(e.Data) ? DragDropEffects.Copy : DragDropEffects.None;
+	}
+
+	private async void HandleLocalPaneDragDrop(object? sender, DragEventArgs e)
+	{
+		if (!CanAcceptLocalDrop(e.Data))
+		{
+			return;
+		}
+		if (e.Data?.GetDataPresent(typeof(PaneDragPayload)) == true && e.Data.GetData(typeof(PaneDragPayload)) is PaneDragPayload paneDragPayload && paneDragPayload.FromRemote)
+		{
+			await DownloadRemoteEntriesToLocalAsync(paneDragPayload.Entries);
+		}
+	}
+
+	private bool CanAcceptRemoteDrop(IDataObject? data)
+	{
+		if (fileTransferInFlight || commandInFlight || connectAttemptInFlight || shellDisconnected)
+		{
+			return false;
+		}
+		if (data == null)
+		{
+			return false;
+		}
+		if (data.GetDataPresent(DataFormats.FileDrop))
+		{
+			return true;
+		}
+		if (data.GetDataPresent(typeof(PaneDragPayload)) && data.GetData(typeof(PaneDragPayload)) is PaneDragPayload paneDragPayload)
+		{
+			return !paneDragPayload.FromRemote && paneDragPayload.Entries.Count > 0;
+		}
+		return false;
+	}
+
+	private bool CanAcceptLocalDrop(IDataObject? data)
+	{
+		if (fileTransferInFlight || commandInFlight || connectAttemptInFlight)
+		{
+			return false;
+		}
+		if (data == null)
+		{
+			return false;
+		}
+		return data.GetDataPresent(typeof(PaneDragPayload)) && data.GetData(typeof(PaneDragPayload)) is PaneDragPayload paneDragPayload && paneDragPayload.FromRemote && paneDragPayload.Entries.Count > 0;
+	}
+
+	private void SetPaneClipboard(FileEntryView entry, bool isRemote, bool move)
+	{
+		paneClipboardEntry = new PaneClipboardEntry
+		{
+			IsRemote = isRemote,
+			FullPath = entry.FullPath,
+			IsDirectory = entry.IsDirectory,
+			Move = move
+		};
+		AppendSystemLine((move ? "Cut" : "Copied") + " " + (entry.IsDirectory ? "folder" : "file") + ": " + entry.FullPath, AccentGreen);
+	}
+
+	private async Task UploadFilesToRemoteAsync()
+	{
+		using OpenFileDialog openFileDialog = new OpenFileDialog
+		{
+			Title = "Upload Files To Console",
+			Multiselect = true,
+			CheckFileExists = true,
+			RestoreDirectory = true
+		};
+		if (openFileDialog.ShowDialog(this) == DialogResult.OK && openFileDialog.FileNames.Length != 0)
+		{
+			await UploadLocalEntriesToRemoteAsync(openFileDialog.FileNames, remoteCurrentPath);
+		}
+	}
+
+	private async Task UploadFolderToRemoteAsync()
+	{
+		using FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
+		{
+			Description = "Select a folder to upload to the console.",
+			UseDescriptionForTitle = true,
+			ShowNewFolderButton = false
+		};
+		if (folderBrowserDialog.ShowDialog(this) == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
+		{
+			await UploadLocalEntriesToRemoteAsync(new string[1] { folderBrowserDialog.SelectedPath }, remoteCurrentPath);
+		}
+	}
+
+	private async Task CreateRemoteFolderAsync()
+	{
+		string? text = ShowTextPrompt("New Remote Folder", "Folder name", string.Empty);
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			return;
+		}
+		string text2 = SanitizeRemoteLeaf(text);
+		if (string.IsNullOrWhiteSpace(text2))
+		{
+			AppendSystemLine("Folder name is required.", WarningColor);
+			return;
+		}
+		string text3 = CombineRemotePath(remoteCurrentPath, text2);
+		await RunFileTransferAsync("CREATING FOLDER", "ftp mkdir --remote " + text3, requiresRemote: true, refreshRemote: true, refreshLocal: false, async delegate(CancellationToken cancellationToken)
+		{
+			(int port, string user, string pass, int timeoutMs) = GetTerminalFtpSettings();
+			await using AsyncFtpClient asyncFtpClient = FtpHelpers.CreateClient(currentTargetIp, port, user, pass, timeoutMs);
+			await asyncFtpClient.Connect(cancellationToken);
+			if (await FtpHelpers.DirectoryExistsByCwdAsync(asyncFtpClient, text3))
+			{
+				throw new IOException("Remote folder already exists.");
+			}
+			await asyncFtpClient.CreateDirectory(text3);
+			if (!await FtpHelpers.DirectoryExistsByCwdAsync(asyncFtpClient, text3))
+			{
+				throw new IOException("Remote folder creation could not be verified.");
+			}
+		});
+	}
+
+	private async Task CreateLocalFolderAsync()
+	{
+		string text = localCurrentPath ?? GetLocalTransferTargetDirectory();
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			AppendSystemLine("Select a local folder before creating a directory.", WarningColor);
+			return;
+		}
+		string? text2 = ShowTextPrompt("Create Local Folder", "Folder name", "New Folder");
+		if (string.IsNullOrWhiteSpace(text2))
+		{
+			return;
+		}
+		string fileName = text2.Trim();
+		await RunFileTransferAsync("CREATING LOCAL FOLDER", "local mkdir " + fileName, requiresRemote: false, refreshRemote: false, refreshLocal: true, async delegate(CancellationToken cancellationToken)
+		{
+			await Task.Run(delegate
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				string uniqueLocalPath = GetUniqueLocalPath(Path.Combine(text, fileName), isDirectory: true);
+				Directory.CreateDirectory(uniqueLocalPath);
+			}, cancellationToken);
+		});
+	}
+
+	private async Task RenameRemoteEntryAsync(FileEntryView entry)
+	{
+		if (entry.Name == "..")
+		{
+			return;
+		}
+		string? text = ShowTextPrompt("Rename Remote Entry", "New name", entry.Name);
+		string text2 = SanitizeRemoteLeaf(text);
+		if (string.IsNullOrWhiteSpace(text2) || string.Equals(text2, entry.Name, StringComparison.OrdinalIgnoreCase))
+		{
+			return;
+		}
+		await RunFileTransferAsync("RENAMING ENTRY", "ftp mv --from " + entry.FullPath + " --to " + text2, requiresRemote: true, refreshRemote: true, refreshLocal: false, async delegate(CancellationToken cancellationToken)
+		{
+			(int port, string user, string pass, int timeoutMs) = GetTerminalFtpSettings();
+			await using AsyncFtpClient asyncFtpClient = FtpHelpers.CreateClient(currentTargetIp, port, user, pass, timeoutMs);
+			await asyncFtpClient.Connect(cancellationToken);
+			string text3 = CombineRemotePath(GetRemoteParentPath(entry.FullPath), text2);
+			if (entry.IsDirectory)
+			{
+				if (await FtpHelpers.DirectoryExistsByCwdAsync(asyncFtpClient, text3))
+				{
+					throw new IOException("A remote folder with that name already exists.");
+				}
+				await asyncFtpClient.MoveDirectory(FtpHelpers.NormalizePath(entry.FullPath), text3);
+				if (await FtpHelpers.DirectoryExistsByCwdAsync(asyncFtpClient, entry.FullPath) || !await FtpHelpers.DirectoryExistsByCwdAsync(asyncFtpClient, text3))
+				{
+					throw new IOException("Remote folder rename could not be verified.");
+				}
+			}
+			else
+			{
+				if (await asyncFtpClient.FileExists(text3))
+				{
+					throw new IOException("A remote file with that name already exists.");
+				}
+				await FtpHelpers.MoveFileVerifiedAsync(asyncFtpClient, entry.FullPath, text3);
+			}
+		});
+	}
+
+	private async Task RenameLocalEntryAsync(FileEntryView entry)
+	{
+		if (entry.Name == "..")
+		{
+			return;
+		}
+		string? text = ShowTextPrompt("Rename Local Entry", "New name", entry.Name);
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			return;
+		}
+		string fileName = text.Trim();
+		if (string.Equals(fileName, entry.Name, StringComparison.OrdinalIgnoreCase))
+		{
+			return;
+		}
+		await RunFileTransferAsync("RENAMING LOCAL ENTRY", "local mv " + entry.FullPath, requiresRemote: false, refreshRemote: false, refreshLocal: true, async delegate(CancellationToken cancellationToken)
+		{
+			await Task.Run(delegate
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				string directoryName = Path.GetDirectoryName(entry.FullPath) ?? (localCurrentPath ?? GetLocalTransferTargetDirectory());
+				string uniqueLocalPath = GetUniqueLocalPath(Path.Combine(directoryName, fileName), entry.IsDirectory);
+				if (entry.IsDirectory)
+				{
+					Directory.Move(entry.FullPath, uniqueLocalPath);
+				}
+				else
+				{
+					File.Move(entry.FullPath, uniqueLocalPath);
+				}
+			}, cancellationToken);
+		});
+	}
+
+	private async Task DeleteRemoteEntryAsync(FileEntryView entry)
+	{
+		if (entry.Name == "..")
+		{
+			return;
+		}
+		string text = entry.IsDirectory ? "Delete this remote folder?" : "Delete this remote file?";
+		if (MessageBox.Show(this, text + "\n\n" + entry.FullPath, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
+		{
+			return;
+		}
+		await RunFileTransferAsync("DELETING ENTRY", "ftp rm --remote " + entry.FullPath, requiresRemote: true, refreshRemote: true, refreshLocal: false, async delegate(CancellationToken cancellationToken)
+		{
+			await DeleteRemotePathAsync(entry.FullPath, entry.IsDirectory, cancellationToken);
+		});
+	}
+
+	private async Task DeleteLocalEntryAsync(FileEntryView entry)
+	{
+		if (entry.Name == "..")
+		{
+			return;
+		}
+		string text = entry.IsDirectory ? "Delete this local folder?" : "Delete this local file?";
+		if (MessageBox.Show(this, text + "\n\n" + entry.FullPath, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
+		{
+			return;
+		}
+		await RunFileTransferAsync("DELETING LOCAL ENTRY", "local rm " + entry.FullPath, requiresRemote: false, refreshRemote: false, refreshLocal: true, async delegate(CancellationToken cancellationToken)
+		{
+			await Task.Run(delegate
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				DeleteLocalPath(entry.FullPath, entry.IsDirectory);
+			}, cancellationToken);
+		});
+	}
+
+	private async Task DownloadRemoteEntriesToLocalAsync(IEnumerable<FileEntryView> entries)
+	{
+		FileEntryView[] array = entries.Where((FileEntryView entry) => entry.Name != "..").ToArray();
+		if (array.Length == 0)
+		{
+			return;
+		}
+		string localTransferTargetDirectory = GetLocalTransferTargetDirectory();
+		List<(string RemotePath, string LocalPath)> list = new List<(string RemotePath, string LocalPath)>();
+		AppendSystemLine("Download from: " + string.Join(" | ", array.Select((FileEntryView entry) => entry.FullPath)), AccentDim);
+		AppendSystemLine("Save to: " + localTransferTargetDirectory, AccentDim);
+		bool flag = await RunFileTransferAsync("DOWNLOADING FILES", "ftp get --remote " + string.Join(";", array.Select((FileEntryView entry) => entry.FullPath)), requiresRemote: true, refreshRemote: false, refreshLocal: true, async delegate(CancellationToken cancellationToken)
+		{
+			list.AddRange(await DownloadRemoteEntriesToLocalDirectoryAsync(array, localTransferTargetDirectory, cancellationToken));
+		});
+		if (flag)
+		{
+			AppendTransferCompletionLines(list, localTransferTargetDirectory);
+		}
+	}
+
+	private async Task UploadLocalEntriesToRemoteAsync(IEnumerable<string> localPaths, string destinationRemoteDirectory)
+	{
+		string[] array = localPaths.Where((string path) => !string.IsNullOrWhiteSpace(path) && (File.Exists(path) || Directory.Exists(path))).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+		if (array.Length == 0)
+		{
+			return;
+		}
+		await RunFileTransferAsync("UPLOADING FILES", "ftp put --local " + string.Join(";", array), requiresRemote: true, refreshRemote: true, refreshLocal: false, async delegate(CancellationToken cancellationToken)
+		{
+			await UploadLocalPathsToRemoteDirectoryAsync(array, destinationRemoteDirectory, cancellationToken);
+		});
+	}
+
+	private async Task PasteClipboardToRemoteAsync(string destinationRemoteDirectory)
+	{
+		PaneClipboardEntry paneClipboardEntry = this.paneClipboardEntry ?? throw new InvalidOperationException("Nothing is queued for paste.");
+		string text = paneClipboardEntry.Move ? "MOVING ENTRY" : "COPYING ENTRY";
+		string text2 = paneClipboardEntry.IsRemote ? ((paneClipboardEntry.Move ? "ftp mv --from " : "ftp cp --from ") + paneClipboardEntry.FullPath) : ("ftp put --local " + paneClipboardEntry.FullPath);
+		await RunFileTransferAsync(text, text2, requiresRemote: true, refreshRemote: true, refreshLocal: false, async delegate(CancellationToken cancellationToken)
+		{
+			if (paneClipboardEntry.IsRemote)
+			{
+				await PasteRemoteClipboardToRemoteAsync(paneClipboardEntry, destinationRemoteDirectory, cancellationToken);
+			}
+			if (paneClipboardEntry.Move)
+			{
+				this.paneClipboardEntry = null;
+			}
+		});
+	}
+
+	private async Task PasteClipboardToLocalAsync(string? destinationLocalDirectory = null)
+	{
+		PaneClipboardEntry paneClipboardEntry = this.paneClipboardEntry ?? throw new InvalidOperationException("Nothing is queued for paste.");
+		string localTransferTargetDirectory = destinationLocalDirectory;
+		if (string.IsNullOrWhiteSpace(localTransferTargetDirectory) || !Directory.Exists(localTransferTargetDirectory))
+		{
+			localTransferTargetDirectory = GetLocalTransferTargetDirectory();
+		}
+		if (!paneClipboardEntry.IsRemote)
+		{
+			await RunFileTransferAsync(paneClipboardEntry.Move ? "MOVING LOCAL ENTRY" : "COPYING LOCAL ENTRY", (paneClipboardEntry.Move ? "local mv " : "local cp ") + paneClipboardEntry.FullPath, requiresRemote: false, refreshRemote: false, refreshLocal: true, async delegate(CancellationToken cancellationToken)
+			{
+				await Task.Run(async delegate
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+					string uniqueLocalPath = GetUniqueLocalPath(Path.Combine(localTransferTargetDirectory, Path.GetFileName(paneClipboardEntry.FullPath)), paneClipboardEntry.IsDirectory);
+					await CopyLocalEntryAsync(paneClipboardEntry.FullPath, uniqueLocalPath, paneClipboardEntry.IsDirectory, cancellationToken);
+					if (paneClipboardEntry.Move)
+					{
+						DeleteLocalPath(paneClipboardEntry.FullPath, paneClipboardEntry.IsDirectory);
+						this.paneClipboardEntry = null;
+					}
+				}, cancellationToken);
+			});
+			return;
+		}
+		List<(string RemotePath, string LocalPath)> list = new List<(string RemotePath, string LocalPath)>();
+		string localTargetDirectory = localTransferTargetDirectory;
+		AppendSystemLine("Download from: " + paneClipboardEntry.FullPath, AccentDim);
+		AppendSystemLine("Save to: " + localTargetDirectory, AccentDim);
+		bool flag = await RunFileTransferAsync(paneClipboardEntry.Move ? "MOVING TO PC" : "DOWNLOADING TO PC", "ftp get --remote " + paneClipboardEntry.FullPath, requiresRemote: true, refreshRemote: paneClipboardEntry.Move, refreshLocal: true, async delegate(CancellationToken cancellationToken)
+		{
+			FileEntryView fileEntryView = new FileEntryView
+			{
+				Name = GetRemoteLeafName(paneClipboardEntry.FullPath),
+				FullPath = paneClipboardEntry.FullPath,
+				IsDirectory = paneClipboardEntry.IsDirectory
+			};
+			list.AddRange(await DownloadRemoteEntriesToLocalDirectoryAsync(new FileEntryView[1] { fileEntryView }, localTargetDirectory, cancellationToken));
+			if (paneClipboardEntry.Move)
+			{
+				await DeleteRemotePathAsync(paneClipboardEntry.FullPath, paneClipboardEntry.IsDirectory, cancellationToken);
+				this.paneClipboardEntry = null;
+			}
+		});
+		if (flag)
+		{
+			AppendTransferCompletionLines(list, localTargetDirectory);
+		}
+	}
+
+	private async Task<bool> RunFileTransferAsync(string footerText, string activityCommand, bool requiresRemote, bool refreshRemote, bool refreshLocal, Func<CancellationToken, Task> action)
+	{
+		if (base.IsDisposed)
+		{
+			return false;
+		}
+		if (connectAttemptInFlight)
+		{
+			AppendSystemLine("Wait for the current console link attempt to finish.", Color.Gold);
+			return false;
+		}
+		if (commandInFlight || fileTransferInFlight)
+		{
+			AppendSystemLine("A file action is already running. Wait for completion.", Color.Gold);
+			return false;
+		}
+		if (requiresRemote && shellDisconnected)
+		{
+			AppendSystemLine("Connect to the console before using FTP actions.", WarningColor);
+			return false;
+		}
+		bool result = false;
+		fileTransferInFlight = true;
+		activeTransferCommand = activityCommand;
+		int num = Volatile.Read(ref sessionEpoch);
+		string text = currentTargetIp;
+		int num2 = currentTargetPort;
+		UpdateLiveHints(latestSnapshot);
+		RecordTransferActivity(activityCommand, "queued");
+		RecordTransferActivity(activityCommand, "running");
+		CancelAndDispose(ref fileTransferCts);
+		fileTransferCts = CancellationTokenSource.CreateLinkedTokenSource(formLifetimeCts.Token);
+		try
+		{
+			await action(fileTransferCts.Token);
+			RecordTransferActivity(activityCommand, "complete");
+			AppendSystemLine(footerText + " complete.", AccentGreen);
+			result = true;
+		}
+		catch (OperationCanceledException)
+		{
+			RecordTransferActivity(activityCommand, "cancelled");
+			AppendSystemLine(footerText + " cancelled.", AccentPink);
+		}
+		catch (Exception ex)
+		{
+			RecordTransferActivity(activityCommand, "failed");
+			AppendSystemLine(footerText + " failed: " + ex.Message, AccentPink);
+		}
+		finally
+		{
+			fileTransferInFlight = false;
+			activeTransferCommand = null;
+			CancelAndDispose(ref fileTransferCts);
+			bool flag = !base.IsDisposed && num == Volatile.Read(ref sessionEpoch) && string.Equals(text, currentTargetIp, StringComparison.OrdinalIgnoreCase) && num2 == currentTargetPort;
+			if (refreshLocal && flag)
+			{
+				await RefreshLocalBrowserAsync();
+			}
+			if (refreshRemote && flag)
+			{
+				await RefreshRemoteBrowserAsync(force: true);
+			}
+			UpdateLiveHints(latestSnapshot);
+		}
+		return result;
+	}
+
+	private (int Port, string User, string Pass, int TimeoutMs) GetTerminalFtpSettings()
+	{
+		CliConfig cliConfig = CliConfig.Load();
+		return (cliConfig.DefaultFtpPort ?? 21, TrimOrNull(cliConfig.DefaultFtpUser) ?? "xbox", cliConfig.DefaultFtpPassword ?? "xbox", Math.Clamp(options.TimeoutMs, 1500, 7000));
+	}
+
+	private string? ShowTextPrompt(string title, string labelText, string initialValue)
+	{
+		using Form form = new Form();
+		form.Text = title;
+		form.StartPosition = FormStartPosition.CenterParent;
+		form.FormBorderStyle = FormBorderStyle.FixedDialog;
+		form.MinimizeBox = false;
+		form.MaximizeBox = false;
+		form.ShowInTaskbar = false;
+		form.BackColor = TerminalBackground;
+		form.ForeColor = Color.WhiteSmoke;
+		form.ClientSize = new Size(420, 132);
+		Label label = new Label
+		{
+			Text = labelText,
+			ForeColor = Color.WhiteSmoke,
+			Font = shellFont,
+			AutoSize = false,
+			TextAlign = ContentAlignment.MiddleLeft,
+			Bounds = new Rectangle(12, 12, 396, 20)
+		};
+		TextBox textBox = new TextBox
+		{
+			Text = initialValue,
+			Bounds = new Rectangle(12, 40, 396, 24),
+			BackColor = CardBackground,
+			ForeColor = Color.WhiteSmoke,
+			BorderStyle = BorderStyle.FixedSingle,
+			Font = shellFont
+		};
+		Button button = new Button
+		{
+			Text = "OK",
+			DialogResult = DialogResult.OK,
+			Bounds = new Rectangle(252, 88, 74, 28)
+		};
+		Button button2 = new Button
+		{
+			Text = "Cancel",
+			DialogResult = DialogResult.Cancel,
+			Bounds = new Rectangle(334, 88, 74, 28)
+		};
+		form.Controls.Add(label);
+		form.Controls.Add(textBox);
+		form.Controls.Add(button);
+		form.Controls.Add(button2);
+		form.AcceptButton = button;
+		form.CancelButton = button2;
+		if (form.ShowDialog(this) != DialogResult.OK)
+		{
+			return null;
+		}
+		return textBox.Text;
+	}
+
+	private async Task<List<(string RemotePath, string LocalPath)>> DownloadRemoteEntriesToLocalDirectoryAsync(IEnumerable<FileEntryView> entries, string destinationLocalDirectory, CancellationToken cancellationToken)
+	{
+		List<(string RemotePath, string LocalPath)> list = new List<(string RemotePath, string LocalPath)>();
+		Directory.CreateDirectory(destinationLocalDirectory);
+		(int port, string user, string pass, int timeoutMs) = GetTerminalFtpSettings();
+		await using AsyncFtpClient asyncFtpClient = FtpHelpers.CreateClient(currentTargetIp, port, user, pass, timeoutMs);
+		await asyncFtpClient.Connect(cancellationToken);
+		foreach (FileEntryView entry in entries.Where((FileEntryView entry) => entry.Name != ".."))
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			string uniqueLocalPath = GetUniqueLocalPath(Path.Combine(destinationLocalDirectory, entry.Name), entry.IsDirectory);
+			if (entry.IsDirectory)
+			{
+				await DownloadRemoteDirectoryAsync(asyncFtpClient, entry.FullPath, uniqueLocalPath, cancellationToken);
+			}
+			else
+			{
+				await DownloadRemoteFileAsync(asyncFtpClient, entry.FullPath, uniqueLocalPath);
+			}
+			list.Add((entry.FullPath, uniqueLocalPath));
+		}
+		return list;
+	}
+
+	private async Task UploadLocalPathsToRemoteDirectoryAsync(IEnumerable<string> localPaths, string destinationRemoteDirectory, CancellationToken cancellationToken)
+	{
+		(int port, string user, string pass, int timeoutMs) = GetTerminalFtpSettings();
+		await using AsyncFtpClient asyncFtpClient = FtpHelpers.CreateClient(currentTargetIp, port, user, pass, timeoutMs);
+		await asyncFtpClient.Connect(cancellationToken);
+		foreach (string localPath in localPaths)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			if (File.Exists(localPath))
+			{
+				string uniqueRemotePath = await GetUniqueRemotePathAsync(asyncFtpClient, CombineRemotePath(destinationRemoteDirectory, Path.GetFileName(localPath)), isDirectory: false);
+				await UploadLocalFileAsync(asyncFtpClient, localPath, uniqueRemotePath, cancellationToken);
+			}
+			else if (Directory.Exists(localPath))
+			{
+				string fileName = new DirectoryInfo(localPath).Name;
+				string uniqueRemotePath2 = await GetUniqueRemotePathAsync(asyncFtpClient, CombineRemotePath(destinationRemoteDirectory, fileName), isDirectory: true);
+				await UploadLocalDirectoryAsync(asyncFtpClient, localPath, uniqueRemotePath2, cancellationToken);
+			}
+		}
+	}
+
+	private async Task PasteRemoteClipboardToRemoteAsync(PaneClipboardEntry clipboard, string destinationRemoteDirectory, CancellationToken cancellationToken)
+	{
+		(int port, string user, string pass, int timeoutMs) = GetTerminalFtpSettings();
+		await using AsyncFtpClient asyncFtpClient = FtpHelpers.CreateClient(currentTargetIp, port, user, pass, timeoutMs);
+		await asyncFtpClient.Connect(cancellationToken);
+		string remoteLeafName = GetRemoteLeafName(clipboard.FullPath);
+		string uniqueRemotePath = await GetUniqueRemotePathAsync(asyncFtpClient, CombineRemotePath(destinationRemoteDirectory, remoteLeafName), clipboard.IsDirectory);
+		if (clipboard.Move)
+		{
+			if (string.Equals(FtpHelpers.NormalizePath(clipboard.FullPath), uniqueRemotePath, StringComparison.OrdinalIgnoreCase))
+			{
+				return;
+			}
+			if (clipboard.IsDirectory)
+			{
+				await asyncFtpClient.MoveDirectory(clipboard.FullPath, uniqueRemotePath);
+				if (await FtpHelpers.DirectoryExistsByCwdAsync(asyncFtpClient, clipboard.FullPath) || !await FtpHelpers.DirectoryExistsByCwdAsync(asyncFtpClient, uniqueRemotePath))
+				{
+					throw new IOException("Remote folder move could not be verified.");
+				}
+			}
+			else
+			{
+				await FtpHelpers.MoveFileVerifiedAsync(asyncFtpClient, clipboard.FullPath, uniqueRemotePath);
+			}
+			return;
+		}
+		await CopyRemoteEntryAsync(asyncFtpClient, clipboard.FullPath, uniqueRemotePath, clipboard.IsDirectory, cancellationToken);
+	}
+
+	private async Task DeleteRemotePathAsync(string remotePath, bool isDirectory, CancellationToken cancellationToken)
+	{
+		(int port, string user, string pass, int timeoutMs) = GetTerminalFtpSettings();
+		await using AsyncFtpClient asyncFtpClient = FtpHelpers.CreateClient(currentTargetIp, port, user, pass, timeoutMs);
+		await asyncFtpClient.Connect(cancellationToken);
+		if (isDirectory)
+		{
+			await asyncFtpClient.DeleteDirectory(remotePath);
+			if (await FtpHelpers.DirectoryExistsByCwdAsync(asyncFtpClient, remotePath))
+			{
+				throw new IOException("Remote folder delete could not be verified.");
+			}
+		}
+		else
+		{
+			await asyncFtpClient.DeleteFile(remotePath);
+			if (await asyncFtpClient.FileExists(remotePath))
+			{
+				throw new IOException("Remote file delete could not be verified.");
+			}
+		}
+	}
+
+	private async Task CopyRemoteEntryAsync(AsyncFtpClient client, string sourceRemotePath, string destinationRemotePath, bool isDirectory, CancellationToken cancellationToken)
+	{
+		string text = Path.Combine(Path.GetTempPath(), "xecli-terminal-transfer-" + Guid.NewGuid().ToString("N"));
+		try
+		{
+			Directory.CreateDirectory(text);
+			string text2 = Path.Combine(text, GetRemoteLeafName(destinationRemotePath));
+			if (isDirectory)
+			{
+				await DownloadRemoteDirectoryAsync(client, sourceRemotePath, text2, cancellationToken);
+				await UploadLocalDirectoryAsync(client, text2, destinationRemotePath, cancellationToken);
+			}
+			else
+			{
+				await DownloadRemoteFileAsync(client, sourceRemotePath, text2);
+				await UploadLocalFileAsync(client, text2, destinationRemotePath, cancellationToken);
+			}
+		}
+		finally
+		{
+			try
+			{
+				if (Directory.Exists(text))
+				{
+					Directory.Delete(text, recursive: true);
+				}
+			}
+			catch
+			{
+			}
+		}
+	}
+
+	private async Task DownloadRemoteDirectoryAsync(AsyncFtpClient client, string remoteDirectory, string localDirectory, CancellationToken cancellationToken)
+	{
+		Directory.CreateDirectory(localDirectory);
+		(FtpListItem[] Items, bool RootListing) valueTuple = await FtpHelpers.GetListingWithFallbackAsync(client, FtpHelpers.NormalizePath(remoteDirectory));
+		foreach (FtpListItem item in valueTuple.Items)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			if (string.IsNullOrWhiteSpace(item.Name))
+			{
+				continue;
+			}
+			string text = FtpHelpers.NormalizePath(!string.IsNullOrWhiteSpace(item.FullName) ? item.FullName : CombineRemotePath(remoteDirectory, item.Name));
+			string text2 = Path.Combine(localDirectory, item.Name);
+			if (item.Type == FtpObjectType.File)
+			{
+				await DownloadRemoteFileAsync(client, text, text2);
+			}
+			else if (item.Type == FtpObjectType.Directory)
+			{
+				await DownloadRemoteDirectoryAsync(client, text, text2, cancellationToken);
+			}
+		}
+	}
+
+	private async Task DownloadRemoteFileAsync(AsyncFtpClient client, string remoteFilePath, string localFilePath)
+	{
+		string? directoryName = Path.GetDirectoryName(localFilePath);
+		if (!string.IsNullOrWhiteSpace(directoryName))
+		{
+			Directory.CreateDirectory(directoryName);
+		}
+		string text = GetRemoteLeafName(remoteFilePath);
+		FtpStatus ftpStatus = await client.DownloadFile(localFilePath, FtpHelpers.NormalizePath(remoteFilePath), FtpLocalExists.Overwrite, FtpVerify.None, new Progress<FtpProgress>(delegate(FtpProgress progress)
+		{
+			HandleFtpProgress(progress, text);
+		}));
+		if (ftpStatus != FtpStatus.Success)
+		{
+			throw new IOException("FTP download did not complete for " + remoteFilePath + ".");
+		}
+		UpdateActiveTransferProgress(100.0, text);
+	}
+
+	private async Task UploadLocalDirectoryAsync(AsyncFtpClient client, string localDirectory, string remoteDirectory, CancellationToken cancellationToken)
+	{
+		await FtpHelpers.EnsureRemoteDirectoryAsync(client, remoteDirectory);
+		foreach (string directory in Directory.GetDirectories(localDirectory))
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			await UploadLocalDirectoryAsync(client, directory, CombineRemotePath(remoteDirectory, Path.GetFileName(directory)), cancellationToken);
+		}
+		foreach (string file in Directory.GetFiles(localDirectory))
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			await UploadLocalFileAsync(client, file, CombineRemotePath(remoteDirectory, Path.GetFileName(file)), cancellationToken);
+		}
+	}
+
+	private async Task UploadLocalFileAsync(AsyncFtpClient client, string localFilePath, string remoteFilePath, CancellationToken cancellationToken)
+	{
+		string remoteFilePath2 = FtpHelpers.NormalizePath(remoteFilePath);
+		string remoteParentPath = GetRemoteParentPath(remoteFilePath2);
+		await FtpHelpers.EnsureRemoteDirectoryAsync(client, remoteParentPath);
+		long length = new FileInfo(localFilePath).Length;
+		string text = Path.GetFileName(localFilePath);
+		FtpStatus ftpStatus = await client.UploadFile(localFilePath, remoteFilePath2, FtpRemoteExists.Overwrite, false, FtpVerify.None, new Progress<FtpProgress>(delegate(FtpProgress progress)
+		{
+			HandleFtpProgress(progress, text);
+		}), cancellationToken);
+		if (ftpStatus != FtpStatus.Success)
+		{
+			throw new IOException("FTP upload did not complete for " + remoteFilePath2 + ".");
+		}
+		long? num = await FtpHelpers.TryGetFileSizeAsync(client, remoteFilePath2);
+		if (!num.HasValue || num.Value != length)
+		{
+			throw new IOException("FTP upload size mismatch for " + remoteFilePath2 + ".");
+		}
+		UpdateActiveTransferProgress(100.0, text);
+	}
+
+	private static async Task CopyLocalEntryAsync(string sourcePath, string destinationPath, bool isDirectory, CancellationToken cancellationToken)
+	{
+		if (isDirectory)
+		{
+			await CopyLocalDirectoryAsync(sourcePath, destinationPath, cancellationToken);
+			return;
+		}
+		string? directoryName = Path.GetDirectoryName(destinationPath);
+		if (!string.IsNullOrWhiteSpace(directoryName))
+		{
+			Directory.CreateDirectory(directoryName);
+		}
+		await using FileStream fileStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, 131072, useAsync: true);
+		await using FileStream fileStream2 = new FileStream(destinationPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 131072, useAsync: true);
+		await fileStream.CopyToAsync(fileStream2, 131072, cancellationToken);
+	}
+
+	private static async Task CopyLocalDirectoryAsync(string sourceDirectory, string destinationDirectory, CancellationToken cancellationToken)
+	{
+		Directory.CreateDirectory(destinationDirectory);
+		foreach (string directory in Directory.GetDirectories(sourceDirectory))
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			await CopyLocalDirectoryAsync(directory, Path.Combine(destinationDirectory, Path.GetFileName(directory)), cancellationToken);
+		}
+		foreach (string file in Directory.GetFiles(sourceDirectory))
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			await CopyLocalEntryAsync(file, Path.Combine(destinationDirectory, Path.GetFileName(file)), isDirectory: false, cancellationToken);
+		}
+	}
+
+	private static void DeleteLocalPath(string path, bool isDirectory)
+	{
+		if (isDirectory)
+		{
+			if (Directory.Exists(path))
+			{
+				Directory.Delete(path, recursive: true);
+			}
+		}
+		else if (File.Exists(path))
+		{
+			File.Delete(path);
+		}
+	}
+
+	private async Task<string> GetUniqueRemotePathAsync(AsyncFtpClient client, string desiredRemotePath, bool isDirectory)
+	{
+		string text = FtpHelpers.NormalizePath(desiredRemotePath);
+		if (!await RemotePathExistsAsync(client, text, isDirectory))
+		{
+			return text;
+		}
+		string remoteParentPath = GetRemoteParentPath(text);
+		string remoteLeafName = GetRemoteLeafName(text);
+		string extension = isDirectory ? string.Empty : Path.GetExtension(remoteLeafName);
+		string text2 = isDirectory ? remoteLeafName : Path.GetFileNameWithoutExtension(remoteLeafName);
+		for (int i = 1; i < 256; i++)
+		{
+			string text3 = text2 + ((i == 1) ? " - Copy" : $" - Copy {i}") + extension;
+			string text4 = CombineRemotePath(remoteParentPath, text3);
+			if (!await RemotePathExistsAsync(client, text4, isDirectory))
+			{
+				return text4;
+			}
+		}
+		return CombineRemotePath(remoteParentPath, text2 + "-" + Guid.NewGuid().ToString("N").Substring(0, 6) + extension);
+	}
+
+	private async Task<bool> RemotePathExistsAsync(AsyncFtpClient client, string remotePath, bool isDirectory)
+	{
+		if (isDirectory)
+		{
+			return await FtpHelpers.DirectoryExistsByCwdAsync(client, remotePath);
+		}
+		return await client.FileExists(remotePath);
+	}
+
+	private string GetLocalTransferTargetDirectory()
+	{
+		string text = TrimOrNull(localCurrentPath);
+		if (!string.IsNullOrWhiteSpace(text) && Directory.Exists(text))
+		{
+			return text;
+		}
+		string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+		if (Directory.Exists(path))
+		{
+			return path;
+		}
+		return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+	}
+
+	private static string GetUniqueLocalPath(string desiredLocalPath, bool isDirectory)
+	{
+		if ((!isDirectory && !File.Exists(desiredLocalPath)) || (isDirectory && !Directory.Exists(desiredLocalPath)))
+		{
+			return desiredLocalPath;
+		}
+		string directoryName = Path.GetDirectoryName(desiredLocalPath) ?? string.Empty;
+		string text = isDirectory ? new DirectoryInfo(desiredLocalPath).Name : Path.GetFileNameWithoutExtension(desiredLocalPath);
+		string extension = isDirectory ? string.Empty : Path.GetExtension(desiredLocalPath);
+		for (int i = 1; i < 256; i++)
+		{
+			string path = Path.Combine(directoryName, text + ((i == 1) ? " - Copy" : $" - Copy {i}") + extension);
+			if ((!isDirectory && !File.Exists(path)) || (isDirectory && !Directory.Exists(path)))
+			{
+				return path;
+			}
+		}
+		return Path.Combine(directoryName, text + "-" + Guid.NewGuid().ToString("N").Substring(0, 6) + extension);
+	}
+
+	private static string GetRemoteLeafName(string remotePath)
+	{
+		string text = FtpHelpers.NormalizePath(remotePath).TrimEnd('/');
+		int num = text.LastIndexOf('/');
+		return (num < 0) ? text : text.Substring(num + 1);
+	}
+
+	private static string SanitizeRemoteLeaf(string? value)
+	{
+		string text = TrimOrNull(value) ?? string.Empty;
+		text = text.Replace('\\', ' ').Replace('/', ' ').Trim();
+		return text;
+	}
+
 	private void NavigateLocalUp()
 	{
 		if (string.IsNullOrWhiteSpace(localCurrentPath))
@@ -1127,8 +2519,9 @@ internal sealed class XeCliTerminalForm : Form
 		CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(formLifetimeCts.Token);
 		localBrowseCts = cancellationTokenSource;
 		string text = localCurrentPath;
-		localPathLabel.Text = string.IsNullOrWhiteSpace(text) ? "PC :: This PC" : ("PC :: " + text);
-		localFileList.SetItems(new string[1] { "Loading local view..." });
+		localPathLabel.Text = string.IsNullOrWhiteSpace(text) ? "PC /" : ("PC " + text);
+		localPathTextBox.Text = string.IsNullOrWhiteSpace(text) ? "This PC" : text;
+		localFileList.SetMessage("Loading local view...");
 		try
 		{
 			LocalBrowserSnapshot localBrowserSnapshot = await Task.Run(() => LoadLocalBrowserSnapshot(text, cancellationTokenSource.Token), cancellationTokenSource.Token);
@@ -1138,9 +2531,10 @@ internal sealed class XeCliTerminalForm : Form
 			}
 			localCurrentPath = localBrowserSnapshot.ResolvedPath;
 			localPathLabel.Text = localBrowserSnapshot.PathLabel;
+			localPathTextBox.Text = string.IsNullOrWhiteSpace(localBrowserSnapshot.ResolvedPath) ? "This PC" : localBrowserSnapshot.ResolvedPath;
 			localEntries.Clear();
 			localEntries.AddRange(localBrowserSnapshot.Entries);
-			localFileList.SetItems(localBrowserSnapshot.Items);
+			localFileList.SetEntries(localBrowserSnapshot.Entries);
 		}
 		catch (OperationCanceledException)
 		{
@@ -1150,7 +2544,7 @@ internal sealed class XeCliTerminalForm : Form
 			if (!base.IsDisposed && num == localBrowseVersion)
 			{
 				localEntries.Clear();
-				localFileList.SetItems(new string[1] { "Local browse failed: " + ex.Message });
+				localFileList.SetMessage("Local browse failed: " + ex.Message);
 			}
 		}
 	}
@@ -1163,27 +2557,21 @@ internal sealed class XeCliTerminalForm : Form
 			foreach (DriveInfo item in DriveInfo.GetDrives().OrderBy((DriveInfo d) => d.Name, StringComparer.OrdinalIgnoreCase))
 			{
 				cancellationToken.ThrowIfCancellationRequested();
-				string text = item.IsReady ? (item.DriveFormat + ", " + item.DriveType) : item.DriveType.ToString();
 				list.Add(new FileEntryView
 				{
-					Name = item.Name + "  " + text,
+					Name = FormatLocalRootDisplayName(item),
 					FullPath = item.RootDirectory.FullName,
 					IsDirectory = true
 				});
 			}
-			List<string> items = list.Select((FileEntryView entry) => "[DIR] " + entry.Name).ToList();
-			if (items.Count == 0)
-			{
-				items.Add("(empty)");
-			}
-			return new LocalBrowserSnapshot
-			{
-				ResolvedPath = null,
-				Entries = list,
-				Items = items,
-				PathLabel = "PC :: This PC"
-			};
-		}
+		return new LocalBrowserSnapshot
+		{
+			ResolvedPath = null,
+			Entries = list,
+			Items = new List<string>(),
+			PathLabel = "PC :: This PC"
+		};
+	}
 		if (!Directory.Exists(path))
 		{
 			return LoadLocalBrowserSnapshot(null, cancellationToken);
@@ -1197,7 +2585,8 @@ internal sealed class XeCliTerminalForm : Form
 				{
 					Name = Path.GetFileName(item2),
 					FullPath = item2,
-					IsDirectory = true
+					IsDirectory = true,
+					ModifiedUtc = Directory.GetLastWriteTimeUtc(item2)
 				});
 			}
 			foreach (string item3 in Directory.GetFiles(path).OrderBy((string p) => Path.GetFileName(p), StringComparer.OrdinalIgnoreCase))
@@ -1207,7 +2596,9 @@ internal sealed class XeCliTerminalForm : Form
 				{
 					Name = Path.GetFileName(item3),
 					FullPath = item3,
-					IsDirectory = false
+					IsDirectory = false,
+					SizeBytes = new FileInfo(item3).Length,
+					ModifiedUtc = File.GetLastWriteTimeUtc(item3)
 				});
 			}
 		}
@@ -1221,23 +2612,35 @@ internal sealed class XeCliTerminalForm : Form
 				IsDirectory = false
 			});
 		}
-		List<string> list2 = list.Select((FileEntryView entry) => entry.IsDirectory ? ("[DIR] " + entry.Name) : ("      " + entry.Name)).ToList();
-		if (list2.Count == 0)
-		{
-			list2.Add("(empty)");
-		}
 		return new LocalBrowserSnapshot
 		{
 			ResolvedPath = path,
 			Entries = list,
-			Items = list2,
+			Items = new List<string>(),
 			PathLabel = "PC :: " + path
 		};
 	}
 
+	private static string FormatLocalRootDisplayName(DriveInfo drive)
+	{
+		string text = drive.Name.TrimEnd('\\');
+		string text2 = string.Empty;
+		try
+		{
+			if (drive.IsReady)
+			{
+				text2 = TrimOrNull(drive.VolumeLabel) ?? string.Empty;
+			}
+		}
+		catch
+		{
+		}
+		return string.IsNullOrWhiteSpace(text2) ? text : (text + "  " + text2);
+	}
+
 	private async Task RefreshRemoteBrowserAsync(bool force = false)
 	{
-		if (shellDisconnected || base.IsDisposed || (!force && DateTime.UtcNow < nextRemoteRefreshAllowedUtc))
+		if (shellDisconnected || base.IsDisposed || fileTransferInFlight || (!force && DateTime.UtcNow < nextRemoteRefreshAllowedUtc))
 		{
 			return;
 		}
@@ -1245,10 +2648,10 @@ internal sealed class XeCliTerminalForm : Form
 		CancelAndDispose(ref remoteBrowseCts);
 		CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(formLifetimeCts.Token);
 		remoteBrowseCts = cancellationTokenSource;
-		string text = FtpHelpers.NormalizePath(remoteCurrentPath);
+		string text = NormalizeRemotePath(remoteCurrentPath);
 		nextRemoteRefreshAllowedUtc = DateTime.UtcNow.AddSeconds(force ? 1.0 : 4.0);
-		remotePathLabel.Text = "FTP / " + text + "  :: loading";
-		remoteFileList.SetItems(new string[1] { "Loading remote view..." });
+		remotePathLabel.Text = FormatRemotePathLabel(text) + "  :: loading";
+		remoteFileList.SetMessage("Loading remote view...");
 		try
 		{
 			(string pathText, List<FileEntryView> entries, List<string> items) valueTuple = await Task.Run(() => LoadRemoteBrowserSnapshotAsync(text, cancellationTokenSource.Token), cancellationTokenSource.Token);
@@ -1258,9 +2661,29 @@ internal sealed class XeCliTerminalForm : Form
 			}
 			remoteEntries.Clear();
 			remoteEntries.AddRange(valueTuple.entries);
-			remotePathLabel.Text = "FTP / " + valueTuple.pathText;
-			remoteFileList.SetItems(valueTuple.items);
+			remotePathLabel.Text = FormatRemotePathLabel(valueTuple.pathText);
+			remotePathTextBox.Text = valueTuple.pathText;
+			remoteFileList.SetEntries(valueTuple.entries);
 			remoteCurrentPath = valueTuple.pathText;
+			if (string.Equals(valueTuple.pathText, "/", StringComparison.Ordinal))
+			{
+				List<string> list = valueTuple.entries.Where(static entry => entry.IsDirectory && entry.Name != "..")
+					.Select(static entry => entry.Name.Trim().TrimEnd(':'))
+					.Where(ShouldDisplayDriveName)
+					.Select(static entry => entry.ToUpperInvariant())
+					.Distinct(StringComparer.OrdinalIgnoreCase)
+					.OrderBy(static entry => entry, StringComparer.OrdinalIgnoreCase)
+					.ToList();
+				if (list.Count != 0)
+				{
+					if (latestSnapshot != null)
+					{
+						latestSnapshot.Drives.Clear();
+						latestSnapshot.Drives.AddRange(list);
+					}
+					UpdateDriveInventory(list);
+				}
+			}
 		}
 		catch (OperationCanceledException)
 		{
@@ -1270,8 +2693,9 @@ internal sealed class XeCliTerminalForm : Form
 			if (!base.IsDisposed && num == remoteBrowseVersion)
 			{
 				nextRemoteRefreshAllowedUtc = DateTime.UtcNow.AddSeconds(10.0);
-				remotePathLabel.Text = "FTP / " + text;
-				remoteFileList.SetItems(new string[1] { "Remote browse failed: " + ex.Message });
+				remotePathLabel.Text = FormatRemotePathLabel(text);
+				remotePathTextBox.Text = text;
+				remoteFileList.SetMessage("Remote browse failed: " + ex.Message);
 			}
 		}
 	}
@@ -1281,13 +2705,13 @@ internal sealed class XeCliTerminalForm : Form
 		List<FileEntryView> list = new List<FileEntryView>();
 		CliConfig cliConfig = CliConfig.Load();
 		int num = cliConfig.DefaultFtpPort ?? 21;
-		string user = TrimOrNull(cliConfig.DefaultFtpUser) ?? "xboxftp";
-		string pass = cliConfig.DefaultFtpPassword ?? "xboxftp";
+		string user = TrimOrNull(cliConfig.DefaultFtpUser) ?? "xbox";
+		string pass = cliConfig.DefaultFtpPassword ?? "xbox";
 		int timeoutMs = Math.Clamp(options.TimeoutMs, 1200, 7000);
-		string text = FtpHelpers.NormalizePath(remotePath);
+		string text = NormalizeRemotePath(remotePath);
 		using CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		cancellationTokenSource.CancelAfter(timeoutMs);
-		await using AsyncFtpClient asyncFtpClient = FtpHelpers.CreateClient(options.Ip, num, user, pass, timeoutMs);
+		await using AsyncFtpClient asyncFtpClient = FtpHelpers.CreateClient(currentTargetIp, num, user, pass, timeoutMs);
 		await asyncFtpClient.Connect(cancellationTokenSource.Token);
 		(FtpListItem[], bool) tuple = await FtpHelpers.GetListingWithFallbackAsync(asyncFtpClient, text);
 		FtpListItem[] item = tuple.Item1;
@@ -1307,46 +2731,36 @@ internal sealed class XeCliTerminalForm : Form
 				continue;
 			}
 			bool isDirectory = item2.Type != FtpObjectType.File;
-			string fullPath = FtpHelpers.NormalizePath(!string.IsNullOrWhiteSpace(item2.FullName) ? item2.FullName : CombineRemotePath(text, item2.Name));
+			string fullPath = NormalizeRemotePath(!string.IsNullOrWhiteSpace(item2.FullName) ? item2.FullName : CombineRemotePath(text, item2.Name));
 			list.Add(new FileEntryView
 			{
 				Name = item2.Name,
 				FullPath = fullPath,
-				IsDirectory = isDirectory
+				IsDirectory = isDirectory,
+				SizeBytes = isDirectory ? null : item2.Size,
+				ModifiedUtc = item2.Modified.ToUniversalTime()
 			});
 		}
-		List<string> list2 = list.Select(delegate(FileEntryView e)
-		{
-			if (!e.IsDirectory)
-			{
-				return "      " + e.Name;
-			}
-			return "[DIR] " + e.Name;
-		}).ToList();
-		if (list2.Count == 0)
-		{
-			list2.Add("(empty)");
-		}
-		return (text, list, list2);
+		return (text, list, new List<string>());
 	}
 
 	private static string CombineRemotePath(string parentPath, string name)
 	{
-		string text = FtpHelpers.NormalizePath(parentPath).TrimEnd('/');
+		string text = NormalizeRemotePath(parentPath).TrimEnd('/');
 		if (string.IsNullOrEmpty(text))
 		{
 			text = "/";
 		}
 		if (text == "/")
 		{
-			return "/" + name.Trim('/');
+			return NormalizeRemotePath("/" + name.Trim('/'));
 		}
-		return text + "/" + name.Trim('/');
+		return NormalizeRemotePath(text + "/" + name.Trim('/'));
 	}
 
 	private static string GetRemoteParentPath(string path)
 	{
-		string text = FtpHelpers.NormalizePath(path).TrimEnd('/');
+		string text = NormalizeRemotePath(path).TrimEnd('/');
 		if (string.IsNullOrWhiteSpace(text) || text == "/")
 		{
 			return "/";
@@ -1357,6 +2771,30 @@ internal sealed class XeCliTerminalForm : Form
 			return "/";
 		}
 		return text.Substring(0, num);
+	}
+
+	private static string NormalizeRemotePath(string path)
+	{
+		string text = FtpHelpers.NormalizePath(path);
+		string[] array = text.Split('/', StringSplitOptions.RemoveEmptyEntries);
+		List<string> list = new List<string>(array.Length);
+		foreach (string text2 in array)
+		{
+			if (text2 == ".")
+			{
+				continue;
+			}
+			if (text2 == "..")
+			{
+				if (list.Count > 0)
+				{
+					list.RemoveAt(list.Count - 1);
+				}
+				continue;
+			}
+			list.Add(text2);
+		}
+		return "/" + string.Join("/", list);
 	}
 
 	private static void CancelAndDispose(ref CancellationTokenSource? cts)
@@ -1652,33 +3090,56 @@ internal sealed class XeCliTerminalForm : Form
 	{
 		connectButton.Click += async delegate
 		{
+			if (connectAttemptInFlight || fileTransferInFlight)
+			{
+				return;
+			}
+			if (!TryApplyManualTargetFromInputs(announceChange: false, announceUnchanged: false))
+			{
+				return;
+			}
+			CancelAndDispose(ref connectProbeCts);
+			CancelAndDispose(ref fileTransferCts);
 			CancelAndDispose(ref remoteBrowseCts);
-			shellDisconnected = false;
+			int sessionVersion = Interlocked.Increment(ref sessionEpoch);
 			connectAttemptInFlight = true;
 			connectAttemptStartedUtc = DateTime.UtcNow;
+			latestSnapshot = null;
 			remoteEntries.Clear();
+			remoteCurrentPath = "/";
 			nextRemoteRefreshAllowedUtc = DateTime.MinValue;
-			footerStatusLabel.Text = "CONNECTING...";
-			footerStatusLabel.ForeColor = AccentGreen;
+		footerStatusLabel.Text = "CONNECTING";
+		footerStatusLabel.ForeColor = AccentGreen;
 			SetPersistentConnectState("LINK NEGOTIATING", AccentGreen, Color.FromArgb(18, 27, 18));
+			SetLabelText(rightNetworkLabel, "LINK      NEGOTIATING\nTARGET    " + FormatStatusTarget() + "\nFTP       connecting\nPRESENCE  pending");
+			SetLabelText(rightTempLabel, "CONNECTING");
+			drivesList.SetItems(new string[1] { "Connecting to drive inventory..." });
+			inventoryList.SetItems(new string[1] { inventoryShowsModules ? "Connecting to live modules..." : "Connecting to live plugins..." });
+			SetLabelText(rightDetailLabel, BuildDisconnectedSessionText());
+			UpdateDriveInventory(Array.Empty<string>());
+			SetRemoteBrowserPlaceholder("/", "Waiting for FTP...");
 			UpdateShellScaffold();
-			terminalOutput.SelectionStart = terminalOutput.TextLength;
-			terminalOutput.SelectionLength = 0;
-			terminalOutput.SelectedText = Environment.NewLine + "[connecting] Establishing console link..." + Environment.NewLine;
 			commandInput.PlaceholderText = "Connecting to console...";
-			connectButton.Text = "CONNECTING";
-			connectButton.ForeColor = AccentGreen;
-			connectButton.Enabled = false;
+			SetConnectButtonConnectingState();
 			await Task.Yield();
 			bool flag = false;
 			try
 			{
-				flag = await TryProbeConnectionAsync();
+				connectProbeCts = CancellationTokenSource.CreateLinkedTokenSource(formLifetimeCts.Token);
+				flag = await Task.Run(() => TryProbeConnectionAsync(connectProbeCts.Token), formLifetimeCts.Token);
+				if (!flag)
+				{
+					AppendSystemLine("Connect probe timed out.", WarningColor);
+				}
 			}
 			catch (Exception ex)
 			{
 				flag = false;
 				AppendSystemLine("Connect failed: " + ex.Message, AccentPink);
+			}
+			finally
+			{
+				CancelAndDispose(ref connectProbeCts);
 			}
 			int num = (int)(DateTime.UtcNow - connectAttemptStartedUtc).TotalMilliseconds;
 			if (num < ConnectBannerMinimumHoldMs)
@@ -1695,17 +3156,38 @@ internal sealed class XeCliTerminalForm : Form
 			{
 				if (!connectAttemptInFlight)
 				{
-					connectButton.Text = "CONNECT";
-					connectButton.ForeColor = AccentGreen;
-					connectButton.Enabled = true;
+					RestoreConnectButtonIdleState();
 					commandInput.PlaceholderText = "Enter XeCLI command for the current console session...";
+					return;
+				}
+				connectAttemptInFlight = false;
+				RestoreConnectButtonIdleState();
+				commandInput.PlaceholderText = "Connect or enter a XeCLI command for this session...";
+				if (sessionVersion != Volatile.Read(ref sessionEpoch))
+				{
 					return;
 				}
 				if (flag)
 				{
+					shellDisconnected = false;
+					if (!firstConnectWorkspacePrepared)
+					{
+						firstConnectWorkspacePrepared = true;
+						ClearTerminalWorkspace();
+						transferQueueEntries.Clear();
+						RefreshTransferQueueDisplay();
+					}
 					SetPersistentConnectState("LINK ACTIVE", AccentGreen, Color.FromArgb(18, 34, 32));
 					footerStatusLabel.Text = "CONNECTED";
 					footerStatusLabel.ForeColor = AccentGreen;
+					AppendSystemLine("Console link active.", AccentGreen);
+					UpdateRuntimePresence(connected: true, new TelemetrySnapshot
+					{
+						Connected = true
+					});
+					SetLabelText(rightNetworkLabel, "LINK      ONLINE\nTARGET    " + FormatStatusTarget() + "\nFTP       refreshing\nPRESENCE  syncing");
+					SetLabelText(rightDetailLabel, "Connection established.\nLoading title, XEX, user,\nsign-in, and queue...");
+					SetRemoteBrowserPlaceholder("/", "Refreshing remote root...");
 					UpdateConnectionStatusIndicator(new TelemetrySnapshot
 					{
 						Connected = true
@@ -1716,33 +3198,38 @@ internal sealed class XeCliTerminalForm : Form
 					}
 					UpdateShellScaffold(new TelemetrySnapshot
 					{
-						Connected = true
-					});
-					_ = HydrateConnectedSessionAsync();
+							Connected = true
+						});
+					_ = HydrateConnectedSessionAsync(sessionVersion);
 				}
 				else
 				{
+					shellDisconnected = true;
+					latestSnapshot = null;
+					UpdateRuntimePresence(connected: false);
 					SetPersistentConnectState("LINK FAILED", WarningColor, Color.FromArgb(27, 21, 16));
-					footerStatusLabel.Text = "CONNECT FAILED";
+					footerStatusLabel.Text = "DISCONNECTED";
 					footerStatusLabel.ForeColor = WarningColor;
+					SetRemoteBrowserPlaceholder("/", "Connect failed or timed out");
+					SetLabelText(rightNetworkLabel, BuildDisconnectedStatusText());
 					UpdateShellScaffold();
 				}
-				connectButton.Text = "CONNECT";
-				connectButton.ForeColor = AccentGreen;
-				connectButton.Enabled = true;
-				commandInput.PlaceholderText = "Connect or enter a XeCLI command for this session...";
-				connectAttemptInFlight = false;
 			}
 		};
 		disconnectButton.Click += delegate
 		{
+			CancelAndDispose(ref connectProbeCts);
+			CancelAndDispose(ref fileTransferCts);
 			CancelAndDispose(ref remoteBrowseCts);
 			CancelActiveCommand();
 			shellDisconnected = true;
 			connectAttemptInFlight = false;
+			Interlocked.Increment(ref sessionEpoch);
 			remoteEntries.Clear();
 			remoteCurrentPath = "/";
 			nextRemoteRefreshAllowedUtc = DateTime.MinValue;
+			latestSnapshot = null;
+			UpdateRuntimePresence(connected: false);
 			footerStatusLabel.Text = "DISCONNECTED";
 			footerStatusLabel.ForeColor = WarningColor;
 			SetPersistentConnectState("LINK OFFLINE", WarningColor, Color.FromArgb(24, 19, 15));
@@ -1752,23 +3239,33 @@ internal sealed class XeCliTerminalForm : Form
 			});
 			UpdateShellScaffold();
 			telemetryTimer.Stop();
-			connectButton.Text = "CONNECT";
-			connectButton.ForeColor = AccentCyan;
-			connectButton.Enabled = true;
+			RestoreConnectButtonIdleState();
 			commandInput.PlaceholderText = "Connect or enter a XeCLI command for this session...";
 			SetLabelText(rightNetworkLabel, BuildDisconnectedStatusText());
-			SetLabelText(rightTempLabel, "IDLE · waiting for FTP traffic");
+			SetLabelText(rightTempLabel, "IDLE");
 			SetLabelText(rightDetailLabel, BuildDisconnectedSessionText());
-			remotePathLabel.Text = "FTP /";
-			remoteFileList.SetItems(new string[1] { "Disconnected" });
+			SetRemoteBrowserPlaceholder("/", "Disconnected");
 			if (transferQueueEntries.Count == 0)
 			{
-				transferQueueList.SetItems(new string[2] { "No transfer activity yet", "Queued dumps and FTP jobs appear here" });
+				RefreshTransferQueueDisplay();
 			}
 		};
 		screenshotButton.Click += async delegate
 		{
 			await ExecuteCommandAsync("screenshot");
+		};
+		languageButton.Click += delegate
+		{
+			ToggleUiLanguage();
+		};
+		targetIpTextBox.KeyDown += delegate(object? _, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Return)
+			{
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+				TryApplyManualTargetFromInputs();
+			}
 		};
 		pluginsTabButton.Click += delegate
 		{
@@ -1783,6 +3280,44 @@ internal sealed class XeCliTerminalForm : Form
 			RefreshInventoryListFromSnapshot();
 		};
 		RefreshInventoryHeader();
+		RefreshLanguageButtonText();
+	}
+
+	private static string NormalizeUiLanguageCode(string? value)
+	{
+		return string.Equals(value?.Trim(), "es", StringComparison.OrdinalIgnoreCase) ? "es" : "en";
+	}
+
+	private static string GetConfiguredUiLanguageCode()
+	{
+		try
+		{
+			return NormalizeUiLanguageCode(CliConfig.Load().UiLanguage);
+		}
+		catch
+		{
+			return "en";
+		}
+	}
+
+	private void RefreshLanguageButtonText()
+	{
+		languageButton.Text = "LANG: " + (GetConfiguredUiLanguageCode() == "es" ? "ES" : "EN");
+	}
+
+	private void RefreshTargetEditorText()
+	{
+		targetIpTextBox.Text = currentTargetIp;
+	}
+
+	private void ToggleUiLanguage()
+	{
+		CliConfig cliConfig = CliConfig.Load();
+		string text = (NormalizeUiLanguageCode(cliConfig.UiLanguage) == "es") ? "en" : "es";
+		cliConfig.UiLanguage = text;
+		cliConfig.Save();
+		RefreshLanguageButtonText();
+		AppendSystemLine("CLI language set to " + ((text == "es") ? "Spanish" : "English") + ". New commands use it immediately.", AccentGreen);
 	}
 
 	private void ConfigureActionButton(Button button, string text)
@@ -1791,6 +3326,7 @@ internal sealed class XeCliTerminalForm : Form
 		button.FlatStyle = FlatStyle.Flat;
 		button.FlatAppearance.BorderColor = BorderColor;
 		button.FlatAppearance.MouseOverBackColor = Color.FromArgb(28, 46, 28);
+		button.FlatAppearance.MouseDownBackColor = Color.FromArgb(34, 60, 34);
 		button.BackColor = TerminalBackground;
 		button.ForeColor = Color.WhiteSmoke;
 		button.Font = new Font("Consolas", 8.25f, FontStyle.Bold, GraphicsUnit.Point);
@@ -1801,17 +3337,336 @@ internal sealed class XeCliTerminalForm : Form
 		button.Cursor = Cursors.Hand;
 	}
 
+	private void ConfigureInputTextBox(TextBox textBox, string placeholderText, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left)
+	{
+		textBox.Dock = DockStyle.Fill;
+		textBox.BackColor = Color.FromArgb(8, 14, 11);
+		textBox.ForeColor = Color.WhiteSmoke;
+		textBox.BorderStyle = BorderStyle.None;
+		textBox.Font = shellFont;
+		textBox.Margin = new Padding(0, 1, 0, 0);
+		textBox.ShortcutsEnabled = true;
+		textBox.Multiline = false;
+		textBox.PlaceholderText = placeholderText;
+		textBox.TextAlign = horizontalAlignment;
+	}
+
+	private void ConfigureInputHostPanel(Panel panel, TextBox textBox, string labelText)
+	{
+		panel.Dock = DockStyle.Fill;
+		panel.Margin = new Padding(0);
+		panel.Padding = new Padding(5, 3, 5, 3);
+		panel.BackColor = Color.FromArgb(9, 14, 11);
+		panel.Controls.Clear();
+		TableLayoutPanel tableLayoutPanel = new TableLayoutPanel();
+		tableLayoutPanel.Dock = DockStyle.Fill;
+		tableLayoutPanel.Margin = Padding.Empty;
+		tableLayoutPanel.Padding = Padding.Empty;
+		tableLayoutPanel.ColumnCount = 1;
+		tableLayoutPanel.RowCount = 2;
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 11f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+		Label label = new Label
+		{
+			Dock = DockStyle.Fill,
+			Margin = Padding.Empty,
+			Padding = new Padding(0),
+			TextAlign = ContentAlignment.MiddleLeft,
+			ForeColor = Color.FromArgb(188, AccentGreen),
+			Font = microFont,
+			Text = labelText
+		};
+		tableLayoutPanel.Controls.Add(label, 0, 0);
+		tableLayoutPanel.Controls.Add(textBox, 0, 1);
+		panel.Controls.Add(tableLayoutPanel);
+		panel.Paint += delegate(object? _, PaintEventArgs e)
+		{
+			Rectangle clientRectangle = panel.ClientRectangle;
+			clientRectangle.Width = Math.Max(0, clientRectangle.Width - 1);
+			clientRectangle.Height = Math.Max(0, clientRectangle.Height - 1);
+			using SolidBrush brush = new SolidBrush(Color.FromArgb(8, 14, 11));
+			using Pen pen = new Pen(Color.FromArgb(108, AccentGreen), 1f);
+			e.Graphics.FillRectangle(brush, clientRectangle);
+			e.Graphics.DrawRectangle(pen, clientRectangle);
+		};
+	}
+
+	private void ConfigureTargetIpHostPanel(Panel panel, TextBox textBox, string labelText)
+	{
+		panel.Dock = DockStyle.Fill;
+		panel.Margin = new Padding(0, 0, 0, 2);
+		panel.Padding = new Padding(4, 2, 4, 3);
+		panel.BackColor = Color.FromArgb(9, 14, 11);
+		panel.Controls.Clear();
+		panel.Paint += delegate(object? _, PaintEventArgs e)
+		{
+			Rectangle clientRectangle = panel.ClientRectangle;
+			clientRectangle.Width = Math.Max(0, clientRectangle.Width - 1);
+			clientRectangle.Height = Math.Max(0, clientRectangle.Height - 1);
+			using SolidBrush brush = new SolidBrush(Color.FromArgb(8, 14, 11));
+			using Pen pen = new Pen(Color.FromArgb(108, AccentGreen), 1f);
+			e.Graphics.FillRectangle(brush, clientRectangle);
+			e.Graphics.DrawRectangle(pen, clientRectangle);
+		};
+		TableLayoutPanel tableLayoutPanel = new TableLayoutPanel();
+		tableLayoutPanel.Dock = DockStyle.Fill;
+		tableLayoutPanel.Margin = Padding.Empty;
+		tableLayoutPanel.Padding = Padding.Empty;
+		tableLayoutPanel.ColumnCount = 1;
+		tableLayoutPanel.RowCount = 2;
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 9f));
+		tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+		Label label = new Label
+		{
+			Dock = DockStyle.Fill,
+			Margin = Padding.Empty,
+			Padding = Padding.Empty,
+			TextAlign = ContentAlignment.MiddleLeft,
+			ForeColor = Color.FromArgb(188, AccentGreen),
+			Font = microFont,
+			Text = labelText
+		};
+		Panel panel2 = new Panel
+		{
+			Dock = DockStyle.Fill,
+			Margin = Padding.Empty,
+			Padding = Padding.Empty,
+			BackColor = Color.Transparent
+		};
+		textBox.Dock = DockStyle.None;
+		textBox.AutoSize = false;
+		textBox.Multiline = false;
+		textBox.BorderStyle = BorderStyle.None;
+		textBox.BackColor = Color.FromArgb(8, 14, 11);
+		textBox.ForeColor = Color.WhiteSmoke;
+		textBox.Font = shellFont;
+		textBox.TextAlign = HorizontalAlignment.Center;
+		textBox.Margin = Padding.Empty;
+		textBox.Height = Math.Max(shellFont.Height + 4, 18);
+		textBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+		void layoutTargetTextBox()
+		{
+			int num = Math.Max(0, panel2.ClientSize.Width);
+			int num2 = Math.Max(0, (panel2.ClientSize.Height - textBox.Height) / 2);
+			textBox.SetBounds(0, num2, num, textBox.Height);
+		}
+		panel2.Resize += delegate
+		{
+			layoutTargetTextBox();
+		};
+		panel2.Controls.Add(textBox);
+		layoutTargetTextBox();
+		tableLayoutPanel.Controls.Add(label, 0, 0);
+		tableLayoutPanel.Controls.Add(panel2, 0, 1);
+		panel.Controls.Add(tableLayoutPanel);
+	}
+
+	private string FormatCurrentTarget()
+	{
+		return currentTargetIp;
+	}
+
+	private void RestoreConnectButtonIdleState()
+	{
+		connectButton.Text = "CONNECT";
+		connectButton.ForeColor = Color.WhiteSmoke;
+		connectButton.BackColor = TerminalBackground;
+		connectButton.FlatAppearance.BorderColor = BorderColor;
+		connectButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(28, 46, 28);
+		connectButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(34, 60, 34);
+		connectButton.Enabled = true;
+	}
+
+	private string FormatStatusTarget(int maxLength = 18)
+	{
+		return FitStatusText(FormatCurrentTarget(), maxLength);
+	}
+
+	private void UpdateRuntimePresence(bool connected, TelemetrySnapshot? snapshot = null)
+	{
+		TelemetrySnapshot? telemetrySnapshot = snapshot ?? latestSnapshot;
+		RuntimePresenceState.Update(new RuntimePresenceSnapshot
+		{
+			Connected = connected,
+			DebugName = connected ? telemetrySnapshot?.DebugName : null,
+			ExecutionState = connected ? telemetrySnapshot?.ExecutionState : null,
+			Motherboard = connected ? telemetrySnapshot?.Motherboard : null,
+			DashboardVersion = connected ? telemetrySnapshot?.DashboardVersion : null,
+			Gamertag = connected ? telemetrySnapshot?.Gamertag : null,
+			SignInStateText = connected ? telemetrySnapshot?.SignInStateText : null,
+			TitleId = connected ? telemetrySnapshot?.TitleId : null,
+			TitleName = connected ? telemetrySnapshot?.TitleName : null,
+			RunningXex = connected ? telemetrySnapshot?.RunningXex : null,
+			Ip = currentTargetIp,
+			Port = currentTargetPort
+		});
+	}
+
+	private bool IsSessionConnected(TelemetrySnapshot? snapshot = null)
+	{
+		return snapshot?.Connected ?? latestSnapshot?.Connected ?? !shellDisconnected;
+	}
+
+	private void SetConnectButtonConnectingState()
+	{
+		connectButton.Text = "CONNECTING";
+		connectButton.ForeColor = Color.WhiteSmoke;
+		connectButton.BackColor = Color.FromArgb(24, 54, 24);
+		connectButton.FlatAppearance.BorderColor = Color.FromArgb(140, AccentGreen);
+		connectButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(24, 54, 24);
+		connectButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(24, 54, 24);
+		connectButton.Enabled = true;
+	}
+
+	private void SetRemoteBrowserPlaceholder(string pathText, string message)
+	{
+		string text = NormalizeRemotePath(pathText);
+		remotePathLabel.Text = FormatRemotePathLabel(text);
+		remotePathTextBox.Text = text;
+		remoteFileList.SetMessage(message);
+	}
+
+	private static string FormatRemotePathLabel(string path)
+	{
+		string text = NormalizeRemotePath(path);
+		return (text == "/") ? "FTP /" : ("FTP " + text);
+	}
+
+	private void UpdateDriveInventory(IEnumerable<string> drives)
+	{
+		List<string> list = drives.Where(static d => !string.IsNullOrWhiteSpace(d))
+			.Distinct(StringComparer.OrdinalIgnoreCase)
+			.OrderBy(static d => d, StringComparer.OrdinalIgnoreCase)
+			.ToList();
+		if (latestSnapshot != null)
+		{
+			latestSnapshot.Drives.Clear();
+			latestSnapshot.Drives.AddRange(list);
+			if (latestSnapshot.Connected)
+			{
+				SetLabelText(rightNetworkLabel, BuildConnectedStatusText(latestSnapshot));
+			}
+		}
+		rightDrivesLabel.Text = "DETECTED DRIVES";
+		drivesList.SetItems((list.Count != 0) ? list : new string[1] { shellDisconnected ? "No live drives detected" : "Connecting to drive inventory..." });
+	}
+
+	private void ResetLiveSessionUi(bool connected, string footerText, Color footerColor, string shellStatusText, Color shellStatusColor, Color shellStatusBackground, string remoteMessage)
+	{
+		shellDisconnected = !connected;
+		footerStatusLabel.Text = footerText;
+		footerStatusLabel.ForeColor = footerColor;
+		SetPersistentConnectState(shellStatusText, shellStatusColor, shellStatusBackground);
+		UpdateConnectionStatusIndicator(new TelemetrySnapshot
+		{
+			Connected = connected
+		});
+		UpdateShellScaffold(connected ? new TelemetrySnapshot
+		{
+			Connected = true
+		} : null);
+		if (!connected)
+		{
+			SetLabelText(rightNetworkLabel, BuildDisconnectedStatusText());
+			SetLabelText(rightTempLabel, "IDLE");
+			SetLabelText(rightDetailLabel, BuildDisconnectedSessionText());
+			leftConsoleLabel.Text = "BOARD      unknown\nDASH       --\nGAME       --\nXEX        --\nTITLEID    --\nGAMERTAG   Not Signed In";
+			leftSignInLabel.Text = "INVENTORY";
+			footerPresenceLabel.Text = "PRESENCE · OFFLINE";
+			footerThermalLabel.Text = BuildFooterThermalText(null, null, null, null);
+			UpdateDriveInventory(Array.Empty<string>());
+			latestSnapshot = null;
+		}
+		UpdateRuntimePresence(connected, connected ? latestSnapshot : null);
+		SetRemoteBrowserPlaceholder("/", remoteMessage);
+	}
+
+	private void ApplyManualTargetFromInputs()
+	{
+		TryApplyManualTargetFromInputs();
+	}
+
+	private bool TryApplyManualTargetFromInputs(bool announceChange = true, bool announceUnchanged = true)
+	{
+		string text = TrimOrNull(targetIpTextBox.Text) ?? string.Empty;
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			AppendSystemLine("Target IP or host is required.", WarningColor);
+			targetIpTextBox.Focus();
+			return false;
+		}
+		int result = currentTargetPort > 0 ? currentTargetPort : 730;
+		if (string.Equals(currentTargetIp, text, StringComparison.OrdinalIgnoreCase) && currentTargetPort == result)
+		{
+			if (announceUnchanged)
+			{
+				AppendSystemLine("Target already set to " + FormatCurrentTarget() + ".", AccentDim);
+			}
+			return true;
+		}
+		CancelAndDispose(ref remoteBrowseCts);
+		CancelAndDispose(ref connectProbeCts);
+		CancelAndDispose(ref fileTransferCts);
+		telemetryTimer.Stop();
+		connectAttemptInFlight = false;
+		Interlocked.Increment(ref sessionEpoch);
+		currentTargetIp = text;
+		currentTargetPort = result;
+		CliConfig cliConfig = CliConfig.Load();
+		cliConfig.DefaultIp = currentTargetIp;
+		cliConfig.DefaultPort = currentTargetPort;
+		cliConfig.Save();
+		latestSnapshot = null;
+		remoteEntries.Clear();
+		remoteCurrentPath = "/";
+		nextRemoteRefreshAllowedUtc = DateTime.MinValue;
+		UpdateRuntimePresence(connected: false);
+		RestoreConnectButtonIdleState();
+		commandInput.PlaceholderText = "Connect or enter a XeCLI command for this session...";
+		ResetLiveSessionUi(connected: false, "TARGET READY", AccentCyan, "LINK OFFLINE", WarningColor, Color.FromArgb(24, 19, 15), "Disconnected");
+		if (announceChange)
+		{
+			AppendSystemLine("Target updated to " + FormatCurrentTarget() + ".", AccentGreen);
+		}
+		return true;
+	}
+
+	private async Task PrimeRemoteBrowserAfterConnectAsync()
+	{
+		try
+		{
+			if (fileTransferInFlight)
+			{
+				return;
+			}
+			await RefreshRemoteBrowserAsync(force: true);
+			if (!base.IsDisposed && !shellDisconnected && !connectAttemptInFlight && !fileTransferInFlight && remoteEntries.Count == 0)
+			{
+				await Task.Delay(900, formLifetimeCts.Token);
+				await RefreshRemoteBrowserAsync(force: true);
+			}
+		}
+		catch (OperationCanceledException)
+		{
+		}
+		catch
+		{
+		}
+	}
+
 	private void ConfigureToggleButton(Button button, string text)
 	{
-		button.Width = 82;
-		button.Height = 24;
-		button.Top = 0;
+		button.Dock = DockStyle.Fill;
+		button.MinimumSize = new Size(0, 24);
 		button.FlatStyle = FlatStyle.Flat;
 		button.FlatAppearance.BorderColor = BorderColor;
+		button.FlatAppearance.MouseOverBackColor = Color.FromArgb(22, 36, 22);
+		button.FlatAppearance.MouseDownBackColor = Color.FromArgb(28, 46, 28);
 		button.BackColor = TerminalBackground;
 		button.ForeColor = AccentDim;
 		button.Font = shellFontBold;
 		button.Text = text;
+		button.TextAlign = ContentAlignment.MiddleCenter;
 		button.Cursor = Cursors.Hand;
 	}
 
@@ -1823,22 +3678,24 @@ internal sealed class XeCliTerminalForm : Form
 
 	private void RefreshInventoryListFromSnapshot()
 	{
+		int num = 0;
 		if (latestSnapshot == null)
 		{
-			inventoryList.SetItems(new string[2]
+			leftSignInLabel.Text = "INVENTORY";
+			inventoryList.SetItems(new string[1]
 			{
-				inventoryShowsModules ? "Connect to enumerate live modules" : "Connect to enumerate loaded plugins",
-				"Local shell is ready below"
+				inventoryShowsModules ? "Connect to load live modules" : "Connect to load live plugins"
 			});
 			return;
 		}
 		IEnumerable<string> enumerable = inventoryShowsModules ? latestSnapshot.Modules : latestSnapshot.Plugins;
+		num = enumerable.Count();
+		leftSignInLabel.Text = "INVENTORY";
 		if (!enumerable.Any())
 		{
-			inventoryList.SetItems(new string[2]
+			inventoryList.SetItems(new string[1]
 			{
-				inventoryShowsModules ? (latestSnapshot.Connected ? "No live modules detected" : "No cached modules available") : (latestSnapshot.Connected ? "No live plugins detected" : "No cached plugins available"),
-				latestSnapshot.Connected ? "Inventory will refresh automatically" : "Reconnect to refresh live inventory"
+				inventoryShowsModules ? (latestSnapshot.Connected ? "No live modules detected" : "No cached modules loaded") : (latestSnapshot.Connected ? "No live plugins detected" : "No cached plugins loaded")
 			});
 			return;
 		}
@@ -1860,14 +3717,78 @@ internal sealed class XeCliTerminalForm : Form
 			BeginInvoke(new Action<string, string>(RecordTransferActivity), command, state);
 			return;
 		}
-		string item2 = $"{DateTime.Now:HH:mm:ss}  {state.ToUpperInvariant(),-9}  {AbbreviateTransferCommand(command)}";
-		transferQueueEntries.RemoveAll((string item) => item.EndsWith(AbbreviateTransferCommand(command), StringComparison.Ordinal));
-		transferQueueEntries.Insert(0, item2);
-		if (transferQueueEntries.Count > 6)
+		string text = AbbreviateTransferCommand(command);
+		TransferQueueEntry transferQueueEntry = transferQueueEntries.FirstOrDefault((TransferQueueEntry item) => string.Equals(item.CommandKey, text, StringComparison.Ordinal));
+		if (transferQueueEntry == null)
 		{
-			transferQueueEntries.RemoveRange(6, transferQueueEntries.Count - 6);
+			transferQueueEntry = new TransferQueueEntry
+			{
+				CommandKey = text,
+				CommandText = text,
+				State = state,
+				UpdatedAtLocal = DateTime.Now
+			};
+			transferQueueEntries.Insert(0, transferQueueEntry);
 		}
-		transferQueueList.SetItems(transferQueueEntries);
+		else
+		{
+			transferQueueEntries.Remove(transferQueueEntry);
+			transferQueueEntries.Insert(0, transferQueueEntry);
+		}
+		transferQueueEntry.CommandText = text;
+		transferQueueEntry.State = state;
+		transferQueueEntry.UpdatedAtLocal = DateTime.Now;
+		if (!string.Equals(state, "running", StringComparison.OrdinalIgnoreCase) && !string.Equals(state, "queued", StringComparison.OrdinalIgnoreCase))
+		{
+			transferQueueEntry.ProgressPercent = string.Equals(state, "complete", StringComparison.OrdinalIgnoreCase) ? 100.0 : null;
+		}
+		if (transferQueueEntries.Count > 10)
+		{
+			transferQueueEntries.RemoveRange(10, transferQueueEntries.Count - 10);
+		}
+		RefreshTransferQueueDisplay();
+	}
+
+	private void UpdateActiveTransferProgress(double? percent, string? detail = null)
+	{
+		string text = activeTransferCommand;
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			return;
+		}
+		if (InvokeRequired)
+		{
+			BeginInvoke(new Action<double?, string?>(UpdateActiveTransferProgress), percent, detail);
+			return;
+		}
+		string text2 = AbbreviateTransferCommand(text);
+		TransferQueueEntry transferQueueEntry = transferQueueEntries.FirstOrDefault((TransferQueueEntry item) => string.Equals(item.CommandKey, text2, StringComparison.Ordinal));
+		if (transferQueueEntry == null)
+		{
+			transferQueueEntry = new TransferQueueEntry
+			{
+				CommandKey = text2,
+				CommandText = text2,
+				State = "running",
+				UpdatedAtLocal = DateTime.Now
+			};
+			transferQueueEntries.Insert(0, transferQueueEntry);
+		}
+		transferQueueEntry.State = "running";
+		transferQueueEntry.ProgressPercent = percent;
+		transferQueueEntry.Detail = detail;
+		transferQueueEntry.UpdatedAtLocal = DateTime.Now;
+		RefreshTransferQueueDisplay();
+	}
+
+	private void HandleFtpProgress(FtpProgress progress, string detail)
+	{
+		double? nullable = null;
+		if (progress.Progress >= 0.0 && progress.Progress <= 100.0)
+		{
+			nullable = progress.Progress;
+		}
+		UpdateActiveTransferProgress(nullable, detail);
 	}
 
 	private static bool IsTransferCommand(string command)
@@ -2088,10 +4009,10 @@ internal sealed class XeCliTerminalForm : Form
 			ToggleSuggestions(visible: false);
 			return;
 		}
-		List<string> list = XeCliSuggestions.Where((string s) => s.StartsWith(text, StringComparison.OrdinalIgnoreCase)).Take(12).ToList();
+		List<string> list = XeCliSuggestions.Where((string s) => s.StartsWith(text, StringComparison.OrdinalIgnoreCase)).Take(18).ToList();
 		if (list.Count == 0 && text.Length >= 3)
 		{
-			list = XeCliSuggestions.Where((string s) => s.Contains(text, StringComparison.OrdinalIgnoreCase)).Take(12).ToList();
+			list = XeCliSuggestions.Where((string s) => s.Contains(text, StringComparison.OrdinalIgnoreCase)).Take(18).ToList();
 		}
 		suggestionList.Items.Clear();
 		foreach (string item in list)
@@ -2109,7 +4030,29 @@ internal sealed class XeCliTerminalForm : Form
 	private void ToggleSuggestions(bool visible)
 	{
 		suggestionList.Visible = visible;
-		suggestionHost.Height = (visible ? 112 : 4);
+		suggestionHost.Height = (visible ? 126 : 4);
+		suggestionHost.BackColor = (visible ? Color.FromArgb(10, 15, 12) : TerminalBackground);
+		suggestionHost.Padding = (visible ? new Padding(1) : Padding.Empty);
+		if (suggestionRowStyle != null)
+		{
+			suggestionRowStyle.Height = (visible ? 130f : 4f);
+		}
+	}
+
+	private void DrawSuggestionItem(object? sender, DrawItemEventArgs e)
+	{
+		e.DrawBackground();
+		if (e.Index < 0 || e.Index >= suggestionList.Items.Count)
+		{
+			return;
+		}
+		bool flag = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+		Color color = flag ? Color.FromArgb(52, 96, 42) : Color.FromArgb(10, 15, 12);
+		Color color2 = flag ? AccentGreen : Color.WhiteSmoke;
+		using SolidBrush brush = new SolidBrush(color);
+		using SolidBrush brush2 = new SolidBrush(color2);
+		e.Graphics.FillRectangle(brush, e.Bounds);
+		TextRenderer.DrawText(e.Graphics, suggestionList.Items[e.Index]?.ToString() ?? string.Empty, suggestionList.Font, Rectangle.Inflate(e.Bounds, -6, 0), color2, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
 	}
 
 	private void ApplySelectedSuggestion()
@@ -2124,6 +4067,95 @@ internal sealed class XeCliTerminalForm : Form
 			commandInput.SelectionStart = commandInput.Text.Length;
 			commandInput.Focus();
 			ToggleSuggestions(visible: false);
+		}
+	}
+
+	private void SetRemotePaneMode(bool showQueue)
+	{
+		remotePaneShowsQueue = showQueue;
+		ftpTabButton.ForeColor = (showQueue ? AccentDim : AccentCyan);
+		queueTabButton.ForeColor = (showQueue ? AccentCyan : AccentDim);
+		remoteFileList.Visible = !showQueue;
+		transferQueueList.Visible = showQueue;
+		remotePathHostPanel.Visible = !showQueue;
+		remoteUpButton.Visible = !showQueue;
+		remotePathLabel.Text = showQueue ? "QUEUE / TRANSFERS" : FormatRemotePathLabel(remoteCurrentPath);
+		if (showQueue)
+		{
+			RefreshTransferQueueDisplay();
+		}
+	}
+
+	private async Task ApplyLocalPathAsync()
+	{
+		string? text = TrimOrNull(localPathTextBox.Text);
+		if (string.IsNullOrWhiteSpace(text) || string.Equals(text, "This PC", StringComparison.OrdinalIgnoreCase) || string.Equals(text, "PC :: This PC", StringComparison.OrdinalIgnoreCase))
+		{
+			localCurrentPath = null;
+			await RefreshLocalBrowserAsync();
+			return;
+		}
+		string text2 = Environment.ExpandEnvironmentVariables(text);
+		if (File.Exists(text2))
+		{
+			text2 = Path.GetDirectoryName(text2) ?? text2;
+		}
+		if (!Directory.Exists(text2))
+		{
+			AppendSystemLine("Local path does not exist: " + text2, WarningColor);
+			localPathTextBox.Focus();
+			localPathTextBox.SelectAll();
+			return;
+		}
+		localCurrentPath = text2;
+		await RefreshLocalBrowserAsync();
+	}
+
+	private async Task ApplyRemotePathAsync()
+	{
+		if (remotePaneShowsQueue)
+		{
+			return;
+		}
+		string text = TrimOrNull(remotePathTextBox.Text) ?? "/";
+		remoteCurrentPath = NormalizeRemotePath(text);
+		await RefreshRemoteBrowserAsync(force: true);
+	}
+
+	private void RefreshTransferQueueDisplay()
+	{
+		transferQueueList.SetEntries(transferQueueEntries);
+	}
+
+	private void AppendTransferCompletionLines(List<(string RemotePath, string LocalPath)> completedTransfers, string defaultLocalDirectory)
+	{
+		if (completedTransfers.Count == 0)
+		{
+			AppendSystemLine("Saved to: " + defaultLocalDirectory, AccentGreen);
+			return;
+		}
+		if (completedTransfers.Count == 1)
+		{
+			(string RemotePath, string LocalPath) valueTuple = completedTransfers[0];
+			AppendSystemLine("Downloaded from: " + valueTuple.RemotePath, AccentDim);
+			AppendSystemLine("Saved to: " + valueTuple.LocalPath, AccentGreen);
+			return;
+		}
+		AppendSystemLine("Downloaded " + completedTransfers.Count + " items.", AccentGreen);
+		AppendSystemLine("Saved to: " + defaultLocalDirectory, AccentGreen);
+	}
+
+	private void ClearTerminalWorkspace()
+	{
+		lock (pendingTerminalLock)
+		{
+			pendingTerminalLines.Clear();
+			terminalFlushScheduled = false;
+		}
+		terminalFlushTimer.Stop();
+		if (!terminalOutput.IsDisposed)
+		{
+			terminalOutput.Clear();
 		}
 	}
 
@@ -2152,8 +4184,6 @@ internal sealed class XeCliTerminalForm : Form
 			return;
 		}
 		commandInFlight = true;
-		footerStatusLabel.Text = "EXECUTING  " + command;
-		footerStatusLabel.ForeColor = AccentCyan;
 		RecordTransferActivity(command, "queued");
 		AppendCommandLine(command);
 		try
@@ -2191,6 +4221,7 @@ internal sealed class XeCliTerminalForm : Form
 			StandardOutputEncoding = Encoding.UTF8,
 			StandardErrorEncoding = Encoding.UTF8
 		};
+		processStartInfo.Environment["XECLI_LANG"] = GetConfiguredUiLanguageCode();
 		using Process process = new Process
 		{
 			StartInfo = processStartInfo,
@@ -2381,14 +4412,19 @@ internal sealed class XeCliTerminalForm : Form
 
 	private async Task PollTelemetrySafeAsync(bool forceHeavyRefresh = false)
 	{
-		if (!options.TelemetryEnabled || telemetryPollInFlight || shellDisconnected || base.IsDisposed || commandInFlight || connectAttemptInFlight)
+		if (!options.TelemetryEnabled || telemetryPollInFlight || shellDisconnected || base.IsDisposed || commandInFlight || connectAttemptInFlight || fileTransferInFlight)
 		{
 			return;
 		}
+		int num = Volatile.Read(ref sessionEpoch);
 		telemetryPollInFlight = true;
 		try
 		{
 			TelemetrySnapshot telemetrySnapshot = await Task.Run(() => TryReadTelemetryAsync(forceHeavyRefresh), formLifetimeCts.Token);
+			if (base.IsDisposed || num != Volatile.Read(ref sessionEpoch))
+			{
+				return;
+			}
 			ApplyTelemetry(telemetrySnapshot);
 		}
 		catch (OperationCanceledException)
@@ -2400,29 +4436,37 @@ internal sealed class XeCliTerminalForm : Form
 		}
 	}
 
-	private async Task<bool> TryProbeConnectionAsync()
+	private async Task<bool> TryProbeConnectionAsync(CancellationToken externalCancellationToken)
 	{
-		using CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(formLifetimeCts.Token);
-		cancellationTokenSource.CancelAfter(Math.Max(800, Math.Min(options.TimeoutMs, 2000)));
+		int num = Math.Clamp(options.TimeoutMs, 3000, 10000);
+		using CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(formLifetimeCts.Token, externalCancellationToken);
+		cancellationTokenSource.CancelAfter(num);
 		XbdmConnectionOptions xbdmConnectionOptions = new XbdmConnectionOptions
 		{
-			Host = options.Ip,
-			Port = options.Port,
-			TimeoutMs = Math.Max(800, Math.Min(options.TimeoutMs, 2000))
+			Host = currentTargetIp,
+			Port = currentTargetPort,
+			TimeoutMs = num
 		};
-		using XbdmClient xbdmClient = await XbdmClient.ConnectAsync(xbdmConnectionOptions, cancellationTokenSource.Token);
+		Task<XbdmClient> task = XbdmClient.ConnectAsync(xbdmConnectionOptions, cancellationTokenSource.Token);
+		Task task2 = await Task.WhenAny(task, Task.Delay(num, formLifetimeCts.Token));
+		if (task2 != task)
+		{
+			cancellationTokenSource.Cancel();
+			return false;
+		}
+		using XbdmClient xbdmClient = await task;
 		return xbdmClient != null;
 	}
 
-	private async Task HydrateConnectedSessionAsync()
+	private async Task HydrateConnectedSessionAsync(int expectedSessionEpoch)
 	{
-		if (base.IsDisposed || shellDisconnected)
+		if (base.IsDisposed || shellDisconnected || expectedSessionEpoch != Volatile.Read(ref sessionEpoch))
 		{
 			return;
 		}
 		if (!options.TelemetryEnabled)
 		{
-			_ = RefreshRemoteBrowserAsync(force: true);
+			_ = PrimeRemoteBrowserAfterConnectAsync();
 			return;
 		}
 		try
@@ -2433,9 +4477,9 @@ internal sealed class XeCliTerminalForm : Form
 		{
 			AppendSystemLine("Telemetry refresh delayed: " + ex.Message, AccentDim);
 		}
-		if (!base.IsDisposed && !shellDisconnected && latestSnapshot != null && latestSnapshot.Connected)
+		if (!base.IsDisposed && !shellDisconnected && expectedSessionEpoch == Volatile.Read(ref sessionEpoch) && latestSnapshot != null && latestSnapshot.Connected)
 		{
-			_ = RefreshRemoteBrowserAsync(force: true);
+			_ = PrimeRemoteBrowserAfterConnectAsync();
 		}
 	}
 
@@ -2445,18 +4489,20 @@ internal sealed class XeCliTerminalForm : Form
 		bool flag = forceHeavyRefresh;
 		TelemetrySnapshot telemetrySnapshot = new TelemetrySnapshot
 		{
+			SessionEpoch = Volatile.Read(ref sessionEpoch),
 			Connected = false,
 			FtpPort = cliConfig.DefaultFtpPort ?? 21,
 			FtpUser = TrimOrNull(cliConfig.DefaultFtpUser) ?? "xbox"
 		};
 		using CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(formLifetimeCts.Token);
-		cancellationTokenSource.CancelAfter(Math.Clamp(options.TimeoutMs, 1200, 6000));
+		int telemetryTimeoutMs = Math.Clamp(options.TimeoutMs * (flag ? 2 : 1), 1200, flag ? 9000 : 6000);
+		cancellationTokenSource.CancelAfter(telemetryTimeoutMs);
 		try
 		{
 			XbdmConnectionOptions xbdmConnectionOptions = new XbdmConnectionOptions
 			{
-				Host = options.Ip,
-				Port = options.Port,
+				Host = currentTargetIp,
+				Port = currentTargetPort,
 				TimeoutMs = options.TimeoutMs
 			};
 			using XbdmClient client = await XbdmClient.ConnectAsync(xbdmConnectionOptions, cancellationTokenSource.Token);
@@ -2471,41 +4517,24 @@ internal sealed class XeCliTerminalForm : Form
 			catch
 			{
 			}
-			IReadOnlyList<XbdmUserInfo> userListAsync = await client.GetUserListAsync(cancellationTokenSource.Token);
-			XbdmUserInfo xbdmUserInfo = userListAsync.FirstOrDefault((XbdmUserInfo u) => u.SignInState.HasValue && u.SignInState.Value != 0 && !string.IsNullOrWhiteSpace(u.Gamertag)) ?? userListAsync.FirstOrDefault((XbdmUserInfo u) => !string.IsNullOrWhiteSpace(u.Gamertag));
-			string text = TrimOrNull(xbdmUserInfo?.Gamertag);
-			uint? nullable = xbdmUserInfo?.SignInState;
-			if (string.IsNullOrWhiteSpace(text) && string.Equals(Environment.GetEnvironmentVariable("XECLI_ALLOW_XAM_PROBE"), "1", StringComparison.OrdinalIgnoreCase))
-			{
-				try
-				{
-					ProfileHelpers.XamUserInfo xamUserInfo = await HardwareHelpers.TryGetSignedInUserAsync(client, cancellationTokenSource.Token);
-					if (xamUserInfo != null)
-					{
-						text = TrimOrNull(xamUserInfo.Gamertag) ?? text;
-						nullable = xamUserInfo.SignInState;
-					}
-				}
-				catch
-				{
-				}
-			}
+			CancellationToken cancellationToken = cancellationTokenSource.Token;
+			ProfileHelpers.ResolvedIdentityInfo resolvedIdentity = await ProfileHelpers.ResolveSignedInIdentityAsync(client, currentTargetIp, currentTargetPort, options.TimeoutMs, cliConfig, allowF3: true, allowProfilePackage: flag, cancellationToken);
 			Jrpc2Client jrpc2Client = new Jrpc2Client(client);
 			try
 			{
-				telemetrySnapshot.TitleId = await jrpc2Client.GetTitleIdAsync(cancellationTokenSource.Token);
+				telemetrySnapshot.TitleId = await jrpc2Client.GetTitleIdAsync(cancellationToken);
 			}
 			catch
 			{
 			}
-			telemetrySnapshot.Gamertag = text;
-			telemetrySnapshot.SignInStateText = nullable.HasValue ? HardwareHelpers.DescribeSignInState(nullable.Value) : (!string.IsNullOrWhiteSpace(text) ? "Signed in" : "not detected");
-			telemetrySnapshot.CpuTemp = await TryGetTempAsync(jrpc2Client, SensorType.CPU, cancellationTokenSource.Token);
-			telemetrySnapshot.GpuTemp = await TryGetTempAsync(jrpc2Client, SensorType.GPU, cancellationTokenSource.Token);
-			telemetrySnapshot.EdramTemp = await TryGetTempAsync(jrpc2Client, SensorType.EDRAM, cancellationTokenSource.Token);
-			telemetrySnapshot.BoardTemp = await TryGetTempAsync(jrpc2Client, SensorType.MotherBoard, cancellationTokenSource.Token);
-			telemetrySnapshot.DashboardVersion = await TryGetDashboardAsync(jrpc2Client, cancellationTokenSource.Token);
-			telemetrySnapshot.Motherboard = await TryGetMotherboardAsync(jrpc2Client, cancellationTokenSource.Token);
+			telemetrySnapshot.Gamertag = TrimOrNull(resolvedIdentity.Gamertag);
+			telemetrySnapshot.SignInStateText = resolvedIdentity.IsSignedIn ? resolvedIdentity.SignInStateText : "not detected";
+			telemetrySnapshot.CpuTemp = await TryGetTempAsync(jrpc2Client, SensorType.CPU, cancellationToken);
+			telemetrySnapshot.GpuTemp = await TryGetTempAsync(jrpc2Client, SensorType.GPU, cancellationToken);
+			telemetrySnapshot.EdramTemp = await TryGetTempAsync(jrpc2Client, SensorType.EDRAM, cancellationToken);
+			telemetrySnapshot.BoardTemp = await TryGetTempAsync(jrpc2Client, SensorType.MotherBoard, cancellationToken);
+			telemetrySnapshot.DashboardVersion = await TryGetDashboardAsync(jrpc2Client, cancellationToken);
+			telemetrySnapshot.Motherboard = await TryGetMotherboardAsync(jrpc2Client, cancellationToken);
 			if (telemetrySnapshot.TitleId.HasValue && TitleIdDatabase.Instance.TryResolve(telemetrySnapshot.TitleId.Value, null, out TitleIdEntry titleEntry))
 			{
 				telemetrySnapshot.TitleName = titleEntry?.Name;
@@ -2522,6 +4551,10 @@ internal sealed class XeCliTerminalForm : Form
 						{
 							telemetrySnapshot.Drives.Add(text2.ToUpperInvariant());
 						}
+					}
+					if (telemetrySnapshot.Drives.Count == 0)
+					{
+						telemetrySnapshot.Drives.AddRange(await TryGetFtpDriveRootsAsync(cliConfig, cancellationTokenSource.Token));
 					}
 				}
 				else if (latestSnapshot != null)
@@ -2560,7 +4593,7 @@ internal sealed class XeCliTerminalForm : Form
 					int num = telemetrySnapshot.FtpPort ?? 21;
 					string text4 = telemetrySnapshot.FtpUser ?? "xbox";
 					string text5 = cliConfig.DefaultFtpPassword ?? "xbox";
-					PluginHelpers.PluginConfig pluginConfig = await PluginHelpers.LoadAsync(options.Ip, num, text4, text5, options.TimeoutMs, null);
+					PluginHelpers.PluginConfig pluginConfig = await PluginHelpers.LoadAsync(currentTargetIp, num, text4, text5, options.TimeoutMs, null);
 					foreach (var item3 in pluginConfig.Slots.OrderBy((KeyValuePair<int, string> kv) => kv.Key))
 					{
 						if (!string.IsNullOrWhiteSpace(item3.Value))
@@ -2646,9 +4679,40 @@ internal sealed class XeCliTerminalForm : Form
 		}
 	}
 
+	private async Task<List<string>> TryGetFtpDriveRootsAsync(CliConfig cliConfig, CancellationToken cancellationToken)
+	{
+		List<string> list = new List<string>();
+		try
+		{
+			int num = cliConfig.DefaultFtpPort ?? 21;
+			string user = TrimOrNull(cliConfig.DefaultFtpUser) ?? "xbox";
+			string pass = cliConfig.DefaultFtpPassword ?? "xbox";
+			int timeoutMs = Math.Clamp(options.TimeoutMs, 1200, 7000);
+			await using AsyncFtpClient asyncFtpClient = FtpHelpers.CreateClient(currentTargetIp, num, user, pass, timeoutMs);
+			await asyncFtpClient.Connect(cancellationToken);
+			(FtpListItem[] Item1, bool Item2) tuple = await FtpHelpers.GetListingWithFallbackAsync(asyncFtpClient, "/");
+			foreach (FtpListItem item in tuple.Item1)
+			{
+				if (item.Type == FtpObjectType.File || string.IsNullOrWhiteSpace(item.Name))
+				{
+					continue;
+				}
+				string text = item.Name.Trim().TrimEnd(':');
+				if (ShouldDisplayDriveName(text) && !list.Any((string existing) => existing.Equals(text, StringComparison.OrdinalIgnoreCase)))
+				{
+					list.Add(text.ToUpperInvariant());
+				}
+			}
+		}
+		catch
+		{
+		}
+		return list;
+	}
+
 	private (double RxKbps, double TxKbps) SampleFtpTraffic(int ftpPort)
 	{
-		bool flag = IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpConnections().Any((TcpConnectionInformation c) => c.RemoteEndPoint.Address.ToString().Equals(options.Ip, StringComparison.OrdinalIgnoreCase) && c.RemoteEndPoint.Port == ftpPort && c.State == TcpState.Established);
+		bool flag = IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpConnections().Any((TcpConnectionInformation c) => c.RemoteEndPoint.Address.ToString().Equals(currentTargetIp, StringComparison.OrdinalIgnoreCase) && c.RemoteEndPoint.Port == ftpPort && c.State == TcpState.Established);
 		if (!flag)
 		{
 			lastNetSampleUtc = DateTime.UtcNow;
@@ -2702,80 +4766,74 @@ internal sealed class XeCliTerminalForm : Form
 			BeginInvoke(new Action<TelemetrySnapshot>(ApplyTelemetry), snapshot);
 			return;
 		}
+		if (snapshot.Connected && latestSnapshot?.Connected == true)
+		{
+			if (string.IsNullOrWhiteSpace(TrimOrNull(snapshot.Gamertag)) && !string.IsNullOrWhiteSpace(TrimOrNull(latestSnapshot.Gamertag)))
+			{
+				snapshot.Gamertag = latestSnapshot.Gamertag;
+			}
+			if ((string.IsNullOrWhiteSpace(TrimOrNull(snapshot.SignInStateText)) || string.Equals(snapshot.SignInStateText, "not detected", StringComparison.OrdinalIgnoreCase)) && !string.IsNullOrWhiteSpace(TrimOrNull(latestSnapshot.SignInStateText)))
+			{
+				snapshot.SignInStateText = latestSnapshot.SignInStateText;
+			}
+			if (snapshot.Drives.Count == 0 && latestSnapshot.Drives.Count != 0)
+			{
+				snapshot.Drives.AddRange(latestSnapshot.Drives);
+			}
+			snapshot.CpuTemp ??= latestSnapshot.CpuTemp;
+			snapshot.GpuTemp ??= latestSnapshot.GpuTemp;
+			snapshot.EdramTemp ??= latestSnapshot.EdramTemp;
+			snapshot.BoardTemp ??= latestSnapshot.BoardTemp;
+			snapshot.DashboardVersion ??= latestSnapshot.DashboardVersion;
+			if ((string.IsNullOrWhiteSpace(TrimOrNull(snapshot.Motherboard)) || string.Equals(snapshot.Motherboard, "unknown", StringComparison.OrdinalIgnoreCase)) && !string.IsNullOrWhiteSpace(TrimOrNull(latestSnapshot.Motherboard)))
+			{
+				snapshot.Motherboard = latestSnapshot.Motherboard;
+			}
+		}
 		string text = snapshot.Connected ? "ONLINE" : "OFFLINE";
-		leftStatusLabel.Text = "THERMALS\n" + FormatThermalRow("CPU", snapshot.CpuTemp) + "\n" + FormatThermalRow("GPU", snapshot.GpuTemp) + "\n" + FormatThermalRow("EDR", snapshot.EdramTemp) + "\n" + FormatThermalRow("BRD", snapshot.BoardTemp);
-		leftStatusLabel.ForeColor = Color.WhiteSmoke;
-		string text2 = TrimOrNull(snapshot.DebugName) ?? "unknown";
 		string text3 = TrimOrNull(snapshot.Motherboard) ?? "unknown";
 		string text4 = (snapshot.DashboardVersion.HasValue ? snapshot.DashboardVersion.Value.ToString() : "unknown");
-		string text7 = TrimOrNull(snapshot.ExecutionState) ?? "unknown";
 		string text8 = TrimOrNull(snapshot.TitleName) ?? "unknown";
 		string text9 = TrimOrNull(snapshot.RunningXex) ?? "unknown";
-		leftConsoleLabel.Text = "UNIT PROFILE\nDEBUG   " + FitStatusText(text2, 14) + "\nBOARD   " + FitStatusText(text3, 14) + "\nDASH    " + FitStatusText(text4, 14) + "\nSTATE   " + FitStatusText(text7, 14) + "\nLINK    " + text + "\nTITLE   " + FitStatusText(text8, 14);
-		leftSignInLabel.Text = "DETECTED DRIVES  |  " + snapshot.Drives.Count;
-		string text5 = TrimOrNull(snapshot.Gamertag) ?? "not detected";
-		string text6 = TrimOrNull(snapshot.SignInStateText) ?? "unknown";
-		string text10 = snapshot.FtpPort.HasValue ? snapshot.FtpPort.Value.ToString() : "--";
-		string text11 = TrimOrNull(snapshot.FtpUser) ?? "xbox";
-		string text12 = TrimOrNull(snapshot.ErrorText);
-		string value = "STATUS\nLINK     " + text + "\nTARGET   " + options.Ip + ":" + options.Port + "\nFTP      " + text11 + "@" + text10 + "\nEXEC     " + FitStatusText(text7, 12) + "\nINV      " + snapshot.Drives.Count + "D / " + snapshot.Plugins.Count + "P / " + snapshot.Modules.Count + "M";
-		if (!string.IsNullOrWhiteSpace(text12))
-		{
-			value = "STATUS\nLINK     " + text + "\nTARGET   " + options.Ip + ":" + options.Port + "\nFTP      " + text11 + "@" + text10 + "\nALERT    " + FitStatusText(text12, 12) + "\nINV      " + snapshot.Drives.Count + "D / " + snapshot.Plugins.Count + "P / " + snapshot.Modules.Count + "M";
-		}
+		string text5 = TrimOrNull(snapshot.Gamertag) ?? "Not Signed In";
+		string text6 = TrimOrNull(snapshot.SignInStateText) ?? "--";
+		leftConsoleLabel.Text = "BOARD      " + FitStatusText(text3, 16) + "\nDASH       " + FitStatusText(text4, 16) + "\nGAME       " + FitStatusText(text8, 16) + "\nXEX        " + FitFileLeaf(text9, 16) + "\nTITLEID    " + FormatTitleId(snapshot.TitleId) + "\nGAMERTAG   " + FitStatusText(text5, 16);
+		leftSignInLabel.Text = "INVENTORY";
+		string value = BuildConnectedStatusText(snapshot);
 		if (!snapshot.Connected)
 		{
 			SetLabelText(rightNetworkLabel, BuildDisconnectedStatusText());
-			SetLabelText(rightTempLabel, "IDLE · waiting for FTP traffic");
+			SetLabelText(rightTempLabel, "IDLE");
 			SetLabelText(rightDetailLabel, BuildDisconnectedSessionText());
 		}
 		else
 		{
 			SetLabelText(rightNetworkLabel, value);
 			SetLabelText(rightTempLabel, "RX " + snapshot.FtpRxKbps.ToString("0.0") + " kbps  |  TX " + snapshot.FtpTxKbps.ToString("0.0") + " kbps");
-			SetLabelText(rightDetailLabel, "SESSION\nTITLE    " + FitStatusText(text8, 18) + "\nXEX      " + FitFileLeaf(text9, 18) + "\nUSER     " + FitStatusText(text5, 18) + "\nSIGN     " + FitStatusText(text6, 18) + "\nTID      " + FormatTitleId(snapshot.TitleId));
+			SetLabelText(rightDetailLabel, "TITLE      " + FitStatusText(text8, 22) + "\nXEX        " + FitFileLeaf(text9, 22) + "\nUSER       " + FitStatusText(text5, 22) + "\nPRESENCE   " + FitStatusText(text6, 22) + "\nTITLEID    " + FormatTitleId(snapshot.TitleId));
 		}
 		ftpTrafficGraph.AddSample(snapshot.FtpRxKbps, snapshot.FtpTxKbps);
+		shellDisconnected = !snapshot.Connected;
 		latestSnapshot = snapshot;
-		RuntimePresenceState.Update(new RuntimePresenceSnapshot
-		{
-			Connected = snapshot.Connected,
-			DebugName = snapshot.DebugName,
-			ExecutionState = snapshot.ExecutionState,
-			Gamertag = snapshot.Gamertag,
-			SignInStateText = snapshot.SignInStateText,
-			TitleId = snapshot.TitleId,
-			TitleName = snapshot.TitleName,
-			RunningXex = snapshot.RunningXex,
-			Ip = options.Ip,
-			Port = options.Port
-		});
-		if (snapshot.Drives.Count == 0)
-		{
-			drivesList.SetItems(new string[1] { "No supported drives detected" });
-		}
-		else
-		{
-			drivesList.SetItems(snapshot.Drives.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy((string d) => d));
-		}
+		UpdateRuntimePresence(snapshot.Connected, snapshot);
+		UpdateDriveInventory(snapshot.Drives);
 		RefreshInventoryListFromSnapshot();
 		if (!snapshot.Connected)
 		{
 			footerStatusLabel.Text = "DISCONNECTED";
 			footerStatusLabel.ForeColor = WarningColor;
+			footerPresenceLabel.Text = "PRESENCE · OFFLINE";
 		}
 		else
 		{
-			footerStatusLabel.Text = "READY";
+			footerStatusLabel.Text = "CONNECTED";
 			footerStatusLabel.ForeColor = AccentGreen;
+			footerPresenceLabel.Text = string.IsNullOrWhiteSpace(text5) || text5 == "--" ? "PRESENCE · " + text6 : (text5 + " · " + text6);
 		}
+		footerThermalLabel.Text = BuildFooterThermalText(snapshot.CpuTemp, snapshot.GpuTemp, snapshot.EdramTemp, snapshot.BoardTemp);
 		if (!connectAttemptInFlight)
 		{
 			SetPersistentConnectState(snapshot.Connected ? "LINK ACTIVE" : "LINK OFFLINE", snapshot.Connected ? AccentGreen : WarningColor, snapshot.Connected ? Color.FromArgb(18, 34, 32) : Color.FromArgb(24, 19, 15));
-		}
-		if (!string.IsNullOrWhiteSpace(snapshot.ErrorText))
-		{
-			footerStatusLabel.Text = footerStatusLabel.Text + " · " + snapshot.ErrorText;
 		}
 		UpdateConnectionStatusIndicator(snapshot);
 		UpdateShellScaffold(snapshot);
@@ -2784,29 +4842,14 @@ internal sealed class XeCliTerminalForm : Form
 
 	private void UpdateLiveHints(TelemetrySnapshot? snapshot = null)
 	{
-		if (commandInFlight)
-		{
-			footerHintLabel.Text = "RUNNING COMMAND...";
-			footerHintLabel.ForeColor = Color.WhiteSmoke;
-			return;
-		}
-		if (snapshot != null && snapshot.Connected)
-		{
-			string text = TrimOrNull(snapshot.Gamertag);
-			if (!string.IsNullOrWhiteSpace(text))
-			{
-				footerHintLabel.Text = "SIGNED IN: " + text;
-				footerHintLabel.ForeColor = Color.WhiteSmoke;
-				return;
-			}
-		}
-		footerHintLabel.Text = ((snapshot?.Connected ?? latestSnapshot?.Connected ?? false) ? "ENTER = RUN · TAB = AUTOFILL" : "CONNECT = LIVE SESSION · ENTER = RUN · TAB = AUTOFILL");
-		footerHintLabel.ForeColor = Color.WhiteSmoke;
+		bool flag = IsSessionConnected(snapshot);
+		footerStatusLabel.Text = (connectAttemptInFlight ? "CONNECTING" : (flag ? "CONNECTED" : "DISCONNECTED"));
+		footerStatusLabel.ForeColor = (connectAttemptInFlight ? AccentGreen : (flag ? AccentGreen : WarningColor));
 	}
 
 	private void UpdateConnectionStatusIndicator(TelemetrySnapshot? snapshot = null)
 	{
-		bool flag = snapshot?.Connected ?? latestSnapshot?.Connected ?? false;
+		bool flag = IsSessionConnected(snapshot);
 		if (connectAttemptInFlight)
 		{
 			connectionStatusLabel.Text = "◐ CONNECTING";
@@ -2860,17 +4903,17 @@ internal sealed class XeCliTerminalForm : Form
 
 	private static string FormatThermalRow(string label, uint? value)
 	{
-		return label.PadRight(3) + "  " + FormatTemp(value).PadRight(5) + "  " + BuildMeter(value);
+		return label.PadRight(5) + " " + FormatTemp(value);
 	}
 
-	private static string BuildMeter(uint? value)
+	private static string BuildThermalBlock(uint? cpu, uint? gpu, uint? edram, uint? board)
 	{
-		if (!value.HasValue)
-		{
-			return "--------";
-		}
-		int num = Math.Clamp((int)Math.Round((double)value.Value / 100.0 * 8.0), 0, 8);
-		return new string('█', num).PadRight(8, '·');
+		return "THERMALS\n" + FormatThermalRow("CPU", cpu) + "\n" + FormatThermalRow("GPU", gpu) + "\n" + FormatThermalRow("EDRAM", edram) + "\n" + FormatThermalRow("BOARD", board);
+	}
+
+	private static string BuildFooterThermalText(uint? cpu, uint? gpu, uint? edram, uint? board)
+	{
+		return "CPU " + FormatTemp(cpu) + " · GPU " + FormatTemp(gpu) + " · RAM " + FormatTemp(edram) + " · BOARD " + FormatTemp(board);
 	}
 
 	private static string FitStatusText(string? value, int maxLength)
@@ -2905,17 +4948,31 @@ internal sealed class XeCliTerminalForm : Form
 
 	private string BuildDisconnectedStatusText()
 	{
-		return "STATUS\nLINK     OFFLINE\nTARGET   " + options.Ip + ":" + options.Port + "\nFTP      idle until link\nACTION   press CONNECT";
+		return "LINK      OFFLINE\nTARGET    " + FormatStatusTarget() + "\nFTP       idle\nPRESENCE  offline";
+	}
+
+	private string BuildConnectedStatusText(TelemetrySnapshot snapshot)
+	{
+		string text = snapshot.Connected ? "ONLINE" : "OFFLINE";
+		string text3 = snapshot.FtpPort.HasValue ? snapshot.FtpPort.Value.ToString() : "--";
+		string text4 = TrimOrNull(snapshot.FtpUser) ?? "xbox";
+		string text5 = TrimOrNull(snapshot.ErrorText);
+		string text6 = "LINK      " + text + "\nTARGET    " + FormatStatusTarget() + "\nFTP       " + text4 + "@" + text3 + "\nDRIVES    " + snapshot.Drives.Count + "\nPRESENCE  " + FitStatusText(TrimOrNull(snapshot.SignInStateText) ?? "unknown", 12);
+		if (!string.IsNullOrWhiteSpace(text5))
+		{
+			text6 = "LINK      " + text + "\nTARGET    " + FormatStatusTarget() + "\nFTP       " + text4 + "@" + text3 + "\nALERT     " + FitStatusText(text5, 12) + "\nDRIVES    " + snapshot.Drives.Count;
+		}
+		return text6;
 	}
 
 	private static string BuildDisconnectedSessionText()
 	{
-		return "SESSION\nNo live console context yet.\nConnect to load title, XEX,\nuser, sign-in, and queue state.";
+		return "No live console context.\nConnect to load title, XEX,\nuser, presence, and TitleID.";
 	}
 
 	private static string BuildDisconnectedShellText()
 	{
-		return "DISCONNECTED SESSION\r\nUse CONNECT to activate live thermals, traffic, queue, and title state.\r\nLocal XeCLI commands remain available below.";
+		return "DISCONNECTED SESSION\r\nUse CONNECT to load thermals, FTP, title, and user state.\r\nLocal XeCLI commands remain available below.";
 	}
 
 	private void UpdateShellScaffold(TelemetrySnapshot? snapshot = null)
@@ -2928,13 +4985,19 @@ internal sealed class XeCliTerminalForm : Form
 		TelemetrySnapshot? telemetrySnapshot = snapshot ?? latestSnapshot;
 		if (telemetrySnapshot != null && telemetrySnapshot.Connected)
 		{
-			string text = FitStatusText(TrimOrNull(telemetrySnapshot.TitleName) ?? "unknown", 28);
-			string text2 = FitStatusText(TrimOrNull(telemetrySnapshot.ExecutionState) ?? "unknown", 12);
-			string text3 = FitStatusText(TrimOrNull(telemetrySnapshot.Gamertag) ?? "not detected", 12);
-			SetLabelText(shellScaffoldLabel, "LIVE SESSION ONLINE\r\nTitle: " + text + "\r\nState: " + text2 + "  User: " + text3);
+			string text = FitStatusText(TrimOrNull(telemetrySnapshot.TitleName) ?? "unknown", 30);
+			string text2 = FitStatusText(FormatExecutionState(telemetrySnapshot.ExecutionState), 16);
+			string text3 = FitStatusText(TrimOrNull(telemetrySnapshot.Gamertag) ?? "--", 16);
+			SetLabelText(shellScaffoldLabel, "LIVE SESSION ONLINE\r\nTitle: " + text + "\r\nState: " + text2 + "\r\nUser: " + text3);
 			return;
 		}
 		SetLabelText(shellScaffoldLabel, BuildDisconnectedShellText());
+	}
+
+	private static string FormatExecutionState(string? value)
+	{
+		string text = TrimOrNull(value) ?? "unknown";
+		return string.Equals(text, "start", StringComparison.OrdinalIgnoreCase) ? "running" : text;
 	}
 
 	private static void SetLabelText(Label label, string value)
@@ -2988,6 +5051,7 @@ internal sealed class XeCliTerminalForm : Form
 
 		public SlimListPanel()
 		{
+			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, value: true);
 			DoubleBuffered = true;
 			ResizeRedraw = true;
 			SetStyle(ControlStyles.Selectable, value: true);
@@ -3030,7 +5094,8 @@ internal sealed class XeCliTerminalForm : Form
 			using Pen pen2 = new Pen(Color.FromArgb(164, Color.WhiteSmoke), 1f);
 					e.Graphics.DrawLine(pen2, rectangle.X + 1, rectangle.Y + 1, rectangle.Right - 2, rectangle.Y + 1);
 				}
-				e.Graphics.DrawString(items[i], Font, brush, new PointF(4f, y));
+				Rectangle rectangle2 = new Rectangle(4, (int)y, Math.Max(1, base.Width - 16), num);
+				TextRenderer.DrawText(e.Graphics, items[i], Font, rectangle2, ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
 				num3++;
 			}
 			DrawScrollBar(e.Graphics, visibleLineCount);
@@ -3129,6 +5194,538 @@ internal sealed class XeCliTerminalForm : Form
 			}
 			int num = Math.Max(0, y / lineHeight);
 			return firstVisibleIndex + num;
+		}
+	}
+
+	private sealed class TransferQueuePanel : Control
+	{
+		private readonly List<TransferQueueEntry> entries = new List<TransferQueueEntry>();
+
+		public TransferQueuePanel()
+		{
+			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, value: true);
+			DoubleBuffered = true;
+			ResizeRedraw = true;
+		}
+
+		public void SetEntries(IEnumerable<TransferQueueEntry> source)
+		{
+			entries.Clear();
+			entries.AddRange(source.Take(10).Select(static item => new TransferQueueEntry
+			{
+				CommandKey = item.CommandKey,
+				CommandText = item.CommandText,
+				State = item.State,
+				Detail = item.Detail,
+				ProgressPercent = item.ProgressPercent,
+				UpdatedAtLocal = item.UpdatedAtLocal
+			}));
+			Invalidate();
+		}
+
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			base.OnPaint(e);
+			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+			e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+			e.Graphics.Clear(TerminalBackground);
+			Rectangle clientRectangle = ClientRectangle;
+			if (clientRectangle.Width <= 0 || clientRectangle.Height <= 0)
+			{
+				return;
+			}
+			Rectangle rectangle = Rectangle.Inflate(clientRectangle, -1, -1);
+			using (SolidBrush brush = new SolidBrush(Color.FromArgb(8, 14, 11)))
+			using (Pen pen = new Pen(Color.FromArgb(104, AccentGreen), 1f))
+			using (Pen pen2 = new Pen(Color.FromArgb(34, AccentGreen), 1f))
+			{
+				e.Graphics.FillRectangle(brush, rectangle);
+				e.Graphics.DrawRectangle(pen, rectangle);
+				e.Graphics.DrawRectangle(pen2, rectangle.X + 3, rectangle.Y + 3, Math.Max(0, rectangle.Width - 6), Math.Max(0, rectangle.Height - 6));
+			}
+			if (entries.Count == 0)
+			{
+				using Font font = new Font("Consolas", 11f, FontStyle.Bold, GraphicsUnit.Point);
+				using Font font2 = new Font("Consolas", 8.25f, FontStyle.Regular, GraphicsUnit.Point);
+				TextRenderer.DrawText(e.Graphics, "QUEUE IDLE", font, new Rectangle(rectangle.X + 12, rectangle.Y + 20, rectangle.Width - 24, 28), AccentGreen, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				TextRenderer.DrawText(e.Graphics, "No transfers staged", font2, new Rectangle(rectangle.X + 12, rectangle.Y + 52, rectangle.Width - 24, 22), AccentDim, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				return;
+			}
+			int y = rectangle.Y + 10;
+			int num = rectangle.Width - 20;
+			int num2 = Math.Max(54, Math.Min(70, (rectangle.Height - 20) / Math.Max(1, entries.Count)));
+			for (int i = 0; i < entries.Count; i++)
+			{
+				TransferQueueEntry transferQueueEntry = entries[i];
+				Rectangle rectangle2 = new Rectangle(rectangle.X + 10, y, num, Math.Max(48, num2 - 6));
+				bool flag = string.Equals(transferQueueEntry.State, "running", StringComparison.OrdinalIgnoreCase) || string.Equals(transferQueueEntry.State, "queued", StringComparison.OrdinalIgnoreCase);
+				Color color = ResolveQueueStateColor(transferQueueEntry.State);
+				using (SolidBrush brush2 = new SolidBrush(i % 2 == 0 ? Color.FromArgb(12, 18, 13) : Color.FromArgb(10, 16, 12)))
+				using (Pen pen3 = new Pen(Color.FromArgb(flag ? 128 : 72, color), 1f))
+				{
+					e.Graphics.FillRectangle(brush2, rectangle2);
+					e.Graphics.DrawRectangle(pen3, rectangle2);
+				}
+				TextRenderer.DrawText(e.Graphics, transferQueueEntry.UpdatedAtLocal.ToString("HH:mm:ss", CultureInfo.InvariantCulture), Font, new Rectangle(rectangle2.X + 8, rectangle2.Y + 5, 66, 18), AccentDim, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				TextRenderer.DrawText(e.Graphics, transferQueueEntry.State.ToUpperInvariant(), Font, new Rectangle(rectangle2.X + 78, rectangle2.Y + 5, 86, 18), color, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				string text = transferQueueEntry.ProgressPercent.HasValue ? (transferQueueEntry.ProgressPercent.Value.ToString("0") + "%") : "--";
+				TextRenderer.DrawText(e.Graphics, text, Font, new Rectangle(rectangle2.Right - 58, rectangle2.Y + 5, 50, 18), Color.WhiteSmoke, TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				TextRenderer.DrawText(e.Graphics, transferQueueEntry.CommandText, Font, new Rectangle(rectangle2.X + 8, rectangle2.Y + 24, rectangle2.Width - 16, 18), Color.WhiteSmoke, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+				string text2 = TrimOrNull(transferQueueEntry.Detail) ?? string.Empty;
+				if (!string.IsNullOrWhiteSpace(text2))
+				{
+					using Font font3 = new Font("Consolas", 7.75f, FontStyle.Regular, GraphicsUnit.Point);
+					TextRenderer.DrawText(e.Graphics, text2, font3, new Rectangle(rectangle2.X + 8, rectangle2.Y + 42, rectangle2.Width - 16, 14), AccentDim, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+				}
+				Rectangle rectangle3 = new Rectangle(rectangle2.X + 8, rectangle2.Bottom - 10, rectangle2.Width - 16, 6);
+				using (SolidBrush brush3 = new SolidBrush(Color.FromArgb(20, 48, 32)))
+				using (SolidBrush brush4 = new SolidBrush(Color.FromArgb(190, color)))
+				{
+					e.Graphics.FillRectangle(brush3, rectangle3);
+					if (transferQueueEntry.ProgressPercent.HasValue)
+					{
+						int width = (int)Math.Round(rectangle3.Width * Math.Clamp(transferQueueEntry.ProgressPercent.Value / 100.0, 0.0, 1.0));
+						if (width > 0)
+						{
+							e.Graphics.FillRectangle(brush4, new Rectangle(rectangle3.X, rectangle3.Y, width, rectangle3.Height));
+						}
+					}
+				}
+				y += num2;
+				if (y >= rectangle.Bottom - 20)
+				{
+					break;
+				}
+			}
+		}
+
+		private static Color ResolveQueueStateColor(string state)
+		{
+			if (string.Equals(state, "complete", StringComparison.OrdinalIgnoreCase))
+			{
+				return AccentGreen;
+			}
+			if (string.Equals(state, "failed", StringComparison.OrdinalIgnoreCase) || string.Equals(state, "error", StringComparison.OrdinalIgnoreCase))
+			{
+				return WarningColor;
+			}
+			if (string.Equals(state, "cancelled", StringComparison.OrdinalIgnoreCase))
+			{
+				return AccentPink;
+			}
+			return AccentCyan;
+		}
+	}
+
+	private sealed class FileGridPanel : Control
+	{
+		private enum ResizeColumn
+		{
+			None,
+			NameToModified,
+			ModifiedToSize
+		}
+
+		private readonly List<FileEntryView> entries = new List<FileEntryView>();
+
+		private int firstVisibleIndex;
+
+		private int selectedIndex = -1;
+
+		private int modifiedWidth = 180;
+
+		private int sizeWidth = 84;
+
+		private ResizeColumn activeResizeColumn;
+
+		private int resizeAnchorX;
+
+		private int resizeAnchorModifiedWidth;
+
+		private int resizeAnchorSizeWidth;
+
+		private string? message;
+
+		private bool dragPending;
+
+		private int dragIndex = -1;
+
+		private Point dragStartPoint;
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public string HeaderText { get; set; } = "NAME";
+
+		public event Action<int>? ItemActivated;
+
+		public event Action<int, Point>? ItemContextRequested;
+
+		public event Action<Point>? EmptyAreaContextRequested;
+
+		public event Action<int>? ItemDragRequested;
+
+		public FileGridPanel()
+		{
+			SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, value: true);
+			DoubleBuffered = true;
+			ResizeRedraw = true;
+			SetStyle(ControlStyles.Selectable, value: true);
+			MouseWheel += delegate(object? _, MouseEventArgs e)
+			{
+				int visibleRowCount = GetVisibleRowCount();
+				int num = Math.Max(1, visibleRowCount / 3);
+				if (e.Delta < 0)
+				{
+					firstVisibleIndex = Math.Min(Math.Max(0, entries.Count - visibleRowCount), firstVisibleIndex + num);
+				}
+				else if (e.Delta > 0)
+				{
+					firstVisibleIndex = Math.Max(0, firstVisibleIndex - num);
+				}
+				Invalidate();
+			};
+			MouseMove += delegate(object? _, MouseEventArgs e)
+			{
+				HandleColumnResizeMove(e.Location, e.Button == MouseButtons.Left);
+				if (!draggingColumn(e.Button) && dragPending && e.Button == MouseButtons.Left)
+				{
+					if (Math.Abs(e.X - dragStartPoint.X) >= SystemInformation.DragSize.Width / 2 || Math.Abs(e.Y - dragStartPoint.Y) >= SystemInformation.DragSize.Height / 2)
+					{
+						dragPending = false;
+						if (dragIndex >= 0 && dragIndex < entries.Count)
+						{
+							ItemDragRequested?.Invoke(dragIndex);
+						}
+					}
+				}
+			};
+			MouseUp += delegate
+			{
+				activeResizeColumn = ResizeColumn.None;
+				dragPending = false;
+				dragIndex = -1;
+				Cursor = Cursors.Default;
+			};
+			MouseLeave += delegate
+			{
+				dragPending = false;
+				dragIndex = -1;
+				if (activeResizeColumn == ResizeColumn.None)
+				{
+					Cursor = Cursors.Default;
+				}
+			};
+		}
+
+		public void SetEntries(IEnumerable<FileEntryView> source)
+		{
+			List<FileEntryView> list = source.Take(512).ToList();
+			entries.Clear();
+			entries.AddRange(list);
+			message = null;
+			firstVisibleIndex = Math.Clamp(firstVisibleIndex, 0, Math.Max(0, entries.Count - 1));
+			if (entries.Count == 0)
+			{
+				selectedIndex = -1;
+				message = "(empty)";
+			}
+			else if (selectedIndex >= entries.Count)
+			{
+				selectedIndex = entries.Count - 1;
+			}
+			Invalidate();
+		}
+
+		public void SetMessage(string text)
+		{
+			entries.Clear();
+			firstVisibleIndex = 0;
+			selectedIndex = -1;
+			message = text;
+			Invalidate();
+		}
+
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			base.OnPaint(e);
+			e.Graphics.SmoothingMode = SmoothingMode.None;
+			e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+			e.Graphics.Clear(base.BackColor);
+			Rectangle bounds = ClientRectangle;
+			if (bounds.Width <= 0 || bounds.Height <= 0)
+			{
+				return;
+			}
+			int headerHeight = Math.Max(20, TextRenderer.MeasureText("W", Font).Height + 7);
+			Rectangle headerRect = new Rectangle(0, 0, bounds.Width, headerHeight);
+			using (SolidBrush brush = new SolidBrush(Color.FromArgb(12, AccentGreen)))
+			using (Pen pen = new Pen(Color.FromArgb(80, AccentGreen), 1f))
+			{
+				e.Graphics.FillRectangle(brush, headerRect);
+				e.Graphics.DrawLine(pen, headerRect.Left, headerRect.Bottom - 1, headerRect.Right, headerRect.Bottom - 1);
+			}
+			int scrollWidth = 8;
+			(int nameWidth, int modifiedWidth2, int sizeWidth2) = GetColumnLayout(bounds.Width, scrollWidth);
+			TextRenderer.DrawText(e.Graphics, HeaderText, Font, new Rectangle(6, 0, nameWidth - 8, headerHeight), AccentDim, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+			TextRenderer.DrawText(e.Graphics, "MODIFIED", Font, new Rectangle(6 + nameWidth, 0, modifiedWidth2 - 6, headerHeight), AccentDim, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+			TextRenderer.DrawText(e.Graphics, "SIZE", Font, new Rectangle(6 + nameWidth + modifiedWidth2, 0, sizeWidth2 - 6, headerHeight), AccentDim, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+			using (Pen dividerPen = new Pen(Color.FromArgb(34, AccentGreen), 1f))
+			{
+				e.Graphics.DrawLine(dividerPen, nameWidth, 2, nameWidth, bounds.Height - 2);
+				e.Graphics.DrawLine(dividerPen, nameWidth + modifiedWidth2, 2, nameWidth + modifiedWidth2, bounds.Height - 2);
+			}
+			Rectangle bodyRect = new Rectangle(0, headerHeight, bounds.Width, Math.Max(0, bounds.Height - headerHeight));
+			if (bodyRect.Height <= 0)
+			{
+				return;
+			}
+			if (!string.IsNullOrWhiteSpace(message))
+			{
+				TextRenderer.DrawText(e.Graphics, message, Font, new Rectangle(6, headerHeight + 6, bounds.Width - 16, bodyRect.Height - 12), ForeColor, TextFormatFlags.Left | TextFormatFlags.Top | TextFormatFlags.EndEllipsis | TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix);
+				return;
+			}
+			int rowHeight = GetRowHeight();
+			int visibleRowCount = GetVisibleRowCount();
+			int lastIndex = Math.Min(entries.Count, firstVisibleIndex + visibleRowCount);
+			int drawRow = 0;
+			for (int i = firstVisibleIndex; i < lastIndex; i++)
+			{
+				int y = headerHeight + drawRow * rowHeight;
+				Rectangle rowRect = new Rectangle(0, y, Math.Max(1, bounds.Width - scrollWidth), rowHeight);
+				if (i != selectedIndex && drawRow % 2 == 1)
+				{
+					using SolidBrush brush2 = new SolidBrush(Color.FromArgb(56, 20, 40, 20));
+					e.Graphics.FillRectangle(brush2, rowRect);
+				}
+				if (i == selectedIndex)
+				{
+					using SolidBrush brush3 = new SolidBrush(Color.FromArgb(156, 52, 96, 42));
+					using Pen pen2 = new Pen(Color.FromArgb(214, AccentGreen), 1f);
+					e.Graphics.FillRectangle(brush3, rowRect);
+					e.Graphics.DrawRectangle(pen2, rowRect.X, rowRect.Y, rowRect.Width - 1, rowRect.Height - 1);
+				}
+				FileEntryView entry = entries[i];
+				string prefix = entry.IsDirectory ? "[DIR] " : "      ";
+				string modified = entry.ModifiedUtc.HasValue ? entry.ModifiedUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) : "--";
+				string size = FormatEntrySize(entry);
+				TextRenderer.DrawText(e.Graphics, prefix + entry.Name, Font, new Rectangle(6, y, nameWidth - 8, rowHeight), ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+				TextRenderer.DrawText(e.Graphics, modified, Font, new Rectangle(6 + nameWidth, y, modifiedWidth2 - 8, rowHeight), Color.WhiteSmoke, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				TextRenderer.DrawText(e.Graphics, size, Font, new Rectangle(6 + nameWidth + modifiedWidth2, y, sizeWidth2 - 8, rowHeight), Color.WhiteSmoke, TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+				drawRow++;
+			}
+			DrawScrollBar(e.Graphics, visibleRowCount, headerHeight);
+		}
+
+		protected override void OnMouseDown(MouseEventArgs e)
+		{
+			base.OnMouseDown(e);
+			if (TryStartColumnResize(e.Location))
+			{
+				dragPending = false;
+				dragIndex = -1;
+				return;
+			}
+			if (!Focused && CanFocus)
+			{
+				Focus();
+			}
+			int itemIndexAt = GetItemIndexAt(e.Y);
+			if (itemIndexAt >= 0 && itemIndexAt < entries.Count)
+			{
+				selectedIndex = itemIndexAt;
+				if (e.Button == MouseButtons.Left)
+				{
+					dragPending = true;
+					dragIndex = itemIndexAt;
+					dragStartPoint = e.Location;
+				}
+				else
+				{
+					dragPending = false;
+					dragIndex = -1;
+				}
+				Invalidate();
+				if (e.Button == MouseButtons.Right)
+				{
+					ItemContextRequested?.Invoke(itemIndexAt, PointToScreen(e.Location));
+				}
+			}
+			else if (e.Button == MouseButtons.Right)
+			{
+				dragPending = false;
+				dragIndex = -1;
+				EmptyAreaContextRequested?.Invoke(PointToScreen(e.Location));
+			}
+		}
+
+		protected override void OnMouseDoubleClick(MouseEventArgs e)
+		{
+			base.OnMouseDoubleClick(e);
+			int itemIndexAt = GetItemIndexAt(e.Y);
+			if (itemIndexAt >= 0 && itemIndexAt < entries.Count)
+			{
+				selectedIndex = itemIndexAt;
+				Invalidate();
+				ItemActivated?.Invoke(itemIndexAt);
+			}
+		}
+
+		private static string FormatEntrySize(FileEntryView entry)
+		{
+			if (entry.Name == ".." || entry.IsDirectory)
+			{
+				return string.Empty;
+			}
+			if (!entry.SizeBytes.HasValue)
+			{
+				return "--";
+			}
+			double num = entry.SizeBytes.Value;
+			string[] array = new string[5] { "B", "KB", "MB", "GB", "TB" };
+			int num2 = 0;
+			while (num >= 1024.0 && num2 < array.Length - 1)
+			{
+				num /= 1024.0;
+				num2++;
+			}
+			return (num2 == 0 ? num.ToString("0", CultureInfo.InvariantCulture) : num.ToString("0.#", CultureInfo.InvariantCulture)) + " " + array[num2];
+		}
+
+		private int GetRowHeight()
+		{
+			return Math.Max(18, TextRenderer.MeasureText("W", Font).Height + 3);
+		}
+
+		private int GetVisibleRowCount()
+		{
+			int num = Math.Max(20, TextRenderer.MeasureText("W", Font).Height + 7);
+			return Math.Max(1, (base.Height - num) / GetRowHeight());
+		}
+
+		private int GetItemIndexAt(int y)
+		{
+			int num = Math.Max(20, TextRenderer.MeasureText("W", Font).Height + 7);
+			if (y < num)
+			{
+				return -1;
+			}
+			int rowHeight = GetRowHeight();
+			return firstVisibleIndex + Math.Max(0, (y - num) / rowHeight);
+		}
+
+		private void DrawScrollBar(Graphics graphics, int visibleRows, int headerHeight)
+		{
+			if (entries.Count <= visibleRows || visibleRows <= 0)
+			{
+				return;
+			}
+			Rectangle rectangle = new Rectangle(base.Width - 7, headerHeight + 2, 4, base.Height - headerHeight - 4);
+			using SolidBrush brush = new SolidBrush(Color.FromArgb(26, 58, 76, 84));
+			graphics.FillRectangle(brush, rectangle);
+			double num = (double)visibleRows / (double)entries.Count;
+			int height = Math.Max(14, (int)(rectangle.Height * num));
+			double num2 = (double)firstVisibleIndex / (double)Math.Max(1, entries.Count - visibleRows);
+			int y = rectangle.Top + (int)((rectangle.Height - height) * num2);
+			using SolidBrush brush2 = new SolidBrush(Color.FromArgb(130, AccentCyan));
+			graphics.FillRectangle(brush2, new Rectangle(rectangle.Left, y, rectangle.Width, height));
+		}
+
+		private (int NameWidth, int ModifiedWidth, int SizeWidth) GetColumnLayout(int totalWidth, int scrollWidth)
+		{
+			int availableWidth = Math.Max(180, totalWidth - scrollWidth - 10);
+			int num = Math.Clamp(modifiedWidth, 144, Math.Max(144, availableWidth - 120));
+			int num2 = Math.Clamp(sizeWidth, 72, Math.Max(72, availableWidth - num - 96));
+			int num3 = availableWidth - num - num2;
+			if (num3 < 96)
+			{
+				int num4 = 96 - num3;
+				if (num2 - num4 >= 72)
+				{
+					num2 -= num4;
+				}
+				else if (num - num4 >= 144)
+				{
+					num -= num4;
+				}
+				num3 = availableWidth - num - num2;
+			}
+			modifiedWidth = num;
+			sizeWidth = num2;
+			return (Math.Max(96, num3), num, num2);
+		}
+
+		private bool TryStartColumnResize(Point location)
+		{
+			int headerHeight = Math.Max(20, TextRenderer.MeasureText("W", Font).Height + 7);
+			if (location.Y > headerHeight + 3)
+			{
+				return false;
+			}
+			(int nameWidth, int modifiedWidth2, int sizeWidth2) = GetColumnLayout(base.Width, 8);
+			int num = 5;
+			if (Math.Abs(location.X - nameWidth) <= num)
+			{
+				activeResizeColumn = ResizeColumn.NameToModified;
+			}
+			else if (Math.Abs(location.X - (nameWidth + modifiedWidth2)) <= num)
+			{
+				activeResizeColumn = ResizeColumn.ModifiedToSize;
+			}
+			else
+			{
+				return false;
+			}
+			resizeAnchorX = location.X;
+			resizeAnchorModifiedWidth = modifiedWidth2;
+			resizeAnchorSizeWidth = sizeWidth2;
+			Cursor = Cursors.VSplit;
+			return true;
+		}
+
+		private void HandleColumnResizeMove(Point location, bool dragging)
+		{
+			if (!dragging || activeResizeColumn == ResizeColumn.None)
+			{
+				if (activeResizeColumn == ResizeColumn.None)
+				{
+					int headerHeight = Math.Max(20, TextRenderer.MeasureText("W", Font).Height + 7);
+					if (location.Y <= headerHeight + 3)
+					{
+						(int nameWidth, int modifiedWidth2, _) = GetColumnLayout(base.Width, 8);
+						int num = 5;
+						Cursor = ((Math.Abs(location.X - nameWidth) <= num || Math.Abs(location.X - (nameWidth + modifiedWidth2)) <= num) ? Cursors.VSplit : Cursors.Default);
+					}
+					else
+					{
+						Cursor = Cursors.Default;
+					}
+				}
+				return;
+			}
+			int availableWidth = Math.Max(180, base.Width - 8 - 10);
+			int num2 = location.X - resizeAnchorX;
+			switch (activeResizeColumn)
+			{
+			case ResizeColumn.NameToModified:
+				modifiedWidth = Math.Clamp(resizeAnchorModifiedWidth - num2, 144, Math.Max(144, availableWidth - sizeWidth - 96));
+				break;
+			case ResizeColumn.ModifiedToSize:
+			{
+				int num3 = Math.Clamp(resizeAnchorSizeWidth - num2, 72, Math.Max(72, availableWidth - resizeAnchorModifiedWidth - 96));
+				int num4 = availableWidth - resizeAnchorModifiedWidth - num3;
+				if (num4 < 96)
+				{
+					num3 = Math.Max(72, availableWidth - resizeAnchorModifiedWidth - 96);
+				}
+				sizeWidth = num3;
+				break;
+			}
+			}
+			Invalidate();
+		}
+
+		private bool draggingColumn(MouseButtons buttons)
+		{
+			return activeResizeColumn != ResizeColumn.None && buttons == MouseButtons.Left;
 		}
 	}
 

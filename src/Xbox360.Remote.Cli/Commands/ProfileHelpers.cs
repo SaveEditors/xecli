@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using FluentFTP;
 using System.Linq;
 using System.Globalization;
+using Xbox360.Remote.Cli.LocalProfiles;
 
 namespace Xbox360.Remote.Cli.Commands;
 
@@ -40,6 +41,51 @@ internal static class ProfileHelpers {
 
         [JsonPropertyName("signedin")]
         public int SignedIn { get; set; }
+
+        [JsonPropertyName("xuid")]
+        public string? Xuid { get; set; }
+    }
+
+    internal sealed class ResolvedIdentityInfo {
+        [JsonPropertyName("slot")]
+        public int? Slot { get; set; }
+
+        [JsonPropertyName("gamertag")]
+        public string? Gamertag { get; set; }
+
+        [JsonPropertyName("xuid")]
+        public string? Xuid { get; set; }
+
+        [JsonPropertyName("signinstate")]
+        public uint? SignInState { get; set; }
+
+        [JsonPropertyName("source")]
+        public string? Source { get; set; }
+
+        [JsonIgnore]
+        public IReadOnlyList<XbdmUserInfo> Users { get; set; } = Array.Empty<XbdmUserInfo>();
+
+        [JsonIgnore]
+        public XamUserInfo? XamUser { get; set; }
+
+        [JsonIgnore]
+        public F3ProfileInfo? F3Profile { get; set; }
+
+        [JsonPropertyName("signedin")]
+        public bool IsSignedIn => !string.IsNullOrWhiteSpace(Gamertag) || (SignInState.HasValue && SignInState.Value > 0);
+
+        [JsonPropertyName("signinstatetext")]
+        public string SignInStateText => SignInState.HasValue
+            ? HardwareHelpers.DescribeSignInState(SignInState.Value)
+            : (IsSignedIn ? "Signed in" : "Not signed in");
+    }
+
+    internal sealed class ProfilePackageIdentityInfo {
+        [JsonPropertyName("profileid")]
+        public string? ProfileId { get; set; }
+
+        [JsonPropertyName("gamertag")]
+        public string? Gamertag { get; set; }
 
         [JsonPropertyName("xuid")]
         public string? Xuid { get; set; }
@@ -98,6 +144,81 @@ internal static class ProfileHelpers {
         catch {
             return new List<F3ProfileInfo>();
         }
+    }
+
+    internal static async Task<ResolvedIdentityInfo> ResolveSignedInIdentityAsync(
+        XbdmClient client,
+        string ip,
+        int port,
+        int timeoutMs,
+        CliConfig config,
+        bool allowF3,
+        bool allowProfilePackage,
+        CancellationToken cancellationToken) {
+        ResolvedIdentityInfo resolved = new ResolvedIdentityInfo();
+
+        IReadOnlyList<XbdmUserInfo> users = Array.Empty<XbdmUserInfo>();
+        try {
+            users = await client.GetUserListAsync(cancellationToken);
+        }
+        catch {
+            users = Array.Empty<XbdmUserInfo>();
+        }
+
+        resolved.Users = users;
+        ApplyXbdmUsers(users, resolved);
+
+        if (NeedsMoreIdentity(resolved)) {
+            try {
+                MergeXamIdentity(resolved, await TryGetSignedInXamUserAsync(client, cancellationToken), "xam");
+            }
+            catch {
+                // ignored
+            }
+        }
+
+        if (NeedsMoreIdentity(resolved)) {
+            try {
+                MergeXamIdentity(resolved, await TryGetSignedInXamUserAsync(ip, port, timeoutMs, cancellationToken), "xam-fresh");
+            }
+            catch {
+                // ignored
+            }
+        }
+
+        if (allowF3 && string.IsNullOrWhiteSpace(TrimOrNull(resolved.Gamertag))) {
+            try {
+                F3ProfileInfo? f3Profile = (await TryGetF3ProfilesAsync(ip))
+                    .FirstOrDefault(p => p.SignedIn == 1 && !string.IsNullOrWhiteSpace(p.Gamertag));
+                if (f3Profile != null) {
+                    resolved.F3Profile = f3Profile;
+                    resolved.Gamertag ??= TrimOrNull(f3Profile.Gamertag);
+                    resolved.Xuid ??= NormalizeXuidText(f3Profile.Xuid);
+                    resolved.SignInState ??= 1;
+                    resolved.Source ??= "aurora";
+                }
+            }
+            catch {
+                // ignored
+            }
+        }
+
+        if (allowProfilePackage && NeedsProfilePackageFallback(resolved)) {
+            try {
+                ProfilePackageIdentityInfo? packageIdentity = await TryResolveProfilePackageIdentityAsync(ip, timeoutMs, config, cancellationToken);
+                if (packageIdentity != null) {
+                    resolved.Gamertag ??= TrimOrNull(packageIdentity.Gamertag);
+                    resolved.Xuid ??= NormalizeXuidText(packageIdentity.Xuid);
+                    resolved.SignInState ??= 1;
+                    resolved.Source ??= "profile-package";
+                }
+            }
+            catch {
+                // ignored
+            }
+        }
+
+        return resolved;
     }
 
     internal static Dictionary<string, List<string>> GroupFtpProfiles(IEnumerable<string> entries) {
@@ -208,7 +329,7 @@ internal static class ProfileHelpers {
                 xuid = parsed;
         }
 
-        if (string.IsNullOrWhiteSpace(gamertag))
+        if (string.IsNullOrWhiteSpace(gamertag) && !xuid.HasValue && signedInState == 0)
             return null;
 
         return new XamUserInfo {
@@ -295,7 +416,7 @@ internal static class ProfileHelpers {
                     xuid = parsed;
             }
 
-            if (string.IsNullOrWhiteSpace(gamertag))
+            if (string.IsNullOrWhiteSpace(gamertag) && !xuid.HasValue && signedInState == 0)
                 return null;
 
             return new XamUserInfo {
@@ -409,6 +530,189 @@ internal static class ProfileHelpers {
         if (end == 0)
             return null;
         return System.Text.Encoding.ASCII.GetString(data, 0, end).Trim();
+    }
+
+    private static bool NeedsMoreIdentity(ResolvedIdentityInfo info) {
+        return string.IsNullOrWhiteSpace(TrimOrNull(info.Gamertag)) ||
+               string.IsNullOrWhiteSpace(TrimOrNull(info.Xuid)) ||
+               !info.SignInState.HasValue ||
+               info.SignInState.Value == 0;
+    }
+
+    private static bool NeedsProfilePackageFallback(ResolvedIdentityInfo info) {
+        return string.IsNullOrWhiteSpace(TrimOrNull(info.Gamertag)) ||
+               !info.SignInState.HasValue ||
+               info.SignInState.Value == 0;
+    }
+
+    private static void ApplyXbdmUsers(IReadOnlyList<XbdmUserInfo> users, ResolvedIdentityInfo resolved) {
+        XbdmUserInfo? signedInUser = users.FirstOrDefault(u =>
+                u.SignInState.HasValue && u.SignInState.Value > 0 && !string.IsNullOrWhiteSpace(u.Gamertag))
+            ?? users.FirstOrDefault(u => !string.IsNullOrWhiteSpace(u.Gamertag))
+            ?? users.FirstOrDefault(u => u.SignInState.HasValue && u.SignInState.Value > 0);
+
+        if (signedInUser == null)
+            return;
+
+        resolved.Gamertag ??= TrimOrNull(signedInUser.Gamertag);
+        resolved.Xuid ??= signedInUser.Xuid.HasValue ? $"0x{signedInUser.Xuid.Value:X16}" : null;
+        resolved.SignInState ??= signedInUser.SignInState;
+        resolved.Source ??= "xbdm";
+    }
+
+    private static void MergeXamIdentity(ResolvedIdentityInfo resolved, XamUserInfo? xamUser, string source) {
+        if (xamUser == null)
+            return;
+
+        resolved.XamUser ??= xamUser;
+        if (!resolved.Slot.HasValue)
+            resolved.Slot = xamUser.Slot;
+        resolved.Gamertag ??= TrimOrNull(xamUser.Gamertag);
+        resolved.Xuid ??= NormalizeXuidText(xamUser.Xuid);
+        resolved.SignInState ??= xamUser.SignInState;
+        resolved.Source ??= source;
+    }
+
+    internal static async Task<ProfilePackageIdentityInfo?> TryResolveProfilePackageIdentityAsync(
+        string ip,
+        int timeoutMs,
+        CliConfig config,
+        CancellationToken cancellationToken) {
+        List<(string User, string Pass)> credentials = BuildFtpCredentialCandidates(config);
+        if (credentials.Count == 0)
+            return null;
+
+        int ftpPort = config.DefaultFtpPort ?? 21;
+        int effectiveTimeout = Math.Clamp(timeoutMs, 1500, 7000);
+
+        foreach ((string user, string pass) in credentials) {
+            List<(string ProfileId, string RemotePath, DateTime ModifiedUtc)> candidates = new List<(string, string, DateTime)>();
+            try {
+                await using AsyncFtpClient ftpClient = FtpHelpers.CreateClient(ip, ftpPort, user, pass, effectiveTimeout);
+                await ftpClient.Connect(cancellationToken);
+
+                foreach (string root in ProfileRoots) {
+                    string contentPath = $"/{root}/Content";
+                    FtpListItem[] profiles;
+                    try {
+                        (profiles, bool rootListing) = await FtpHelpers.GetListingWithFallbackAsync(ftpClient, contentPath);
+                        if (rootListing)
+                            continue;
+                    }
+                    catch {
+                        continue;
+                    }
+
+                    foreach (FtpListItem profileDir in profiles) {
+                        if (profileDir.Type != FtpObjectType.Directory ||
+                            !IsHex16(profileDir.Name) ||
+                            profileDir.Name.Equals("0000000000000000", StringComparison.OrdinalIgnoreCase)) {
+                            continue;
+                        }
+
+                        string packageDirectory = $"{contentPath}/{profileDir.Name}/FFFE07D1/00010000";
+                        FtpListItem[] packages;
+                        try {
+                            (packages, _) = await FtpHelpers.GetListingWithFallbackAsync(ftpClient, packageDirectory);
+                        }
+                        catch {
+                            continue;
+                        }
+
+                        foreach (FtpListItem package in packages) {
+                            if (package.Type != FtpObjectType.File || !string.Equals(package.Name, profileDir.Name, StringComparison.OrdinalIgnoreCase))
+                                continue;
+
+                            string remotePath = FtpHelpers.NormalizePath($"{packageDirectory}/{profileDir.Name}");
+                            DateTime modifiedUtc = package.Modified == DateTime.MinValue
+                                ? DateTime.MinValue
+                                : package.Modified.ToUniversalTime();
+                            candidates.Add((profileDir.Name, remotePath, modifiedUtc));
+                        }
+                    }
+                }
+
+                foreach ((string profileId, string remotePath, _) in candidates.OrderByDescending(candidate => candidate.ModifiedUtc)) {
+                    string tempPath = Path.Combine(Path.GetTempPath(), "xecli-profile-" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture) + ".bin");
+                    try {
+                        const int BufferSize = 81920;
+                        byte[] buffer = new byte[BufferSize];
+                        await using (Stream input = await ftpClient.OpenRead(remotePath, token: cancellationToken))
+                        await using (FileStream output = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, useAsync: true)) {
+                            while (true) {
+                                int read = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
+                                if (read <= 0)
+                                    break;
+                                await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                            }
+                            await output.FlushAsync(cancellationToken);
+                        }
+
+                        using ProfilePackage profilePackage = new ProfilePackage(tempPath);
+                        ProfileAccountInfo account = profilePackage.ReadAccount();
+                        string? gamertag = TrimOrNull(account.Gamertag);
+                        string? xuid = account.OnlineXuid != 0 ? $"0x{account.OnlineXuid:X16}" : null;
+                        if (!string.IsNullOrWhiteSpace(gamertag) || !string.IsNullOrWhiteSpace(xuid)) {
+                            return new ProfilePackageIdentityInfo {
+                                ProfileId = profileId,
+                                Gamertag = gamertag,
+                                Xuid = xuid
+                            };
+                        }
+                    }
+                    catch {
+                        // ignored
+                    }
+                    finally {
+                        try {
+                            if (File.Exists(tempPath))
+                                File.Delete(tempPath);
+                        }
+                        catch {
+                            // ignored
+                        }
+                    }
+                }
+            }
+            catch {
+                // try next credential candidate
+            }
+        }
+
+        return null;
+    }
+
+    private static List<(string User, string Pass)> BuildFtpCredentialCandidates(CliConfig config) {
+        List<(string User, string Pass)> candidates = new List<(string User, string Pass)>();
+        HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void AddCandidate(string? user, string? pass) {
+            string? normalizedUser = TrimOrNull(user);
+            if (string.IsNullOrWhiteSpace(normalizedUser))
+                return;
+
+            string normalizedPass = pass ?? string.Empty;
+            string key = normalizedUser + "\n" + normalizedPass;
+            if (seen.Add(key))
+                candidates.Add((normalizedUser, normalizedPass));
+        }
+
+        AddCandidate(config.DefaultFtpUser, config.DefaultFtpPassword);
+        AddCandidate("xboxftp", "xboxftp");
+        AddCandidate("xbox", "xbox");
+        return candidates;
+    }
+
+    private static string? NormalizeXuidText(string? value) {
+        string? trimmed = TrimOrNull(value);
+        if (string.IsNullOrWhiteSpace(trimmed))
+            return null;
+        return trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? trimmed : $"0x{trimmed}";
+    }
+
+    private static string? TrimOrNull(string? value) {
+        string? trimmed = value?.Trim();
+        return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 
     private static bool TryParseRpcUInt32(string? text, out uint value) {

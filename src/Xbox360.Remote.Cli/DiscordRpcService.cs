@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -35,6 +36,12 @@ internal sealed class DiscordRpcService : IDisposable
 
 	private const int RpcIntervalMs = 45000;
 
+	private const int PipeConnectTimeoutMs = 500;
+
+	private const int MaxDetailsLength = 64;
+
+	private const int MaxStateLength = 128;
+
 	private readonly string clientId;
 
 	private readonly System.Threading.Timer timer;
@@ -49,9 +56,16 @@ internal sealed class DiscordRpcService : IDisposable
 
 	private bool disposed;
 
+	private int tickInFlight;
+
+	private long? connectedSinceUnixSeconds;
+
+	private string? lastPresenceKey;
+
 	private DiscordRpcService(string clientId)
 	{
 		this.clientId = clientId;
+		RuntimePresenceState.Changed += HandlePresenceChanged;
 		timer = new System.Threading.Timer(delegate
 		{
 			_ = TickAsync();
@@ -69,6 +83,10 @@ internal sealed class DiscordRpcService : IDisposable
 		{
 			return null;
 		}
+		if (!clientId.All(char.IsDigit))
+		{
+			return null;
+		}
 		return new DiscordRpcService(clientId);
 	}
 
@@ -80,6 +98,7 @@ internal sealed class DiscordRpcService : IDisposable
 	public void Dispose()
 	{
 		disposed = true;
+		RuntimePresenceState.Changed -= HandlePresenceChanged;
 		timer.Dispose();
 		lock (syncRoot)
 		{
@@ -97,6 +116,10 @@ internal sealed class DiscordRpcService : IDisposable
 		{
 			return;
 		}
+		if (Interlocked.Exchange(ref tickInFlight, 1) != 0)
+		{
+			return;
+		}
 		try
 		{
 			RuntimePresenceSnapshot snapshot = RuntimePresenceState.Current;
@@ -110,6 +133,10 @@ internal sealed class DiscordRpcService : IDisposable
 		{
 			ResetConnection();
 		}
+		finally
+		{
+			Interlocked.Exchange(ref tickInFlight, 0);
+		}
 	}
 
 	private async Task<bool> EnsureConnectedAsync()
@@ -121,34 +148,40 @@ internal sealed class DiscordRpcService : IDisposable
 				return true;
 			}
 		}
-		await Task.Yield();
-		lock (syncRoot)
+		ResetConnection();
+		NamedPipeClientStream? namedPipeClientStream = null;
+		for (int i = 0; i < 10; i++)
 		{
-			if (handshakeComplete && stream != null && pipe != null && pipe.IsConnected)
+			try
 			{
-				return true;
+				NamedPipeClientStream candidate = new NamedPipeClientStream(".", $"discord-ipc-{i}", PipeDirection.InOut, PipeOptions.Asynchronous);
+				using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(PipeConnectTimeoutMs);
+				await candidate.ConnectAsync(cancellationTokenSource.Token).ConfigureAwait(false);
+				namedPipeClientStream = candidate;
+				break;
 			}
-			ResetConnection();
-			for (int i = 0; i < 10; i++)
+			catch
 			{
-				try
-				{
-					NamedPipeClientStream namedPipeClientStream = new NamedPipeClientStream(".", $"discord-ipc-{i}", PipeDirection.InOut, PipeOptions.Asynchronous);
-					namedPipeClientStream.Connect(200);
-					pipe = namedPipeClientStream;
-					stream = namedPipeClientStream;
-					break;
-				}
-				catch
-				{
-				}
-			}
-			if (stream == null)
-			{
-				return false;
+				namedPipeClientStream?.Dispose();
+				namedPipeClientStream = null;
 			}
 		}
-		await SendHandshakeAsync().ConfigureAwait(false);
+		if (namedPipeClientStream == null)
+		{
+			return false;
+		}
+		lock (syncRoot)
+		{
+			if (disposed)
+			{
+				namedPipeClientStream.Dispose();
+				return false;
+			}
+			pipe = namedPipeClientStream;
+			stream = namedPipeClientStream;
+		}
+		RpcFrame rpcFrame = await SendHandshakeAsync().ConfigureAwait(false);
+		ValidateDiscordFrame(rpcFrame);
 		lock (syncRoot)
 		{
 			handshakeComplete = true;
@@ -156,7 +189,7 @@ internal sealed class DiscordRpcService : IDisposable
 		return true;
 	}
 
-	private async Task SendHandshakeAsync()
+	private async Task<RpcFrame> SendHandshakeAsync()
 	{
 		object rpcEnvelope = new
 		{
@@ -164,20 +197,27 @@ internal sealed class DiscordRpcService : IDisposable
 			client_id = clientId
 		};
 		await WriteFrameAsync(0, rpcEnvelope).ConfigureAwait(false);
-		await ReadFrameAsync().ConfigureAwait(false);
+		return await ReadFrameAsync().ConfigureAwait(false);
 	}
 
 	private async Task SendPresenceAsync(RuntimePresenceSnapshot snapshot)
 	{
 		string details = "XeCLI";
-		string state = snapshot.Connected ? "Connected to RGH" : "Waiting for RGH";
-		if (!string.IsNullOrWhiteSpace(snapshot.TitleName))
+		string state = BuildPresenceState(snapshot);
+		details = ClampText(details, MaxDetailsLength);
+		state = ClampText(state, MaxStateLength);
+		if (!snapshot.Connected)
 		{
-			state = state + " · " + snapshot.TitleName;
+			connectedSinceUnixSeconds = null;
 		}
-		if (!string.IsNullOrWhiteSpace(snapshot.Gamertag))
+		else if (!connectedSinceUnixSeconds.HasValue)
 		{
-			state = state + " · " + snapshot.Gamertag;
+			connectedSinceUnixSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+		}
+		string text = (snapshot.Connected ? "1" : "0") + "|" + details + "|" + state + "|" + (connectedSinceUnixSeconds?.ToString() ?? "0");
+		if (string.Equals(lastPresenceKey, text, StringComparison.Ordinal))
+		{
+			return;
 		}
 		RpcEnvelope rpcEnvelope = new RpcEnvelope
 		{
@@ -189,12 +229,14 @@ internal sealed class DiscordRpcService : IDisposable
 				{
 					Details = details,
 					State = state,
-					Timestamps = snapshot.Connected ? new { start = DateTimeOffset.UtcNow.ToUnixTimeSeconds() } : null
+					Timestamps = snapshot.Connected && connectedSinceUnixSeconds.HasValue ? new { start = connectedSinceUnixSeconds.Value } : null
 				}
 			},
 			Nonce = Guid.NewGuid().ToString("N")
 		};
 		await WriteFrameAsync(1, rpcEnvelope).ConfigureAwait(false);
+		ValidateDiscordFrame(await ReadFrameAsync().ConfigureAwait(false));
+		lastPresenceKey = text;
 	}
 
 	private sealed class RpcEnvelope
@@ -232,7 +274,16 @@ internal sealed class DiscordRpcService : IDisposable
 		await localStream.FlushAsync().ConfigureAwait(false);
 	}
 
-	private async Task ReadFrameAsync()
+	private sealed class RpcFrame
+	{
+		public int Opcode { get; init; }
+
+		public byte[] Payload { get; init; } = Array.Empty<byte>();
+
+		public JsonDocument? Json { get; init; }
+	}
+
+	private async Task<RpcFrame> ReadFrameAsync()
 	{
 		Stream? localStream;
 		lock (syncRoot)
@@ -241,17 +292,26 @@ internal sealed class DiscordRpcService : IDisposable
 		}
 		if (localStream == null)
 		{
-			return;
+			return new RpcFrame();
 		}
 		byte[] header = new byte[8];
 		await ReadExactAsync(localStream, header, 0, header.Length).ConfigureAwait(false);
 		int payloadLength = BitConverter.ToInt32(header, 4);
 		if (payloadLength <= 0)
 		{
-			return;
+			return new RpcFrame
+			{
+				Opcode = BitConverter.ToInt32(header, 0)
+			};
 		}
 		byte[] payload = new byte[payloadLength];
 		await ReadExactAsync(localStream, payload, 0, payloadLength).ConfigureAwait(false);
+		return new RpcFrame
+		{
+			Opcode = BitConverter.ToInt32(header, 0),
+			Payload = payload,
+			Json = TryParseJson(payload)
+		};
 	}
 
 	private static async Task ReadExactAsync(Stream stream, byte[] buffer, int offset, int length)
@@ -278,6 +338,128 @@ internal sealed class DiscordRpcService : IDisposable
 			pipe?.Dispose();
 			pipe = null;
 		}
+		lastPresenceKey = null;
+	}
+
+	private void HandlePresenceChanged()
+	{
+		if (!disposed)
+		{
+			_ = TickAsync();
+		}
+	}
+
+	private static JsonDocument? TryParseJson(byte[] payload)
+	{
+		try
+		{
+			return JsonDocument.Parse(payload);
+		}
+		catch
+		{
+			return null;
+		}
+	}
+
+	private static void ValidateDiscordFrame(RpcFrame frame)
+	{
+		if (frame.Opcode == 2)
+		{
+			throw new IOException("Discord RPC closed the pipe.");
+		}
+		if (frame.Opcode != 1)
+		{
+			throw new IOException("Unexpected Discord RPC opcode " + frame.Opcode + ".");
+		}
+		if (frame.Json == null)
+		{
+			return;
+		}
+		JsonElement rootElement = frame.Json.RootElement;
+		if (rootElement.TryGetProperty("evt", out JsonElement jsonElement) && string.Equals(jsonElement.GetString(), "ERROR", StringComparison.OrdinalIgnoreCase))
+		{
+			throw new IOException(ReadDiscordError(rootElement) ?? "Discord RPC rejected the payload.");
+		}
+		if (rootElement.TryGetProperty("data", out JsonElement jsonElement2) && jsonElement2.ValueKind == JsonValueKind.Object && jsonElement2.TryGetProperty("message", out JsonElement jsonElement3))
+		{
+			string? stringValue = jsonElement3.GetString();
+			if (!string.IsNullOrWhiteSpace(stringValue) && rootElement.TryGetProperty("evt", out JsonElement jsonElement4) && string.Equals(jsonElement4.GetString(), "ERROR", StringComparison.OrdinalIgnoreCase))
+			{
+				throw new IOException(stringValue);
+			}
+		}
+	}
+
+	private static string? ReadDiscordError(JsonElement rootElement)
+	{
+		if (!rootElement.TryGetProperty("data", out JsonElement jsonElement) || jsonElement.ValueKind != JsonValueKind.Object)
+		{
+			return null;
+		}
+		if (jsonElement.TryGetProperty("message", out JsonElement jsonElement2))
+		{
+			return jsonElement2.GetString();
+		}
+		return null;
+	}
+
+	private static string ClampText(string value, int maxLength)
+	{
+		string text = TrimOrNull(value) ?? string.Empty;
+		if (text.Length <= maxLength)
+		{
+			return text;
+		}
+		return text.Substring(0, Math.Max(0, maxLength - 3)) + "...";
+	}
+
+	private static string BuildPresenceState(RuntimePresenceSnapshot snapshot)
+	{
+		if (!snapshot.Connected)
+		{
+			return "Not Connected To A Console";
+		}
+		string motherboard = NormalizePresenceValue(snapshot.Motherboard) ?? string.Empty;
+		string dashboard = snapshot.DashboardVersion.HasValue ? snapshot.DashboardVersion.Value.ToString() : string.Empty;
+		string titleSegment = NormalizePresenceValue(snapshot.TitleName) ?? string.Empty;
+		string connectedSegment = string.IsNullOrWhiteSpace(motherboard) ? "Connected To RGH" : ("Connected To RGH " + motherboard);
+		string[] fullSegments = new string[3]
+		{
+			connectedSegment,
+			dashboard,
+			titleSegment
+		};
+		string state = JoinPresenceSegments(fullSegments);
+		if (state.Length <= MaxStateLength)
+		{
+			return state;
+		}
+		string[] compactSegments = string.IsNullOrWhiteSpace(dashboard) ? new string[1] { connectedSegment } : new string[2]
+		{
+			connectedSegment,
+			dashboard
+		};
+		state = JoinPresenceSegments(compactSegments);
+		if (state.Length <= MaxStateLength)
+		{
+			return state;
+		}
+		return connectedSegment;
+	}
+
+	private static string JoinPresenceSegments(params string[] segments)
+	{
+		return string.Join(" | ", segments.Where(static segment => !string.IsNullOrWhiteSpace(segment)));
+	}
+
+	private static string? NormalizePresenceValue(string? value)
+	{
+		string? text = TrimOrNull(value);
+		if (text == null || string.Equals(text, "unknown", StringComparison.OrdinalIgnoreCase) || string.Equals(text, "--", StringComparison.Ordinal))
+		{
+			return null;
+		}
+		return text;
 	}
 
 	private static string? TrimOrNull(string? value)

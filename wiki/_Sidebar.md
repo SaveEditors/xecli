@@ -34,3 +34,7 @@
 
 - [Latest Release](https://github.com/SaveEditors/xecli/releases/latest)
 - [Repository](https://github.com/SaveEditors/xecli)
+
+## Legal
+- [Terms of Service](Terms-of-Service)
+- [Privacy Policy](Privacy-Policy)

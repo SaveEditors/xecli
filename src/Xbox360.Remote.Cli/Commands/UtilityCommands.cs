@@ -123,67 +123,38 @@ public sealed class StatusCommand : AsyncCommand<StatusCommand.Settings> {
                 }
             }
 
+            ProfileHelpers.ResolvedIdentityInfo? resolvedIdentity = null;
             if (!skipUsers) {
-                try {
-                    users = await client.GetUserListAsync(CancellationToken.None);
-                }
-                catch {
-                    // ignored
-                }
-            }
-            ProfileHelpers.XamUserInfo? xamUser = null;
-            if (!skipUsers && (users == null || users.Count == 0)) {
-                try {
-                    xamUser = await ProfileHelpers.TryGetSignedInXamUserAsync(ip, port, timeout, CancellationToken.None);
-                    if (xamUser != null) {
-                        users = new[] {
-                            new XbdmUserInfo {
-                                Gamertag = xamUser.Gamertag,
-                                Xuid = xamUser.Xuid != null && ulong.TryParse(xamUser.Xuid.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong parsedXuid)
-                                    ? parsedXuid
-                                    : null,
-                                SignInState = xamUser.SignInState,
-                                RawLine = $"xam slot={xamUser.Slot}"
-                            }
-                        };
-                    }
-                }
-                catch {
-                    // ignored
+                resolvedIdentity = await ProfileHelpers.ResolveSignedInIdentityAsync(
+                    client,
+                    ip,
+                    port,
+                    timeout,
+                    CliConfig.Load(),
+                    allowF3: true,
+                    allowProfilePackage: true,
+                    CancellationToken.None);
+
+                users = resolvedIdentity.Users;
+                if ((users == null || users.Count == 0) && resolvedIdentity.XamUser != null) {
+                    users = new[] {
+                        new XbdmUserInfo {
+                            Gamertag = resolvedIdentity.XamUser.Gamertag,
+                            Xuid = resolvedIdentity.XamUser.Xuid != null &&
+                                   ulong.TryParse(resolvedIdentity.XamUser.Xuid.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong parsedXuid)
+                                ? parsedXuid
+                                : null,
+                            SignInState = resolvedIdentity.XamUser.SignInState,
+                            RawLine = $"xam slot={resolvedIdentity.XamUser.Slot}"
+                        }
+                    };
                 }
             }
 
-            XbdmUserInfo? signedInUserInfo = users?.FirstOrDefault(u =>
-                    u.SignInState.HasValue && u.SignInState.Value > 0 && !string.IsNullOrWhiteSpace(u.Gamertag))
-                ?? users?.FirstOrDefault(u => !string.IsNullOrWhiteSpace(u.Gamertag));
-            string? signedInUser = signedInUserInfo?.Gamertag;
-            string? signedInXuid = signedInUserInfo?.Xuid.HasValue == true ? $"0x{signedInUserInfo.Xuid.Value:X16}" : null;
-            uint? signInStateValue = signedInUserInfo?.SignInState;
-
-            if (string.IsNullOrWhiteSpace(signedInUser) && !skipUsers) {
-                try {
-                    f3Profiles = await ProfileHelpers.TryGetF3ProfilesAsync(ip);
-                }
-                catch {
-                    // ignored
-                }
-            }
-
-            ProfileHelpers.F3ProfileInfo? signedInF3Profile = f3Profiles?.FirstOrDefault(p => p.SignedIn == 1 && !string.IsNullOrWhiteSpace(p.Gamertag));
-            if (string.IsNullOrWhiteSpace(signedInUser) && signedInF3Profile != null) {
-                signedInUser = signedInF3Profile.Gamertag;
-                signedInXuid ??= signedInF3Profile.Xuid;
-            }
-            if (string.IsNullOrWhiteSpace(signedInUser) && xamUser != null) {
-                signedInUser = xamUser.Gamertag;
-                signedInXuid ??= xamUser.Xuid;
-            }
-            signInStateValue ??= xamUser?.SignInState;
-
-            bool isSignedIn = !string.IsNullOrWhiteSpace(signedInUser) || (signInStateValue.HasValue && signInStateValue.Value > 0);
-            string signInStateText = signInStateValue.HasValue
-                ? HardwareHelpers.DescribeSignInState(signInStateValue.Value)
-                : (isSignedIn ? "Signed in" : "Not signed in");
+            string? signedInUser = resolvedIdentity?.Gamertag;
+            string? signedInXuid = resolvedIdentity?.Xuid;
+            bool isSignedIn = resolvedIdentity?.IsSignedIn ?? false;
+            string signInStateText = resolvedIdentity?.SignInStateText ?? "Not signed in";
 
             string? titleName = null;
             if (titleId.HasValue && TitleIdDatabase.Instance.TryResolve(titleId.Value, null, out TitleIdEntry? entry)) {

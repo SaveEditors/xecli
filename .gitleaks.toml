@@ -1,0 +1,12 @@
+title = "XeCLI secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "JRPC2 CPU-key failure code is a public error identifier, not a credential."
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+regexes = ['''JRPC2_CPU_KEY_FAILED''']
+paths = ['''(^|.*/)src/Xbox360\.Remote\.Cli/Commands/Jrpc2Commands\.cs$''']

@@ -1,0 +1,46 @@
+name: Feature request
+description: Propose a new workflow, command, or integration for XeCLI.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the user problem first, then the feature. The best requests explain why the workflow matters to RGH/JTAG users and how it should behave in the CLI or XeTerminal.
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      description: Which subsystem this belongs to
+      placeholder: XeTerminal, discovery, XBDM, JRPC2, FTP, XEX, memory, Ghidra, release
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What is hard, slow, missing, or inconsistent today
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Command shape, options, defaults, or output format
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example usage
+      description: Show one or more realistic command examples
+      render: bash
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false

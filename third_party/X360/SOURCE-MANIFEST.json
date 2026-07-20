@@ -1,0 +1,210 @@
+{
+  "SchemaVersion": 1,
+  "Component": "X360.dll",
+  "License": "GPL-3.0-only",
+  "Upstream": {
+    "Repository": "https://github.com/mtolly/X360",
+    "Revision": "573dda3cd841ba370b2110567a6b4ee2b7099c9c",
+    "Version": "1.0.0.41",
+    "SourceArchiveSha256": "D8A6EF4F9A176DB6FCF3AB7FF8EDF20F73BBF4BC40469666395A40DEFAC8E8B7",
+    "BinaryArchiveSha256": "1D1FAAA1AEDCA584F6FD791504E34A0EB6098A6A964FB2FC24805B3F9DDB562B"
+  },
+  "MaintainedVersion": "1.0.0.42",
+  "ModifiedDate": "2026-07-19",
+  "Build": {
+    "Project": "src/X360/X360.csproj",
+    "Configuration": "Release",
+    "Platform": "AnyCPU",
+    "TargetFramework": ".NET Framework 3.5",
+    "Output": "lib/X360.dll",
+    "Sha256": "F90691B92A91FFA941BB111039DE031907A82A510C777231FE9C6D356DA437A9",
+    "Length": 210944
+  },
+  "Files": [
+    {
+      "Path": "build.ps1",
+      "Length": 2706,
+      "Sha256": "7D2AFF4BCB62A0E6D6729367DD68589F8AF311DD081BBE013507EFAA99A211CB"
+    },
+    {
+      "Path": "lib/X360.dll",
+      "Length": 210944,
+      "Sha256": "F90691B92A91FFA941BB111039DE031907A82A510C777231FE9C6D356DA437A9"
+    },
+    {
+      "Path": "README.md",
+      "Length": 2308,
+      "Sha256": "27029376CD13A4CE7B10E5EEA53B74E1FABE44AD3EB4FFEEB7266B2194483BCE"
+    },
+    {
+      "Path": "src/X360/FATX/Entries.cs",
+      "Length": 41360,
+      "Sha256": "06A83FFAA954EF17058EA1F07E73C475DEEB1789E57AD104E3194E346F8B1D1B"
+    },
+    {
+      "Path": "src/X360/FATX/Management.cs",
+      "Length": 28674,
+      "Sha256": "CF68CD323072B0B83BF135A88A20DF3866828C59E76BB2EE3EB843954D3B9E21"
+    },
+    {
+      "Path": "src/X360/GDFX/Create.cs",
+      "Length": 3503,
+      "Sha256": "63CA7E4DFF086867AB0DC5F60CE399C460542BD93C53D603CCD03CFC16E6DDFB"
+    },
+    {
+      "Path": "src/X360/GDFX/GDFImage.cs",
+      "Length": 19198,
+      "Sha256": "65160FBE2F002CF7650A6D5869970A3993D6AB28029D9D6BD11A8E9E68F63F00"
+    },
+    {
+      "Path": "src/X360/IO/DJsIO.cs",
+      "Length": 88076,
+      "Sha256": "DF7BBF965943187094F04D0E2652B92D0209E10A67D5DC537EB74811AC9737CF"
+    },
+    {
+      "Path": "src/X360/Media/Music.cs",
+      "Length": 4525,
+      "Sha256": "C9FDB0F67705CF400918A4AF65DF180C4440120A43288DB8FCA8132E58039360"
+    },
+    {
+      "Path": "src/X360/Other/Other.cs",
+      "Length": 33593,
+      "Sha256": "E2B015B522BBD79BF8D196C8818CA1E88A8FE91996230AC446A3FE30B52C3C4E"
+    },
+    {
+      "Path": "src/X360/Profile/DashGPD.cs",
+      "Length": 23174,
+      "Sha256": "F00F0D7EA8B03CE99C70484CCF3B1AA2C28539EA2D4C1B2E08A5C6EA83947C12"
+    },
+    {
+      "Path": "src/X360/Profile/GameGPD.cs",
+      "Length": 15272,
+      "Sha256": "95AE6FE6C599CFD6C7C4ED631595303A4F09F359098E4AA56AE10FDFB155C791"
+    },
+    {
+      "Path": "src/X360/Profile/GPD.cs",
+      "Length": 73852,
+      "Sha256": "E3DA3FF9EDF2D791D7822415CB68F4D442A061343A0E197BA1AC73DDBC6DDB06"
+    },
+    {
+      "Path": "src/X360/Profile/ProfilePackage.cs",
+      "Length": 15971,
+      "Sha256": "507DE21A7B97166BA7D82CF6F3584492E4BFAA65DFF3654BDDC6416AC9A4F72D"
+    },
+    {
+      "Path": "src/X360/Profile/ProfileTools.cs",
+      "Length": 13149,
+      "Sha256": "A325800F8BE2F21376C1ABCFE93D249BCA1F56586EE759E1A31A20955953FC6E"
+    },
+    {
+      "Path": "src/X360/Properties/AssemblyInfo.cs",
+      "Length": 2122,
+      "Sha256": "A29CCB13972150989E46009D9D33F3B64BA13C773DCE942A3C4F8A6BEE3D09BA"
+    },
+    {
+      "Path": "src/X360/Properties/Resources.Designer.cs",
+      "Length": 5314,
+      "Sha256": "C7F0B6F55A3640FBC9DED61008B27825B5FD80F56FE46C08FE6274BC78E91075"
+    },
+    {
+      "Path": "src/X360/Properties/Resources.resx",
+      "Length": 7751,
+      "Sha256": "AE49D9F526EC4FB22ECBBEB9B91A48C04F38EB02B776613271FC8FD4F4A26A3D"
+    },
+    {
+      "Path": "src/X360/Properties/Settings.Designer.cs",
+      "Length": 1085,
+      "Sha256": "15050C52A07E26FE6FF6058A86F1A105CCAFB7BD21289E403C09DE486D4C88E9"
+    },
+    {
+      "Path": "src/X360/Properties/Settings.settings",
+      "Length": 249,
+      "Sha256": "F6A4290723520CADDD934B8800319C7CA6CC7EEAB647059EC89B7A13B1513265"
+    },
+    {
+      "Path": "src/X360/Resources.cs",
+      "Length": 1244,
+      "Sha256": "28C3F8FC51A250C1F07B9118C659BED7D66E2873500B6BB9F884944366EC8903"
+    },
+    {
+      "Path": "src/X360/Resources/GPL30.txt",
+      "Length": 33091,
+      "Sha256": "57D8EF40B72569EF4C2782B3CDCE3056215E05562D57C3D396AE088B99CCF3D4"
+    },
+    {
+      "Path": "src/X360/Resources/XK0.bin",
+      "Length": 128,
+      "Sha256": "61B42EDAC795D198F7665C3BA8DCC4055FFD25F8187AAC0825FA0D6AE0D4EE09"
+    },
+    {
+      "Path": "src/X360/Resources/XK1.bin",
+      "Length": 256,
+      "Sha256": "13BB7BDA8DBB6BA3275602887561EF06CF85DF250F8A4FE1A47B7D0F72ACB1EF"
+    },
+    {
+      "Path": "src/X360/Resources/XK2.bin",
+      "Length": 256,
+      "Sha256": "73E2976B3AC12A0667F46A382DB16E6F900B4D2F06B081BDEFE30A706CC2EAD5"
+    },
+    {
+      "Path": "src/X360/Resources/XK3.bin",
+      "Length": 256,
+      "Sha256": "F1AA728D64E221BBDCB437FA13F4597B4D5B5F92311893138FD6409BAEC29227"
+    },
+    {
+      "Path": "src/X360/Resources/XK4.bin",
+      "Length": 896,
+      "Sha256": "121A6596F257EE3FB9505E9294E20466A54EF06175BAC27D9F7B2E7CAFCCBB44"
+    },
+    {
+      "Path": "src/X360/Resources/XK5.bin",
+      "Length": 896,
+      "Sha256": "29C7725DDDCA05B532B71C845321C02A05A0475DA82A23DCB916439D306DA5C2"
+    },
+    {
+      "Path": "src/X360/Resources/XK6.bin",
+      "Length": 256,
+      "Sha256": "2787B958E03919831E9BA80D4AFF88ACC0ED41D4E5FE46A4AFE5D7E91777D272"
+    },
+    {
+      "Path": "src/X360/Security/Cryptography.cs",
+      "Length": 17524,
+      "Sha256": "741E44F8B2236BE874FA3EE29CB0215ADC23C801E04B20AB0328EC66DCC34EBB"
+    },
+    {
+      "Path": "src/X360/STFS/Create.cs",
+      "Length": 14922,
+      "Sha256": "A37F1C5DD14697E7DE12FDD8245665172D0B0996ED3E09FC40810E5A8972DFA0"
+    },
+    {
+      "Path": "src/X360/STFS/STFSDescriptor.cs",
+      "Length": 15650,
+      "Sha256": "D40908A645CCEA76413D2D9985EE2971B45315A00261F3FAD518607C169E36FE"
+    },
+    {
+      "Path": "src/X360/STFS/STFSPackage.cs",
+      "Length": 131990,
+      "Sha256": "F2F3DC5777B130FDDBAE5D1A53EE38018FD1D19AD7809768F5790DE55F9FF806"
+    },
+    {
+      "Path": "src/X360/STFS/STFSStuff.cs",
+      "Length": 16354,
+      "Sha256": "9F89ED46B5D80C31389239C1AD43548EB238AFC10E28C17A1EE137B11181AFE6"
+    },
+    {
+      "Path": "src/X360/SVOD/Create.cs",
+      "Length": 8494,
+      "Sha256": "A5525F991F2A7962F0D4EF495EA7F86D7C1A737F2F31DA26A10CB1D542486F31"
+    },
+    {
+      "Path": "src/X360/SVOD/SVODPackage.cs",
+      "Length": 14299,
+      "Sha256": "AC99C6DAB149D23DDFD1E9461A420B7B727E8106767CF8B51903CB67E989C587"
+    },
+    {
+      "Path": "src/X360/X360.csproj",
+      "Length": 5468,
+      "Sha256": "B0730B7300B41F2DFDCBA9E263E76A40F9B4723A4DA5A731F934324620346D00"
+    }
+  ]
+}

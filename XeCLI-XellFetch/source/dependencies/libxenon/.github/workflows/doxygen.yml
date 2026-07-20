@@ -1,0 +1,24 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore: 
+      - README.md
+
+jobs:
+  build_documentation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build documentation
+        uses: mattnotmitt/doxygen-action@v1.9.5
+
+      - name: Deploy to github pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/html
+          destination_dir: docs

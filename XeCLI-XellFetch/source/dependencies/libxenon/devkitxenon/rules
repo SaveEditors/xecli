@@ -1,0 +1,64 @@
+# parts taken from devkitppc
+
+PREFIX	:=	xenon-
+
+export AS		:=	$(PREFIX)as
+export CC		:=	$(PREFIX)gcc
+export CXX		:=	$(PREFIX)g++
+export AR		:=	$(PREFIX)ar
+export OBJCOPY	:=	$(PREFIX)objcopy
+
+LDSCRIPT := $(DEVKITXENON)/app.lds
+
+%.a:
+	@echo [$(notdir $@)]
+	@rm -f $@
+	@$(AR) -rc $@ $^
+
+%.o: %.cpp
+	@echo [$(notdir $<)]
+	@$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c $< -o $@
+	
+%.o: %.cc
+	@echo [$(notdir $<)]
+	@$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c $< -o $@
+
+%.o: %.c
+	@echo [$(notdir $<)]
+	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c $< -o $@
+
+%.o: %.m
+	@echo [$(notdir $<)]
+	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(OBJCFLAGS) -c $< -o $@
+
+%.o: %.s
+	@echo ($(notdir $<)]
+	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d -x assembler-with-cpp $(ASFLAGS) -c $< -o $@
+
+%.o: %.S
+	@echo [$(notdir $<)]
+	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d -x assembler-with-cpp $(ASFLAGS) -c $< -o $@
+
+%.elf:
+	@echo linking ... $(notdir $@)
+	@$(LD)  $^ $(LDFLAGS) $(LIBPATHS) $(LIBS) -n -T $(LDSCRIPT) -o $@
+
+%.elf32: %.elf
+	@echo converting and stripping ... $(notdir $@)
+	@$(OBJCOPY) -O elf32-powerpc --adjust-vma 0x80000000 $< $@
+	@$(PREFIX)strip $@
+
+#---------------------------------------------------------------------------------
+# canned command sequence for binary data
+#---------------------------------------------------------------------------------
+define bin2o
+	bin2s $< | $(AS) -a32 -o $(@)
+	echo "extern const u8" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(<F) | tr . _)`.h
+	echo "extern const u8" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(<F) | tr . _)`.h
+	echo "extern const u32" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(<F) | tr . _)`.h
+endef
+
+export	LIBXENON_INC	:=	$(DEVKITXENON)/usr/include
+export	LIBXENON_LIB	:=	$(DEVKITXENON)/usr/lib
+
+MACHDEP =  -DXENON -m32 -maltivec -fno-pic -mpowerpc64 -mhard-float -L$(DEVKITXENON)/xenon/lib/32

@@ -1,0 +1,76 @@
+# Build and IDE output
+**/bin/
+**/obj/
+/.vs/
+/.vscode/
+*.user
+*.suo
+
+# Publish and packaging output
+/out/
+/publish/
+/dist/
+/release/
+/tmp/
+/tmp-*/
+*.zip
+
+# Local application state
+/.dotnet-home/
+/.local-appdata/
+/config.json
+/titleids.local.csv
+/titleids.csv
+/titleids.discovered.csv
+
+# Captures, diagnostics, and generated analysis
+/artifacts/
+/captures/
+/decomp/
+/dumps/
+*.dmp
+*.mdmp
+*.etl
+*.pcap
+*.pcapng
+*.har
+*.sarif
+*.idb
+*.i64
+*.id0
+*.id1
+*.id2
+*.nam
+*.til
+
+# Binary console payloads are ignored unless they are intentional source assets.
+*.bin
+*.xex
+!/xbdm.xex
+!/XDRPC.xex
+!/JRPC2.xex
+!/Assets/XellLaunch/xell.bin
+!/Assets/QuickBoot/default.xex
+!/Assets/XellLaunch/default.xex
+!/XeCLI-XellFetch/payload/xell.bin
+!/XeCLI-XellFetch/launch/QuickBoot/default.xex
+!/XeCLI-XellFetch/launch/XellLaunch/default.xex
+!/third_party/X360/src/X360/Resources/*.bin
+!/XeCLI-XellFetch/source/**
+
+# Generated language/resource folders from loose publish output
+/cs/
+/de/
+/es/
+/fr/
+/it/
+/ja/
+/ko/
+/pl/
+/pt/
+/pt-BR/
+/ru/
+/sv/
+/tr/
+/zh-Hans/
+/zh-Hant/

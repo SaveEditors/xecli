@@ -1,0 +1,94 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>rgh</AssemblyName>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <InformationalVersion>2.0.0</InformationalVersion>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ApplicationIcon>..\..\Assets\icon.ico</ApplicationIcon>
+    <QuickBootX360DllPath>$(MSBuildThisFileDirectory)..\..\third_party\X360\lib\X360.dll</QuickBootX360DllPath>
+    <QuickBootX360DllSha256>F90691B92A91FFA941BB111039DE031907A82A510C777231FE9C6D356DA437A9</QuickBootX360DllSha256>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\\Xbox360.Remote\\Xbox360.Remote.csproj" />
+    <ProjectReference Include="..\\Xbox360.Fatx\\Xbox360.Fatx.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SharpCompress stays pinned to stable 0.48.1 in shipping builds. -->
+    <PackageReference Include="SharpCompress" Version="0.48.1" />
+    <PackageReference Include="Spectre.Console" Version="0.50.0" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.50.0" />
+    <PackageReference Include="FluentFTP" Version="52.1.0" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Localization\LocalizedDescriptionAttribute.cs" Link="Localization\LocalizedDescriptionAttribute.cs" />
+    <Compile Include="..\..\Localization\LocalizedText.cs" Link="Localization\LocalizedText.cs" />
+    <Compile Include="..\..\Localization\LocalizedText.Catalog.g.cs" Link="Localization\LocalizedText.Catalog.g.cs" />
+    <Compile Include="..\..\Localization\LocalizedConsole.cs" Link="Localization\LocalizedConsole.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\ghidra_scripts\*.java" Link="ghidra_scripts\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\ida_scripts\*.py" Link="ida_scripts\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\XeCLI-XellFetch\launch\XellLaunch\default.xex" Link="Assets\XellLaunch\default.xex">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\XeCLI-XellFetch\payload\xell.bin" Link="Assets\XellLaunch\xell.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\XeCLI-XellFetch\launch\QuickBoot\default.xex" Link="Assets\QuickBoot\default.xex">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\third_party\X360\lib\X360.dll" Link="Assets\QuickBoot\X360.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="..\..\Assets\xecli-logo.jpg" Link="Assets\xecli-logo.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\LICENSE" Link="LICENSE">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="VerifyQuickBootX360Dll" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(QuickBootX360DllPath)')" Text="QuickBoot X360.dll was not found at $(QuickBootX360DllPath)." />
+    <GetFileHash Files="$(QuickBootX360DllPath)" Algorithm="SHA256" Condition="Exists('$(QuickBootX360DllPath)')">
+      <Output TaskParameter="Items" ItemName="_QuickBootX360DllHash" />
+    </GetFileHash>
+    <Error Condition="'@(_QuickBootX360DllHash->'%(FileHash)')' != '$(QuickBootX360DllSha256)'" Text="QuickBoot X360.dll must be the source-built GPLv3 distribution with SHA-256 $(QuickBootX360DllSha256)." />
+  </Target>
+
+</Project>

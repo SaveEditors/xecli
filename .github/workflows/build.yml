@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: src/**/packages.lock.json
+
+      - name: Restore locked dependencies
+        run: dotnet restore XeCLI.sln --locked-mode --runtime win-x64
+
+      - name: Build release configuration
+        run: dotnet build XeCLI.sln --configuration Release --no-restore --warnaserror -p:ContinuousIntegrationBuild=true

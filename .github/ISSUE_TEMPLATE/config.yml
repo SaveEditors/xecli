@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/SaveEditors/xecli/security/advisories/new
+    about: Report security concerns privately. Do not include vulnerability details in a public issue.
+  - name: XeCLI Wiki
+    url: https://github.com/SaveEditors/xecli/wiki
+    about: Read setup, command, and troubleshooting documentation before filing an issue.

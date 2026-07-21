@@ -12,28 +12,93 @@ There are three useful ways to integrate with XeCLI:
 Use the smallest integration surface that solves the problem.
 
 ## Automation Tools
-XeCLI fits automation tools and scripted workflows because the command surface is explicit, copy-paste friendly, and often exposes `--json` for structured output.
+XeCLI is designed to work as a process-oriented automation layer. An external tool can invoke `rgh`, inspect the exit code, consume structured output, and retain redacted reports or transcripts without embedding XBDM, JRPC2, FTP, FATX, XEX, or package-handling code.
 
-Good automation tasks:
+There is no separate automation service to configure. The command line is the integration boundary, and the caller receives only the access already available to the local XeCLI process and its selected console target.
 
-- connect to the saved console target and verify live state
-- capture screenshots or pull files for local analysis
-- run repeatable FTP-backed maintenance steps
-- dump the running XEX and feed it into a Ghidra or IDA workflow
-- collect sign-in, title, module, or content snapshots for another tool
+### Automation Surface
 
-Recommended pattern:
+| Need | XeCLI surface | Automation contract |
+| --- | --- | --- |
+| Run repeatable command files | `rgh script run`, `rgh script replay` | Validate with `--dry-run`, explicitly allow live commands, and retain a redacted transcript |
+| Select and validate targets | `rgh target-saved`, `rgh health`, `rgh network` | Use a named target instead of discovery and check local state before contacting a console |
+| Create structured snapshots | `rgh report`, `rgh report-profile` | Emit Markdown, HTML, CSV, or JSON; compare saved reports offline |
+| Read live state | `status`, `profiles`, `title`, `signin`, `modules`, `mem`, `content`, and other commands with `--json` | Parse JSON and use the process exit code instead of scraping terminal tables |
+| Transfer and compare files | `rgh ftp`, `rgh fs`, `rgh save`, `rgh content` | Preview supported writes with `--dry-run`; use hashes, diffs, resume, and transfer summaries where available |
+| Capture and compare memory state | `rgh mem map`, `mem compare`, `mem dump-compare`, `mem-bookmarks` | Save machine-readable snapshots and perform comparisons or bookmark work offline |
+| Automate reverse engineering | `rgh xex`, `rgh ghidra`, `rgh ida` | Build analysis bundles, run headless tools, verify output, and exchange symbol sidecars |
+| Plan storage changes | `rgh xtaf patch plan`, `rgh xtaf patch apply` | Generate a patch manifest, preview it, and apply only when the baseline still matches |
+| Preserve an audit trail | `rgh log`, `rgh diagnostics`, `rgh support` | Export local history or create redacted diagnostic artifacts |
+| Configure shells | `rgh completion` | Emit completion scripts for PowerShell, Bash, or Zsh to standard output |
+| Check release packages | `rgh release check` | Maintainer-only validation of a publish directory, archive, and checksum metadata |
+
+### Recommended Execution Contract
+
+For reliable automation:
+
+1. Select an explicit saved target instead of relying on discovery.
+2. Run `rgh health --json` and `rgh target-saved validate --json` before a live workflow.
+3. Prefer `--json`, CSV, or a documented output file over terminal-table parsing.
+4. Preview supported write operations with `--dry-run`.
+5. Require an explicit operator decision before allowing live, destructive, reboot, or confirmation-gated commands.
+6. Use completion options such as `--wait` when the workflow must confirm an observed state change instead of only receiving a request acknowledgement.
+7. Retain redacted transcripts, reports, or exported logs when the workflow needs an audit trail.
+
+Do not place keyvaults, credentials, CPU keys, unredacted reports, or other private console data in shared command files or logs. Keep those files local and pass private values only where the selected workflow explicitly requires them.
+
+### Command Files and Transcripts
+
+`rgh script run` reads one XeCLI command per line. A dry run validates and classifies the file without executing its child commands. Live or destructive entries remain blocked unless the caller deliberately adds `--allow-live`.
 
 ```powershell
-rgh connect <console-ip>
-rgh ftp target --set <console-ip> --user <ftp-user> --pass <ftp-pass>
-rgh status --json
-rgh title --json
-rgh screenshot --out .\screen.bmp
-rgh ftp list --path /Hdd1/
+rgh script run .\workflow.txt --dry-run
+rgh script run .\workflow.txt --allow-live --transcript-out .\workflow-transcript.json
+rgh script replay .\workflow-transcript.json --dry-run
 ```
 
-Avoid interactive flows such as `rgh start`, `rgh avatar choose`, or confirmation-gated destructive commands when the caller is unattended automation. Prefer explicit arguments and JSON output where available.
+The transcript is structured and redacted. Replay is offline and never reruns the saved child commands. The compatibility alias `rgh batch` reaches the same command tree, but new integrations should use `rgh script`.
+
+### Targets, Preflight, and Reports
+
+Named targets and report profiles make repeated jobs deterministic:
+
+```powershell
+rgh target-saved validate --json
+rgh target-saved use home --json
+rgh health --json
+rgh status --json
+
+rgh report-profile add operator-review --format json --include-modules --include-threads
+rgh report --report-profile operator-review --out .\console-report.json
+rgh report --left .\report-before.json --right .\report-after.json --format json
+```
+
+Reports redact console and network identifiers by default. Add `--include-private` only for output that remains under the operator's control.
+
+### Previewable Write Workflows
+
+Several write-capable command families expose planning or dry-run modes suitable for a review gate:
+
+```powershell
+rgh ftp put --path /Hdd1/Plugins --in .\Plugins --recursive --dry-run --json
+rgh ftp sync --direction upload --path /Hdd1/Plugins --in .\Plugins --recursive --dry-run --json
+rgh trainer apply --file .\trainer.json --dry-run
+rgh avatar install --contentid <CONTENT-ID> --current-user --dry-run
+rgh xtaf patch apply --patch .\xtaf-patch.json --image .\hdd.img --dry-run --json
+```
+
+A successful preview is not permission to perform the write. The caller should present the plan and require an explicit decision before removing `--dry-run` or adding an automatic-confirmation option.
+
+### Completion and Observed State Changes
+
+Some live commands distinguish an accepted request from an observed completion. Use the completion form when later steps depend on the result:
+
+```powershell
+rgh launch --xex Hdd1:\Aurora\Aurora.xex --wait
+rgh reboot --wait
+```
+
+Avoid interactive flows such as `rgh start`, `rgh avatar choose`, or confirmation-gated destructive commands in unattended jobs. Prefer explicit targets and arguments, and stop the workflow on any non-zero exit code.
 
 ## Use the CLI Directly
 XeCLI is useful as an orchestration layer when your tool needs live console interaction but you do not want to duplicate transport code.
@@ -266,7 +331,17 @@ Reimplement only if:
 | Notification banner on console | `rgh notify` |
 | Session/hardware indicator | `rgh led set` |
 | File pull/push | `rgh ftp ...` or `rgh fs ...` |
-| Automation-tool workflows | `rgh status --json`, `rgh title --json`, `rgh ftp ...`, `rgh screenshot` |
+| Command-file workflow | `rgh script run <FILE> --dry-run`, followed by an explicitly approved `--allow-live` run |
+| Offline transcript review | `rgh script replay <TRANSCRIPT> --dry-run` |
+| Saved target preflight | `rgh target-saved validate --json`, `rgh target-saved use <NAME> --json`, `rgh health --json` |
+| Structured console report | `rgh report --format json`, optionally with `rgh report-profile` |
+| Offline report comparison | `rgh report --left <FILE> --right <FILE> --format json` |
+| Transfer preview | `rgh ftp put ... --dry-run --json` or `rgh ftp sync ... --dry-run --json` |
+| Memory snapshot comparison | `rgh mem map --json`, `rgh mem compare`, or `rgh mem dump-compare --json` |
+| Symbol/bookmark exchange | `rgh ida export-symbols` or `rgh ghidra export-symbols`, then `rgh mem-bookmarks import` |
+| Storage patch review | `rgh xtaf patch plan`, then `rgh xtaf patch apply ... --dry-run --json` |
+| Audit and support artifacts | `rgh log export`, `rgh diagnostics bundle`, or `rgh support bundle` |
+| Shell completion | `rgh completion powershell`, `rgh completion bash`, or `rgh completion zsh` |
 | Running-XEX acquisition | `rgh xex dump` |
 | Decompile pipeline | `rgh ghidra decompile` + `rgh ghidra verify --json` or `rgh ida decompile` + `rgh ida verify --json` |
 | Save backup/import | `rgh save extract` / `rgh save inject` |
